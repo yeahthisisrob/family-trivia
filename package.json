@@ -1,0 +1,53 @@
+{
+  "name": "family-trivia",
+  "version": "0.1.0",
+  "main": "index.js",
+  "workspaces": [
+    "shared",
+    "frontend",
+    "cdk/lambda"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "just dev",
+    "dev:quick": "just quick",
+    "install:all": "cd cdk/lambda && npm ci && cd ../../frontend && npm ci && cd ../cdk && npm ci",
+    "generate:types": "openapi-typescript shared/schemas/api.openapi.yaml -o shared/generated/api-types.ts",
+    "validate:api": "redocly lint shared/schemas/api.openapi.yaml --skip-rule operation-4xx-response --skip-rule security-defined --skip-rule no-server-example.com --skip-rule info-license"
+  },
+  "keywords": [
+    "family",
+    "trivia",
+    "react",
+    "aws-cdk",
+    "bedrock",
+    "claude",
+    "ai"
+  ],
+  "author": "Rob D'Hondt",
+  "license": "MIT",
+  "description": "AI-powered family trivia, daily facts, and mini-games — built with React, AWS CDK, and Claude on Bedrock.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yeahthisisrob/family-trivia.git"
+  },
+  "homepage": "https://github.com/yeahthisisrob/family-trivia#readme",
+  "bugs": {
+    "url": "https://github.com/yeahthisisrob/family-trivia/issues"
+  },
+  "devDependencies": {
+    "@redocly/cli": "^2.25.1",
+    "openapi-typescript": "^7.13.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3",
+    "webpack": "^5.99.7",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.806.0",
+    "@types/aws-sdk": "^0.0.42",
+    "@types/node": "^22.15.24",
+    "aws-sdk": "^2.1692.0",
+    "axios": "^1.9.0"
+  }
+}

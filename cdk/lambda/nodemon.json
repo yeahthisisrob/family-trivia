@@ -1,0 +1,7 @@
+{
+  "watch": ["**/*.ts"],
+  "ignore": ["dist/", "node_modules/", "**/*.test.ts", "**/*.spec.ts"],
+  "ext": "ts",
+  "exec": "node build.js dev",
+  "delay": "1000"
+}
