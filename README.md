@@ -15,8 +15,6 @@ AI-powered daily trivia, facts, and mini-games for families — built with React
 
 _1946 — 2026_
 
-❦
-
 _She cared deeply, for every creature, for every story,_
 _with a heart as big as the elephants she loved._
 
