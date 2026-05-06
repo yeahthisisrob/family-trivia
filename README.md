@@ -43,6 +43,21 @@ Resources: [mhanational.org/may](https://mhanational.org/may)
 - **Notifications** — Comments, high scores, leader changes, Family Feud results.
 - **Timeline** — Scrollable feed of everyone's answers and facts, with threaded comments.
 
+## A look at it
+
+|  |  |
+|---|---|
+| ![Daily trivia carousel — what do you want to play?](docs/screenshots/01-trivia-flow.png) | ![Top-players podium](docs/screenshots/02-leaderboard.png) |
+| **Daily trivia & game-mode carousel** — pick a category or jump into a special challenge. | **Top players** — season-based podium with score, accuracy, and streak. |
+| ![Casino Rush start screen](docs/screenshots/03-casino-rush.png) | ![Slot Machine](docs/screenshots/04-slot-machine.png) |
+| **Casino Rush** — 3 questions, 60s each. Triple-or-bust difficulty multipliers. | **Slot Machine** — spin a random category and multiplier. |
+| ![Daily fact card with AI fun-fact button](docs/screenshots/05-fact-card.png) | ![Notifications panel](docs/screenshots/08-notifications.png) |
+| **Daily Facts** — share something about yourself. AI generates a fun-fact follow-up. | **Notifications** — comments, leader changes, Family Feud results. |
+
+![Family tree split view](docs/screenshots/07-family-tree.png)
+
+_Screenshots are captured from Storybook stories — see [`scripts/screenshot-stories.mjs`](scripts/screenshot-stories.mjs) to regenerate._
+
 ## Game modes
 
 | Mode | What it is | Cooldown |
