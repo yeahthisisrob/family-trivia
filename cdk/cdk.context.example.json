@@ -1,0 +1,7 @@
+{
+  "customDomain": "trivia.example.com",
+  "certificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id",
+  "googleClientId": "your-google-client-id.apps.googleusercontent.com",
+  "jwtSecret": "generate-a-random-64-char-hex-string-here",
+  "bedrockModelId": "us.anthropic.claude-sonnet-4-20250514-v1:0"
+}

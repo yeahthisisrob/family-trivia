@@ -1,0 +1,6 @@
+{
+  "REACT_APP_API_URL": "/api",
+  "REACT_APP_SITE_URL": "https://your-cloudfront-domain.cloudfront.net",
+  "REACT_APP_AUDIO_URL": "https://your-cloudfront-domain.cloudfront.net/audio",
+  "REACT_APP_GOOGLE_CLIENT_ID": "your-google-client-id.apps.googleusercontent.com"
+}

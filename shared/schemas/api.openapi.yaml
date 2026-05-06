@@ -1,0 +1,3681 @@
+openapi: 3.0.3
+info:
+  title: Family Trivia API
+  description: Backend API for the Family Trivia game
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3001
+    description: Local SAM development
+
+paths:
+  # ──────────────────────────────────────────────
+  # App Init
+  # ──────────────────────────────────────────────
+
+  /app-init:
+    get:
+      summary: "Critical init: config, hierarchy, season, activation"
+      operationId: getAppInit
+      tags: [App Init]
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Critical app data needed for first paint
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isFirstRun:
+                    type: boolean
+                  userConfig:
+                    type: object
+                  hierarchy:
+                    type: object
+                  seasonStatus:
+                    type: object
+                  memberActivation:
+                    type: object
+                  groupDescriptions:
+                    type: object
+                  questionAvailability:
+                    type: object
+                  categories:
+                    type: array
+                    items:
+                      type: object
+                  userCategories:
+                    type: array
+                    items:
+                      type: object
+
+  /app-init-deferred:
+    get:
+      summary: "Deferred init: timeline, catchup, games, feud"
+      operationId: getAppInitDeferred
+      tags: [App Init]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: side
+          in: query
+          schema:
+            type: string
+            default: all
+      responses:
+        "200":
+          description: Deferred data loaded after first paint
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timelineData:
+                    type: object
+                  timelinePagination:
+                    type: object
+                  familySides:
+                    type: object
+                  catchupStatus:
+                    type: object
+                  gameStatuses:
+                    type: object
+                  familyFeud:
+                    type: object
+
+  # ──────────────────────────────────────────────
+  # Authentication
+  # ──────────────────────────────────────────────
+
+  /validate-passphrase:
+    post:
+      summary: Validate user passphrase
+      operationId: validatePassphrase
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [passphrase]
+              properties:
+                passphrase:
+                  type: string
+      responses:
+        "200":
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  # ──────────────────────────────────────────────
+  # Members & Config
+  # ──────────────────────────────────────────────
+
+  /members:
+    get:
+      summary: Get members for a group
+      operationId: getMembers
+      tags: [Members & Config]
+      parameters:
+        - name: groupId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    userId:
+                      type: string
+                    activated:
+                      type: boolean
+
+  /user-config:
+    get:
+      summary: Get user configuration
+      operationId: getUserConfig
+      tags: [Members & Config]
+      responses:
+        "200":
+          description: User configuration data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                  lastUpdated:
+                    type: string
+                  users:
+                    type: object
+                    additionalProperties:
+                      $ref: "#/components/schemas/UserConfig"
+
+  /user-profile:
+    get:
+      summary: Get user profile
+      operationId: getUserProfile
+      tags: [Members & Config]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User profile object
+          content:
+            application/json:
+              schema:
+                type: object
+
+  # ──────────────────────────────────────────────
+  # Trivia Questions
+  # ──────────────────────────────────────────────
+
+  /generate-question:
+    post:
+      summary: Generate a trivia question
+      operationId: generateQuestion
+      tags: [Trivia Questions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, mode]
+              properties:
+                userId:
+                  type: string
+                mode:
+                  $ref: "#/components/schemas/GenerateMode"
+                category:
+                  type: string
+                difficulty:
+                  $ref: "#/components/schemas/DifficultyLevel"
+                customPrompt:
+                  type: string
+                isCatchingUp:
+                  type: boolean
+                withProgress:
+                  type: boolean
+      responses:
+        "200":
+          description: Generated question with optional progress
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  question:
+                    $ref: "#/components/schemas/Question"
+                  messages:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProgressMessage"
+                  factCheckResult:
+                    type: object
+                  retriesNeeded:
+                    type: integer
+
+  /submit-answer:
+    post:
+      summary: Submit an answer to a trivia question
+      operationId: submitAnswer
+      tags: [Trivia Questions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, question, selectedAnswer]
+              properties:
+                userId:
+                  type: string
+                groupId:
+                  type: string
+                question:
+                  $ref: "#/components/schemas/Question"
+                selectedAnswer:
+                  type: string
+                isCatchingUp:
+                  type: boolean
+                isCustomCategory:
+                  type: boolean
+      responses:
+        "200":
+          description: Answer result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correct:
+                    type: boolean
+                  streak:
+                    type: integer
+                  pointsEarned:
+                    type: number
+                  multiplier:
+                    type: number
+
+  /question-status:
+    get:
+      summary: Get question timing status
+      operationId: getQuestionStatus
+      tags: [Trivia Questions]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Question status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lastQuestionAt:
+                    type: string
+                    nullable: true
+                  nextQuestionAt:
+                    type: string
+
+  /can-answer-question:
+    get:
+      summary: Check if user can answer a question
+      operationId: canAnswerQuestion
+      tags: [Trivia Questions]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Answer eligibility
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  canAnswer:
+                    type: boolean
+                  nextQuestionAt:
+                    type: string
+                    format: date-time
+                  todayET:
+                    type: string
+                  lastQuestionAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                  isEndOfSeason:
+                    type: boolean
+                  catchupAvailable:
+                    type: integer
+                    description: Number of catch-up questions available
+
+  /catchup-status:
+    get:
+      summary: Get catch-up status for a user
+      operationId: getCatchupStatus
+      tags: [Trivia Questions]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Catch-up status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  questionsBehind:
+                    type: integer
+                  userAnswerCount:
+                    type: integer
+                  maxUserAnswerCount:
+                    type: integer
+
+  # ──────────────────────────────────────────────
+  # Question Generation Steps
+  # ──────────────────────────────────────────────
+
+  /question-gen/step1:
+    post:
+      summary: "Step 1: Generate initial question"
+      operationId: questionGenStep1
+      tags: [Question Generation Steps]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, mode]
+              properties:
+                userId:
+                  type: string
+                mode:
+                  $ref: "#/components/schemas/GenerateMode"
+                category:
+                  type: string
+                difficulty:
+                  $ref: "#/components/schemas/DifficultyLevel"
+      responses:
+        "200":
+          description: Generated question
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  question:
+                    $ref: "#/components/schemas/Question"
+                  messages:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProgressMessage"
+
+  /question-gen/step2:
+    post:
+      summary: "Step 2: Check for duplicate question"
+      operationId: questionGenStep2
+      tags: [Question Generation Steps]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Question"
+      responses:
+        "200":
+          description: Duplicate check result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isDuplicate:
+                    type: boolean
+                  question:
+                    $ref: "#/components/schemas/Question"
+
+  /question-gen/step3:
+    post:
+      summary: "Step 3: Validate question"
+      operationId: questionGenStep3
+      tags: [Question Generation Steps]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Question"
+      responses:
+        "200":
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isValid:
+                    type: boolean
+                  question:
+                    $ref: "#/components/schemas/Question"
+                  issues:
+                    type: array
+                    items:
+                      type: string
+
+  # ──────────────────────────────────────────────
+  # Daily Facts
+  # ──────────────────────────────────────────────
+
+  /daily-fact:
+    get:
+      summary: Get the daily fact question
+      operationId: getDailyFact
+      tags: [Daily Facts]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Daily fact question
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyFactResponse"
+    post:
+      summary: Get or generate daily fact question
+      operationId: postDailyFact
+      tags: [Daily Facts]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Daily fact question
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyFactResponse"
+
+  /submit-daily-fact:
+    post:
+      summary: Submit an answer to a daily fact question
+      operationId: submitDailyFact
+      tags: [Daily Facts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, answer]
+              properties:
+                userId:
+                  type: string
+                questionIndex:
+                  type: integer
+                answer:
+                  type: string
+                date:
+                  type: string
+      responses:
+        "200":
+          description: Submission result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  saved:
+                    type: boolean
+
+  /user-fact-history:
+    get:
+      summary: Get user fact history
+      operationId: getUserFactHistory
+      tags: [Daily Facts]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: includeGlobal
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Fact history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  facts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FactItem"
+                  basicQuestions:
+                    type: array
+                    items:
+                      type: string
+                  basicQuestionsTotal:
+                    type: integer
+                  allSharedQuestions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FactItem"
+
+  /submit-historical-fact:
+    post:
+      summary: Submit a historical fact answer
+      operationId: submitHistoricalFact
+      tags: [Daily Facts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, date, answer]
+              properties:
+                userId:
+                  type: string
+                date:
+                  type: string
+                answer:
+                  type: string
+      responses:
+        "200":
+          description: Submission result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /generate-question-options:
+    post:
+      summary: Generate question options for daily fact
+      operationId: generateQuestionOptions
+      tags: [Daily Facts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+                theme:
+                  type: string
+                regenerate:
+                  type: boolean
+      responses:
+        "200":
+          description: Generated options
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  options:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        question:
+                          type: string
+                        theme:
+                          type: string
+                  weekSummaryContext:
+                    type: string
+
+  /recent-shared-questions:
+    get:
+      summary: Get recent shared questions
+      operationId: getRecentSharedQuestions
+      tags: [Daily Facts]
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Recent shared questions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    question:
+                      type: string
+                    date:
+                      type: string
+
+  /daily-fact-summary:
+    get:
+      summary: Get daily fact summary
+      operationId: getDailyFactSummary
+      tags: [Daily Facts]
+      parameters:
+        - name: weekStart
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: forceGenerate
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Daily fact summary
+          content:
+            application/json:
+              schema:
+                type: object
+
+  # ──────────────────────────────────────────────
+  # Categories
+  # ──────────────────────────────────────────────
+
+  /categories:
+    get:
+      summary: Get categories for a user
+      operationId: getCategories
+      tags: [Categories]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Categories list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  systemCategories:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SystemCategory"
+                  customCategories:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CustomCategory"
+                  lastCustomCategory:
+                    $ref: "#/components/schemas/CustomCategory"
+
+  /create-custom-category:
+    post:
+      summary: Create a custom category
+      operationId: createCustomCategory
+      tags: [Categories]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, categoryName]
+              properties:
+                userId:
+                  type: string
+                categoryName:
+                  type: string
+                description:
+                  type: string
+      responses:
+        "200":
+          description: Created category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  category:
+                    $ref: "#/components/schemas/CustomCategory"
+
+  /submit-custom-category:
+    post:
+      summary: Submit a custom category answer
+      operationId: submitCustomCategory
+      tags: [Categories]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, categoryId, answer]
+              properties:
+                userId:
+                  type: string
+                categoryId:
+                  type: string
+                answer:
+                  type: string
+      responses:
+        "200":
+          description: Submission result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  # ──────────────────────────────────────────────
+  # Leaderboard
+  # ──────────────────────────────────────────────
+
+  /leaderboard:
+    get:
+      summary: Get leaderboard data
+      operationId: getLeaderboard
+      tags: [Leaderboard]
+      parameters:
+        - name: groupId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Leaderboard data
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /consolidated-leaderboard:
+    get:
+      summary: Get consolidated leaderboard across groups
+      operationId: getConsolidatedLeaderboard
+      tags: [Leaderboard]
+      parameters:
+        - name: season
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Consolidated leaderboard
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: object
+                    additionalProperties:
+                      $ref: "#/components/schemas/LeaderboardEntry"
+                  groups:
+                    type: object
+                  userGroups:
+                    type: object
+                  seasons:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Season"
+                  selectedSeason:
+                    type: string
+                  globalCategoryStats:
+                    type: object
+                    description: "All-time category accuracy stats across all users"
+                    additionalProperties:
+                      type: object
+                      properties:
+                        total:
+                          type: integer
+                          description: "Total answers in this category"
+                        correct:
+                          type: integer
+                          description: "Correct answers in this category"
+                      required: [total, correct]
+                  success:
+                    type: boolean
+
+  # ──────────────────────────────────────────────
+  # Season
+  # ──────────────────────────────────────────────
+
+  /end-of-season-status:
+    get:
+      summary: Get end-of-season status
+      operationId: getEndOfSeasonStatus
+      tags: [Season]
+      responses:
+        "200":
+          description: End of season status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EndOfSeasonStatus"
+
+  # ──────────────────────────────────────────────
+  # Family
+  # ──────────────────────────────────────────────
+
+  /family-hierarchy:
+    get:
+      summary: Get family hierarchy
+      operationId: getFamilyHierarchy
+      tags: [Family]
+      responses:
+        "200":
+          description: Family hierarchy data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hierarchy:
+                    type: object
+                  groupDescriptions:
+                    type: object
+                    additionalProperties:
+                      type: string
+                  familySides:
+                    type: object
+                    additionalProperties:
+                      type: string
+                  success:
+                    type: boolean
+
+  /group-description:
+    get:
+      summary: Get group description(s)
+      operationId: getGroupDescription
+      tags: [Family]
+      parameters:
+        - name: groupId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Group description or all descriptions
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GroupDescription"
+                  - type: object
+                    properties:
+                      descriptions:
+                        type: object
+                        additionalProperties:
+                          $ref: "#/components/schemas/GroupDescription"
+
+  /update-group-description:
+    post:
+      summary: Update a group description
+      operationId: updateGroupDescription
+      tags: [Family]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, groupId, description]
+              properties:
+                userId:
+                  type: string
+                groupId:
+                  type: string
+                description:
+                  type: string
+      responses:
+        "200":
+          description: Update result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  groupId:
+                    type: string
+                  description:
+                    type: string
+
+  /suggest-group-description:
+    post:
+      summary: Get AI-suggested group description
+      operationId: suggestGroupDescription
+      tags: [Family]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [groupId]
+              properties:
+                groupId:
+                  type: string
+                context:
+                  type: string
+      responses:
+        "200":
+          description: Suggested description
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  suggestion:
+                    type: string
+
+  /member-summary:
+    get:
+      summary: Get member summary
+      operationId: getMemberSummary
+      tags: [Family]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: mode
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [regular, roast]
+        - name: forceGenerate
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Member summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberSummaryResponse"
+
+  # ──────────────────────────────────────────────
+  # Timeline
+  # ──────────────────────────────────────────────
+
+  /timeline-data:
+    get:
+      summary: Get timeline data
+      operationId: getTimelineData
+      tags: [Timeline]
+      parameters:
+        - name: side
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: userId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: before
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: after
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Timeline data
+          content:
+            application/json:
+              schema:
+                type: object
+
+  # ──────────────────────────────────────────────
+  # Comments
+  # ──────────────────────────────────────────────
+
+  /fact-comments:
+    get:
+      summary: Get fact comments
+      operationId: getFactComments
+      tags: [Comments]
+      parameters:
+        - name: factId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: getAll
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Comment threads
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: Add a fact comment
+      operationId: addFactComment
+      tags: [Comments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, factId, text]
+              properties:
+                userId:
+                  type: string
+                factId:
+                  type: string
+                text:
+                  type: string
+      responses:
+        "200":
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  comment:
+                    $ref: "#/components/schemas/FactComment"
+
+  /trivia-comments:
+    get:
+      summary: Get trivia comments
+      operationId: getTriviaComments
+      tags: [Comments]
+      parameters:
+        - name: triviaId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: getAll
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Comment threads
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: Add a trivia comment
+      operationId: addTriviaComment
+      tags: [Comments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, triviaId, text]
+              properties:
+                userId:
+                  type: string
+                triviaId:
+                  type: string
+                text:
+                  type: string
+      responses:
+        "200":
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  comment:
+                    $ref: "#/components/schemas/TriviaComment"
+
+  # ──────────────────────────────────────────────
+  # Casino Rush
+  # ──────────────────────────────────────────────
+
+  /casino-rush/start:
+    post:
+      summary: Start a Casino Rush session
+      operationId: startCasinoRush
+      tags: [Casino Rush]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+                difficulty:
+                  $ref: "#/components/schemas/DifficultyLevel"
+                withProgress:
+                  type: boolean
+      responses:
+        "200":
+          description: Casino Rush session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CasinoRushSession"
+
+  /casino-rush/answer:
+    post:
+      summary: Submit a Casino Rush answer
+      operationId: answerCasinoRush
+      tags: [Casino Rush]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, questionNumber, answer]
+              properties:
+                userId:
+                  type: string
+                questionNumber:
+                  type: integer
+                answer:
+                  type: string
+      responses:
+        "200":
+          description: Casino Rush result
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /casino-rush/status:
+    get:
+      summary: Get Casino Rush status
+      operationId: getCasinoRushStatus
+      tags: [Casino Rush]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Casino Rush status
+          content:
+            application/json:
+              schema:
+                type: object
+
+  # ──────────────────────────────────────────────
+  # Slot Machine
+  # ──────────────────────────────────────────────
+
+  /slot-machine/spin:
+    post:
+      summary: Spin the slot machine
+      operationId: slotMachineSpin
+      tags: [Slot Machine]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+      responses:
+        "200":
+          description: Spin result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    $ref: "#/components/schemas/SlotMachineResult"
+
+  /slot-machine/question:
+    post:
+      summary: Get question for slot machine result
+      operationId: slotMachineQuestion
+      tags: [Slot Machine]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+      responses:
+        "200":
+          description: Question with multiplier
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  question:
+                    $ref: "#/components/schemas/Question"
+                  multiplier:
+                    type: number
+
+  /slot-machine/answer:
+    post:
+      summary: Submit slot machine answer
+      operationId: slotMachineAnswer
+      tags: [Slot Machine]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, answer]
+              properties:
+                userId:
+                  type: string
+                answer:
+                  type: string
+      responses:
+        "200":
+          description: Answer result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  correct:
+                    type: boolean
+                  pointsEarned:
+                    type: number
+
+  /slot-machine/status:
+    get:
+      summary: Get slot machine status
+      operationId: getSlotMachineStatus
+      tags: [Slot Machine]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Slot machine status
+          content:
+            application/json:
+              schema:
+                type: object
+
+  # ──────────────────────────────────────────────
+  # Celebrations
+  # ──────────────────────────────────────────────
+
+  /upcoming-birthdays:
+    get:
+      summary: Get upcoming birthdays
+      operationId: getUpcomingBirthdays
+      tags: [Celebrations]
+      responses:
+        "200":
+          description: Upcoming birthdays
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  birthdays:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Birthday"
+
+  /celebrations:
+    post:
+      summary: Create a celebration
+      operationId: createCelebration
+      tags: [Celebrations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, name, date, addedBy]
+              properties:
+                type:
+                  type: string
+                  enum: [birthday, anniversary, holiday, other]
+                name:
+                  type: string
+                date:
+                  type: string
+                description:
+                  type: string
+                addedBy:
+                  type: string
+                recurring:
+                  type: boolean
+                year:
+                  type: integer
+      responses:
+        "200":
+          description: Created celebration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  celebration:
+                    $ref: "#/components/schemas/Celebration"
+    get:
+      summary: Get all celebrations
+      operationId: getCelebrations
+      tags: [Celebrations]
+      responses:
+        "200":
+          description: Celebrations list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  celebrations:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Celebration"
+                  lastUpdated:
+                    type: string
+    delete:
+      summary: Delete a celebration
+      operationId: deleteCelebration
+      tags: [Celebrations]
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deletion result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /photo-albums:
+    get:
+      summary: List photo albums
+      operationId: getPhotoAlbums
+      tags: [PhotoAlbums]
+      responses:
+        "200":
+          description: Photo albums (newest first)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  albums:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PhotoAlbum"
+    post:
+      summary: Add a photo album (admin only)
+      operationId: addPhotoAlbum
+      tags: [PhotoAlbums]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, name, url]
+              properties:
+                userId:
+                  type: string
+                name:
+                  type: string
+                description:
+                  type: string
+                url:
+                  type: string
+                  format: uri
+      responses:
+        "200":
+          description: Created album
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  album:
+                    $ref: "#/components/schemas/PhotoAlbum"
+    put:
+      summary: Update a photo album (admin only)
+      operationId: updatePhotoAlbum
+      tags: [PhotoAlbums]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, id]
+              properties:
+                userId:
+                  type: string
+                id:
+                  type: string
+                name:
+                  type: string
+                description:
+                  type: string
+                url:
+                  type: string
+                  format: uri
+      responses:
+        "200":
+          description: Updated album
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  album:
+                    $ref: "#/components/schemas/PhotoAlbum"
+    delete:
+      summary: Delete a photo album (admin only)
+      operationId: deletePhotoAlbum
+      tags: [PhotoAlbums]
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deletion result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  # ──────────────────────────────────────────────
+  # Admin
+  # ──────────────────────────────────────────────
+
+  /admin/players:
+    get:
+      summary: Get all players
+      operationId: getAdminPlayers
+      tags: [Admin]
+      responses:
+        "200":
+          description: Player list
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: Create a player
+      operationId: createAdminPlayer
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Created player
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      summary: Update a player
+      operationId: updateAdminPlayer
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Updated player
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Delete a player
+      operationId: deleteAdminPlayer
+      tags: [Admin]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deletion result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /admin/groups:
+    get:
+      summary: Get all groups
+      operationId: getAdminGroups
+      tags: [Admin]
+      responses:
+        "200":
+          description: Group list
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      summary: Create a group
+      operationId: createAdminGroup
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Created group
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      summary: Update a group
+      operationId: updateAdminGroup
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Updated group
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Delete a group
+      operationId: deleteAdminGroup
+      tags: [Admin]
+      parameters:
+        - name: groupId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deletion result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /admin/family-tree:
+    get:
+      summary: Get family tree hierarchy
+      operationId: getAdminFamilyTree
+      tags: [Admin]
+      responses:
+        "200":
+          description: Hierarchy data
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      summary: Update family tree hierarchy
+      operationId: updateAdminFamilyTree
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Update result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /admin/seasons:
+    get:
+      summary: Get all seasons
+      operationId: getAdminSeasons
+      tags: [Admin]
+      responses:
+        "200":
+          description: Season list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Season"
+    post:
+      summary: Create a season
+      operationId: createAdminSeason
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Season"
+      responses:
+        "200":
+          description: Created season
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Season"
+    put:
+      summary: Update a season
+      operationId: updateAdminSeason
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Season"
+      responses:
+        "200":
+          description: Updated season
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Season"
+    delete:
+      summary: Delete a season
+      operationId: deleteAdminSeason
+      tags: [Admin]
+      parameters:
+        - name: seasonNumber
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deletion result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  # ──────────────────────────────────────────────
+  # Authentication
+  # ──────────────────────────────────────────────
+
+  /auth/google:
+    post:
+      summary: Exchange a Google ID token for a JWT session token
+      operationId: authGoogle
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idToken]
+              properties:
+                idToken:
+                  type: string
+                passphrase:
+                  type: string
+                  description: Optional — used to link a Google account to an existing user on first login
+      responses:
+        "200":
+          description: Session token and user info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  userId:
+                    type: string
+                  linked:
+                    type: boolean
+
+  # ──────────────────────────────────────────────
+  # Notifications
+  # ──────────────────────────────────────────────
+
+  /notifications:
+    get:
+      summary: Get the user's notification summary
+      operationId: getNotifications
+      tags: [Notifications]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Notifications bucket with unread count + recent items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unreadCount:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        timestamp:
+                          type: string
+                        read:
+                          type: boolean
+                        contentType:
+                          type: string
+                        contentId:
+                          type: string
+                        message:
+                          type: string
+
+  /notifications/mark-read:
+    post:
+      summary: Mark a notification as read
+      operationId: markNotificationRead
+      tags: [Notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, notificationId]
+              properties:
+                userId:
+                  type: string
+                notificationId:
+                  type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /notifications/mark-all-read:
+    post:
+      summary: Mark all notifications for a user as read
+      operationId: markAllNotificationsRead
+      tags: [Notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  # ──────────────────────────────────────────────
+  # Unified Comments (/comments)
+  # ──────────────────────────────────────────────
+
+  /comments:
+    get:
+      summary: Get the comment thread for a content item
+      operationId: getCommentsUnified
+      tags: [Comments]
+      parameters:
+        - name: contentType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [fact, trivia]
+        - name: contentId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The comment thread
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentThread"
+    post:
+      summary: Add a new comment to a content item
+      operationId: addCommentUnified
+      tags: [Comments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contentType, contentId, userId, text]
+              properties:
+                contentType:
+                  type: string
+                  enum: [fact, trivia]
+                contentId:
+                  type: string
+                userId:
+                  type: string
+                text:
+                  type: string
+                parentId:
+                  type: string
+      responses:
+        "200":
+          description: Updated thread with the new comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentThread"
+
+  /comments/counts:
+    get:
+      summary: Get comment counts + recent commenters for multiple content items
+      operationId: getCommentCountsUnified
+      tags: [Comments]
+      parameters:
+        - name: contentType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [fact, trivia]
+        - name: ids
+          in: query
+          required: true
+          description: Comma-separated list of content IDs
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Counts map + recent commenters map
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  counts:
+                    type: object
+                    additionalProperties:
+                      type: integer
+                  commenters:
+                    type: object
+                    description: "Recent commenter userIds (up to 3) per content id"
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+
+  # ──────────────────────────────────────────────
+  # Fact Suggestions (autocomplete)
+  # ──────────────────────────────────────────────
+
+  /fact-suggestions:
+    get:
+      summary: Get common opening phrases for fact answer autocomplete
+      operationId: getFactSuggestions
+      tags: [Facts]
+      responses:
+        "200":
+          description: List of common starter phrases extracted from family answers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  starters:
+                    type: array
+                    items:
+                      type: string
+
+  # ──────────────────────────────────────────────
+  # Answer / Fact Grids
+  # ──────────────────────────────────────────────
+
+  /answer-grid:
+    get:
+      summary: "Trivia status grid: who answered which slot + correctness"
+      operationId: getAnswerGrid
+      tags: [Trivia]
+      responses:
+        "200":
+          description: Matrix keyed by userId with slot status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  maxSlots:
+                    type: integer
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        userId:
+                          type: string
+                        slots:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              correct:
+                                type: boolean
+                              isCatchingUp:
+                                type: boolean
+                              isGameMode:
+                                type: boolean
+
+  /fact-grid:
+    get:
+      summary: Daily fact status matrix
+      operationId: getFactGrid
+      tags: [Facts]
+      responses:
+        "200":
+          description: Matrix of which days each user answered the daily fact
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dates:
+                    type: array
+                    items:
+                      type: string
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        userId:
+                          type: string
+                        answered:
+                          type: array
+                          items:
+                            type: boolean
+
+  # ──────────────────────────────────────────────
+  # Game modes — Curling
+  # ──────────────────────────────────────────────
+
+  /curling/status:
+    get:
+      summary: Get current Curling game state for user
+      operationId: getCurlingStatus
+      tags: [Game Modes]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Curling game session state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameModeSessionStatus"
+
+  /curling/lock:
+    post:
+      summary: Lock in Curling multiplier + category
+      operationId: lockCurling
+      tags: [Game Modes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GameModeLockRequest"
+      responses:
+        "200":
+          description: Session with generated question
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameModeLockResponse"
+
+  /curling/answer:
+    post:
+      summary: Submit an answer to a Curling question
+      operationId: answerCurling
+      tags: [Game Modes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GameModeAnswerRequest"
+      responses:
+        "200":
+          description: Answer result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameModeAnswerResponse"
+
+  # ──────────────────────────────────────────────
+  # Game modes — Tetris
+  # ──────────────────────────────────────────────
+
+  /tetris/status:
+    get:
+      summary: Get current Tetris game state for user
+      operationId: getTetrisStatus
+      tags: [Game Modes]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Tetris game session state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameModeSessionStatus"
+
+  /tetris/lock:
+    post:
+      summary: Lock in Tetris game parameters
+      operationId: lockTetris
+      tags: [Game Modes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GameModeLockRequest"
+      responses:
+        "200":
+          description: Session with generated question
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameModeLockResponse"
+
+  /tetris/answer:
+    post:
+      summary: Submit a Tetris answer
+      operationId: answerTetris
+      tags: [Game Modes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GameModeAnswerRequest"
+      responses:
+        "200":
+          description: Answer result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameModeAnswerResponse"
+
+  # ──────────────────────────────────────────────
+  # Slot Machine variants
+  # ──────────────────────────────────────────────
+
+  /slot-machine/arcade-spin:
+    post:
+      summary: Spin the slot machine in arcade (non-daily) mode
+      operationId: slotMachineArcadeSpin
+      tags: [Game Modes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, betPoints]
+              properties:
+                userId:
+                  type: string
+                betPoints:
+                  type: integer
+      responses:
+        "200":
+          description: Spin result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  outcome:
+                    type: string
+                  pointsWon:
+                    type: integer
+                  newBalance:
+                    type: integer
+
+  /slot-machine/balance:
+    get:
+      summary: Get the user's arcade slot machine point balance
+      operationId: getSlotMachineBalance
+      tags: [Game Modes]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Current balance
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balance:
+                    type: integer
+
+  # ──────────────────────────────────────────────
+  # Arcade
+  # ──────────────────────────────────────────────
+
+  /arcade/submit-score:
+    post:
+      summary: Submit a high score for an arcade game
+      operationId: arcadeSubmitScore
+      tags: [Arcade]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, gameId, score]
+              properties:
+                userId:
+                  type: string
+                gameId:
+                  type: string
+                score:
+                  type: integer
+                metadata:
+                  type: object
+      responses:
+        "200":
+          description: Updated high scores for the game
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isHighScore:
+                    type: boolean
+                  scores:
+                    type: array
+                    items:
+                      type: object
+
+  # ──────────────────────────────────────────────
+  # Crossword & Snake
+  # ──────────────────────────────────────────────
+
+  /crossword/generate:
+    post:
+      summary: Generate a crossword puzzle from family facts
+      operationId: generateCrossword
+      tags: [Game Modes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+      responses:
+        "200":
+          description: Crossword puzzle data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  grid:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: string
+                  clues:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        number:
+                          type: integer
+                        direction:
+                          type: string
+                          enum: [across, down]
+                        clue:
+                          type: string
+                        answer:
+                          type: string
+
+  /snake/questions:
+    post:
+      summary: Get questions for a Snake game session
+      operationId: getSnakeQuestions
+      tags: [Game Modes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+      responses:
+        "200":
+          description: Questions for the Snake session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  questions:
+                    type: array
+                    items:
+                      type: object
+
+  # ──────────────────────────────────────────────
+  # Family Feud
+  # ──────────────────────────────────────────────
+
+  /family-feud/status:
+    get:
+      summary: Get current Family Feud round state
+      operationId: getFamilyFeudStatus
+      tags: [Family Feud]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Current round + rotation state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamilyFeudStatus"
+
+  /family-feud/start-round:
+    post:
+      summary: Start a new Family Feud round (target user only)
+      operationId: startFamilyFeudRound
+      tags: [Family Feud]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+      responses:
+        "200":
+          description: Round started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  round:
+                    type: object
+
+  /family-feud/answer:
+    post:
+      summary: Target user submits their answer to the round question
+      operationId: answerFamilyFeud
+      tags: [Family Feud]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, answer]
+              properties:
+                userId:
+                  type: string
+                answer:
+                  type: string
+      responses:
+        "200":
+          description: Round activated for guessing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  round:
+                    type: object
+
+  /family-feud/guess:
+    post:
+      summary: Submit a guess during an active Family Feud round
+      operationId: guessFamilyFeud
+      tags: [Family Feud]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, guess]
+              properties:
+                userId:
+                  type: string
+                guess:
+                  type: string
+      responses:
+        "200":
+          description: Updated guess count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  guessCount:
+                    type: integer
+
+  /family-feud/pass:
+    post:
+      summary: Target user passes, moves to next in rotation
+      operationId: passFamilyFeud
+      tags: [Family Feud]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+      responses:
+        "200":
+          description: Pass accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  passed:
+                    type: boolean
+                  nextTargetUserName:
+                    type: string
+
+  # ──────────────────────────────────────────────
+  # Admin — user data
+  # ──────────────────────────────────────────────
+
+  /admin/user-facts:
+    get:
+      summary: Admin — fetch a user's fact history
+      operationId: adminGetUserFacts
+      tags: [Admin]
+      parameters:
+        - { name: adminUserId, in: query, required: true, schema: { type: string } }
+        - { name: userId, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: User fact history
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      summary: Admin — update a fact entry
+      operationId: adminUpdateUserFact
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [adminUserId, userId, date, updates]
+              properties:
+                adminUserId:
+                  type: string
+                userId:
+                  type: string
+                date:
+                  type: string
+                updates:
+                  type: object
+      responses:
+        "200":
+          description: Updated entry
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Admin — delete a fact entry
+      operationId: adminDeleteUserFact
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [adminUserId, userId, date]
+              properties:
+                adminUserId:
+                  type: string
+                userId:
+                  type: string
+                date:
+                  type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /admin/user-trivia:
+    get:
+      summary: Admin — fetch a user's trivia answer history
+      operationId: adminGetUserTrivia
+      tags: [Admin]
+      parameters:
+        - { name: adminUserId, in: query, required: true, schema: { type: string } }
+        - { name: userId, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: User trivia history
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Admin — delete trivia entries
+      operationId: adminDeleteUserTrivia
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [adminUserId, userId]
+              properties:
+                adminUserId:
+                  type: string
+                userId:
+                  type: string
+                timestamps:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /admin/game-sessions:
+    get:
+      summary: Admin — fetch game mode sessions
+      operationId: adminGetGameSessions
+      tags: [Admin]
+      parameters:
+        - { name: adminUserId, in: query, required: true, schema: { type: string } }
+        - { name: userId, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Game sessions
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Admin — delete game mode sessions
+      operationId: adminDeleteGameSessions
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [adminUserId]
+              properties:
+                adminUserId:
+                  type: string
+                userId:
+                  type: string
+                mode:
+                  type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /admin/daily-questions:
+    get:
+      summary: Admin — browse daily shared questions
+      operationId: adminGetDailyQuestions
+      tags: [Admin]
+      parameters:
+        - { name: adminUserId, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: List of shared questions
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Admin — delete a daily shared question
+      operationId: adminDeleteDailyQuestion
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [adminUserId, date]
+              properties:
+                adminUserId:
+                  type: string
+                date:
+                  type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  # ──────────────────────────────────────────────
+  # Admin — trivia bank
+  # ──────────────────────────────────────────────
+
+  /admin/trivia-bank/stats:
+    get:
+      summary: Admin — trivia bank statistics
+      operationId: adminTriviaBankStats
+      tags: [Admin]
+      parameters:
+        - { name: adminUserId, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Count by category/difficulty
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/trivia-bank/browse:
+    get:
+      summary: Admin — browse trivia bank with filters
+      operationId: adminTriviaBankBrowse
+      tags: [Admin]
+      parameters:
+        - { name: adminUserId, in: query, required: true, schema: { type: string } }
+        - { name: category, in: query, schema: { type: string } }
+        - { name: difficulty, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer } }
+      responses:
+        "200":
+          description: Questions matching filters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  questions:
+                    type: array
+                    items:
+                      type: object
+                  total:
+                    type: integer
+
+  /admin/trivia-bank/question:
+    delete:
+      summary: Admin — delete a trivia bank question
+      operationId: adminDeleteTriviaBankQuestion
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [adminUserId, questionId]
+              properties:
+                adminUserId:
+                  type: string
+                questionId:
+                  type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /admin/trivia-bank/import:
+    post:
+      summary: Admin — bulk import trivia questions
+      operationId: adminTriviaBankImport
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [adminUserId, questions]
+              properties:
+                adminUserId:
+                  type: string
+                questions:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        "200":
+          description: Import result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imported:
+                    type: integer
+                  skipped:
+                    type: integer
+
+  # ──────────────────────────────────────────────
+  # Admin — family feud + system
+  # ──────────────────────────────────────────────
+
+  /admin/family-feud:
+    get:
+      summary: Admin — inspect family feud state
+      operationId: adminGetFamilyFeud
+      tags: [Admin]
+      parameters:
+        - { name: adminUserId, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Feud state for debugging
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Admin — reset or delete family feud round
+      operationId: adminResetFamilyFeud
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [adminUserId, action]
+              properties:
+                adminUserId:
+                  type: string
+                action:
+                  type: string
+                  enum: [reset-current, delete-round, reset-rotation]
+                roundId:
+                  type: string
+      responses:
+        "200":
+          description: Action completed
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/system-info:
+    get:
+      summary: Admin — system + environment info
+      operationId: adminGetSystemInfo
+      tags: [Admin]
+      parameters:
+        - { name: adminUserId, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: System info (build, env, feature flags)
+          content:
+            application/json:
+              schema:
+                type: object
+
+  # ──────────────────────────────────────────────
+  # Daily fact variants
+  # ──────────────────────────────────────────────
+
+  /daily-fact-categories:
+    post:
+      summary: Get categories for the daily fact first-person flow
+      operationId: getDailyFactCategories
+      tags: [Facts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+      responses:
+        "200":
+          description: Category list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      type: string
+
+  /daily-fact-options:
+    post:
+      summary: Generate question options for the first-person flow
+      operationId: getDailyFactOptions
+      tags: [Facts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+                theme:
+                  type: string
+      responses:
+        "200":
+          description: Generated options
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  options:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        question:
+                          type: string
+                        theme:
+                          type: string
+
+components:
+  schemas:
+    # ──────────────────────────────────────────────
+    # Reusable Schemas
+    # ──────────────────────────────────────────────
+
+    PlayEligibility:
+      type: object
+      required: [canPlay, todayET, catchupAvailable]
+      description: Result of a play-eligibility check — single source of truth for "can this user play?"
+      properties:
+        canPlay:
+          type: boolean
+        reason:
+          type: string
+          enum: [daily_limit_reached, no_catchup_available, end_of_season]
+          description: Why the user cannot play (only present when canPlay is false)
+        nextAvailableAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: ISO timestamp of when the user can next play
+        todayET:
+          type: string
+          description: "Today's date in Eastern Time (YYYY-MM-DD)"
+        catchupAvailable:
+          type: integer
+          description: Number of catch-up questions available
+        lastAnsweredAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: "ISO timestamp of the user's most recent answer"
+
+    DifficultyLevel:
+      type: string
+      enum: [easy, normal, hard]
+
+    GenerateMode:
+      type: string
+      enum: [personal, history, group, category, custom]
+
+    Question:
+      type: object
+      required: [question, choices, answer]
+      properties:
+        question:
+          type: string
+        choices:
+          type: array
+          items:
+            type: string
+        answer:
+          type: string
+        category:
+          type: string
+        difficulty:
+          $ref: "#/components/schemas/DifficultyLevel"
+        pointMultiplier:
+          type: number
+        mode:
+          type: string
+        type:
+          type: string
+        source:
+          type: string
+        sourceUrl:
+          type: string
+        externalId:
+          type: string
+
+    ProgressMessage:
+      type: object
+      required: [type, message, timestamp]
+      properties:
+        type:
+          type: string
+          enum: [info, warning, success, checking]
+        message:
+          type: string
+        timestamp:
+          type: number
+        detail:
+          type: string
+        duration:
+          type: number
+
+    HistoryEntry:
+      type: object
+      required: [question, selectedAnswer, correct, timestamp]
+      properties:
+        question:
+          $ref: "#/components/schemas/Question"
+        selectedAnswer:
+          type: string
+        correct:
+          type: boolean
+        timestamp:
+          type: string
+        pointsEarned:
+          type: number
+        streak:
+          type: integer
+        isCatchingUp:
+          type: boolean
+        isCasinoRush:
+          type: boolean
+        questionNumber:
+          type: integer
+        totalQuestions:
+          type: integer
+        reason:
+          type: string
+        isCustomCategory:
+          type: boolean
+
+    FactItem:
+      type: object
+      required: [id, date, question, answer, fact, timestamp]
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+        question:
+          type: string
+        answer:
+          type: string
+        fact:
+          type: string
+        timestamp:
+          type: string
+        skipped:
+          type: boolean
+
+    UserConfig:
+      type: object
+      required: [group, color]
+      properties:
+        group:
+          type: string
+        color:
+          type: string
+        side:
+          type: string
+        passphrase:
+          type: string
+        isAdmin:
+          type: boolean
+
+    Season:
+      type: object
+      required: [seasonNumber, name, status, startDate]
+      properties:
+        seasonNumber:
+          type: integer
+        name:
+          type: string
+        status:
+          type: string
+          enum: [active, concluded, upcoming]
+        startDate:
+          type: string
+        endDate:
+          type: string
+          nullable: true
+        message:
+          type: string
+          nullable: true
+
+    EndOfSeasonStatus:
+      type: object
+      properties:
+        isEndOfSeason:
+          type: boolean
+        isBetweenSeasons:
+          type: boolean
+        currentSeason:
+          oneOf:
+            - $ref: "#/components/schemas/Season"
+            - type: object
+              nullable: true
+        lastSeason:
+          oneOf:
+            - $ref: "#/components/schemas/Season"
+            - type: object
+              nullable: true
+        personalMessage:
+          type: string
+          nullable: true
+        seasonEndDate:
+          type: string
+          nullable: true
+        nextSeasonStart:
+          type: string
+          nullable: true
+
+    SystemCategory:
+      type: object
+      required: [name, description]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    CustomCategory:
+      type: object
+      required: [id, title, description, createdBy, createdAt, type]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        createdBy:
+          type: string
+        createdAt:
+          type: string
+        type:
+          type: string
+          enum: [custom]
+
+    LeaderboardEntry:
+      type: object
+      required: [userId, score, streak]
+      properties:
+        userId:
+          type: string
+        score:
+          type: number
+        streak:
+          type: integer
+        lastAnswer:
+          $ref: "#/components/schemas/HistoryEntry"
+        categoryScores:
+          type: object
+        difficultyStats:
+          $ref: "#/components/schemas/DifficultyStats"
+        avgPointsPerQuestion:
+          type: number
+        accuracy:
+          type: number
+
+    DifficultyStats:
+      type: object
+      properties:
+        easy:
+          type: integer
+        normal:
+          type: integer
+        hard:
+          type: integer
+        total:
+          type: integer
+
+    FactComment:
+      type: object
+      required: [id, userId, text, timestamp]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        text:
+          type: string
+        timestamp:
+          type: string
+        parentId:
+          type: string
+
+    TriviaComment:
+      type: object
+      required: [id, userId, text, timestamp]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        text:
+          type: string
+        timestamp:
+          type: string
+        parentId:
+          type: string
+
+    Birthday:
+      type: object
+      required: [userId, name, birthday, month, day, daysUntil, isToday]
+      properties:
+        userId:
+          type: string
+        name:
+          type: string
+        birthday:
+          type: string
+        month:
+          type: integer
+        day:
+          type: integer
+        daysUntil:
+          type: integer
+        isToday:
+          type: boolean
+
+    Celebration:
+      type: object
+      required: [id, type, name, date, addedBy, addedAt, recurring]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [birthday, anniversary, holiday, other]
+        name:
+          type: string
+        date:
+          type: string
+        description:
+          type: string
+        addedBy:
+          type: string
+        addedAt:
+          type: string
+        recurring:
+          type: boolean
+
+    PhotoAlbum:
+      type: object
+      required: [id, name, url, createdBy, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        url:
+          type: string
+          format: uri
+        createdBy:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    SlotMachineResult:
+      type: object
+      required: [multiplier, category, isPersonalQuestion]
+      properties:
+        multiplier:
+          type: number
+        category:
+          type: string
+        isPersonalQuestion:
+          type: boolean
+        targetUserName:
+          type: string
+
+    CasinoRushSession:
+      type: object
+      required: [currentQuestion, difficulty, potentialPoints]
+      properties:
+        currentQuestion:
+          type: object
+        difficulty:
+          $ref: "#/components/schemas/DifficultyLevel"
+        potentialPoints:
+          type: number
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProgressMessage"
+
+    MemberSummaryResponse:
+      type: object
+      required: [userId, summary, mode, lastUpdated]
+      properties:
+        userId:
+          type: string
+        summary:
+          type: string
+        mode:
+          type: string
+          enum: [regular, roast]
+        lastUpdated:
+          type: string
+        basicQAs:
+          type: array
+          items:
+            $ref: "#/components/schemas/BasicQA"
+        insights:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberInsight"
+
+    BasicQA:
+      type: object
+      required: [question, answer]
+      properties:
+        question:
+          type: string
+        answer:
+          type: string
+
+    MemberInsight:
+      type: object
+      required: [text, category]
+      properties:
+        text:
+          type: string
+        category:
+          type: string
+          enum: [preference, personality, fact, activity, relationship]
+
+    GroupDescription:
+      type: object
+      required: [groupId, description, updatedBy, updatedAt]
+      properties:
+        groupId:
+          type: string
+        description:
+          type: string
+        updatedBy:
+          type: string
+        updatedAt:
+          type: string
+
+    DailyFactResponse:
+      type: object
+      required: [question, questionType]
+      properties:
+        question:
+          type: string
+        questionType:
+          type: string
+          enum: [basic, shared]
+        questionIndex:
+          type: integer
+        basicQuestionsTotal:
+          type: integer
+        basicQuestionsCompleted:
+          type: integer
+
+    # ──────────────────────────────────────────────
+    # Comments (unified)
+    # ──────────────────────────────────────────────
+
+    Comment:
+      type: object
+      required: [id, userId, text, timestamp]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        text:
+          type: string
+        timestamp:
+          type: string
+        parentId:
+          type: string
+
+    CommentThread:
+      type: object
+      required: [contentType, contentId, comments, lastUpdated]
+      properties:
+        contentType:
+          type: string
+          enum: [fact, trivia]
+        contentId:
+          type: string
+        comments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Comment"
+        lastUpdated:
+          type: string
+
+    # ──────────────────────────────────────────────
+    # Game modes (shared shapes)
+    # ──────────────────────────────────────────────
+
+    GameModeSessionStatus:
+      type: object
+      required: [hasActiveSession, canPlay]
+      properties:
+        hasActiveSession:
+          type: boolean
+        canPlay:
+          type: boolean
+        nextAvailable:
+          type: string
+          nullable: true
+        session:
+          type: object
+          description: Active session state — shape varies per mode
+
+    GameModeLockRequest:
+      type: object
+      required: [userId, multiplier, category]
+      properties:
+        userId:
+          type: string
+        multiplier:
+          type: integer
+        category:
+          type: string
+        isCatchingUp:
+          type: boolean
+        difficulty:
+          $ref: "#/components/schemas/DifficultyLevel"
+
+    GameModeLockResponse:
+      type: object
+      required: [question]
+      properties:
+        question:
+          $ref: "#/components/schemas/Question"
+        multiplier:
+          type: integer
+        potentialPoints:
+          type: integer
+
+    GameModeAnswerRequest:
+      type: object
+      required: [userId, question, selectedAnswer]
+      properties:
+        userId:
+          type: string
+        question:
+          $ref: "#/components/schemas/Question"
+        selectedAnswer:
+          type: string
+        isCatchingUp:
+          type: boolean
+
+    GameModeAnswerResponse:
+      type: object
+      required: [correct, pointsEarned]
+      properties:
+        correct:
+          type: boolean
+        pointsEarned:
+          type: integer
+        multiplier:
+          type: integer
+
+    # ──────────────────────────────────────────────
+    # Family Feud
+    # ──────────────────────────────────────────────
+
+    FamilyFeudGuesser:
+      type: object
+      required: [userName, submittedAt]
+      properties:
+        userName:
+          type: string
+        submittedAt:
+          type: string
+
+    FamilyFeudGuess:
+      type: object
+      required: [userName, guess, correct]
+      properties:
+        userName:
+          type: string
+        guess:
+          type: string
+        correct:
+          type: boolean
+
+    FamilyFeudWinner:
+      type: object
+      required: [userId, userName, points]
+      properties:
+        userId:
+          type: string
+        userName:
+          type: string
+        points:
+          type: integer
+
+    FamilyFeudResults:
+      type: object
+      required: [winners, totalGuesses, revealedAt]
+      properties:
+        winners:
+          type: array
+          items:
+            $ref: "#/components/schemas/FamilyFeudWinner"
+        totalGuesses:
+          type: integer
+        revealedAt:
+          type: string
+
+    FamilyFeudRoundInfo:
+      type: object
+      required: [roundId, targetUserId, targetUserName, question, status, startedAt, expiresAt, guessCount, guessers]
+      properties:
+        roundId:
+          type: string
+        targetUserId:
+          type: string
+        targetUserName:
+          type: string
+        question:
+          type: string
+        status:
+          type: string
+          enum: [waiting_for_target, active, completed]
+        startedAt:
+          type: string
+        expiresAt:
+          type: string
+        guessCount:
+          type: integer
+        guessers:
+          type: array
+          items:
+            $ref: "#/components/schemas/FamilyFeudGuesser"
+        myGuess:
+          type: string
+          nullable: true
+        choices:
+          type: array
+          items:
+            type: string
+          nullable: true
+        realAnswer:
+          type: string
+          nullable: true
+        allGuesses:
+          type: array
+          items:
+            $ref: "#/components/schemas/FamilyFeudGuess"
+          nullable: true
+        results:
+          $ref: "#/components/schemas/FamilyFeudResults"
+          nullable: true
+
+    FamilyFeudStatus:
+      type: object
+      required: [isMyTurn, nextTargetUserId, nextTargetUserName, timesAsTarget, neverGone, totalPeople, recentRounds]
+      properties:
+        currentRound:
+          $ref: "#/components/schemas/FamilyFeudRoundInfo"
+          nullable: true
+        isMyTurn:
+          type: boolean
+        nextTargetUserId:
+          type: string
+        nextTargetUserName:
+          type: string
+        timesAsTarget:
+          type: integer
+        neverGone:
+          type: integer
+        totalPeople:
+          type: integer
+        recentRounds:
+          type: array
+          items:
+            type: object
