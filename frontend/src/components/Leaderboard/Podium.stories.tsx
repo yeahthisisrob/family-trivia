@@ -16,9 +16,9 @@ type Story = StoryObj<typeof Podium>;
 export const ThreePlayers: Story = {
   args: {
     players: [
-      { userId: 'alice', score: 52, rank: 1, streak: 5, accuracy: 92, questionsAnswered: 40 },
+      { userId: 'betty', score: 52, rank: 1, streak: 5, accuracy: 92, questionsAnswered: 40 },
       { userId: 'bob', score: 48, rank: 2, streak: 2, accuracy: 88, questionsAnswered: 38 },
-      { userId: 'charlie', score: 41, rank: 3, streak: 0, accuracy: 75, questionsAnswered: 35 },
+      { userId: 'freddy', score: 41, rank: 3, streak: 0, accuracy: 75, questionsAnswered: 35 },
     ],
   },
 };
