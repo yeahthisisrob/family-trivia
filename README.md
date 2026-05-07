@@ -109,10 +109,44 @@ cd frontend && npm run build && cd ..
 # 4. Deploy infrastructure
 cd cdk && npx cdk deploy
 
-# 5. Open the CloudFront URL CDK printed.
-#    The first-run wizard walks you through creating your family,
-#    adding members, and starting a season.
+# 5. Bootstrap the first admin (one-time, see "Bootstrap your admin" below).
+#    Then open the CloudFront URL CDK printed and sign in with Google
+#    + your passphrase. The first-run wizard walks you through creating
+#    your family, adding members, and starting a season.
 ```
+
+## Bootstrap your admin
+
+CDK provisions the infrastructure but does not seed any users. After your first `cdk deploy`, drop one admin record into the data bucket so you can sign in:
+
+```bash
+# Replace BUCKET with the DataBucket name from `cdk deploy`'s output.
+# Pick any short userId (used as your display id) and a passphrase
+# you'll type once on first login.
+cat > /tmp/users.json <<'JSON'
+{
+  "version": "1.0",
+  "lastUpdated": "2026-05-07T00:00:00Z",
+  "users": {
+    "rob": { "group": "parents", "color": "#4CAF50", "passphrase": "happy-tiger", "isAdmin": true }
+  }
+}
+JSON
+aws s3 cp /tmp/users.json s3://BUCKET/config/users.json
+```
+
+Open the site, **Sign in with Google**, then enter your passphrase when prompted. You're now linked, admin, and the SetupWizard runs to build out the rest of your family.
+
+## Inviting family members
+
+Once the admin runs the SetupWizard, every new member gets a short auto-generated passphrase (e.g. `clever-river`). The flow for them is:
+
+1. Admin shares each person's passphrase with them privately.
+2. Family member opens the site → **Sign in with Google**.
+3. First time only: they're prompted for their passphrase. The backend matches it to their family-member slot and links their Google account.
+4. Every subsequent visit is plain Google sign-in — no passphrase needed.
+
+Passphrases are **one-time identification, not ongoing auth** — they exist so people don't need to share an inbox or pre-register Google emails.
 
 ## Configuration
 
@@ -143,6 +177,8 @@ cd frontend && npm run lint -- --fix && npm run typecheck
 # Lambda tests
 cd cdk/lambda && npm test
 ```
+
+> A `justfile` is included with shortcuts for the common loops (`just dev`, `just check`, `just test`, `just deploy`, `just storybook`, …). Install [just](https://github.com/casey/just) if you'd like to use them; the raw `npm` commands above always work too.
 
 ## Project structure
 
