@@ -167,9 +167,10 @@ export const TieList: React.FC<TieListProps> = ({ family, personId, ties, onChan
                     placeholder="YYYY"
                     value={t.ended.date ?? ''}
                     onChange={(e) =>
+                      t.ended &&
                       update(t.id, {
                         ...t,
-                        ended: { reason: t.ended!.reason, date: e.target.value || undefined },
+                        ended: { reason: t.ended.reason, date: e.target.value || undefined },
                       })
                     }
                     sx={{ width: 110 }}

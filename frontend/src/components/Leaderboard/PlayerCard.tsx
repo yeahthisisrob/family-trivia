@@ -198,9 +198,10 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
             minWidth: 24,
             textAlign: 'center',
             color: rankColor || theme.palette.text.disabled,
-            ...(rank <= 3 && {
-              textShadow: `0 1px 3px ${alpha(rankColor!, 0.4)}`,
-            }),
+            ...(rank <= 3 &&
+              rankColor && {
+                textShadow: `0 1px 3px ${alpha(rankColor, 0.4)}`,
+              }),
           }}
         >
           {rank}

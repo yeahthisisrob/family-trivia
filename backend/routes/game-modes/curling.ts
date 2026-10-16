@@ -103,7 +103,7 @@ export async function curlingLock(event: APIGatewayProxyEvent): Promise<APIGatew
   const category = categories[Math.floor(Math.random() * categories.length)];
 
   // Generate a question for that category
-  let questionData;
+  let questionData: Awaited<ReturnType<typeof generateQuestionWithOptions>>['question'];
   try {
     const result = await generateQuestionWithOptions({
       userId,

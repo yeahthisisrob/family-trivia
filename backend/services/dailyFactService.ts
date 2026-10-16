@@ -4,7 +4,6 @@ import { modelFor } from './bedrock/core/models';
 // Loads ALL previous questions for dedup, uses best model, stores metadata.
 
 import { getEasternDateString } from '@family-trivia/shared';
-import { MODELS } from '../config';
 import { S3_PATHS } from '../constants';
 import { invokeBedrockPrompt } from './bedrock/core/bedrockClient';
 import { collectResponseBody } from './bedrock/core/responseParser';
@@ -204,7 +203,6 @@ Return ONLY the question text. No quotes, no prefix, no explanation.`;
 // ---------------------------------------------------------------------------
 
 export async function generateQuestionOptions(
-  userId: string,
   userTheme?: string,
 ): Promise<Array<{ question: string; category: string }>> {
   const allPrevious = await getAllPreviousSharedQuestions();

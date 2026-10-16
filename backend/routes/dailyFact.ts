@@ -1,11 +1,6 @@
 // File: lambda/routes/dailyFact.ts
 
-import {
-  type FactAnswerEntry,
-  getEasternDateString,
-  getWeekStartDateET,
-  isNewWeekStartingET,
-} from '@family-trivia/shared';
+import { type FactAnswerEntry, getEasternDateString } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
@@ -66,10 +61,6 @@ async function initializeBasicQuestions(): Promise<void> {
  * Generates a key for storing basic question responses
  * Format: facts/daily/{userId}/basic_{index}_{date}.json
  */
-function getBasicQuestionKey(userId: string, questionIndex: number, date?: string): string {
-  const dateStr = date || getEasternDate();
-  return S3_PATHS.BASIC_QUESTION(userId, questionIndex, dateStr);
-}
 
 /**
  * Generates a key for storing shared question responses
@@ -92,8 +83,6 @@ function logWithTime(message: string, data?: any): void {
 
 // Aliases for the consolidated timezone utils (preserving local call sites)
 const getEasternDate = () => getEasternDateString();
-const getCurrentWeekStart = () => getWeekStartDateET();
-const isSunday = () => isNewWeekStartingET();
 
 /**
  * Checks if a user has completed all basic questions.
@@ -201,7 +190,7 @@ async function getOrCreateSharedQuestion(
   logWithTime(`Processing shared question for ${todayDate} with theme/question: ${userTheme}`);
 
   try {
-    let dailyQuestion;
+    let dailyQuestion: Awaited<ReturnType<typeof generateDailyFactQuestion>>;
 
     // Check if the "theme" is actually a full question (contains a question mark or is long enough)
     if (userTheme.includes('?') || userTheme.length > 50) {
@@ -346,7 +335,7 @@ export async function getDailyFact(event: APIGatewayProxyEvent): Promise<APIGate
         // Return the existing question
         const userSharedKey = getSharedQuestionKey(userId, eastToday);
         let userAnswered = false;
-        let userFact;
+        let userFact: string | undefined;
 
         if (await fileExists(userSharedKey)) {
           try {
@@ -383,8 +372,11 @@ export async function getDailyFact(event: APIGatewayProxyEvent): Promise<APIGate
       logWithTime(
         `Forcing shared question for user ${userId}${userTheme ? ` with theme: ${userTheme}` : ''}`,
       );
-      const { question, questionType, isFirstPerson, date, category, createdBy } =
-        await getOrCreateSharedQuestion(userTheme, userId, event);
+      const { question, questionType, isFirstPerson, date } = await getOrCreateSharedQuestion(
+        userTheme,
+        userId,
+        event,
+      );
 
       // Get the shared question to see if someone has answered it
       const sharedKey = S3_PATHS.GLOBAL_SHARED_QUESTION(date);
@@ -393,7 +385,7 @@ export async function getDailyFact(event: APIGatewayProxyEvent): Promise<APIGate
       // Check if this specific user has answered it today
       const userSharedKey = getSharedQuestionKey(userId, date);
       let userAnswered = false;
-      let userFact;
+      let userFact: string | undefined;
 
       if (await fileExists(userSharedKey)) {
         try {
@@ -447,10 +439,7 @@ export async function getDailyFact(event: APIGatewayProxyEvent): Promise<APIGate
       }
 
       // No answer for today — check if shared question exists or user is first
-      const { question, questionType, isFirstPerson, date } = await getOrCreateSharedQuestion(
-        undefined,
-        userId,
-      );
+      const { question, isFirstPerson, date } = await getOrCreateSharedQuestion(undefined, userId);
 
       if (isFirstPerson && !question) {
         return successResponse({
@@ -607,9 +596,9 @@ export async function submitDailyFact(event: APIGatewayProxyEvent): Promise<APIG
     const sharedByDate = await getSharedAnswersByDate(userId);
     const isRealAnswer = (e: { answered: boolean; skipped?: boolean }) => e.answered && !e.skipped;
 
-    if (isSharedQuestion && sharedByDate.has(eastToday)) {
-      const existing = sharedByDate.get(eastToday)!;
-      if (isRealAnswer(existing)) {
+    const today = isSharedQuestion ? sharedByDate.get(eastToday) : undefined;
+    if (today) {
+      if (isRealAnswer(today)) {
         logWithTime(`User ${userId} already answered today's shared question`);
         return errorResponse("Already answered today's question", 403);
       }
@@ -629,8 +618,9 @@ export async function submitDailyFact(event: APIGatewayProxyEvent): Promise<APIG
         return errorResponse('Already answered this question', 403);
       }
     }
-    if (isSharedQuestion && sharedQuestionDate && sharedByDate.has(sharedQuestionDate)) {
-      const existing = sharedByDate.get(sharedQuestionDate)!;
+    const existing =
+      isSharedQuestion && sharedQuestionDate ? sharedByDate.get(sharedQuestionDate) : undefined;
+    if (existing) {
       if (isRealAnswer(existing)) {
         logWithTime(
           `User ${userId} already has a real answer for shared question dated ${sharedQuestionDate}`,
@@ -991,12 +981,12 @@ export async function getDailyFactOptions(
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   const body = JSON.parse(event.body || '{}');
-  const { userId, categoryId, theme } = body;
+  const { userId, theme } = body;
 
   if (!userId) return errorResponse('Missing userId', 400);
 
   try {
-    const options = await generateQuestionOptions(userId, theme);
+    const options = await generateQuestionOptions(theme);
     return successResponse({ options });
   } catch (err) {
     logWithTime('Error generating question options:', err);

@@ -10,7 +10,6 @@ import { modelFor } from './bedrock/core/models';
  * Cheap — uses Haiku, ~128 output tokens per call.
  */
 
-import { MODELS } from '../config';
 import { invokeBedrockPrompt } from './bedrock/core/bedrockClient';
 import { collectResponseBody, extractJsonFromResponse } from './bedrock/core/responseParser';
 import { logger } from './logger';

@@ -14,10 +14,7 @@ import { useCallback, useState } from 'react';
 import { linkGoogleAccount, loginWithGoogle } from '../../api/modules/auth';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { radii } from '../../shared/design-system/tokens/radii';
-import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
-
-const logger = createLogger('LoginScreen');
 
 type LoginState = 'idle' | 'linking' | 'loading';
 

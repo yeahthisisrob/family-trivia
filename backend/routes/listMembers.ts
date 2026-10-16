@@ -41,7 +41,7 @@ export async function listMembers(event: APIGatewayProxyEvent): Promise<APIGatew
           });
 
           return { userId, activated: hasHistory };
-        } catch (err) {
+        } catch {
           // If history doesn't exist, user is not activated
           logger.debug('User history not found', { userId });
           return { userId, activated: false };

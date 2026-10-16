@@ -5,7 +5,6 @@ import { modelFor } from '../services/bedrock/core/models';
 import { playingPeople } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, MODELS, successResponse } from '../config';
-import { S3_PATHS } from '../constants';
 import { invokeBedrockPrompt } from '../services/bedrock/core/bedrockClient';
 import {
   collectResponseBody,
@@ -30,18 +29,10 @@ import {
 } from '../services/familyFeudService';
 import { logger } from '../services/logger';
 import { writeFeudNewRoundNotification } from '../services/notificationService';
-import { getJson } from '../services/s3';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-interface HierarchyData {
-  family: {
-    people: Record<string, { name: string; groupId?: string; [key: string]: any }>;
-    [key: string]: any;
-  };
-}
 
 /** Feud targets and players: people playing right now, never paused or remembered. */
 async function getAllPeopleIds(): Promise<{ ids: string[]; names: Record<string, string> }> {
@@ -323,7 +314,7 @@ export async function familyFeudStatus(
     // Check for expired round first
     await checkAndCompleteExpiredRound();
 
-    const { ids, names } = await getAllPeopleIds();
+    const { ids } = await getAllPeopleIds();
     const rotation = await getRotation(ids);
     const round = await getCurrentRound();
 
@@ -424,7 +415,7 @@ export async function familyFeudStartRound(
   if (!userId) return errorResponse('Missing userId', 400);
 
   try {
-    const { ids, names } = await getAllPeopleIds();
+    const { names } = await getAllPeopleIds();
 
     // Check no active round
     const existing = await getCurrentRound();

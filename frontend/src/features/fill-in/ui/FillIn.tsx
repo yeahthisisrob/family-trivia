@@ -173,6 +173,7 @@ const Deck: React.FC<{ items: FillInItem[]; onClose: (savedAny: boolean) => void
   const [at, setAt] = useState(0);
   const [saved, setSaved] = useState(0);
   const done = at >= items.length;
+  const current = items[at];
   const next = (didSave: boolean) => {
     if (didSave) setSaved((n) => n + 1);
     setAt((i) => i + 1);
@@ -217,7 +218,7 @@ const Deck: React.FC<{ items: FillInItem[]; onClose: (savedAny: boolean) => void
         </IconButton>
       </Stack>
       <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden', p: { xs: 2.5, sm: 3 } }}>
-        {done ? (
+        {done || !current ? (
           <Stack
             spacing={2}
             sx={{ flex: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}
@@ -240,9 +241,9 @@ const Deck: React.FC<{ items: FillInItem[]; onClose: (savedAny: boolean) => void
             </Button>
           </Stack>
         ) : (
-          <Slide key={items[at]!.key} direction="left" in appear={at > 0}>
+          <Slide key={current.key} direction="left" in appear={at > 0}>
             <Box sx={{ flex: 1, display: 'flex' }}>
-              <Card item={items[at]!} onSaved={() => next(true)} onSkip={() => next(false)} />
+              <Card item={current} onSaved={() => next(true)} onSkip={() => next(false)} />
             </Box>
           </Slide>
         )}

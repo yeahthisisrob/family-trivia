@@ -59,7 +59,7 @@ function splitBySeasons(
       }
     }
     if (!buckets.has(seasonName)) buckets.set(seasonName, []);
-    buckets.get(seasonName)!.push(s);
+    buckets.get(seasonName)?.push(s);
   }
   return buckets;
 }

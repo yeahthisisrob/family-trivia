@@ -52,7 +52,7 @@ export async function getPreviousCustomCategoryQuestions(
       .map((entry) => entry.question.question);
 
     categoryQuestions.push(...customQuestions);
-  } catch (err) {
+  } catch {
     // Skip if we can't read user's history
     logger.debug('Could not read user history for custom questions', { userId });
   }

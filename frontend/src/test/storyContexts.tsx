@@ -77,7 +77,7 @@ function makeTimelineValue(overrides: StubTimelineOverrides = {}) {
       comments: (contentType === 'fact' ? factComments[id] : triviaComments[id]) ?? [],
       lastUpdated: new Date().toISOString(),
     }),
-    addComment: async (contentType: string, contentId: string, userId: string, text: string) => {
+    addComment: async (_contentType: string, contentId: string, userId: string, text: string) => {
       overrides.onAddComment?.(userId, contentId, text);
       return {} as any;
     },

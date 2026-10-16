@@ -34,7 +34,7 @@ async function questions(): Promise<FillInQuestion[]> {
     sharedKeys
       .filter((k) => /\d{4}-\d{2}-\d{2}\.json$/.test(k))
       .map(async (k) => {
-        const date = k.match(/(\d{4}-\d{2}-\d{2})\.json$/)![1]!;
+        const date = k.match(/(\d{4}-\d{2}-\d{2})\.json$/)?.[1] ?? '';
         const q = await getJson<{ question?: string }>(k);
         return q?.question
           ? ({ key: `shared:${date}`, questionType: 'shared', date, question: q.question } as const)
@@ -90,8 +90,8 @@ export async function putFillIn(
   const entries = await getFactHistory(userId);
   const at = entries.findIndex((x) => keyOf(x) === q.key && x.answered && !x.skipped && x.answer);
 
-  if (at >= 0) {
-    const was = entries[at]!;
+  const was = at >= 0 ? entries[at] : undefined;
+  if (was) {
     entries[at] = {
       ...was,
       answer,

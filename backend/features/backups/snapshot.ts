@@ -75,8 +75,8 @@ async function anyUnder(bucket: string, prefix: string) {
 async function copyAll(keys: Listed[], to: string) {
   let next = 0;
   const worker = async () => {
-    while (next < keys.length) {
-      const { key } = keys[next++]!;
+    for (let item = keys[next++]; item; item = keys[next++]) {
+      const { key } = item;
       await s3.send(
         new CopyObjectCommand({
           Bucket: BACKUP_BUCKET,

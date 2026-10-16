@@ -56,9 +56,10 @@ export async function getJson<T>(key: string): Promise<T | null> {
   }
 
   // 2. Deduplicate concurrent reads for the same key within a single request
-  if (readCache.has(key)) {
+  const pending = readCache.get(key);
+  if (pending) {
     logger.debug('S3 read cache hit', { key });
-    return readCache.get(key)! as Promise<T | null>;
+    return pending as Promise<T | null>;
   }
 
   const promise = (async () => {

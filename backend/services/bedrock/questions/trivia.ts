@@ -252,7 +252,7 @@ export async function generateTriviaQuestionBase(
       (await getJson<{ name: string; description: string }[]>('categories/categories.json')) || [];
     const validCategoryNames = validCategories.map((c) => c.name);
 
-    if (!validCategoryNames.includes(category!)) {
+    if (!validCategoryNames.includes(category ?? '')) {
       logger.warn(`Potentially invalid category '${category}'. Proceeding anyway.`);
     }
     parts.push(`Category: ${category}`);
@@ -436,7 +436,7 @@ export async function generateQuestion(
         [];
       const validCategoryNames = validCategories.map((c) => c.name);
 
-      if (!validCategoryNames.includes(category!)) {
+      if (!validCategoryNames.includes(category ?? '')) {
         console.warn(`Potentially invalid category '${category}'. Proceeding anyway.`);
       }
       parts.push(`Category: ${category}`);

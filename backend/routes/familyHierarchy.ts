@@ -44,7 +44,7 @@ interface HierarchyData {
  * Now provides group descriptions and any additional metadata needed by the frontend
  */
 export async function getFamilyHierarchy(
-  event: APIGatewayProxyEvent,
+  _event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   try {
     // Get the hierarchy data from S3

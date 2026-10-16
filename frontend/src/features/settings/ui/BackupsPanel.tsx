@@ -92,12 +92,12 @@ export const BackupsPanel: React.FC = () => {
           This deployment has no backups bucket yet. Deploy the latest infra to add one.
         </Alert>
       )}
-      {view && view.last && !view.last.ok && (
+      {view?.last && !view.last.ok && (
         <Alert severity="warning" sx={{ mt: 1.5 }}>
           The last backup didn’t finish: {view.last.error}
         </Alert>
       )}
-      {view && view.configured && stale && !view.automatic && (
+      {view?.configured && stale && !view.automatic && (
         <Typography variant="body2" sx={{ mt: 1.5, color: 'text.secondary' }}>
           It’s been a while. Back up now, or turn on nightly backups above.
         </Typography>

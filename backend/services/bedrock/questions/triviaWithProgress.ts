@@ -66,7 +66,7 @@ export async function generateQuestionWithProgress(
               question: q,
               choices: [],
               answer: '',
-              category: opts.category!,
+              category: opts.category ?? '',
               difficulty: opts.difficulty || 'normal',
               pointMultiplier: 1,
             }) as Question,

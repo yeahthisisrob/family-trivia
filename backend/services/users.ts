@@ -163,15 +163,6 @@ export async function getAllUsers(): Promise<string[]> {
 }
 
 /**
- * Extract YYYY-MM-DD date from a fact S3 key.
- * Keys look like: facts/daily/{userId}/basic_0_2026-03-25.json or shared_2026-03-25.json
- */
-function extractDateFromFactKey(key: string): string | null {
-  const match = key.match(/(\d{4}-\d{2}-\d{2})\.json$/);
-  return match ? match[1] : null;
-}
-
-/**
  * Get profile data for multiple users in a single operation.
  * Supports optional date-range filtering to avoid loading all historical data.
  *
@@ -295,7 +286,7 @@ export async function getUserProfiles(
             },
           ];
         }
-      } catch (e) {
+      } catch {
         logger.debug('No slot machine session for user', { userId });
         // No slot machine session
       }

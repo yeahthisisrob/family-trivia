@@ -126,7 +126,7 @@ const AddCelebrationDialog: React.FC<AddCelebrationDialogProps> = ({
     }
   };
 
-  const currentType = TYPES.find((t) => t.value === type)!;
+  const currentType = TYPES.find((t) => t.value === type) ?? TYPES[0];
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>

@@ -44,7 +44,7 @@ import { logger } from './logger';
 import { type QuestionSlot, toQuestionSlots } from './questionSlotService';
 import { getJson, listObjects } from './s3';
 import { computePoints } from './scoring';
-import { getCurrentSeason, getSeasonsConfig, type Season } from './seasonService';
+import { getSeasonsConfig, type Season } from './seasonService';
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -110,10 +110,9 @@ async function loadAllState(): Promise<{
 
   const todayET = getEasternDateString();
 
-  // Load season config + current season in parallel with histories
-  const [seasonsConfig, currentSeason, historyFiles] = await Promise.all([
+  // Load season config in parallel with histories
+  const [seasonsConfig, historyFiles] = await Promise.all([
     getSeasonsConfig(),
-    getCurrentSeason(),
     listObjects('answers/history/'),
   ]);
 

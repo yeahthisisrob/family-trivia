@@ -29,7 +29,8 @@ export function invalidateGameModeCache() {
 }
 
 async function getCachedHistory(userId: string): Promise<HistoryEntry[]> {
-  if (historyCache.has(userId)) return historyCache.get(userId)!;
+  const cached = historyCache.get(userId);
+  if (cached) return cached;
   const history = (await getJson<HistoryEntry[]>(S3_PATHS.ANSWER_HISTORY(userId))) || [];
   historyCache.set(userId, history);
   return history;

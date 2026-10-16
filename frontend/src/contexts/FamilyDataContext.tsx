@@ -328,7 +328,7 @@ export const FamilyDataProvider: React.FC<{
         setGroupDescriptions((prev) => ({ ...prev, ...allDescriptions }));
         return;
       }
-    } catch (error) {
+    } catch {
       logger.info('Could not load all descriptions at once, falling back to parallel loading');
     }
 

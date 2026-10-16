@@ -69,7 +69,6 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
     myGroup,
     isAdmin,
     familyData,
-    userStatus,
     handleLogout,
     handleAnswerSubmit,
     handleFactSubmit,
@@ -120,6 +119,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
 
   // Auth is handled by AppProvider — if we're here, user is always authenticated.
   // Non-null assertion is safe because AppProvider only renders App when userId is set.
+  // biome-ignore lint/style/noNonNullAssertion: AppProvider renders App only once signed in.
   const user = selectedUser!;
 
   // First-time setup wizard — show before anything else
@@ -151,8 +151,9 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
           }
           onClose={() => {
             setEndOfSeasonDismissed(true);
-            const { seasonNumber, kind } = endOfSeasonStatus.letter!;
-            markSeasonLetterSeen(seasonNumber, kind).catch(() => undefined);
+            const letter = endOfSeasonStatus.letter;
+            if (letter)
+              markSeasonLetterSeen(letter.seasonNumber, letter.kind).catch(() => undefined);
           }}
         />
       )}

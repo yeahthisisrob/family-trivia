@@ -8,7 +8,6 @@ import { type Answer, likenesses } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { successResponse } from '../../config';
 import { loadJoined } from '../../services/family/joined';
-import { loadFamily } from '../../services/family/roster';
 import { getJson } from '../../services/s3';
 
 interface FactEntry {

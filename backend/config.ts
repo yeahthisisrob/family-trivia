@@ -1,7 +1,7 @@
 import type { APIGatewayProxyResult } from 'aws-lambda';
 
 // Environment variables
-export const BUCKET = process.env.BUCKET_NAME!;
+export const BUCKET = process.env.BUCKET_NAME ?? '';
 export const REGION = process.env.AWS_REGION || 'us-east-1';
 
 /**

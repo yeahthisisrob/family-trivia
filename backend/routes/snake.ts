@@ -19,7 +19,7 @@ interface SnakeQuestion {
  * suitable for the Snake letter-collecting game.
  */
 export async function getSnakeQuestions(
-  event: APIGatewayProxyEvent,
+  _event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   try {
     const questions: SnakeQuestion[] = [];

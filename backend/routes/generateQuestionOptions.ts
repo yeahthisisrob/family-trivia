@@ -20,11 +20,6 @@ interface QuestionOption {
   theme?: string;
 }
 
-interface GenerateOptionsResponse {
-  options: QuestionOption[];
-  weekSummaryContext?: string;
-}
-
 /**
  * Generates 3 question options using the previous week's summary as context
  * Gives higher weight to user-provided themes

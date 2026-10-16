@@ -2,7 +2,7 @@
 
 import { Box, Divider, Typography } from '@mui/material';
 import { format, isToday, isYesterday, parseISO } from 'date-fns';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { getUserColor, getUserInitials } from '../../utils';
 import { isCustomCategory } from '../../utils/categoryUtils';
 import { type FamilySide, shouldIncludeInFamilySide } from '../../utils/familyUtils';
@@ -97,7 +97,6 @@ const getDateLabel = (date: Date): string => {
 };
 
 const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
-  refreshKey = 0,
   onUserClick,
   currentUserId,
   selectedSide,
@@ -106,8 +105,6 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
 }) => {
   // Initialize logger for this component
   const logger = React.useMemo(() => createLogger('TriviaTimeline'), []);
-
-  const [casinoRushPageIndices, setCasinoRushPageIndices] = useState<Record<string, number>>({});
 
   // Transform and filter timeline trivia data — derived synchronously, no render delay
   const filteredEntries = useMemo(() => {
@@ -176,17 +173,6 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
           feudGuessCount: (item as any).guessCount,
         };
       });
-
-      // Debug: check for Family Feud data in raw items
-      const rawFeud = (timelineData?.trivia || []).filter(
-        (item: any) =>
-          item.isFamilyFeud ||
-          item.mode === 'family-feud' ||
-          (item.question &&
-            typeof item.question === 'object' &&
-            item.question.mode === 'family-feud'),
-      );
-      const feudEntries = entries.filter((e) => e.isFamilyFeud);
 
       // Sort newest first
       entries.sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
@@ -367,15 +353,6 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
     return 'entries' in entry && Array.isArray(entry.entries);
   };
 
-  // Handle Casino Rush page navigation
-  const handleCasinoRushPage = (sessionKey: string, direction: 'prev' | 'next') => {
-    const currentIndex = casinoRushPageIndices[sessionKey] || 0;
-    setCasinoRushPageIndices((prev) => {
-      const newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
-      return { ...prev, [sessionKey]: newIndex };
-    });
-  };
-
   return (
     <Box sx={{ px: { xs: 1, sm: 2 }, maxWidth: '100%' }}>
       {groupedByDate.length > 0 ? (
@@ -407,17 +384,10 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
 
             {/* Entries for this date */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              {group.items.map((e, i) => {
+              {group.items.map((e) => {
                 const isGrouped = isGroupedEntry(e);
-                const sessionKey = isGrouped
-                  ? `${e.userId}-${new Date(e.timestamp).toDateString()}`
-                  : '';
-                const currentPageIndex = casinoRushPageIndices[sessionKey] || 0;
-
-                // For grouped entries, show current question based on page index
-                const displayEntry: TriviaEntry = isGrouped
-                  ? e.entries[currentPageIndex] || e.entries[0]
-                  : (e as TriviaEntry);
+                // A grouped session shows its first question.
+                const displayEntry: TriviaEntry = isGrouped ? e.entries[0] : (e as TriviaEntry);
 
                 return (
                   <Box key={`${displayEntry.userId}_${displayEntry.timestamp}`}>

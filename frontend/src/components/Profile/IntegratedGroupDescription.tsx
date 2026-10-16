@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { type GroupDescription, updateGroupDescription } from '../../api';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
 import { colors } from '../../shared/design-system';
@@ -50,10 +50,6 @@ const IntegratedGroupDescription: React.FC<IntegratedGroupDescriptionProps> = ({
     severity: 'success' as 'success' | 'error',
   });
   const [aiSuggesterOpen, setAiSuggesterOpen] = useState(false);
-
-  // Track load attempts for retry logic
-  const attemptsRef = useRef(0);
-  const maxAttempts = 3;
 
   // Get the user's group ID
   const groupId = getUserGroup(userId) || 'Others';

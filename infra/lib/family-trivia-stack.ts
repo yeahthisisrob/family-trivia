@@ -176,6 +176,7 @@ export class FamilyTriviaStack extends Stack {
     });
 
     // Configure the $default stage with access logging and throttling
+    // biome-ignore lint/style/noNonNullAssertion: an HttpApi always has a $default stage unless disabled.
     const defaultStage = api.defaultStage!.node.defaultChild as apigatewayv2.CfnStage;
     defaultStage.accessLogSettings = {
       destinationArn: apiLogGroup.logGroupArn,

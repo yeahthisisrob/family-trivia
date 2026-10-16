@@ -76,22 +76,6 @@ export interface TimelineLoadOptions {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Extract the YYYY-MM-DD date from a fact S3 key. */
-function extractDateFromKey(key: string): string | null {
-  const match = key.match(/(\d{4}-\d{2}-\d{2})\.json$/);
-  return match ? match[1] : null;
-}
-
-/** Extract userId from a fact key like facts/daily/{userId}/basic_0_2026-03-25.json */
-function extractUserIdFromKey(key: string): string | null {
-  const parts = key.split('/');
-  // facts/daily/{userId}/filename.json → parts[2] = userId
-  if (parts.length >= 4 && parts[0] === 'facts' && parts[1] === 'daily') {
-    return parts[2];
-  }
-  return null;
-}
-
 // ---------------------------------------------------------------------------
 // Core: Optimized fact loading
 // ---------------------------------------------------------------------------

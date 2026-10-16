@@ -76,7 +76,7 @@ export function requireAuth(handler: AuthHandler, opts: { userId?: UserIdMeaning
       }
 
       // Verify JWT
-      let user;
+      let user: Awaited<ReturnType<typeof verifyJwt>>;
       try {
         user = await verifyJwt(token);
       } catch (err) {

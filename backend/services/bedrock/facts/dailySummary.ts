@@ -43,10 +43,6 @@ export async function generateDailyFactSummary(data: DailyFactData): Promise<str
   });
 
   try {
-    // Group facts by family side for comparison
-    const sideAFacts = data.facts.filter((f) => f.familySide === 'sideA');
-    const sideBFacts = data.facts.filter((f) => f.familySide === 'sideB');
-
     // Group facts by trivia group
     const factsByGroup: Record<string, typeof data.facts> = {};
     data.facts.forEach((fact) => {
@@ -60,7 +56,7 @@ export async function generateDailyFactSummary(data: DailyFactData): Promise<str
     const patterns = analyzeFacts(data.facts, data.factType);
 
     // Build the prompt
-    const prompt = buildSummaryPrompt(data, sideAFacts, sideBFacts, factsByGroup, patterns);
+    const prompt = buildSummaryPrompt(data, factsByGroup, patterns);
 
     // Get the model for member summaries (using same model as member summaries)
     const model = modelFor('summaries');
@@ -100,7 +96,6 @@ function analyzeFacts(facts: DailyFactData['facts'], factType: string) {
 
   if (factType === 'shared') {
     // For shared questions, find common themes in answers
-    const question = facts[0]?.question || '';
     const answers = facts.map((f) => f.answer.toLowerCase());
 
     // Find common words/themes
@@ -167,8 +162,6 @@ function analyzeFacts(facts: DailyFactData['facts'], factType: string) {
 
 function buildSummaryPrompt(
   data: DailyFactData,
-  sideAFacts: typeof data.facts,
-  sideBFacts: typeof data.facts,
   factsByGroup: Record<string, typeof data.facts>,
   patterns: any,
 ): string {

@@ -25,7 +25,8 @@ export function invalidateFactHistoryCache(userId?: string): void {
 
 /** Get a single user's fact answer history */
 export async function getFactHistory(userId: string): Promise<FactAnswerEntry[]> {
-  if (cache.has(userId)) return cache.get(userId)!;
+  const cached = cache.get(userId);
+  if (cached) return cached;
 
   try {
     const entries = await getJson<FactAnswerEntry[]>(S3_PATHS.FACT_ANSWER_HISTORY(userId));

@@ -63,7 +63,7 @@ export async function addCelebration(event: APIGatewayProxyEvent): Promise<APIGa
       if (existing) {
         celebrationsData = existing;
       }
-    } catch (err) {
+    } catch {
       logger.debug('No existing celebrations file, creating new one');
     }
 
@@ -106,7 +106,9 @@ export async function addCelebration(event: APIGatewayProxyEvent): Promise<APIGa
 /**
  * Get all celebrations (including birthdays from facts)
  */
-export async function getCelebrations(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+export async function getCelebrations(
+  _event: APIGatewayProxyEvent,
+): Promise<APIGatewayProxyResult> {
   try {
     logger.info('Fetching all celebrations including birthdays from facts');
 
@@ -126,7 +128,7 @@ export async function getCelebrations(event: APIGatewayProxyEvent): Promise<APIG
       if (existing) {
         celebrationsData = existing;
       }
-    } catch (err) {
+    } catch {
       logger.debug('No celebrations file found');
     }
 
@@ -238,7 +240,7 @@ export async function getCelebrations(event: APIGatewayProxyEvent): Promise<APIG
             }
           }
         }
-      } catch (err) {
+      } catch {
         logger.debug(`No birthday facts for user ${userId}`);
       }
     }

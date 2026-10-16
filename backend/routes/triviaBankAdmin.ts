@@ -99,7 +99,7 @@ export async function triviaBankImport(
   }
 
   try {
-    let result;
+    let result: Awaited<ReturnType<typeof importFromOpenTDB>>;
     switch (source) {
       case 'opentdb':
         result = await importFromOpenTDB(category, difficulty, count || 50);

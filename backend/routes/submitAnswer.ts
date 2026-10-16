@@ -108,7 +108,7 @@ export async function submitAnswer(event: APIGatewayProxyEvent): Promise<APIGate
     try {
       history = (await getJson<HistoryEntry[]>(histKey)) || [];
       logger.debug('Loaded user history', { userId, historyLength: history.length });
-    } catch (error) {
+    } catch {
       logger.info('No existing history found, using empty history', { userId });
       // Continue with empty history
     }

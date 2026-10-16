@@ -774,7 +774,9 @@ const CategoryTile: React.FC<CategoryTileProps> = ({
 
   const familyTotal = categoryStats?.total ?? 0;
   const accuracyPct =
-    familyTotal > 0 ? Math.round((categoryStats!.correct / familyTotal) * 100) : null;
+    categoryStats && familyTotal > 0
+      ? Math.round((categoryStats.correct / familyTotal) * 100)
+      : null;
   const bonusInfo = !isCustom ? getCategoryBonus(categoryStats) : null;
 
   return (
