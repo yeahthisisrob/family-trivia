@@ -91,11 +91,8 @@ export const FamilyHome: React.FC<{
       <FamilyHero
         familyName={family.name}
         story={story}
-        people={people}
-        photos={photos}
         numbers={knowledge?.stats}
         nameOf={nameOf}
-        onOpen={open}
       />
 
       {/* The ways in sit right under the story, not at the foot of the page. */}
@@ -145,9 +142,7 @@ export const FamilyHome: React.FC<{
         />
       )}
 
-      {knowledge && (
-        <WhatWeShare themes={knowledge.themes} nameOf={nameOf} photos={photos} onOpen={open} />
-      )}
+      {knowledge && <WhatWeShare themes={knowledge.themes} nameOf={nameOf} onOpen={open} />}
 
       {/* Remembered people before the long list of everyone, not under it. */}
       <InMemory people={remembered} photos={photos} onOpen={open} />

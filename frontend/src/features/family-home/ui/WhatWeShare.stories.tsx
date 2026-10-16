@@ -9,7 +9,7 @@ const nameOf = (id: string) => exampleFamily.people[id]?.name ?? id;
 const meta: Meta<typeof WhatWeShare> = {
   title: 'Family/WhatWeShare',
   component: WhatWeShare,
-  args: { themes: KNOWLEDGE.themes, nameOf, photos: {}, onOpen: fn() },
+  args: { themes: KNOWLEDGE.themes, nameOf, onOpen: fn() },
   parameters: { layout: 'padded' },
 };
 export default meta;

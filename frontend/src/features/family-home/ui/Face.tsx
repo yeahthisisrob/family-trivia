@@ -3,13 +3,19 @@ import { Avatar } from '@mui/material';
 import type React from 'react';
 import { colors, identityColor, paper } from '../../../shared/design-system';
 
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+/** What the family calls someone before their name; never an initial. */
+const TITLES =
+  /^(grandma|grandpa|granny|gran|nana|nanna|nan|papa|pop|pops|mimi|gigi|aunt|auntie|aunty|uncle|cousin|great|mom|mum|dad|mr|mrs|ms|dr)\.?$/i;
+
+/** "Grandma Grace" → G, "Aunt Ivy" → I, "Mary Jo Smith" → MS, "Bob" → B. */
+export const initials = (name: string) => {
+  const words = name.split(/\s+/).filter(Boolean);
+  const named = words.filter((w) => !TITLES.test(w));
+  const use = named.length ? named : words;
+  const first = use[0]?.[0] ?? '?';
+  const last = use.length > 1 ? (use.at(-1)?.[0] ?? '') : '';
+  return (first + last).toUpperCase();
+};
 
 export const Face: React.FC<{
   id: string;
