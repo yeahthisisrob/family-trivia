@@ -86,33 +86,29 @@ export const FamilyHome: React.FC<{
         onOpen={open}
       />
 
-      {today && (
-        <SpotlightCard
-          person={today}
-          next={tomorrow}
-          meId={meId}
-          photo={photos[today.id]}
-          onOpen={open}
-        />
-      )}
-
-      <PeopleSection people={people} meId={meId} photos={photos} onOpen={open} />
-
-      <InMemory people={remembered} photos={photos} onOpen={open} />
-
+      {/* The ways in sit right under the story, not at the foot of the page. */}
       {doors.length > 0 && (
         <Box
           sx={{
             display: 'grid',
             gap: 1.25,
-            gridTemplateColumns: { xs: '1fr', sm: `repeat(${Math.min(doors.length, 3)}, 1fr)` },
+            gridTemplateColumns: {
+              xs: doors.length > 1 ? '1fr 1fr' : '1fr',
+              sm: `repeat(${Math.min(doors.length, 3)}, 1fr)`,
+            },
           }}
         >
           {doors.map((d) => (
-            <Card key={d.id} variant="outlined">
+            <Card key={d.id} variant="outlined" sx={{ height: '100%' }}>
               <CardActionArea
                 onClick={() => setDoor(d)}
-                sx={{ p: 2, display: 'flex', gap: 1.5, justifyContent: 'flex-start' }}
+                sx={{
+                  p: 1.5,
+                  height: '100%',
+                  display: 'flex',
+                  gap: 1.25,
+                  justifyContent: 'flex-start',
+                }}
               >
                 <Box sx={{ color: 'primary.main', display: 'flex' }}>{d.icon}</Box>
                 <Box>
@@ -126,6 +122,20 @@ export const FamilyHome: React.FC<{
           ))}
         </Box>
       )}
+
+      {today && (
+        <SpotlightCard
+          person={today}
+          next={tomorrow}
+          meId={meId}
+          photo={photos[today.id]}
+          onOpen={open}
+        />
+      )}
+
+      <PeopleSection people={people} meId={meId} photos={photos} onOpen={open} />
+
+      <InMemory people={remembered} photos={photos} onOpen={open} />
 
       {footer}
 

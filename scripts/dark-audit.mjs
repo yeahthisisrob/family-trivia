@@ -91,6 +91,8 @@ server.listen(0, async () => {
           const out = [];
           for (const el of document.querySelectorAll('#storybook-root *')) {
             if (el.closest('[data-light-surface]')) continue;
+            // A click ripple caught mid-fade is not a surface.
+            if (el.closest('.MuiTouchRipple-root')) continue;
             const r = el.getBoundingClientRect();
             const area = r.width * r.height;
             if (area < vw * 0.02 || r.width < 60) continue;
