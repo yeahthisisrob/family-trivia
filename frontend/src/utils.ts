@@ -1,5 +1,5 @@
 // File: frontend/src/utils.ts
-import { UserConfigResponse } from './api/modules/user';
+import type { UserConfigResponse } from './api/modules/user';
 import { cacheService } from './services/CacheService';
 
 // Get user color from config or fall back to algorithm
@@ -7,7 +7,7 @@ export function getUserColor(userId: string): string {
   // Try to get from cache first
   const userConfig = cacheService.get<UserConfigResponse>('user-config');
 
-  if (userConfig && userConfig.users[userId]?.color) {
+  if (userConfig?.users[userId]?.color) {
     // If user found in config, return their color
     return userConfig.users[userId].color;
   }
@@ -45,7 +45,7 @@ export function getUserGroup(userId: string): string | undefined {
   // Try to get from cache first
   const userConfig = cacheService.get<UserConfigResponse>('user-config');
 
-  if (userConfig && userConfig.users[userId]?.group) {
+  if (userConfig?.users[userId]?.group) {
     return userConfig.users[userId].group;
   }
 

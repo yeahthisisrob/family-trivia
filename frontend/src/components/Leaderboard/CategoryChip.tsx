@@ -1,6 +1,6 @@
 // File: frontend/src/components/Leaderboard/CategoryChip.tsx
 import { Chip, useMediaQuery, useTheme } from '@mui/material';
-import React from 'react';
+import type React from 'react';
 
 import { getCategoryColor, isCustomCategory } from '../../utils/categoryUtils';
 

@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useCallback, useMemo } from 'react';
+import type React from 'react';
+import { createContext, useCallback, useContext, useMemo } from 'react';
 
- 
 import { CategoryRefreshProvider, useCategoryRefresh } from './CategoryRefreshContext';
 import { TriviaStatusProvider, useTriviaStatus } from './TriviaStatusContext';
 
@@ -137,4 +137,4 @@ export const useCasinoRushStatus = (userId?: string) => {
 
 // Re-export the individual context providers and hooks for cases where
 // components only need one specific part of the trivia state
-export { TriviaStatusProvider, useTriviaStatus, CategoryRefreshProvider, useCategoryRefresh };
+export { CategoryRefreshProvider, TriviaStatusProvider, useCategoryRefresh, useTriviaStatus };

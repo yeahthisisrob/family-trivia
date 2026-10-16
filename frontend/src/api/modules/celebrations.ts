@@ -1,22 +1,21 @@
 // Module: celebrations
 // Birthdays, celebrations, and end-of-season
 
-import { apiService } from '../../services/ApiService';
-
 import type {
-  UpcomingBirthdaysResponse,
   Celebration,
   CelebrationsResponse,
   EndOfSeasonStatus,
+  UpcomingBirthdaysResponse,
 } from '@family-trivia/shared';
+import { apiService } from '../../services/ApiService';
 
 export type {
   Birthday,
-  UpcomingBirthdaysResponse,
   Celebration,
   CelebrationsResponse,
-  Season,
   EndOfSeasonStatus,
+  Season,
+  UpcomingBirthdaysResponse,
 } from '@family-trivia/shared';
 
 // ─── Birthdays & Celebrations ────────────────────────────────────────

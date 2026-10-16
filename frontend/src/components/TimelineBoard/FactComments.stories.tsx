@@ -1,8 +1,7 @@
-import FactComments from './FactComments';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StoryProviders } from '../../test/storyContexts';
 import { getUserColor, getUserInitials } from '../../utils';
-
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import FactComments from './FactComments';
 
 const meta: Meta<typeof FactComments> = {
   title: 'TimelineBoard/FactComments',
@@ -14,7 +13,13 @@ const meta: Meta<typeof FactComments> = {
     getUserColor,
     getUserInitials,
   },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof FactComments>;

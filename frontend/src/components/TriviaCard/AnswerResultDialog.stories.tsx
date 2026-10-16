@@ -1,9 +1,7 @@
-import { fn } from 'storybook/test';
-
-import AnswerResultDialog from './AnswerResultDialog';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import { StoryProviders } from '../../test/storyContexts';
+import AnswerResultDialog from './AnswerResultDialog';
 
 const sampleQuestion = {
   question: 'Which planet has the most moons in our solar system?',
@@ -29,7 +27,13 @@ const meta: Meta<typeof AnswerResultDialog> = {
     userId: 'alice',
     answerTimestamp: '2026-04-10T14:30:00.000Z',
   },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof AnswerResultDialog>;

@@ -2,19 +2,18 @@
 import TimelineIcon from '@mui/icons-material/Timeline';
 import { Box, Button, Card, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React, { useState, useEffect } from 'react';
-
-import CommentsTimeline from './CommentsTimeline';
-import FactTimeline from './FactTimeline';
-import { LoadingDots } from '../ui/feedback';
-import ContentTypeSelector, { ContentType } from './selectors/ContentTypeSelector';
-import FamilySideSelector from './selectors/FamilySideSelector';
-import TriviaTimeline from './TriviaTimeline';
-import { MemberStatus } from '../../api';
+import React, { useEffect, useState } from 'react';
+import type { MemberStatus } from '../../api';
 import { useTimeline } from '../../contexts/TimelineContext';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { getUserColor, getUserInitials } from '../../utils';
-import { FamilySide } from '../../utils/familyUtils';
+import type { FamilySide } from '../../utils/familyUtils';
+import { LoadingDots } from '../ui/feedback';
+import CommentsTimeline from './CommentsTimeline';
+import FactTimeline from './FactTimeline';
+import ContentTypeSelector, { type ContentType } from './selectors/ContentTypeSelector';
+import FamilySideSelector from './selectors/FamilySideSelector';
+import TriviaTimeline from './TriviaTimeline';
 
 interface TimelineBoardOptimizedProps {
   members: MemberStatus[];
@@ -86,8 +85,9 @@ const TimelineBoardOptimized: React.FC<TimelineBoardOptimizedProps> = ({
           commentCount: commentCounts.get(`trivia:${trivia.userId}_${trivia.timestamp}`) ?? 0,
         }));
 
-      const mergedItems = [...factsWithComments, ...triviaWithComments]
-        .sort((a, b) => b.commentCount - a.commentCount);
+      const mergedItems = [...factsWithComments, ...triviaWithComments].sort(
+        (a, b) => b.commentCount - a.commentCount,
+      );
 
       return { facts: [], trivia: [], merged: mergedItems, familySides: timelineData.familySides };
     }
@@ -100,8 +100,12 @@ const TimelineBoardOptimized: React.FC<TimelineBoardOptimizedProps> = ({
   };
 
   const filteredData = getFilteredData();
-  const hasMore = contentType === 'funFacts' ? hasMoreFacts
-    : contentType === 'triviaHistory' ? hasMoreTrivia : false;
+  const hasMore =
+    contentType === 'funFacts'
+      ? hasMoreFacts
+      : contentType === 'triviaHistory'
+        ? hasMoreTrivia
+        : false;
 
   const infiniteScrollRef = useInfiniteScroll({
     onLoadMore: loadMoreTimeline,
@@ -110,20 +114,27 @@ const TimelineBoardOptimized: React.FC<TimelineBoardOptimizedProps> = ({
   });
 
   return (
-    <Card sx={{
-      mt: 2, overflow: 'hidden',
-      border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
-      borderRadius: 3,
-      boxShadow: `0 2px 12px ${alpha('#000', 0.06)}`,
-
-    }}>
+    <Card
+      sx={{
+        mt: 2,
+        overflow: 'hidden',
+        border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
+        borderRadius: 3,
+        boxShadow: `0 2px 12px ${alpha('#000', 0.06)}`,
+      }}
+    >
       {/* Header */}
-      <Box sx={{
-        px: 2, py: 1.25,
-        display: 'flex', alignItems: 'center', gap: 1,
-        background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.08)}, ${alpha(theme.palette.primary.dark, 0.04)})`,
-        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-      }}>
+      <Box
+        sx={{
+          px: 2,
+          py: 1.25,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.08)}, ${alpha(theme.palette.primary.dark, 0.04)})`,
+          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+        }}
+      >
         <TimelineIcon sx={{ fontSize: 20, color: theme.palette.primary.main }} />
         <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', flex: 1 }}>
           Family Timeline

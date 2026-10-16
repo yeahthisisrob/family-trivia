@@ -4,23 +4,23 @@ import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import {
-  Box,
-  Typography,
-  Button,
-  TextField,
-  Snackbar,
   Alert,
-  useTheme,
+  Box,
+  Button,
   Collapse,
+  Snackbar,
+  TextField,
+  Typography,
+  useTheme,
 } from '@mui/material';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-
-import AIGroupDescriptionSuggester from './AIGroupDescriptionSuggester';
-import { GroupDescription, getGroupDescription, updateGroupDescription } from '../../api';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { type GroupDescription, updateGroupDescription } from '../../api';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
 import { getUserGroup } from '../../utils';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
+import AIGroupDescriptionSuggester from './AIGroupDescriptionSuggester';
 
 // Initialize logger
 const logger = createLogger('GroupDescription');

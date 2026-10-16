@@ -4,23 +4,23 @@ import PersonIcon from '@mui/icons-material/Person';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import {
   Box,
-  Tabs,
-  Tab,
-  Paper,
   Button,
-  useTheme,
   FormControl,
-  Select,
   MenuItem,
-  SelectChangeEvent,
+  Paper,
+  Select,
+  type SelectChangeEvent,
+  Tab,
+  Tabs,
+  useTheme,
 } from '@mui/material';
-import React, { useState } from 'react';
-
+import type React from 'react';
+import { useState } from 'react';
+import { useLeaderboard } from '../../contexts/LeaderboardContext';
+import { LoadingDots } from '../ui/feedback';
 import GroupRankings from './GroupRankings';
 import LeaderboardError from './LeaderboardError';
 import PlayerRankings from './PlayerRankings';
-import { useLeaderboard } from '../../contexts/LeaderboardContext';
-import { LoadingDots } from '../ui/feedback';
 
 // Custom tab panel component
 interface TabPanelProps {
@@ -85,7 +85,7 @@ const EnhancedLeaderboard: React.FC<LeaderboardProps> = ({
   // Format season date range for display
   const formatSeasonLabel = (s: { name: string; startDate: string; endDate: string | null }) => {
     const fmt = (d: string) => {
-      const date = new Date(d + 'T00:00:00');
+      const date = new Date(`${d}T00:00:00`);
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     };
     const range = s.endDate
@@ -222,7 +222,12 @@ const EnhancedLeaderboard: React.FC<LeaderboardProps> = ({
 
         {/* Player Rankings Tab */}
         <TabPanel value={tabIndex} index={0}>
-          <PlayerRankings players={players} currentUserId={userId} onViewProfile={onViewProfile} maxQuestionsAsked={maxQuestionsAsked} />
+          <PlayerRankings
+            players={players}
+            currentUserId={userId}
+            onViewProfile={onViewProfile}
+            maxQuestionsAsked={maxQuestionsAsked}
+          />
         </TabPanel>
 
         {/* Family Group Rankings Tab */}

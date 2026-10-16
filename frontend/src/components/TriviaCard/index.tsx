@@ -4,12 +4,10 @@
 // when a question/game is active, the carousel locks so the active content
 // owns the space. Status grids live on the home tab now.
 
-import React from 'react';
-
-import TriviaCarousel from './TriviaCarousel';
-import { TriviaFlowProvider } from '../../contexts/TriviaFlowContext';
-
+import type React from 'react';
 import type { Question } from '../../api/modules/trivia';
+import { TriviaFlowProvider } from '../../contexts/TriviaFlowContext';
+import TriviaCarousel from './TriviaCarousel';
 
 interface TriviaTabProps {
   userId: string;
@@ -23,11 +21,7 @@ interface TriviaTabProps {
 
 const TriviaTab: React.FC<TriviaTabProps> = ({ userId, groupId, onAnswerResult }) => (
   <TriviaFlowProvider>
-    <TriviaCarousel
-      userId={userId}
-      groupId={groupId}
-      onAnswerResult={onAnswerResult}
-    />
+    <TriviaCarousel userId={userId} groupId={groupId} onAnswerResult={onAnswerResult} />
   </TriviaFlowProvider>
 );
 

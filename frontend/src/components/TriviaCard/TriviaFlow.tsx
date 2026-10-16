@@ -8,29 +8,24 @@
 // Context is read only at init — we never let context changes
 // reset an in-progress flow (answering, result, etc.).
 
-
-import { GAME_MODES , getSecondsElapsedTodayET } from '@family-trivia/shared';
+import type { GameModeId } from '@family-trivia/shared';
+import { GAME_MODES, getSecondsElapsedTodayET } from '@family-trivia/shared';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import StarsIcon from '@mui/icons-material/Stars';
-import {
-  Box, Button, Card, Chip, Typography,
-  alpha, keyframes, useTheme,
-} from '@mui/material';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-import { CasinoRush } from './CasinoRush';
-import CategorySelect from './CategorySelect';
-import CurlingGame from './CurlingGame';
-import DifficultySelect, { Difficulty } from './DifficultySelect';
-import HistoryCard from './HistoryCard';
-import SlotMachine from './SlotMachine';
-import TetrisGame from './TetrisGame';
+import { alpha, Box, Button, Card, Chip, keyframes, Typography, useTheme } from '@mui/material';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { CustomCategory } from '../../api';
 import { submitAnswer } from '../../api';
-import { Question, generateQuestionStepped, getCatchupStatus } from '../../api/modules/trivia';
-import { getUserProfile, CategorySelection, QuestionHistory } from '../../api/modules/user';
+import { generateQuestionStepped, getCatchupStatus, type Question } from '../../api/modules/trivia';
+import {
+  type CategorySelection,
+  getUserProfile,
+  type QuestionHistory,
+} from '../../api/modules/user';
 import appStrings from '../../constants/strings';
 import { useTimeline } from '../../contexts/TimelineContext';
 import { useTrivia } from '../../contexts/TriviaContext';
@@ -43,12 +38,16 @@ import { shadows } from '../../shared/design-system/tokens/shadows';
 import { getUserColor, getUserInitials } from '../../utils';
 import { isCustomCategory } from '../../utils/categoryUtils';
 import { createLogger } from '../../utils/logger';
-import CommentsThread from '../common/CommentsThread';
 import CustomCategoryForm from '../CustomCategoryForm';
+import CommentsThread from '../common/CommentsThread';
 import { LoadingDots } from '../ui/feedback';
-
-import type { CustomCategory } from '../../api';
-import type { GameModeId } from '@family-trivia/shared';
+import { CasinoRush } from './CasinoRush';
+import CategorySelect from './CategorySelect';
+import CurlingGame from './CurlingGame';
+import DifficultySelect, { type Difficulty } from './DifficultySelect';
+import HistoryCard from './HistoryCard';
+import SlotMachine from './SlotMachine';
+import TetrisGame from './TetrisGame';
 
 const logger = createLogger('TriviaFlow');
 
@@ -87,7 +86,11 @@ type FlowState = 'idle' | 'difficulty' | 'generating' | 'answering' | 'result' |
 export interface TriviaFlowProps {
   userId: string;
   groupId: string;
-  onAnswerResult?: (result: AnswerResult, question?: Question, selectedAnswer?: string | null) => void;
+  onAnswerResult?: (
+    result: AnswerResult,
+    question?: Question,
+    selectedAnswer?: string | null,
+  ) => void;
   forceDisabled?: boolean;
   /** Test-only: inject mock history to bypass getUserProfile API */
   __mockHistory?: QuestionHistory | null;
@@ -114,12 +117,15 @@ const useCountUp = (target: number, duration = 600) => {
     const tick = (now: number) => {
       const progress = Math.min((now - start) / duration, 1);
       // ease-out
-      const eased = 1 - Math.pow(1 - progress, 3);
+      const eased = 1 - (1 - progress) ** 3;
       setValue(Math.round(eased * target));
       if (progress < 1) raf = requestAnimationFrame(tick);
     };
     // Start from 0 via RAF (not setState directly in effect)
-    raf = requestAnimationFrame((now) => { setValue(0); tick(now); });
+    raf = requestAnimationFrame((now) => {
+      setValue(0);
+      tick(now);
+    });
     return () => cancelAnimationFrame(raf);
   }, [target, duration]);
   return value;
@@ -128,15 +134,25 @@ const useCountUp = (target: number, duration = 600) => {
 const PointsChip: React.FC<{ points: number }> = ({ points }) => {
   const n = useCountUp(points);
   return (
-    <Chip icon={<StarsIcon sx={{ fontSize: '13px !important' }} />}
-      label={`+${n} pts`} color="primary" size="small"
-      sx={{ height: 22, fontWeight: 600, fontSize: '0.68rem' }} />
+    <Chip
+      icon={<StarsIcon sx={{ fontSize: '13px !important' }} />}
+      label={`+${n} pts`}
+      color="primary"
+      size="small"
+      sx={{ height: 22, fontWeight: 600, fontSize: '0.68rem' }}
+    />
   );
 };
 
 // ── Component ─────────────────────────────────────────────────────
 
-const TriviaFlow: React.FC<TriviaFlowProps> = ({ userId, groupId, onAnswerResult, forceDisabled = false, __mockHistory }) => {
+const TriviaFlow: React.FC<TriviaFlowProps> = ({
+  userId,
+  groupId,
+  onAnswerResult,
+  forceDisabled = false,
+  __mockHistory,
+}) => {
   const theme = useTheme();
   const { refreshTimestamp, invalidateCategories, refreshAllStatuses } = useTrivia();
   const { refreshTimeline } = useTimeline();
@@ -253,29 +269,35 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({ userId, groupId, onAnswerResult
       return;
     }
     let mounted = true;
-    getUserProfile(userId).then(p => {
-      if (mounted) {
-        setCategorySelections(p.categorySelections || []);
-        const entries = (p.history || []).filter(h => h.question && h.selectedAnswer);
-        setLatestHistory(entries.length ? entries[0] : null);
-        setProfileLoaded(true);
-      }
-    }).catch(() => setProfileLoaded(true));
-    return () => { mounted = false; };
+    getUserProfile(userId)
+      .then((p) => {
+        if (mounted) {
+          setCategorySelections(p.categorySelections || []);
+          const entries = (p.history || []).filter((h) => h.question && h.selectedAnswer);
+          setLatestHistory(entries.length ? entries[0] : null);
+          setProfileLoaded(true);
+        }
+      })
+      .catch(() => setProfileLoaded(true));
+    return () => {
+      mounted = false;
+    };
   }, [userId, forceDisabled, refreshTimestamp, __mockHistory]);
 
   const refreshProfile = useCallback(async () => {
     try {
       const p = await getUserProfile(userId);
       setCategorySelections(p.categorySelections || []);
-      const entries = (p.history || []).filter(h => h.question && h.selectedAnswer);
+      const entries = (p.history || []).filter((h) => h.question && h.selectedAnswer);
       setLatestHistory(entries.length ? entries[0] : null);
       invalidateCategories();
       refreshTimeline(true);
       // Bust game-mode eligibility cache so CR/SM canPlay reflects the
       // new daily-limit state after any answer submission.
       refreshAllStatuses(userId);
-    } catch { /* */ }
+    } catch {
+      /* */
+    }
   }, [userId, invalidateCategories, refreshTimeline, refreshAllStatuses]);
 
   // ── Derived: is this the final result (no more questions)? ──────
@@ -288,24 +310,33 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({ userId, groupId, onAnswerResult
   const nextButtonLabel = useMemo(() => {
     if (state !== 'result') return null;
     if (catchingUp && catchupBehind > 0) return 'Next Question';
-    if (catchingUp && catchupBehind <= 0 && !dailyUsed) return 'Next — Today\'s Question';
+    if (catchingUp && catchupBehind <= 0 && !dailyUsed) return "Next — Today's Question";
     return 'Done';
   }, [state, catchingUp, catchupBehind, dailyUsed]);
 
   // ── Generate question (single API call) ─────────────────────────
 
-  const handleCategorySelect = useCallback((cat: string) => {
-    const modeId = gameModeByLabel.get(cat);
-    if (modeId) { setActiveGameMode(modeId); return; }
-    setPendingCategory(cat);
-    setState('difficulty');
-  }, [gameModeByLabel]);
+  const handleCategorySelect = useCallback(
+    (cat: string) => {
+      const modeId = gameModeByLabel.get(cat);
+      if (modeId) {
+        setActiveGameMode(modeId);
+        return;
+      }
+      setPendingCategory(cat);
+      setState('difficulty');
+    },
+    [gameModeByLabel],
+  );
 
-  const handleDifficultySelect = useCallback((difficulty: Difficulty) => {
-    if (!pendingCategory) return;
-    generate(pendingCategory, difficulty);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingCategory, catchingUp, userId]);
+  const handleDifficultySelect = useCallback(
+    (difficulty: Difficulty) => {
+      if (!pendingCategory) return;
+      generate(pendingCategory, difficulty);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [pendingCategory, catchingUp, userId],
+  );
 
   const handleDifficultyBack = useCallback(() => {
     setPendingCategory(null);
@@ -314,14 +345,21 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({ userId, groupId, onAnswerResult
 
   const generate = async (category: string, difficulty: Difficulty) => {
     setState('generating');
-    setQuestion(null); setSelected(null); setResult(null); setErrorMsg('');
+    setQuestion(null);
+    setSelected(null);
+    setResult(null);
+    setErrorMsg('');
     setProgressMsg(FALLBACK_PROGRESS);
 
     try {
       const mode = isCustomCategory(category) ? 'custom' : 'category';
 
       const q = await generateQuestionStepped(
-        userId, mode, category, difficulty, catchingUp,
+        userId,
+        mode,
+        category,
+        difficulty,
+        catchingUp,
         (progress) => setProgressMsg(progress.message),
       );
 
@@ -369,14 +407,25 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({ userId, groupId, onAnswerResult
     try {
       const isCustomCat = question.category ? isCustomCategory(question.category) : false;
       const res = await submitAnswer(userId, groupId, question, choice, catchingUp, isCustomCat);
-      const answerRes: AnswerResult = { correct: res.correct, streak: res.streak, pointsEarned: res.pointsEarned };
+      const answerRes: AnswerResult = {
+        correct: res.correct,
+        streak: res.streak,
+        pointsEarned: res.pointsEarned,
+      };
 
       setResult(answerRes);
       setAnswerTimestamp(new Date().toISOString());
       setState('result');
 
       if (question.category) {
-        setCategorySelections(prev => [...prev, { category: question.category || '', timestamp: new Date().toISOString(), isCustom: isCustomCat }]);
+        setCategorySelections((prev) => [
+          ...prev,
+          {
+            category: question.category || '',
+            timestamp: new Date().toISOString(),
+            isCustom: isCustomCat,
+          },
+        ]);
       }
 
       if (catchingUp) {
@@ -385,7 +434,7 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({ userId, groupId, onAnswerResult
           const fresh = await getCatchupStatus(userId);
           setCatchupBehind(fresh.questionsBehind);
         } catch {
-          setCatchupBehind(prev => Math.max(0, prev - 1));
+          setCatchupBehind((prev) => Math.max(0, prev - 1));
         }
       } else {
         // Daily question answered — mark locally, notify parent
@@ -427,38 +476,62 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({ userId, groupId, onAnswerResult
     markDailyUsed();
     setState('done');
     refreshProfile();
-  }, [catchingUp, catchupBehind, dailyUsed, userId, refreshProfile, invalidateCategories, markDailyUsed]);
+  }, [
+    catchingUp,
+    catchupBehind,
+    dailyUsed,
+    userId,
+    refreshProfile,
+    invalidateCategories,
+    markDailyUsed,
+  ]);
 
   // ── Game modes ──────────────────────────────────────────────────
 
-  const handleGameComplete = useCallback(async (pts: number) => {
-    setActiveGameMode(null);
+  const handleGameComplete = useCallback(
+    async (pts: number) => {
+      setActiveGameMode(null);
 
-    if (catchingUp) {
-      let newBehind = catchupBehind;
-      try {
-        const fresh = await getCatchupStatus(userId);
-        newBehind = fresh.questionsBehind;
-        setCatchupBehind(newBehind);
-      } catch {
-        newBehind = Math.max(0, catchupBehind - 1);
-        setCatchupBehind(newBehind);
-      }
-      if (newBehind <= 0) {
-        setCatchingUp(false);
-        if (dailyUsed) { setState('done'); } else { setState('idle'); }
+      if (catchingUp) {
+        let newBehind = catchupBehind;
+        try {
+          const fresh = await getCatchupStatus(userId);
+          newBehind = fresh.questionsBehind;
+          setCatchupBehind(newBehind);
+        } catch {
+          newBehind = Math.max(0, catchupBehind - 1);
+          setCatchupBehind(newBehind);
+        }
+        if (newBehind <= 0) {
+          setCatchingUp(false);
+          if (dailyUsed) {
+            setState('done');
+          } else {
+            setState('idle');
+          }
+        } else {
+          setState('idle');
+        }
       } else {
-        setState('idle');
+        // Non-catchup game mode done — go straight to done.
+        markDailyUsed();
+        setState('done');
       }
-    } else {
-      // Non-catchup game mode done — go straight to done.
-      markDailyUsed();
-      setState('done');
-    }
 
-    refreshProfile();
-    onAnswerResult?.({ correct: true, streak: 0, pointsEarned: pts });
-  }, [catchingUp, catchupBehind, dailyUsed, userId, refreshProfile, onAnswerResult, markDailyUsed, invalidateCategories]);
+      refreshProfile();
+      onAnswerResult?.({ correct: true, streak: 0, pointsEarned: pts });
+    },
+    [
+      catchingUp,
+      catchupBehind,
+      dailyUsed,
+      userId,
+      refreshProfile,
+      onAnswerResult,
+      markDailyUsed,
+      invalidateCategories,
+    ],
+  );
 
   const handleGameClose = useCallback(() => {
     setActiveGameMode(null);
@@ -470,54 +543,95 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({ userId, groupId, onAnswerResult
   if (forceDisabled) return null;
 
   // Game mode render — driven by registry, styled per mode
-  const GAME_MODE_STYLES: Record<GameModeId, { border: string; borderTop: string; glow: string }> = {
-    'casino-rush': {
-      border: `2px solid ${alpha(colors.casinoRush.accent, 0.5)}`,
-      borderTop: `3px solid ${colors.casinoRush.accent}`,
-      glow: `0 0 20px ${alpha(colors.casinoRush.accent, 0.15)}, ${shadows.card}`,
-    },
-    'slot-machine': {
-      border: `2px solid ${alpha(colors.casinoRush.gold, 0.4)}`,
-      borderTop: `3px solid ${colors.casinoRush.gold}`,
-      glow: `0 0 20px ${alpha(colors.casinoRush.gold, 0.12)}, ${shadows.card}`,
-    },
-    'curling': {
-      border: `2px solid ${alpha('#64b5f6', 0.5)}`,
-      borderTop: `3px solid #1976d2`,
-      glow: `0 0 20px ${alpha('#64b5f6', 0.15)}, ${shadows.card}`,
-    },
-    'tetris': {
-      border: `2px solid ${alpha('#9c27b0', 0.5)}`,
-      borderTop: `3px solid #7b1fa2`,
-      glow: `0 0 20px ${alpha('#9c27b0', 0.15)}, ${shadows.card}`,
-    },
-  };
+  const GAME_MODE_STYLES: Record<GameModeId, { border: string; borderTop: string; glow: string }> =
+    {
+      'casino-rush': {
+        border: `2px solid ${alpha(colors.casinoRush.accent, 0.5)}`,
+        borderTop: `3px solid ${colors.casinoRush.accent}`,
+        glow: `0 0 20px ${alpha(colors.casinoRush.accent, 0.15)}, ${shadows.card}`,
+      },
+      'slot-machine': {
+        border: `2px solid ${alpha(colors.casinoRush.gold, 0.4)}`,
+        borderTop: `3px solid ${colors.casinoRush.gold}`,
+        glow: `0 0 20px ${alpha(colors.casinoRush.gold, 0.12)}, ${shadows.card}`,
+      },
+      curling: {
+        border: `2px solid ${alpha('#64b5f6', 0.5)}`,
+        borderTop: `3px solid #1976d2`,
+        glow: `0 0 20px ${alpha('#64b5f6', 0.15)}, ${shadows.card}`,
+      },
+      tetris: {
+        border: `2px solid ${alpha('#9c27b0', 0.5)}`,
+        borderTop: `3px solid #7b1fa2`,
+        glow: `0 0 20px ${alpha('#9c27b0', 0.15)}, ${shadows.card}`,
+      },
+    };
 
   const GAME_MODE_COMPONENTS: Record<GameModeId, React.ReactNode> = {
-    'casino-rush': <CasinoRush userId={userId} onComplete={handleGameComplete} onClose={handleGameClose} isCatchingUp={catchingUp} />,
-    'slot-machine': <SlotMachine userId={userId} groupId={groupId} onComplete={handleGameComplete} onClose={handleGameClose} isCatchingUp={catchingUp} />,
-    'curling': <CurlingGame userId={userId} isCatchingUp={catchingUp} onComplete={(points) => handleGameComplete(points)} onClose={handleGameClose} />,
-    'tetris': <TetrisGame userId={userId} isCatchingUp={catchingUp} onComplete={(result) => handleGameComplete(result.pointsEarned)} onClose={handleGameClose} />,
+    'casino-rush': (
+      <CasinoRush
+        userId={userId}
+        onComplete={handleGameComplete}
+        onClose={handleGameClose}
+        isCatchingUp={catchingUp}
+      />
+    ),
+    'slot-machine': (
+      <SlotMachine
+        userId={userId}
+        groupId={groupId}
+        onComplete={handleGameComplete}
+        onClose={handleGameClose}
+        isCatchingUp={catchingUp}
+      />
+    ),
+    curling: (
+      <CurlingGame
+        userId={userId}
+        isCatchingUp={catchingUp}
+        onComplete={(points) => handleGameComplete(points)}
+        onClose={handleGameClose}
+      />
+    ),
+    tetris: (
+      <TetrisGame
+        userId={userId}
+        isCatchingUp={catchingUp}
+        onComplete={(result) => handleGameComplete(result.pointsEarned)}
+        onClose={handleGameClose}
+      />
+    ),
   };
 
   if (activeGameMode) {
     const style = GAME_MODE_STYLES[activeGameMode];
     return (
-      <Box sx={{
-        borderRadius: `${radii.xl}px`,
-        border: style.border,
-        borderTop: style.borderTop,
-        boxShadow: style.glow,
-        overflow: 'hidden',
-      }}>
+      <Box
+        sx={{
+          borderRadius: `${radii.xl}px`,
+          border: style.border,
+          borderTop: style.borderTop,
+          boxShadow: style.glow,
+          overflow: 'hidden',
+        }}
+      >
         {GAME_MODE_COMPONENTS[activeGameMode]}
       </Box>
     );
   }
   if (showCustomForm) {
     return (
-      <CustomCategoryForm open onClose={() => { setShowCustomForm(false); }}
-        onSuccess={(cat: CustomCategory) => { setShowCustomForm(false); setCreatedCategory(cat.title); invalidateCategories(); }} />
+      <CustomCategoryForm
+        open
+        onClose={() => {
+          setShowCustomForm(false);
+        }}
+        onSuccess={(cat: CustomCategory) => {
+          setShowCustomForm(false);
+          setCreatedCategory(cat.title);
+          invalidateCategories();
+        }}
+      />
     );
   }
 
@@ -531,19 +645,31 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({ userId, groupId, onAnswerResult
     if (!latestHistory) {
       // No history yet — fall back to viewOnly category grid
       return (
-        <CategorySelect onSelect={() => {}} recentSelections={categorySelections} viewOnly
-          onCreateCustomCategory={() => setShowCustomForm(true)} />
+        <CategorySelect
+          onSelect={() => {}}
+          recentSelections={categorySelections}
+          viewOnly
+          onCreateCustomCategory={() => setShowCustomForm(true)}
+        />
       );
     }
     return (
       <Box>
         {/* Countdown banner above card */}
-        <Box sx={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.75,
-          mb: 1, py: 0.6, px: 2, borderRadius: `${radii.md}px`,
-          bgcolor: alpha(colors.brand.primary, 0.05),
-          border: `1px solid ${alpha(colors.brand.primary, 0.12)}`,
-        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 0.75,
+            mb: 1,
+            py: 0.6,
+            px: 2,
+            borderRadius: `${radii.md}px`,
+            bgcolor: alpha(colors.brand.primary, 0.05),
+            border: `1px solid ${alpha(colors.brand.primary, 0.12)}`,
+          }}
+        >
           <AccessTimeIcon sx={{ fontSize: 15, color: colors.text.secondary }} />
           <Typography sx={{ fontSize: '0.72rem', fontWeight: 600, color: colors.text.secondary }}>
             Next question in {countdown}
@@ -570,16 +696,33 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({ userId, groupId, onAnswerResult
     <Box ref={containerRef}>
       {/* Error banner */}
       {errorMsg && (
-        <Box sx={{ mb: 1.5, p: 1.5, borderRadius: `${radii.md}px`, bgcolor: alpha(colors.result.incorrect, 0.08),
-          border: `1px solid ${alpha(colors.result.incorrect, 0.2)}` }}>
-          <Typography sx={{ fontSize: '0.8rem', color: colors.result.incorrect }}>{errorMsg}</Typography>
+        <Box
+          sx={{
+            mb: 1.5,
+            p: 1.5,
+            borderRadius: `${radii.md}px`,
+            bgcolor: alpha(colors.result.incorrect, 0.08),
+            border: `1px solid ${alpha(colors.result.incorrect, 0.2)}`,
+          }}
+        >
+          <Typography sx={{ fontSize: '0.8rem', color: colors.result.incorrect }}>
+            {errorMsg}
+          </Typography>
         </Box>
       )}
 
       {/* Created category feedback */}
       {createdCategory && (
-        <Box sx={{ mb: 1.5, p: 1, borderRadius: `${radii.md}px`, bgcolor: alpha(colors.category.custom, 0.08),
-          border: `1px solid ${alpha(colors.category.custom, 0.15)}`, textAlign: 'center' }}>
+        <Box
+          sx={{
+            mb: 1.5,
+            p: 1,
+            borderRadius: `${radii.md}px`,
+            bgcolor: alpha(colors.category.custom, 0.08),
+            border: `1px solid ${alpha(colors.category.custom, 0.15)}`,
+            textAlign: 'center',
+          }}
+        >
           <Typography sx={{ fontSize: '0.75rem', color: colors.category.custom, fontWeight: 600 }}>
             Created: {createdCategory}
           </Typography>
@@ -587,8 +730,8 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({ userId, groupId, onAnswerResult
       )}
 
       {/* IDLE: show category grid — viewOnly if daily used (unless catching up) OR context still loading */}
-      {state === 'idle' && (
-        profileLoaded ? (
+      {state === 'idle' &&
+        (profileLoaded ? (
           <CategorySelect
             onSelect={handleCategorySelect}
             recentSelections={categorySelections}
@@ -597,8 +740,9 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({ userId, groupId, onAnswerResult
             viewOnly={(dailyUsed && !catchingUp) || (!initRef.current && ctxLoading)}
             onCreateCustomCategory={() => setShowCustomForm(true)}
           />
-        ) : <LoadingDots mt={2} />
-      )}
+        ) : (
+          <LoadingDots mt={2} />
+        ))}
 
       {/* DIFFICULTY: pick easy/normal/hard */}
       {state === 'difficulty' && pendingCategory && (
@@ -613,18 +757,23 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({ userId, groupId, onAnswerResult
 
       {/* GENERATING: inline progress */}
       {state === 'generating' && (
-        <Card sx={{
-          overflow: 'hidden', borderRadius: `${radii.xl}px`,
-          boxShadow: shadows.card,
-          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-          animation: `${fadeSlideIn} ${motion.duration.normal} ${motion.ease.bounce}`,
-        }}>
+        <Card
+          sx={{
+            overflow: 'hidden',
+            borderRadius: `${radii.xl}px`,
+            boxShadow: shadows.card,
+            border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+            animation: `${fadeSlideIn} ${motion.duration.normal} ${motion.ease.bounce}`,
+          }}
+        >
           <Box sx={{ p: 2.5, textAlign: 'center' }}>
             {/* Keyed by message so each swap fades in */}
             <Typography
               key={progressMsg}
               sx={{
-                fontSize: '0.82rem', color: colors.text.secondary, mb: 1,
+                fontSize: '0.82rem',
+                color: colors.text.secondary,
+                mb: 1,
                 animation: `${messageFadeIn} ${motion.duration.normal} ${motion.ease.smooth}`,
               }}
             >
@@ -636,190 +785,279 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({ userId, groupId, onAnswerResult
       )}
 
       {/* ANSWERING + RESULT: question card with inline result */}
-      {(state === 'answering' || state === 'result') && question && (() => {
-        const resultAccent = state === 'result'
-          ? (result?.correct ? colors.result.correct : colors.result.incorrect)
-          : colors.brand.primary;
-        return (
-        <>
-        {/* Countdown banner when this is the final result */}
-        {isFinalResult && (
-          <Box sx={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.75,
-            mb: 1, py: 0.6, px: 2, borderRadius: `${radii.md}px`,
-            bgcolor: alpha(colors.brand.primary, 0.05),
-            border: `1px solid ${alpha(colors.brand.primary, 0.12)}`,
-          }}>
-            <AccessTimeIcon sx={{ fontSize: 15, color: colors.text.secondary }} />
-            <Typography sx={{ fontSize: '0.72rem', fontWeight: 600, color: colors.text.secondary }}>
-              Next question in {countdown}
-            </Typography>
-          </Box>
-        )}
-
-        <Card sx={{
-          overflow: 'hidden', borderRadius: `${radii.xl}px`,
-          boxShadow: shadows.card,
-          border: `1px solid ${alpha(resultAccent, 0.15)}`,
-          borderTop: state === 'result' ? `3px solid ${alpha(resultAccent, 0.6)}` : undefined,
-          // Entrance on first render; glow pulse on correct answer
-          animation: state === 'answering'
-            ? `${fadeSlideIn} ${motion.duration.normal} ${motion.ease.bounce}`
-            : state === 'result' && result?.correct
-              ? `${correctGlow} 800ms ${motion.ease.smooth}`
-              : undefined,
-        }}>
-          {/* Card header — shakes on incorrect */}
-          <Box sx={{
-            px: 1.5, py: 1,
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: state === 'result'
-              ? `linear-gradient(135deg, ${alpha(resultAccent, 0.07)}, transparent)`
-              : `linear-gradient(135deg, ${alpha(colors.brand.primary, 0.06)}, transparent)`,
-            borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
-            animation: state === 'result' && result && !result.correct
-              ? `${headerShake} 300ms ${motion.ease.snappy}`
-              : undefined,
-          }}>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.82rem', color: state === 'result' ? resultAccent : undefined }}>
-              {state === 'result' ? (result?.correct ? 'Correct!' : 'Not quite') : 'Your Question'}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
-              {question.category && (
-                <Chip label={question.category} size="small" variant="outlined"
-                  sx={{ height: 20, fontSize: '0.6rem', '& .MuiChip-label': { px: 0.75 } }} />
+      {(state === 'answering' || state === 'result') &&
+        question &&
+        (() => {
+          const resultAccent =
+            state === 'result'
+              ? result?.correct
+                ? colors.result.correct
+                : colors.result.incorrect
+              : colors.brand.primary;
+          return (
+            <>
+              {/* Countdown banner when this is the final result */}
+              {isFinalResult && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 0.75,
+                    mb: 1,
+                    py: 0.6,
+                    px: 2,
+                    borderRadius: `${radii.md}px`,
+                    bgcolor: alpha(colors.brand.primary, 0.05),
+                    border: `1px solid ${alpha(colors.brand.primary, 0.12)}`,
+                  }}
+                >
+                  <AccessTimeIcon sx={{ fontSize: 15, color: colors.text.secondary }} />
+                  <Typography
+                    sx={{ fontSize: '0.72rem', fontWeight: 600, color: colors.text.secondary }}
+                  >
+                    Next question in {countdown}
+                  </Typography>
+                </Box>
               )}
-            </Box>
-          </Box>
 
-          <Box sx={{ px: 1.5, py: 1.25 }}>
-            {/* Question text */}
-            <Typography sx={{ fontSize: '0.88rem', fontWeight: 500, lineHeight: 1.45, mb: 1.25, textAlign: 'center' }}>
-              {question.question}
-            </Typography>
-
-            {/* Answer choices — highlight after answering */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              {question.choices.map(choice => {
-                const isSelected = selected === choice;
-                const isCorrect = question.answer === choice;
-                const answered = state === 'result';
-
-                let bgcolor = 'transparent';
-                let borderColor = alpha(theme.palette.divider, 0.15);
-                let fontWeight = 500;
-
-                if (answered) {
-                  if (isCorrect) {
-                    bgcolor = alpha(colors.result.correct, 0.08);
-                    borderColor = alpha(colors.result.correct, 0.4);
-                    fontWeight = 600;
-                  } else if (isSelected && !result?.correct) {
-                    bgcolor = alpha(colors.result.incorrect, 0.06);
-                    borderColor = alpha(colors.result.incorrect, 0.35);
-                  }
-                } else if (isSelected) {
-                  bgcolor = alpha(colors.brand.primary, 0.08);
-                  borderColor = colors.brand.primary;
-                }
-
-                return (
-                  <Box
-                    key={choice}
-                    onClick={() => !selected && handleAnswer(choice)}
+              <Card
+                sx={{
+                  overflow: 'hidden',
+                  borderRadius: `${radii.xl}px`,
+                  boxShadow: shadows.card,
+                  border: `1px solid ${alpha(resultAccent, 0.15)}`,
+                  borderTop:
+                    state === 'result' ? `3px solid ${alpha(resultAccent, 0.6)}` : undefined,
+                  // Entrance on first render; glow pulse on correct answer
+                  animation:
+                    state === 'answering'
+                      ? `${fadeSlideIn} ${motion.duration.normal} ${motion.ease.bounce}`
+                      : state === 'result' && result?.correct
+                        ? `${correctGlow} 800ms ${motion.ease.smooth}`
+                        : undefined,
+                }}
+              >
+                {/* Card header — shakes on incorrect */}
+                <Box
+                  sx={{
+                    px: 1.5,
+                    py: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background:
+                      state === 'result'
+                        ? `linear-gradient(135deg, ${alpha(resultAccent, 0.07)}, transparent)`
+                        : `linear-gradient(135deg, ${alpha(colors.brand.primary, 0.06)}, transparent)`,
+                    borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                    animation:
+                      state === 'result' && result && !result.correct
+                        ? `${headerShake} 300ms ${motion.ease.snappy}`
+                        : undefined,
+                  }}
+                >
+                  <Typography
                     sx={{
-                      py: 0.75, px: 1.25,
-                      borderRadius: `${radii.md}px`,
-                      border: `1.5px solid ${borderColor}`,
-                      bgcolor,
-                      cursor: selected ? 'default' : 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      transition: 'all 0.15s',
-                      ...(!selected && {
-                        // Only apply hover on pointer devices (not touch) — prevents
-                        // sticky :hover on mobile after tapping through screens
-                        '@media (hover: hover)': {
-                          '&:hover': { bgcolor: alpha(colors.brand.primary, 0.04), borderColor: colors.brand.primary },
-                        },
-                        '&:active': { transform: 'scale(0.98)' },
-                      }),
-                      minHeight: 40,
+                      fontWeight: 700,
+                      fontSize: '0.82rem',
+                      color: state === 'result' ? resultAccent : undefined,
                     }}
                   >
-                    <Typography sx={{ fontSize: '0.82rem', fontWeight, lineHeight: 1.3, flex: 1 }}>
-                      {choice}
-                    </Typography>
-                    {answered && isCorrect && (
-                      <CheckCircleIcon sx={{
-                        color: colors.result.correct, fontSize: 18, ml: 0.75, flexShrink: 0,
-                        animation: `${iconPop} 400ms ${motion.ease.bounce}`,
-                      }} />
-                    )}
-                    {answered && isSelected && !result?.correct && (
-                      <CancelIcon sx={{
-                        color: colors.result.incorrect, fontSize: 18, ml: 0.75, flexShrink: 0,
-                        animation: `${iconPop} 400ms ${motion.ease.bounce}`,
-                      }} />
+                    {state === 'result'
+                      ? result?.correct
+                        ? 'Correct!'
+                        : 'Not quite'
+                      : 'Your Question'}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    {question.category && (
+                      <Chip
+                        label={question.category}
+                        size="small"
+                        variant="outlined"
+                        sx={{ height: 20, fontSize: '0.6rem', '& .MuiChip-label': { px: 0.75 } }}
+                      />
                     )}
                   </Box>
-                );
-              })}
-            </Box>
-
-            {/* Result banner + actions */}
-            {state === 'result' && result && (
-              <Box sx={{ mt: 1.5 }}>
-                {/* Points + streak chips */}
-                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.75, mb: 1.25 }}>
-                  {result.streak > 0 && (
-                    <Chip icon={<EmojiEventsIcon sx={{ fontSize: '13px !important' }} />}
-                      label={`${result.streak} streak`} color="success" size="small"
-                      sx={{ height: 22, fontWeight: 600, fontSize: '0.68rem' }} />
-                  )}
-                  {(result.pointsEarned ?? 0) > 0 && result.correct && (
-                    <PointsChip points={result.pointsEarned ?? 0} />
-                  )}
                 </Box>
 
-                {/* Inline comment */}
-                {answerTimestamp && (
-                  <Box sx={{
-                    mt: 1.25, pt: 1.25,
-                    borderTop: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
-                  }}>
-                    <Typography sx={{ fontSize: '0.68rem', fontWeight: 600, color: colors.text.disabled, mb: 0.5, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      Comment
-                    </Typography>
-                    <CommentsThread
-                      contentId={`${userId}_${answerTimestamp}`}
-                      contentType="trivia"
-                      currentUserId={userId}
-                      getUserColor={getUserColor}
-                      getUserInitials={getUserInitials}
-                      textOverrides={{ placeholderText: 'That was a tough one...' }}
-                    />
-                  </Box>
-                )}
-
-                {/* Next button — hidden on final result (user stays on result card) */}
-                {nextButtonLabel && (
-                  <Button
-                    variant="contained"
-                    color={result.correct ? 'success' : 'primary'}
-                    fullWidth
-                    onClick={handleNext}
-                    sx={{ mt: 1.5, py: 0.85, borderRadius: `${radii.md}px`, fontWeight: 600, fontSize: '0.82rem' }}
+                <Box sx={{ px: 1.5, py: 1.25 }}>
+                  {/* Question text */}
+                  <Typography
+                    sx={{
+                      fontSize: '0.88rem',
+                      fontWeight: 500,
+                      lineHeight: 1.45,
+                      mb: 1.25,
+                      textAlign: 'center',
+                    }}
                   >
-                    {nextButtonLabel}
-                  </Button>
-                )}
-              </Box>
-            )}
-          </Box>
-        </Card>
-        </>
-        );
-      })()}
+                    {question.question}
+                  </Typography>
+
+                  {/* Answer choices — highlight after answering */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    {question.choices.map((choice) => {
+                      const isSelected = selected === choice;
+                      const isCorrect = question.answer === choice;
+                      const answered = state === 'result';
+
+                      let bgcolor = 'transparent';
+                      let borderColor = alpha(theme.palette.divider, 0.15);
+                      let fontWeight = 500;
+
+                      if (answered) {
+                        if (isCorrect) {
+                          bgcolor = alpha(colors.result.correct, 0.08);
+                          borderColor = alpha(colors.result.correct, 0.4);
+                          fontWeight = 600;
+                        } else if (isSelected && !result?.correct) {
+                          bgcolor = alpha(colors.result.incorrect, 0.06);
+                          borderColor = alpha(colors.result.incorrect, 0.35);
+                        }
+                      } else if (isSelected) {
+                        bgcolor = alpha(colors.brand.primary, 0.08);
+                        borderColor = colors.brand.primary;
+                      }
+
+                      return (
+                        <Box
+                          key={choice}
+                          onClick={() => !selected && handleAnswer(choice)}
+                          sx={{
+                            py: 0.75,
+                            px: 1.25,
+                            borderRadius: `${radii.md}px`,
+                            border: `1.5px solid ${borderColor}`,
+                            bgcolor,
+                            cursor: selected ? 'default' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            transition: 'all 0.15s',
+                            ...(!selected && {
+                              // Only apply hover on pointer devices (not touch) — prevents
+                              // sticky :hover on mobile after tapping through screens
+                              '@media (hover: hover)': {
+                                '&:hover': {
+                                  bgcolor: alpha(colors.brand.primary, 0.04),
+                                  borderColor: colors.brand.primary,
+                                },
+                              },
+                              '&:active': { transform: 'scale(0.98)' },
+                            }),
+                            minHeight: 40,
+                          }}
+                        >
+                          <Typography
+                            sx={{ fontSize: '0.82rem', fontWeight, lineHeight: 1.3, flex: 1 }}
+                          >
+                            {choice}
+                          </Typography>
+                          {answered && isCorrect && (
+                            <CheckCircleIcon
+                              sx={{
+                                color: colors.result.correct,
+                                fontSize: 18,
+                                ml: 0.75,
+                                flexShrink: 0,
+                                animation: `${iconPop} 400ms ${motion.ease.bounce}`,
+                              }}
+                            />
+                          )}
+                          {answered && isSelected && !result?.correct && (
+                            <CancelIcon
+                              sx={{
+                                color: colors.result.incorrect,
+                                fontSize: 18,
+                                ml: 0.75,
+                                flexShrink: 0,
+                                animation: `${iconPop} 400ms ${motion.ease.bounce}`,
+                              }}
+                            />
+                          )}
+                        </Box>
+                      );
+                    })}
+                  </Box>
+
+                  {/* Result banner + actions */}
+                  {state === 'result' && result && (
+                    <Box sx={{ mt: 1.5 }}>
+                      {/* Points + streak chips */}
+                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.75, mb: 1.25 }}>
+                        {result.streak > 0 && (
+                          <Chip
+                            icon={<EmojiEventsIcon sx={{ fontSize: '13px !important' }} />}
+                            label={`${result.streak} streak`}
+                            color="success"
+                            size="small"
+                            sx={{ height: 22, fontWeight: 600, fontSize: '0.68rem' }}
+                          />
+                        )}
+                        {(result.pointsEarned ?? 0) > 0 && result.correct && (
+                          <PointsChip points={result.pointsEarned ?? 0} />
+                        )}
+                      </Box>
+
+                      {/* Inline comment */}
+                      {answerTimestamp && (
+                        <Box
+                          sx={{
+                            mt: 1.25,
+                            pt: 1.25,
+                            borderTop: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              fontSize: '0.68rem',
+                              fontWeight: 600,
+                              color: colors.text.disabled,
+                              mb: 0.5,
+                              textTransform: 'uppercase',
+                              letterSpacing: 0.5,
+                            }}
+                          >
+                            Comment
+                          </Typography>
+                          <CommentsThread
+                            contentId={`${userId}_${answerTimestamp}`}
+                            contentType="trivia"
+                            currentUserId={userId}
+                            getUserColor={getUserColor}
+                            getUserInitials={getUserInitials}
+                            textOverrides={{ placeholderText: 'That was a tough one...' }}
+                          />
+                        </Box>
+                      )}
+
+                      {/* Next button — hidden on final result (user stays on result card) */}
+                      {nextButtonLabel && (
+                        <Button
+                          variant="contained"
+                          color={result.correct ? 'success' : 'primary'}
+                          fullWidth
+                          onClick={handleNext}
+                          sx={{
+                            mt: 1.5,
+                            py: 0.85,
+                            borderRadius: `${radii.md}px`,
+                            fontWeight: 600,
+                            fontSize: '0.82rem',
+                          }}
+                        >
+                          {nextButtonLabel}
+                        </Button>
+                      )}
+                    </Box>
+                  )}
+                </Box>
+              </Card>
+            </>
+          );
+        })()}
     </Box>
   );
 };

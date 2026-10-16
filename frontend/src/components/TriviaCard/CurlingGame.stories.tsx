@@ -1,9 +1,7 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import React from 'react';
 import { expect, fn, userEvent, within } from 'storybook/test';
-
 import CurlingGame from './CurlingGame';
-
-import type { Meta, StoryObj } from '@storybook/react-vite';
 
 // Stub fetch for curling endpoints so the full game flow (throw → lock →
 // question → answer) is playable in Storybook without a backend.
@@ -13,28 +11,36 @@ const installMockFetch = () => {
     const url = typeof input === 'string' ? input : input.toString();
     if (url.includes('/curling/lock')) {
       const body = JSON.parse((init?.body as string) || '{}');
-      return new Response(JSON.stringify({
-        multiplier: body.multiplier,
-        question: {
-          question: 'What is the longest river in the world?',
-          choices: ['Nile', 'Amazon', 'Yangtze', 'Mississippi'],
-          category: 'Geography & Travel',
-        },
-      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return new Response(
+        JSON.stringify({
+          multiplier: body.multiplier,
+          question: {
+            question: 'What is the longest river in the world?',
+            choices: ['Nile', 'Amazon', 'Yangtze', 'Mississippi'],
+            category: 'Geography & Travel',
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
     }
     if (url.includes('/curling/answer')) {
       const body = JSON.parse((init?.body as string) || '{}');
       const correct = body.answer === 'Nile';
-      return new Response(JSON.stringify({
-        correct,
-        correctAnswer: 'Nile',
-        pointsEarned: correct ? 3 : 0,
-        multiplier: 3,
-      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return new Response(
+        JSON.stringify({
+          correct,
+          correctAnswer: 'Nile',
+          pointsEarned: correct ? 3 : 0,
+          multiplier: 3,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
     }
     return realFetch(input, init);
   };
-  return () => { window.fetch = realFetch; };
+  return () => {
+    window.fetch = realFetch;
+  };
 };
 
 const meta: Meta<typeof CurlingGame> = {
@@ -67,7 +73,11 @@ const meta: Meta<typeof CurlingGame> = {
   decorators: [
     (Story) => {
       React.useEffect(() => installMockFetch(), []);
-      return <div style={{ maxWidth: 320, margin: '0 auto' }}><Story /></div>;
+      return (
+        <div style={{ maxWidth: 320, margin: '0 auto' }}>
+          <Story />
+        </div>
+      );
     },
   ],
 };
@@ -86,7 +96,8 @@ export const InteractiveDemo: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Drag the stone upward to aim and set power, release to launch, then tap the ice to sweep.',
+        story:
+          'Drag the stone upward to aim and set power, release to launch, then tap the ice to sweep.',
       },
     },
   },

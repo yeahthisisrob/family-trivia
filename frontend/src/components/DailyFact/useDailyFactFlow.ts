@@ -17,21 +17,19 @@
  *   - After submit, we advance via local queue state, never re-fetching.
  */
 
+import type { FactHistoryItem } from '@family-trivia/shared';
 import { getTodayET } from '@family-trivia/shared';
-import { useState, useEffect, useCallback, useRef } from 'react';
-
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  getDailyFact,
-  submitDailyFact,
-  skipDailyFact,
   generateDailyFactWithTheme,
   generateQuestionOptions,
+  getDailyFact,
   getUserFactHistory,
-  QuestionOption,
+  type QuestionOption,
+  skipDailyFact,
+  submitDailyFact,
 } from '../../api/modules/facts';
 import { createLogger } from '../../utils/logger';
-
-import type { FactHistoryItem } from '@family-trivia/shared';
 
 const logger = createLogger('useDailyFactFlow');
 
@@ -39,14 +37,14 @@ const logger = createLogger('useDailyFactFlow');
 
 export type FlowStep =
   | 'loading'
-  | 'question'         // showing a question, waiting for answer
-  | 'submitting'       // submit in flight
-  | 'response'         // showing the AI fact response
-  | 'firstPerson'      // user is creator — pick category
-  | 'firstPersonGen'   // generating options
-  | 'firstPersonPick'  // pick from generated options
-  | 'firstPersonDone'  // confirmation animation
-  | 'done';            // nothing more to do
+  | 'question' // showing a question, waiting for answer
+  | 'submitting' // submit in flight
+  | 'response' // showing the AI fact response
+  | 'firstPerson' // user is creator — pick category
+  | 'firstPersonGen' // generating options
+  | 'firstPersonPick' // pick from generated options
+  | 'firstPersonDone' // confirmation animation
+  | 'done'; // nothing more to do
 
 export interface CatchupItem {
   question: string;
@@ -126,7 +124,7 @@ export function useDailyFactFlow({
 
       // First-person flow — user creates today's question
       if (!todayResult.answered && (todayResult.isFirstPerson || !todayResult.question)) {
-        setState(s => ({ ...s, step: 'firstPerson' }));
+        setState((s) => ({ ...s, step: 'firstPerson' }));
         return;
       }
 
@@ -141,8 +139,16 @@ export function useDailyFactFlow({
       const today = getTodayET();
       const missed: CatchupItem[] = [];
       for (const sq of history.allSharedQuestions) {
-        if (sq.date && sq.date !== today && !answeredDates.has(sq.date) && !sq.skipped && sq.question) {
-          const diff = Math.floor((Date.now() - new Date(sq.date + 'T12:00:00').getTime()) / 86400000);
+        if (
+          sq.date &&
+          sq.date !== today &&
+          !answeredDates.has(sq.date) &&
+          !sq.skipped &&
+          sq.question
+        ) {
+          const diff = Math.floor(
+            (Date.now() - new Date(`${sq.date}T12:00:00`).getTime()) / 86400000,
+          );
           missed.push({ question: sq.question, date: sq.date, daysAgo: diff });
         }
       }
@@ -161,7 +167,7 @@ export function useDailyFactFlow({
 
       // Today's question takes priority
       if (!todayResult.answered && todayResult.question) {
-        setState(s => ({
+        setState((s) => ({
           ...s,
           step: 'question',
           question: todayResult.question,
@@ -177,7 +183,7 @@ export function useDailyFactFlow({
       if (catchupItems.length > 0) {
         const first = catchupItems[0];
         queueRef.current = catchupItems.slice(1);
-        setState(s => ({
+        setState((s) => ({
           ...s,
           step: 'question',
           question: first.question,
@@ -189,11 +195,11 @@ export function useDailyFactFlow({
         return;
       }
 
-      setState(s => ({ ...s, step: 'done' }));
+      setState((s) => ({ ...s, step: 'done' }));
       onDone?.();
     } catch (err) {
       logger.error('Failed to load fact questions', { err });
-      setState(s => ({ ...s, step: 'done' }));
+      setState((s) => ({ ...s, step: 'done' }));
       onDone?.();
     }
   }, [userId, onDone]);
@@ -215,7 +221,7 @@ export function useDailyFactFlow({
     if (queue.length > 0) {
       const next = queue[0];
       queueRef.current = queue.slice(1);
-      setState(s => ({
+      setState((s) => ({
         ...s,
         step: 'question',
         question: next.question,
@@ -228,50 +234,58 @@ export function useDailyFactFlow({
       return;
     }
 
-    setState(s => ({ ...s, step: 'done' }));
+    setState((s) => ({ ...s, step: 'done' }));
     onDone?.();
   }, [onDone]);
 
   // ── Submit answer ────────────────────────────────────────────
 
-  const submit = useCallback(async (answer: string): Promise<boolean> => {
-    const trimmed = answer.trim();
-    if (!trimmed) return false;
+  const submit = useCallback(
+    async (answer: string): Promise<boolean> => {
+      const trimmed = answer.trim();
+      if (!trimmed) return false;
 
-    // Snapshot the question + isCatchup at submit time so we send EXACTLY
-    // what's on screen — never a stale or wrong-mode value.
-    const submittedQuestion = state.question;
-    const submittedIsCatchup = state.isCatchup;
-    if (!submittedQuestion) {
-      logger.error('submit called with no active question');
-      return false;
-    }
-
-    setState(s => ({ ...s, step: 'submitting', errorMessage: null }));
-
-    try {
-      const result = await submitDailyFact(userId, submittedQuestion, trimmed, submittedIsCatchup);
-      if (!result.fact) {
-        // Defensive: backend should always return a fact for non-skipped submissions.
-        logger.warn('submit returned no fact', { userId });
+      // Snapshot the question + isCatchup at submit time so we send EXACTLY
+      // what's on screen — never a stale or wrong-mode value.
+      const submittedQuestion = state.question;
+      const submittedIsCatchup = state.isCatchup;
+      if (!submittedQuestion) {
+        logger.error('submit called with no active question');
+        return false;
       }
-      setState(s => ({
-        ...s,
-        step: 'response',
-        factResponse: result.fact || 'Thanks for sharing!',
-      }));
-      onFactSubmitted?.();
-      return true;
-    } catch (err) {
-      logger.error('Failed to submit fact', { err });
-      setState(s => ({
-        ...s,
-        step: 'question', // back to question so they can retry
-        errorMessage: 'Could not submit your answer. Please try again.',
-      }));
-      return false;
-    }
-  }, [state.question, state.isCatchup, userId, onFactSubmitted]);
+
+      setState((s) => ({ ...s, step: 'submitting', errorMessage: null }));
+
+      try {
+        const result = await submitDailyFact(
+          userId,
+          submittedQuestion,
+          trimmed,
+          submittedIsCatchup,
+        );
+        if (!result.fact) {
+          // Defensive: backend should always return a fact for non-skipped submissions.
+          logger.warn('submit returned no fact', { userId });
+        }
+        setState((s) => ({
+          ...s,
+          step: 'response',
+          factResponse: result.fact || 'Thanks for sharing!',
+        }));
+        onFactSubmitted?.();
+        return true;
+      } catch (err) {
+        logger.error('Failed to submit fact', { err });
+        setState((s) => ({
+          ...s,
+          step: 'question', // back to question so they can retry
+          errorMessage: 'Could not submit your answer. Please try again.',
+        }));
+        return false;
+      }
+    },
+    [state.question, state.isCatchup, userId, onFactSubmitted],
+  );
 
   // ── Skip (explicit user action only) ─────────────────────────
 
@@ -280,7 +294,7 @@ export function useDailyFactFlow({
     const skippedIsCatchup = state.isCatchup;
     if (!skippedQuestion) return false;
 
-    setState(s => ({ ...s, step: 'submitting', errorMessage: null }));
+    setState((s) => ({ ...s, step: 'submitting', errorMessage: null }));
     try {
       await skipDailyFact(userId, skippedQuestion, skippedIsCatchup);
       onFactSubmitted?.();
@@ -288,7 +302,7 @@ export function useDailyFactFlow({
       return true;
     } catch (err) {
       logger.error('Failed to skip fact', { err });
-      setState(s => ({
+      setState((s) => ({
         ...s,
         step: 'question',
         errorMessage: 'Could not skip. Please try again.',
@@ -300,21 +314,21 @@ export function useDailyFactFlow({
   // ── First-person flow ────────────────────────────────────────
 
   const setFpTheme = useCallback((theme: string) => {
-    setState(s => ({ ...s, fpTheme: theme }));
+    setState((s) => ({ ...s, fpTheme: theme }));
   }, []);
 
   const generateFpOptions = useCallback(async () => {
-    setState(s => ({ ...s, step: 'firstPersonGen' }));
+    setState((s) => ({ ...s, step: 'firstPersonGen' }));
     try {
       const result = await generateQuestionOptions(userId, state.fpTheme || undefined);
-      setState(s => ({
+      setState((s) => ({
         ...s,
         step: 'firstPersonPick',
         fpOptions: result.options || [],
       }));
     } catch (err) {
       logger.error('Failed to generate options', { err });
-      setState(s => ({
+      setState((s) => ({
         ...s,
         step: 'firstPerson',
         errorMessage: 'Could not generate questions. Please try again.',
@@ -322,41 +336,44 @@ export function useDailyFactFlow({
     }
   }, [userId, state.fpTheme]);
 
-  const selectFpQuestion = useCallback(async (question: string) => {
-    setState(s => ({ ...s, step: 'firstPersonDone' }));
-    try {
-      const result = await generateDailyFactWithTheme(userId, question, false);
-      const finalQuestion = result.question || question;
-      // Brief celebration, then transition to question step
-      setTimeout(() => {
-        setState(s => ({
+  const selectFpQuestion = useCallback(
+    async (question: string) => {
+      setState((s) => ({ ...s, step: 'firstPersonDone' }));
+      try {
+        const result = await generateDailyFactWithTheme(userId, question, false);
+        const finalQuestion = result.question || question;
+        // Brief celebration, then transition to question step
+        setTimeout(() => {
+          setState((s) => ({
+            ...s,
+            step: 'question',
+            question: finalQuestion,
+            questionDate: null,
+            isCatchup: false,
+            fpOptions: [],
+            fpTheme: '',
+          }));
+        }, 1500);
+      } catch (err) {
+        logger.error('Failed to save question', { err });
+        setState((s) => ({
           ...s,
-          step: 'question',
-          question: finalQuestion,
-          questionDate: null,
-          isCatchup: false,
-          fpOptions: [],
-          fpTheme: '',
+          step: 'firstPersonPick',
+          errorMessage: 'Could not save the question. Please try again.',
         }));
-      }, 1500);
-    } catch (err) {
-      logger.error('Failed to save question', { err });
-      setState(s => ({
-        ...s,
-        step: 'firstPersonPick',
-        errorMessage: 'Could not save the question. Please try again.',
-      }));
-    }
-  }, [userId]);
+      }
+    },
+    [userId],
+  );
 
   const skipFirstPerson = useCallback(async () => {
-    setState(s => ({ ...s, step: 'submitting' }));
+    setState((s) => ({ ...s, step: 'submitting' }));
     try {
       await skipDailyFact(userId, '');
     } catch {
       // It's OK if this fails — moving on either way
     }
-    setState(s => ({ ...s, step: 'done' }));
+    setState((s) => ({ ...s, step: 'done' }));
     onDone?.();
   }, [userId, onDone]);
 

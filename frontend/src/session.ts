@@ -51,7 +51,9 @@ export function updateToken(token: string) {
     const data = JSON.parse(raw) as SessionData;
     data.token = token;
     localStorage.setItem(SESSION_KEY, JSON.stringify(data));
-  } catch { /* */ }
+  } catch {
+    /* */
+  }
 }
 
 /** Clear session (logout). */

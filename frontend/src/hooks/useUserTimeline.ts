@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-import { getTimelineData, TimelineData } from '../api/modules/timeline';
+import { getTimelineData, type TimelineData } from '../api/modules/timeline';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('useUserTimeline');

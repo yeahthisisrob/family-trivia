@@ -1,4 +1,4 @@
-import { DifficultyLevel, Question, ProgressMessage } from './question';
+import type { DifficultyLevel, ProgressMessage, Question } from './question';
 
 /** Active Casino Rush session as seen by the frontend */
 export interface CasinoRushSession {

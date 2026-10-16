@@ -1,16 +1,16 @@
-import { http, HttpResponse } from 'msw';
-import React, { useState } from 'react';
-
-import FactAnswerInput from './FactAnswerInput';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
-
+import { HttpResponse, http } from 'msw';
+import type React from 'react';
+import { useState } from 'react';
+import { StoryProviders } from '../../test/storyContexts';
+import FactAnswerInput from './FactAnswerInput';
 
 const API = '/api';
 
 // Stateful wrapper so typing actually works in Storybook
-const StatefulInput: React.FC<{ userId: string; placeholder?: string; disabled?: boolean }> = (props) => {
+const StatefulInput: React.FC<{ userId: string; placeholder?: string; disabled?: boolean }> = (
+  props,
+) => {
   const [value, setValue] = useState('');
   return (
     <FactAnswerInput
@@ -27,7 +27,13 @@ const meta: Meta<typeof StatefulInput> = {
   component: StatefulInput,
   parameters: { layout: 'padded' },
   args: { userId: 'alice' },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof StatefulInput>;
@@ -48,9 +54,7 @@ const historyWithAnswers = {
 export const Default: Story = {
   parameters: {
     msw: {
-      handlers: [
-        http.get(`${API}/user-fact-history`, () => HttpResponse.json(historyWithAnswers)),
-      ],
+      handlers: [http.get(`${API}/user-fact-history`, () => HttpResponse.json(historyWithAnswers))],
     },
   },
 };
@@ -59,9 +63,7 @@ export const Disabled: Story = {
   args: { disabled: true },
   parameters: {
     msw: {
-      handlers: [
-        http.get(`${API}/user-fact-history`, () => HttpResponse.json(historyWithAnswers)),
-      ],
+      handlers: [http.get(`${API}/user-fact-history`, () => HttpResponse.json(historyWithAnswers))],
     },
   },
 };

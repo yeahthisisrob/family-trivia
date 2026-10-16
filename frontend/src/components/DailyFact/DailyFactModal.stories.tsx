@@ -1,10 +1,8 @@
-import { http, HttpResponse } from 'msw';
-import { fn } from 'storybook/test';
-
-import DailyFactModal from './DailyFactModal';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { HttpResponse, http } from 'msw';
+import { fn } from 'storybook/test';
+import { StoryProviders } from '../../test/storyContexts';
+import DailyFactModal from './DailyFactModal';
 
 const API = '/api';
 
@@ -15,16 +13,20 @@ const meta: Meta<typeof DailyFactModal> = {
     layout: 'fullscreen',
     msw: {
       handlers: [
-        http.get(`${API}/daily-fact`, () => HttpResponse.json({
-          question: "What's a family tradition you'd love to bring back?",
-          answered: false,
-          questionType: 'shared',
-        })),
-        http.get(`${API}/user-fact-history`, () => HttpResponse.json({
-          history: [],
-          basicQuestions: [],
-          allSharedQuestions: [],
-        })),
+        http.get(`${API}/daily-fact`, () =>
+          HttpResponse.json({
+            question: "What's a family tradition you'd love to bring back?",
+            answered: false,
+            questionType: 'shared',
+          }),
+        ),
+        http.get(`${API}/user-fact-history`, () =>
+          HttpResponse.json({
+            history: [],
+            basicQuestions: [],
+            allSharedQuestions: [],
+          }),
+        ),
       ],
     },
   },
@@ -33,7 +35,13 @@ const meta: Meta<typeof DailyFactModal> = {
     onFactSubmitted: fn(),
     onDismissed: fn(),
   },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof DailyFactModal>;

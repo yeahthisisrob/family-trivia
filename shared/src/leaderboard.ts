@@ -1,5 +1,5 @@
-import { DifficultyLevel } from './question';
-import { HistoryEntry } from './history';
+import type { HistoryEntry } from './history';
+import type { DifficultyLevel } from './question';
 
 /** Breakdown of where a player's points come from */
 export interface PointBreakdown {

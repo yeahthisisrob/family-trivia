@@ -1,10 +1,9 @@
 // Module: arcade
 // Arcade mode API — high score leaderboards + unlimited score submission.
 
+import type { ArcadeGameId, HighScoreEntry, ScoreSubmitResult } from '@family-trivia/shared';
 import { apiService } from '../../services/ApiService';
 import { createLogger } from '../../utils/logger';
-
-import type { ArcadeGameId, HighScoreEntry, ScoreSubmitResult } from '@family-trivia/shared';
 
 export type { ArcadeGameId, HighScoreEntry, ScoreSubmitResult } from '@family-trivia/shared';
 

@@ -3,26 +3,25 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
 import {
-  Box,
-  Typography,
   Avatar,
-  TextField,
+  Box,
   Collapse,
   Grow,
   IconButton,
-  useTheme,
   InputAdornment,
+  TextField,
+  Typography,
+  useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { formatDistance, parseISO } from 'date-fns';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { Comment, CommentContentType } from '../../api';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useTimeline } from '../../contexts/TimelineContext';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
-
-import type { Comment, CommentContentType } from '../../api';
 
 const logger = createLogger('CommentsThread');
 
@@ -85,6 +84,7 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
       const t = setTimeout(() => mainInputRef.current?.focus(), 150);
       return () => clearTimeout(t);
     }
+    return undefined;
   }, [expanded]);
 
   // Auto-focus reply input
@@ -133,14 +133,17 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
     }
   };
 
-  const handleReplyClick = useCallback((commentId: string) => {
-    if (replyingTo === commentId) {
-      cancelReply();
-    } else {
-      setReplyingTo(commentId);
-      setReplyText('');
-    }
-  }, [replyingTo, cancelReply]);
+  const handleReplyClick = useCallback(
+    (commentId: string) => {
+      if (replyingTo === commentId) {
+        cancelReply();
+      } else {
+        setReplyingTo(commentId);
+        setReplyText('');
+      }
+    },
+    [replyingTo, cancelReply],
+  );
 
   const topLevelComments = comments.filter((c) => c && !c.parentId);
   const getReplies = (id: string) => comments.filter((c) => c && c.parentId === id);
@@ -203,11 +206,15 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
         )}
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, width: '100%' }}>
-          <Avatar sx={{
-            width: small ? 20 : 26, height: small ? 20 : 26,
-            fontSize: small ? '0.5rem' : '0.6rem', fontWeight: 700,
-            bgcolor: getUserColor(currentUserId),
-          }}>
+          <Avatar
+            sx={{
+              width: small ? 20 : 26,
+              height: small ? 20 : 26,
+              fontSize: small ? '0.5rem' : '0.6rem',
+              fontWeight: 700,
+              bgcolor: getUserColor(currentUserId),
+            }}
+          >
             {getUserInitials(currentUserId)}
           </Avatar>
           <TextField
@@ -222,7 +229,10 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
               }
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSubmit(); }
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                onSubmit();
+              }
             }}
             InputProps={{
               endAdornment: (
@@ -233,14 +243,19 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
                     onClick={onSubmit}
                     sx={{ color: theme.palette.primary.main, p: 0.5 }}
                   >
-                    {submitting ? <LoadingDots size={3} inline /> : <SendIcon sx={{ fontSize: 16 }} />}
+                    {submitting ? (
+                      <LoadingDots size={3} inline />
+                    ) : (
+                      <SendIcon sx={{ fontSize: 16 }} />
+                    )}
                   </IconButton>
                 </InputAdornment>
               ),
             }}
             sx={{
               '& .MuiOutlinedInput-root': {
-                borderRadius: 3, py: 0,
+                borderRadius: 3,
+                py: 0,
                 fontSize: small ? '0.72rem' : '0.78rem',
                 bgcolor: alpha(theme.palette.action.hover, 0.04),
                 '& fieldset': { borderColor: alpha(theme.palette.divider, 0.12) },
@@ -250,10 +265,17 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
           />
         </Box>
         {text.length > MAX_COMMENT_LENGTH * 0.8 && (
-          <Typography sx={{
-            fontSize: '0.5rem', textAlign: 'right', mt: 0.15,
-            color: text.length >= MAX_COMMENT_LENGTH ? theme.palette.error.main : theme.palette.text.disabled,
-          }}>
+          <Typography
+            sx={{
+              fontSize: '0.5rem',
+              textAlign: 'right',
+              mt: 0.15,
+              color:
+                text.length >= MAX_COMMENT_LENGTH
+                  ? theme.palette.error.main
+                  : theme.palette.text.disabled,
+            }}
+          >
             {text.length}/{MAX_COMMENT_LENGTH}
           </Typography>
         )}
@@ -274,8 +296,7 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
           py: 0.5,
           px: 1,
           borderRadius: 2,
-          bgcolor:
-            commentCount > 0 ? alpha(theme.palette.primary.main, 0.06) : 'transparent',
+          bgcolor: commentCount > 0 ? alpha(theme.palette.primary.main, 0.06) : 'transparent',
           border:
             commentCount > 0
               ? `1px solid ${alpha(theme.palette.primary.main, 0.12)}`
@@ -287,20 +308,14 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
         <ChatBubbleOutlineIcon
           sx={{
             fontSize: 15,
-            color:
-              commentCount > 0
-                ? theme.palette.primary.main
-                : theme.palette.text.disabled,
+            color: commentCount > 0 ? theme.palette.primary.main : theme.palette.text.disabled,
           }}
         />
         <Typography
           sx={{
             fontSize: '0.72rem',
             flex: 1,
-            color:
-              commentCount > 0
-                ? theme.palette.primary.main
-                : theme.palette.text.secondary,
+            color: commentCount > 0 ? theme.palette.primary.main : theme.palette.text.secondary,
             fontWeight: commentCount > 0 ? 600 : 400,
           }}
         >
@@ -310,27 +325,26 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
         </Typography>
         {commentCount > 0 && !expanded && (
           <Box sx={{ display: 'flex', gap: 0 }}>
-            {(
-              topLevelComments.length > 0
-                ? [...new Set(topLevelComments.map((c) => c.userId))].slice(0, 3)
-                : commentCommenters.get(`${contentType}:${contentId}`) || []
+            {(topLevelComments.length > 0
+              ? [...new Set(topLevelComments.map((c) => c.userId))].slice(0, 3)
+              : commentCommenters.get(`${contentType}:${contentId}`) || []
             ).map((uid, i) => (
-                <Avatar
-                  key={uid}
-                  sx={{
-                    width: 18,
-                    height: 18,
-                    fontSize: '0.45rem',
-                    fontWeight: 700,
-                    bgcolor: getUserColor(uid),
-                    ml: i > 0 ? -0.5 : 0,
-                    border: `1.5px solid ${theme.palette.background.paper}`,
-                    zIndex: 3 - i,
-                  }}
-                >
-                  {getUserInitials(uid)}
-                </Avatar>
-              ))}
+              <Avatar
+                key={uid}
+                sx={{
+                  width: 18,
+                  height: 18,
+                  fontSize: '0.45rem',
+                  fontWeight: 700,
+                  bgcolor: getUserColor(uid),
+                  ml: i > 0 ? -0.5 : 0,
+                  border: `1.5px solid ${theme.palette.background.paper}`,
+                  zIndex: 3 - i,
+                }}
+              >
+                {getUserInitials(uid)}
+              </Avatar>
+            ))}
           </Box>
         )}
       </Box>
@@ -370,22 +384,17 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
                     onReply={() => handleReplyClick(comment.id)}
                     replyInput={
                       replyingTo === comment.id
-                        ? renderInput(
-                            replyText,
-                            setReplyText,
-                            () => handleSubmit(comment.id),
-                            {
-                              placeholder: 'Reply...',
-                              small: true,
-                              inputRef: replyInputRef,
-                              replyContext: replyTargetComment
-                                ? {
-                                    userId: replyTargetComment.userId,
-                                    onCancel: cancelReply,
-                                  }
-                                : null,
-                            },
-                          )
+                        ? renderInput(replyText, setReplyText, () => handleSubmit(comment.id), {
+                            placeholder: 'Reply...',
+                            small: true,
+                            inputRef: replyInputRef,
+                            replyContext: replyTargetComment
+                              ? {
+                                  userId: replyTargetComment.userId,
+                                  onCancel: cancelReply,
+                                }
+                              : null,
+                          })
                         : null
                     }
                   />
@@ -491,14 +500,10 @@ const CommentBubble: React.FC<CommentBubbleProps> = ({
               maxWidth: '100%',
             }}
           >
-            <Typography
-              sx={{ fontWeight: 700, fontSize: '0.65rem', lineHeight: 1.2, mb: 0.1 }}
-            >
+            <Typography sx={{ fontWeight: 700, fontSize: '0.65rem', lineHeight: 1.2, mb: 0.1 }}>
               {comment.userId}
             </Typography>
-            <Typography
-              sx={{ fontSize: '0.78rem', lineHeight: 1.4, wordBreak: 'break-word' }}
-            >
+            <Typography sx={{ fontSize: '0.78rem', lineHeight: 1.4, wordBreak: 'break-word' }}>
               {comment.text}
             </Typography>
           </Box>
@@ -511,9 +516,7 @@ const CommentBubble: React.FC<CommentBubbleProps> = ({
               pl: 0.5,
             }}
           >
-            <Typography
-              sx={{ fontSize: '0.52rem', color: theme.palette.text.disabled }}
-            >
+            <Typography sx={{ fontSize: '0.52rem', color: theme.palette.text.disabled }}>
               {timeAgo(comment.timestamp)}
             </Typography>
             <Typography
@@ -521,9 +524,7 @@ const CommentBubble: React.FC<CommentBubbleProps> = ({
               sx={{
                 fontSize: '0.55rem',
                 fontWeight: 600,
-                color: isReplying
-                  ? theme.palette.primary.main
-                  : theme.palette.text.secondary,
+                color: isReplying ? theme.palette.primary.main : theme.palette.text.secondary,
                 cursor: 'pointer',
                 '&:hover': { color: theme.palette.primary.main },
               }}

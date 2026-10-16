@@ -1,10 +1,7 @@
 import { Box } from '@mui/material';
-import React from 'react';
-
-import NotificationBell from './NotificationBell';
-import { NotificationProvider } from '../../contexts/NotificationContext';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { NotificationProvider } from '../../contexts/NotificationContext';
+import NotificationBell from './NotificationBell';
 
 const meta: Meta<typeof NotificationBell> = {
   title: 'Notifications/NotificationBell',
@@ -13,7 +10,8 @@ const meta: Meta<typeof NotificationBell> = {
     layout: 'centered',
     docs: {
       description: {
-        component: 'Bell icon with unread badge. Click to open notification panel. ' +
+        component:
+          'Bell icon with unread badge. Click to open notification panel. ' +
           'Uses MSW to mock /notifications endpoint with different states.',
       },
     },

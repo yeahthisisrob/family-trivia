@@ -4,24 +4,20 @@
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import DeleteIcon from '@mui/icons-material/Delete';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
+import { Alert, alpha, Box, Chip, IconButton, Typography, useTheme } from '@mui/material';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  Alert,
-  Box,
-  Chip,
-  IconButton,
-  Typography,
-  useTheme,
-  alpha,
-} from '@mui/material';
-import React, { useCallback, useEffect, useState } from 'react';
-
-import AdminCard from './shared/AdminCard';
-import ConfirmDialog from './shared/ConfirmDialog';
-import EmptyState from './shared/EmptyState';
-import { getDailyQuestions, deleteDailyQuestion, DailyQuestionEntry } from '../../api/modules/admin';
+  type DailyQuestionEntry,
+  deleteDailyQuestion,
+  getDailyQuestions,
+} from '../../api/modules/admin';
 import { useAdmin } from '../../contexts/AdminContext';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
+import AdminCard from './shared/AdminCard';
+import ConfirmDialog from './shared/ConfirmDialog';
+import EmptyState from './shared/EmptyState';
 
 const logger = createLogger('DailyQuestionsTab');
 
@@ -47,7 +43,9 @@ const DailyQuestionsTab: React.FC = () => {
     }
   }, [adminUserId]);
 
-  useEffect(() => { loadQuestions(); }, [loadQuestions]);
+  useEffect(() => {
+    loadQuestions();
+  }, [loadQuestions]);
 
   const handleDelete = async () => {
     if (!confirmDelete) return;
@@ -63,24 +61,34 @@ const DailyQuestionsTab: React.FC = () => {
 
   const formatDate = (d: string) => {
     try {
-      return new Date(d + 'T12:00:00').toLocaleDateString('en-US', {
-        weekday: 'short', month: 'short', day: 'numeric',
+      return new Date(`${d}T12:00:00`).toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
       });
-    } catch { return d; }
+    } catch {
+      return d;
+    }
   };
 
   return (
     <Box>
-      {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
 
-      {loading ? <LoadingDots mt={2} /> : questions.length === 0 ? (
+      {loading ? (
+        <LoadingDots mt={2} />
+      ) : questions.length === 0 ? (
         <EmptyState
           icon={<QuestionAnswerIcon sx={{ fontSize: 'inherit' }} />}
           message="No daily questions yet"
         />
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          {questions.map(q => (
+          {questions.map((q) => (
             <AdminCard
               key={q.date}
               badge={
@@ -89,7 +97,9 @@ const DailyQuestionsTab: React.FC = () => {
                   label={formatDate(q.date)}
                   size="small"
                   sx={{
-                    height: 22, fontSize: '0.65rem', fontWeight: 600,
+                    height: 22,
+                    fontSize: '0.65rem',
+                    fontWeight: 600,
                     bgcolor: alpha(theme.palette.primary.main, 0.08),
                     color: theme.palette.primary.main,
                   }}
@@ -105,7 +115,9 @@ const DailyQuestionsTab: React.FC = () => {
                 {q.question || '-'}
               </Typography>
               {q.createdBy && (
-                <Typography sx={{ fontSize: '0.65rem', color: theme.palette.text.disabled, mt: 0.5 }}>
+                <Typography
+                  sx={{ fontSize: '0.65rem', color: theme.palette.text.disabled, mt: 0.5 }}
+                >
                   Created by {q.createdBy}
                 </Typography>
               )}

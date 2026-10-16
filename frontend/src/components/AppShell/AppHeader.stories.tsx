@@ -1,9 +1,7 @@
-import { fn } from 'storybook/test';
-
-import AppHeader from './AppHeader';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import { StoryProviders } from '../../test/storyContexts';
+import AppHeader from './AppHeader';
 
 const meta: Meta<typeof AppHeader> = {
   title: 'AppShell/AppHeader',
@@ -17,7 +15,13 @@ const meta: Meta<typeof AppHeader> = {
     onAvatarClick: fn(),
     onNotificationClick: fn(),
   },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof AppHeader>;

@@ -3,7 +3,8 @@ import FormatQuoteIcon from '@mui/icons-material/FormatQuote';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import { Avatar, Box, Card, Chip, Collapse, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 
 import { colors } from '../../shared/design-system/tokens/colors';
 
@@ -68,7 +69,7 @@ const FactTimelineCard: React.FC<FactTimelineCardProps> = ({
                   }
                 : {},
             }}
-            onClick={() => onUserClick && onUserClick(entry.userId)}
+            onClick={() => onUserClick?.(entry.userId)}
           >
             {entry.initials}
           </Avatar>
@@ -96,7 +97,7 @@ const FactTimelineCard: React.FC<FactTimelineCardProps> = ({
                       }
                     : {},
                 }}
-                onClick={() => onUserClick && onUserClick(entry.userId)}
+                onClick={() => onUserClick?.(entry.userId)}
               >
                 {entry.userId}
               </Typography>

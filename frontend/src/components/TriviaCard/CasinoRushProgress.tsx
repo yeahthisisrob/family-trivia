@@ -1,7 +1,8 @@
-import { Box, Fade, LinearProgress, Typography, alpha } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import { alpha, Box, Fade, LinearProgress, Typography } from '@mui/material';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 
-import { ProgressMessage } from '../../api/modules/trivia';
+import type { ProgressMessage } from '../../api/modules/trivia';
 
 interface CasinoRushProgressProps {
   messages: ProgressMessage[];
@@ -20,6 +21,7 @@ const CasinoRushProgress: React.FC<CasinoRushProgressProps> = ({ messages, compa
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [messages, visibleMessages.length]);
 
   if (messages.length === 0) {

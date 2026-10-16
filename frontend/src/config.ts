@@ -103,7 +103,7 @@ export async function loadConfig(): Promise<FrontendConfig> {
       }
 
       const contentType = res.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
+      if (!contentType?.includes('application/json')) {
         const text = await res.text();
         logger.debug('Fetch response text:', text);
         throw new Error('config.json is not a JSON file');

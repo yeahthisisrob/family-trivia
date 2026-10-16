@@ -15,7 +15,8 @@
 
 import { Box, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React, { useCallback, useRef, useState } from 'react';
+import type React from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -45,7 +46,11 @@ const REPEAT_INTERVAL = 70;
 const HAPTIC_MS = 8;
 
 function vibrate() {
-  try { navigator?.vibrate?.(HAPTIC_MS); } catch { /* ok */ }
+  try {
+    navigator?.vibrate?.(HAPTIC_MS);
+  } catch {
+    /* ok */
+  }
 }
 
 // ── Single button (shared by both layouts) ───────────────────────
@@ -62,33 +67,49 @@ interface PadButtonProps {
 }
 
 const PadButton: React.FC<PadButtonProps> = ({
-  label, onPress, repeat, accent, disabled, size, fontSize = '1.4rem', borderRadius = 14,
+  label,
+  onPress,
+  repeat,
+  accent,
+  disabled,
+  size,
+  fontSize = '1.4rem',
+  borderRadius = 14,
 }) => {
   const [pressed, setPressed] = useState(false);
   const repeatTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const repeatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const clearRepeat = useCallback(() => {
-    if (repeatTimerRef.current) { clearTimeout(repeatTimerRef.current); repeatTimerRef.current = null; }
-    if (repeatIntervalRef.current) { clearInterval(repeatIntervalRef.current); repeatIntervalRef.current = null; }
+    if (repeatTimerRef.current) {
+      clearTimeout(repeatTimerRef.current);
+      repeatTimerRef.current = null;
+    }
+    if (repeatIntervalRef.current) {
+      clearInterval(repeatIntervalRef.current);
+      repeatIntervalRef.current = null;
+    }
   }, []);
 
-  const handleDown = useCallback((e: React.PointerEvent) => {
-    e.preventDefault();
-    if (disabled) return;
-    setPressed(true);
-    vibrate();
-    onPress();
-    if (repeat) {
-      clearRepeat();
-      repeatTimerRef.current = setTimeout(() => {
-        repeatIntervalRef.current = setInterval(() => {
-          vibrate();
-          onPress();
-        }, REPEAT_INTERVAL);
-      }, REPEAT_DELAY);
-    }
-  }, [onPress, repeat, disabled, clearRepeat]);
+  const handleDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      if (disabled) return;
+      setPressed(true);
+      vibrate();
+      onPress();
+      if (repeat) {
+        clearRepeat();
+        repeatTimerRef.current = setTimeout(() => {
+          repeatIntervalRef.current = setInterval(() => {
+            vibrate();
+            onPress();
+          }, REPEAT_INTERVAL);
+        }, REPEAT_DELAY);
+      }
+    },
+    [onPress, repeat, disabled, clearRepeat],
+  );
 
   const handleUp = useCallback(() => {
     setPressed(false);
@@ -121,14 +142,16 @@ const PadButton: React.FC<PadButtonProps> = ({
         touchAction: 'none',
       }}
     >
-      <Typography sx={{
-        fontSize,
-        fontWeight: 900,
-        color: '#fff',
-        lineHeight: 1,
-        textShadow: `0 1px 2px ${alpha('#000', 0.3)}`,
-        pointerEvents: 'none',
-      }}>
+      <Typography
+        sx={{
+          fontSize,
+          fontWeight: 900,
+          color: '#fff',
+          lineHeight: 1,
+          textShadow: `0 1px 2px ${alpha('#000', 0.3)}`,
+          pointerEvents: 'none',
+        }}
+      >
         {label}
       </Typography>
     </Box>
@@ -138,9 +161,11 @@ const PadButton: React.FC<PadButtonProps> = ({
 // ── D-pad layout (Snake) ─────────────────────────────────────────
 
 const DPadLayout: React.FC<{ buttons: GamePadButton[]; accent: string; disabled?: boolean }> = ({
-  buttons, accent, disabled,
+  buttons,
+  accent,
+  disabled,
 }) => {
-  const get = (id: string) => buttons.find(b => b.id === id);
+  const get = (id: string) => buttons.find((b) => b.id === id);
   const up = get('up');
   const down = get('down');
   const left = get('left');
@@ -149,25 +174,42 @@ const DPadLayout: React.FC<{ buttons: GamePadButton[]; accent: string; disabled?
   const btnSize = { w: 64, h: 64 };
 
   return (
-    <Box sx={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      gap: '5px', touchAction: 'none',
-      pt: 1,
-      // Extra padding at the bottom so iOS Safari's nav/share bar
-      // doesn't overlap the down button.
-      pb: 'calc(12px + env(safe-area-inset-bottom, 0px))',
-    }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '5px',
+        touchAction: 'none',
+        pt: 1,
+        // Extra padding at the bottom so iOS Safari's nav/share bar
+        // doesn't overlap the down button.
+        pb: 'calc(12px + env(safe-area-inset-bottom, 0px))',
+      }}
+    >
       {up && (
         <PadButton {...up} accent={accent} disabled={disabled} size={btnSize} borderRadius={16} />
       )}
       <Box sx={{ display: 'flex', gap: '6px' }}>
         {left && (
-          <PadButton {...left} accent={accent} disabled={disabled} size={btnSize} borderRadius={16} />
+          <PadButton
+            {...left}
+            accent={accent}
+            disabled={disabled}
+            size={btnSize}
+            borderRadius={16}
+          />
         )}
         {/* Center spacer — same size as a button so the cross is symmetric */}
         <Box sx={{ width: btnSize.w, height: btnSize.h }} />
         {right && (
-          <PadButton {...right} accent={accent} disabled={disabled} size={btnSize} borderRadius={16} />
+          <PadButton
+            {...right}
+            accent={accent}
+            disabled={disabled}
+            size={btnSize}
+            borderRadius={16}
+          />
         )}
       </Box>
       {down && (
@@ -180,15 +222,21 @@ const DPadLayout: React.FC<{ buttons: GamePadButton[]; accent: string; disabled?
 // ── Bar layout (Tetris) ──────────────────────────────────────────
 
 const BarLayout: React.FC<{ buttons: GamePadButton[]; accent: string; disabled?: boolean }> = ({
-  buttons, accent, disabled,
+  buttons,
+  accent,
+  disabled,
 }) => (
-  <Box sx={{
-    display: 'flex', justifyContent: 'center', gap: '8px',
-    touchAction: 'none',
-    pt: 1,
-    pb: 'calc(12px + env(safe-area-inset-bottom, 0px))',
-  }}>
-    {buttons.map(btn => (
+  <Box
+    sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      gap: '8px',
+      touchAction: 'none',
+      pt: 1,
+      pb: 'calc(12px + env(safe-area-inset-bottom, 0px))',
+    }}
+  >
+    {buttons.map((btn) => (
       <PadButton
         key={btn.id}
         {...btn}
@@ -205,7 +253,10 @@ const BarLayout: React.FC<{ buttons: GamePadButton[]; accent: string; disabled?:
 // ── Public component ─────────────────────────────────────────────
 
 const GamePad: React.FC<GamePadProps> = ({
-  buttons, layout, accentColor = '#2e7d32', disabled = false,
+  buttons,
+  layout,
+  accentColor = '#2e7d32',
+  disabled = false,
 }) => {
   if (layout === 'dpad') {
     return <DPadLayout buttons={buttons} accent={accentColor} disabled={disabled} />;

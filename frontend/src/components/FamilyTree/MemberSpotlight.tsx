@@ -14,23 +14,23 @@ import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import {
   Box,
-  Typography,
-  IconButton,
-  useTheme,
-  Switch,
-  Fade,
-  Skeleton,
-  Chip,
-  Menu,
-  MenuItem,
   Button,
+  Chip,
+  Fade,
+  IconButton,
   ListItemIcon,
   ListItemText,
+  Menu,
+  MenuItem,
+  Skeleton,
+  Switch,
+  Typography,
+  useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { FamilyHierarchy, getMemberSummary } from '../../api';
+import { type FamilyHierarchy, getMemberSummary } from '../../api';
 import { shadows } from '../../shared/design-system/tokens/shadows';
 import { spacing } from '../../shared/design-system/tokens/spacing';
 import { createLogger } from '../../utils/logger';
@@ -113,11 +113,7 @@ const EMPTY_SUMMARY: SummaryState = {
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
-function getMemberSideColor(
-  userId: string,
-  hierarchy: FamilyHierarchy,
-  fallback: string,
-): string {
+function getMemberSideColor(userId: string, hierarchy: FamilyHierarchy, fallback: string): string {
   const person = hierarchy.family.people[userId];
   if (!person) return fallback;
 
@@ -177,7 +173,10 @@ const MemberSpotlight: React.FC<MemberSpotlightProps> = ({
   // If mocks provided, hydrate initial state from them
   const [summaryData, setSummaryData] = useState<SummaryState>(() => {
     if (!__mockSummaries) return EMPTY_SUMMARY;
-    const id = allMemberIds[allMemberIds.indexOf(currentUserId) >= 0 ? allMemberIds.indexOf(currentUserId) : 0];
+    const id =
+      allMemberIds[
+        allMemberIds.indexOf(currentUserId) >= 0 ? allMemberIds.indexOf(currentUserId) : 0
+      ];
     const mock = __mockSummaries[id];
     if (!mock) return EMPTY_SUMMARY;
     return {
@@ -252,9 +251,7 @@ const MemberSpotlight: React.FC<MemberSpotlightProps> = ({
 
         const isReal =
           result?.summary &&
-          !['unavailable', 'error', 'failed'].some((w) =>
-            result.summary.toLowerCase().includes(w),
-          );
+          !['unavailable', 'error', 'failed'].some((w) => result.summary.toLowerCase().includes(w));
 
         if (isReal) errorCountRef.current = 0;
 
@@ -387,7 +384,13 @@ const MemberSpotlight: React.FC<MemberSpotlightProps> = ({
               <AutoAwesomeIcon sx={{ color: accentColor, fontSize: 16 }} />
               <Typography
                 variant="caption"
-                sx={{ fontWeight: 600, color: accentColor, letterSpacing: 0.5, textTransform: 'uppercase', fontSize: '0.65rem' }}
+                sx={{
+                  fontWeight: 600,
+                  color: accentColor,
+                  letterSpacing: 0.5,
+                  textTransform: 'uppercase',
+                  fontSize: '0.65rem',
+                }}
               >
                 Member Spotlight
               </Typography>
@@ -408,7 +411,10 @@ const MemberSpotlight: React.FC<MemberSpotlightProps> = ({
               <EmojiEmotionsIcon
                 sx={{ fontSize: 14, color: roastMode ? 'warning.main' : 'text.disabled', mr: 0.25 }}
               />
-              <Typography variant="caption" sx={{ fontSize: '0.65rem', color: roastMode ? 'warning.main' : 'text.secondary' }}>
+              <Typography
+                variant="caption"
+                sx={{ fontSize: '0.65rem', color: roastMode ? 'warning.main' : 'text.secondary' }}
+              >
                 Roast
               </Typography>
             </Box>
@@ -508,7 +514,10 @@ const MemberSpotlight: React.FC<MemberSpotlightProps> = ({
                         >
                           <ListItemIcon sx={{ minWidth: 28 }}>
                             <PersonIcon
-                              sx={{ fontSize: 18, color: selected ? accentColor : 'text.secondary' }}
+                              sx={{
+                                fontSize: 18,
+                                color: selected ? accentColor : 'text.secondary',
+                              }}
                             />
                           </ListItemIcon>
                           <ListItemText
@@ -572,11 +581,19 @@ const MemberSpotlight: React.FC<MemberSpotlightProps> = ({
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
                 Spotlight coming soon for {member.name}
               </Typography>
-              <Typography variant="caption" sx={{ color: 'text.disabled', fontStyle: 'italic', display: 'block', mt: 0.5 }}>
+              <Typography
+                variant="caption"
+                sx={{ color: 'text.disabled', fontStyle: 'italic', display: 'block', mt: 0.5 }}
+              >
                 Still collecting data
               </Typography>
               {apiCircuitBroken && (
-                <Chip label="Temporarily unavailable" size="small" color="warning" sx={{ mt: 1, height: 22, fontSize: '0.6rem' }} />
+                <Chip
+                  label="Temporarily unavailable"
+                  size="small"
+                  color="warning"
+                  sx={{ mt: 1, height: 22, fontSize: '0.6rem' }}
+                />
               )}
               <IconButton
                 size="small"
@@ -600,7 +617,12 @@ const MemberSpotlight: React.FC<MemberSpotlightProps> = ({
                 <Box sx={{ display: !roastMode ? 'none' : 'block', py: 0.5 }}>
                   <Typography
                     variant="body2"
-                    sx={{ fontSize: '0.8rem', lineHeight: 1.5, fontStyle: 'italic', color: 'warning.dark' }}
+                    sx={{
+                      fontSize: '0.8rem',
+                      lineHeight: 1.5,
+                      fontStyle: 'italic',
+                      color: 'warning.dark',
+                    }}
                   >
                     {summaryData.roastSummary}
                   </Typography>
@@ -615,7 +637,10 @@ const MemberSpotlight: React.FC<MemberSpotlightProps> = ({
           <Box sx={{ px: `${spacing.cardPadding.xs}px`, pb: 1.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.75 }}>
               <AutoAwesomeIcon sx={{ fontSize: 13, color: accentColor }} />
-              <Typography variant="caption" sx={{ fontWeight: 600, color: accentColor, fontSize: '0.65rem' }}>
+              <Typography
+                variant="caption"
+                sx={{ fontWeight: 600, color: accentColor, fontSize: '0.65rem' }}
+              >
                 Quick Facts
               </Typography>
             </Box>
@@ -644,7 +669,10 @@ const MemberSpotlight: React.FC<MemberSpotlightProps> = ({
           <Box sx={{ px: `${spacing.cardPadding.xs}px`, pb: 1.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.75 }}>
               <QuestionAnswerIcon sx={{ fontSize: 13, color: accentColor }} />
-              <Typography variant="caption" sx={{ fontWeight: 600, color: accentColor, fontSize: '0.65rem' }}>
+              <Typography
+                variant="caption"
+                sx={{ fontWeight: 600, color: accentColor, fontSize: '0.65rem' }}
+              >
                 Q&A Highlights
               </Typography>
             </Box>
@@ -659,7 +687,15 @@ const MemberSpotlight: React.FC<MemberSpotlightProps> = ({
                     border: `1px solid ${alpha(accentColor, 0.08)}`,
                   }}
                 >
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem', display: 'block', mb: 0.25 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'text.secondary',
+                      fontSize: '0.65rem',
+                      display: 'block',
+                      mb: 0.25,
+                    }}
+                  >
                     {qa.question}
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.78rem' }}>
@@ -670,7 +706,13 @@ const MemberSpotlight: React.FC<MemberSpotlightProps> = ({
               {summaryData.basicQAs.length > MAX_QAS_SHOWN && (
                 <Typography
                   variant="caption"
-                  sx={{ textAlign: 'center', color: accentColor, fontStyle: 'italic', fontSize: '0.65rem', mt: 0.25 }}
+                  sx={{
+                    textAlign: 'center',
+                    color: accentColor,
+                    fontStyle: 'italic',
+                    fontSize: '0.65rem',
+                    mt: 0.25,
+                  }}
                 >
                   +{summaryData.basicQAs.length - MAX_QAS_SHOWN} more
                 </Typography>

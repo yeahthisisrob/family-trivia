@@ -1,10 +1,8 @@
-import React from 'react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, within } from 'storybook/test';
 
-import FamilySplitView from './FamilySplitView';
-
 import type { FamilyHierarchy } from '../../api';
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import FamilySplitView from './FamilySplitView';
 
 // ── Mock data ────────────────────────────────────────────────────────
 
@@ -81,7 +79,16 @@ const meta: Meta<typeof FamilySplitView> = {
   },
   decorators: [
     (Story) => (
-      <div style={{ maxWidth: 420, margin: '0 auto', background: '#f9f9f9', padding: 8, borderRadius: 12, minHeight: 300 }}>
+      <div
+        style={{
+          maxWidth: 420,
+          margin: '0 auto',
+          background: '#f9f9f9',
+          padding: 8,
+          borderRadius: 12,
+          minHeight: 300,
+        }}
+      >
         <Story />
       </div>
     ),
@@ -186,7 +193,9 @@ export const NoSides: Story = {
     currentUserId: 'alice',
   },
   parameters: {
-    docs: { description: { story: 'When no sides are defined, all groups render as center groups.' } },
+    docs: {
+      description: { story: 'When no sides are defined, all groups render as center groups.' },
+    },
   },
 };
 

@@ -1,22 +1,21 @@
 // Module: social — Unified comments API
 
+import type {
+  AddCommentResponse,
+  Comment,
+  CommentContentType,
+  CommentCounts,
+  CommentThread,
+} from '@family-trivia/shared';
 import { apiService } from '../../services/ApiService';
 import { createLogger } from '../../utils/logger';
 
-import type {
-  Comment,
-  CommentThread,
-  CommentContentType,
-  AddCommentResponse,
-  CommentCounts,
-} from '@family-trivia/shared';
-
 export type {
-  Comment,
-  CommentThread,
-  CommentContentType,
   AddCommentResponse,
+  Comment,
+  CommentContentType,
   CommentCounts,
+  CommentThread,
 } from '@family-trivia/shared';
 
 const logger = createLogger('CommentsAPI');
@@ -51,10 +50,12 @@ export async function getCommentCounts(
 ): Promise<{ counts: CommentCounts; commenters: Record<string, string[]> }> {
   if (ids.length === 0) return { counts: {}, commenters: {} };
   try {
-    const response = await apiService.request<{ counts: CommentCounts; commenters?: Record<string, string[]> }>(
-      `/comments/counts?contentType=${contentType}&ids=${ids.map(encodeURIComponent).join(',')}`,
-      { method: 'GET' },
-    );
+    const response = await apiService.request<{
+      counts: CommentCounts;
+      commenters?: Record<string, string[]>;
+    }>(`/comments/counts?contentType=${contentType}&ids=${ids.map(encodeURIComponent).join(',')}`, {
+      method: 'GET',
+    });
     return { counts: response?.counts || {}, commenters: response?.commenters || {} };
   } catch {
     return { counts: {}, commenters: {} };
@@ -107,4 +108,3 @@ export async function addComment(
     throw new Error(`Failed to add comment: ${(error as Error).message}`);
   }
 }
-

@@ -1,14 +1,14 @@
 // File: src/components/TimelineBoard/FactTimeline.tsx
-import { Box, Card, Typography, Divider } from '@mui/material';
+import { Box, Card, Divider, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { format, parseISO, isToday, isYesterday } from 'date-fns';
-import React, { useMemo } from 'react';
-
+import { format, isToday, isYesterday, parseISO } from 'date-fns';
+import type React from 'react';
+import { useMemo } from 'react';
+import { shouldIncludeInFamilySide } from '../../utils/familyUtils';
+import { createLogger } from '../../utils/logger';
 import FactComments from './FactComments';
 import FactTimelineCard from './FactTimelineCard';
 import FamilyFeudTimelineCard from './FamilyFeudTimelineCard';
-import { shouldIncludeInFamilySide } from '../../utils/familyUtils';
-import { createLogger } from '../../utils/logger';
 
 // Define fact item type
 interface FactItem {
@@ -98,7 +98,7 @@ const FactTimeline: React.FC<FactTimelineProps> = ({
     return Array.from(groups.entries())
       .sort(([a], [b]) => b.localeCompare(a))
       .map(([dateKey, items]) => ({
-        date: parseISO(dateKey + 'T00:00:00'),
+        date: parseISO(`${dateKey}T00:00:00`),
         dateKey,
         items: items.sort(
           (a, b) => parseISO(b.timestamp).getTime() - parseISO(a.timestamp).getTime(),
@@ -137,7 +137,7 @@ const FactTimeline: React.FC<FactTimelineProps> = ({
 
             {/* Facts for this date */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              {group.items.map((entry, i) => (
+              {group.items.map((entry, i) =>
                 (entry as any).isFamilyFeud || (entry as any).questionType === 'family-feud' ? (
                   <FamilyFeudTimelineCard
                     key={`feud-${entry.userId}_${entry.timestamp}`}
@@ -162,44 +162,46 @@ const FactTimeline: React.FC<FactTimelineProps> = ({
                       getUserInitials={getUserInitials}
                     />
                   </FamilyFeudTimelineCard>
-                ) : <Card
-                  key={`${entry.userId}_${entry.timestamp}`}
-                  variant="outlined"
-                  sx={{
-                    borderColor: alpha(getUserColor(entry.userId), 0.3),
-                    boxShadow: 0,
-                    p: 0.75,
-                    bgcolor: entry.skipped ? alpha('#f5f5f5', 0.5) : 'background.paper',
-                    borderLeft: `4px solid ${getUserColor(entry.userId)}`,
-                    width: '100%',
-                    overflowX: 'hidden',
-                  }}
-                >
-                  <FactTimelineCard
-                    entry={{
-                      userId: entry.userId,
-                      color: getUserColor(entry.userId),
-                      initials: getUserInitials(entry.userId),
-                      question: entry.question,
-                      answer: entry.answer || '',
-                      fact: entry.fact,
-                      timestamp: entry.timestamp,
-                      group: entry.groupId.replace(/-/g, ' '),
-                      skipped: entry.skipped,
-                      isCustomFact: entry.category === 'Custom Category',
+                ) : (
+                  <Card
+                    key={`${entry.userId}_${entry.timestamp}`}
+                    variant="outlined"
+                    sx={{
+                      borderColor: alpha(getUserColor(entry.userId), 0.3),
+                      boxShadow: 0,
+                      p: 0.75,
+                      bgcolor: entry.skipped ? alpha('#f5f5f5', 0.5) : 'background.paper',
+                      borderLeft: `4px solid ${getUserColor(entry.userId)}`,
+                      width: '100%',
+                      overflowX: 'hidden',
                     }}
-                    onUserClick={onUserClick}
-                    wrapWithCard={false}
                   >
-                    <FactComments
-                      factId={`${entry.userId}_${entry.timestamp}`}
-                      currentUserId={currentUserId || ''}
-                      getUserColor={getUserColor}
-                      getUserInitials={getUserInitials}
-                    />
-                  </FactTimelineCard>
-                </Card>
-              ))}
+                    <FactTimelineCard
+                      entry={{
+                        userId: entry.userId,
+                        color: getUserColor(entry.userId),
+                        initials: getUserInitials(entry.userId),
+                        question: entry.question,
+                        answer: entry.answer || '',
+                        fact: entry.fact,
+                        timestamp: entry.timestamp,
+                        group: entry.groupId.replace(/-/g, ' '),
+                        skipped: entry.skipped,
+                        isCustomFact: entry.category === 'Custom Category',
+                      }}
+                      onUserClick={onUserClick}
+                      wrapWithCard={false}
+                    >
+                      <FactComments
+                        factId={`${entry.userId}_${entry.timestamp}`}
+                        currentUserId={currentUserId || ''}
+                        getUserColor={getUserColor}
+                        getUserInitials={getUserInitials}
+                      />
+                    </FactTimelineCard>
+                  </Card>
+                ),
+              )}
             </Box>
           </Box>
         ))

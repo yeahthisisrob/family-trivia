@@ -1,10 +1,14 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-
-import { useCategoryRefresh } from './CategoryRefreshContext';
-import { useFamilyData } from './FamilyDataContext';
-import { getCasinoRushStatus, getCurlingStatus, getSlotMachineStatus, getTetrisStatus } from '../api/modules/games';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import {
+  getCasinoRushStatus,
+  getCurlingStatus,
+  getSlotMachineStatus,
+  getTetrisStatus,
+} from '../api/modules/games';
 import { cacheService } from '../services/CacheService';
 import { createLogger } from '../utils/logger';
+import { useCategoryRefresh } from './CategoryRefreshContext';
+import { useFamilyData } from './FamilyDataContext';
 
 const logger = createLogger('TriviaStatusContext');
 
@@ -133,7 +137,8 @@ export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setCasinoRushStatus({
       canPlay: initGameStatuses.casinoRush.canPlay,
       nextAvailable: initGameStatuses.casinoRush.nextAvailable
-        ? new Date(initGameStatuses.casinoRush.nextAvailable) : null,
+        ? new Date(initGameStatuses.casinoRush.nextAvailable)
+        : null,
       hasActiveSession: initGameStatuses.casinoRush.hasActiveSession,
       loading: false,
       lastUpdated: Date.now(),
@@ -142,7 +147,8 @@ export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setSlotMachineStatus({
       canPlay: initGameStatuses.slotMachine.canPlay,
       nextAvailable: initGameStatuses.slotMachine.nextAvailable
-        ? new Date(initGameStatuses.slotMachine.nextAvailable) : null,
+        ? new Date(initGameStatuses.slotMachine.nextAvailable)
+        : null,
       hasActiveSession: initGameStatuses.slotMachine.hasActiveSession,
       loading: false,
       lastUpdated: Date.now(),
@@ -152,7 +158,8 @@ export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setCurlingStatus({
         canPlay: initGameStatuses.curling.canPlay,
         nextAvailable: initGameStatuses.curling.nextAvailable
-          ? new Date(initGameStatuses.curling.nextAvailable) : null,
+          ? new Date(initGameStatuses.curling.nextAvailable)
+          : null,
         loading: false,
         lastUpdated: Date.now(),
       });
@@ -162,7 +169,8 @@ export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setTetrisStatus({
         canPlay: initGameStatuses.tetris.canPlay,
         nextAvailable: initGameStatuses.tetris.nextAvailable
-          ? new Date(initGameStatuses.tetris.nextAvailable) : null,
+          ? new Date(initGameStatuses.tetris.nextAvailable)
+          : null,
         loading: false,
         lastUpdated: Date.now(),
       });
@@ -172,107 +180,95 @@ export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
   // Refresh slot machine status — always hits the backend.
   // Client caching was causing stale status on mobile after game completion.
   // Backend has its own per-invocation cache so this is cheap.
-  const refreshSlotMachineStatus = useCallback(
-    async (userId: string, _force = true) => {
-      try {
-        setSlotMachineStatus((prev) => ({ ...prev, loading: true }));
+  const refreshSlotMachineStatus = useCallback(async (userId: string, _force = true) => {
+    try {
+      setSlotMachineStatus((prev) => ({ ...prev, loading: true }));
 
-        const status = await getSlotMachineStatus(userId, true);
+      const status = await getSlotMachineStatus(userId, true);
 
-        setSlotMachineStatus({
-          canPlay: status?.canPlay ?? false,
-          nextAvailable: status?.nextAvailable ? new Date(status.nextAvailable) : null,
-          hasActiveSession: status?.activeSession?.hasActiveSession ?? false,
-          loading: false,
-          lastUpdated: Date.now(),
-        });
-      } catch (error) {
-        logger.error('Error fetching slot machine status:', error);
+      setSlotMachineStatus({
+        canPlay: status?.canPlay ?? false,
+        nextAvailable: status?.nextAvailable ? new Date(status.nextAvailable) : null,
+        hasActiveSession: status?.activeSession?.hasActiveSession ?? false,
+        loading: false,
+        lastUpdated: Date.now(),
+      });
+    } catch (error) {
+      logger.error('Error fetching slot machine status:', error);
 
-        // Set error state but maintain previous data
-        setSlotMachineStatus((prev) => ({
-          ...prev,
-          loading: false,
-          lastUpdated: Date.now(),
-        }));
-      }
-    },
-    [],
-  );
+      // Set error state but maintain previous data
+      setSlotMachineStatus((prev) => ({
+        ...prev,
+        loading: false,
+        lastUpdated: Date.now(),
+      }));
+    }
+  }, []);
 
   // Refresh casino rush status — always hits the backend.
-  const refreshCasinoRushStatus = useCallback(
-    async (userId: string, _force = true) => {
-      try {
-        setCasinoRushStatus((prev) => ({ ...prev, loading: true }));
+  const refreshCasinoRushStatus = useCallback(async (userId: string, _force = true) => {
+    try {
+      setCasinoRushStatus((prev) => ({ ...prev, loading: true }));
 
-        const status = await getCasinoRushStatus(userId, true);
+      const status = await getCasinoRushStatus(userId, true);
 
-        setCasinoRushStatus({
-          canPlay: status?.canPlay ?? false,
-          nextAvailable:
-            status?.nextAvailable instanceof Date
-              ? status.nextAvailable
-              : status?.nextAvailable
-                ? new Date(status.nextAvailable)
-                : null,
-          hasActiveSession: status?.activeSession !== undefined,
-          loading: false,
-          lastUpdated: Date.now(),
-        });
-      } catch (error) {
-        logger.error('Error fetching casino rush status:', error);
+      setCasinoRushStatus({
+        canPlay: status?.canPlay ?? false,
+        nextAvailable:
+          status?.nextAvailable instanceof Date
+            ? status.nextAvailable
+            : status?.nextAvailable
+              ? new Date(status.nextAvailable)
+              : null,
+        hasActiveSession: status?.activeSession !== undefined,
+        loading: false,
+        lastUpdated: Date.now(),
+      });
+    } catch (error) {
+      logger.error('Error fetching casino rush status:', error);
 
-        // Set error state but maintain previous data
-        setCasinoRushStatus((prev) => ({
-          ...prev,
-          loading: false,
-          lastUpdated: Date.now(),
-        }));
-      }
-    },
-    [],
-  );
+      // Set error state but maintain previous data
+      setCasinoRushStatus((prev) => ({
+        ...prev,
+        loading: false,
+        lastUpdated: Date.now(),
+      }));
+    }
+  }, []);
 
   // Refresh curling status — always hits the backend.
-  const refreshCurlingStatus = useCallback(
-    async (userId: string, _force = true) => {
-      try {
-        setCurlingStatus((prev) => ({ ...prev, loading: true }));
-        const status = await getCurlingStatus(userId);
-        setCurlingStatus({
-          canPlay: status?.canPlay ?? false,
-          nextAvailable: status?.nextAvailable ? new Date(status.nextAvailable) : null,
-          loading: false,
-          lastUpdated: Date.now(),
-        });
-      } catch (error) {
-        logger.error('Error fetching curling status:', error);
-        setCurlingStatus((prev) => ({ ...prev, loading: false, lastUpdated: Date.now() }));
-      }
-    },
-    [],
-  );
+  const refreshCurlingStatus = useCallback(async (userId: string, _force = true) => {
+    try {
+      setCurlingStatus((prev) => ({ ...prev, loading: true }));
+      const status = await getCurlingStatus(userId);
+      setCurlingStatus({
+        canPlay: status?.canPlay ?? false,
+        nextAvailable: status?.nextAvailable ? new Date(status.nextAvailable) : null,
+        loading: false,
+        lastUpdated: Date.now(),
+      });
+    } catch (error) {
+      logger.error('Error fetching curling status:', error);
+      setCurlingStatus((prev) => ({ ...prev, loading: false, lastUpdated: Date.now() }));
+    }
+  }, []);
 
   // Refresh tetris status
-  const refreshTetrisStatus = useCallback(
-    async (userId: string, _force = true) => {
-      try {
-        setTetrisStatus((prev) => ({ ...prev, loading: true }));
-        const status = await getTetrisStatus(userId);
-        setTetrisStatus({
-          canPlay: status?.canPlay ?? false,
-          nextAvailable: status?.nextAvailable ? new Date(status.nextAvailable) : null,
-          loading: false,
-          lastUpdated: Date.now(),
-        });
-      } catch (error) {
-        logger.error('Error fetching tetris status:', error);
-        setTetrisStatus((prev) => ({ ...prev, loading: false, lastUpdated: Date.now() }));
-      }
-    },
-    [],
-  );
+  const refreshTetrisStatus = useCallback(async (userId: string, _force = true) => {
+    try {
+      setTetrisStatus((prev) => ({ ...prev, loading: true }));
+      const status = await getTetrisStatus(userId);
+      setTetrisStatus({
+        canPlay: status?.canPlay ?? false,
+        nextAvailable: status?.nextAvailable ? new Date(status.nextAvailable) : null,
+        loading: false,
+        lastUpdated: Date.now(),
+      });
+    } catch (error) {
+      logger.error('Error fetching tetris status:', error);
+      setTetrisStatus((prev) => ({ ...prev, loading: false, lastUpdated: Date.now() }));
+    }
+  }, []);
 
   // Refresh all game statuses
   const refreshAllStatuses = useCallback(
@@ -306,7 +302,7 @@ export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
       logger.debug('Category refresh detected, clearing trivia status cache');
 
       // Clear cache keys for both status APIs
-      Object.keys(cacheService['cache'] || {}).forEach((key) => {
+      cacheService.keys().forEach((key) => {
         if (key.startsWith('slot_machine_status_') || key.startsWith('casino_rush_status_')) {
           cacheService.invalidate(key);
         }

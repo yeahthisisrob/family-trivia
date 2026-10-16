@@ -1,9 +1,7 @@
-import { fn } from 'storybook/test';
-
-import FamilyFeudTimelineCard from './FamilyFeudTimelineCard';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import { StoryProviders } from '../../test/storyContexts';
+import FamilyFeudTimelineCard from './FamilyFeudTimelineCard';
 
 const entry = {
   userId: 'alice',
@@ -27,7 +25,13 @@ const meta: Meta<typeof FamilyFeudTimelineCard> = {
   component: FamilyFeudTimelineCard,
   parameters: { layout: 'padded' },
   args: { entry, onUserClick: fn() },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof FamilyFeudTimelineCard>;

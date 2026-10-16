@@ -1,10 +1,11 @@
 #!/usr/bin/env node
+
 // Capture hero screenshots of curated Storybook stories for README.md.
 // Prereq: `npm install` at repo root, then `cd frontend && npm run build-storybook`.
 // Run: `node scripts/screenshot-stories.mjs`
 
+import { createReadStream, mkdirSync, statSync } from 'node:fs';
 import http from 'node:http';
-import { createReadStream, statSync, mkdirSync } from 'node:fs';
 import { extname, join, resolve } from 'node:path';
 import { chromium } from 'playwright';
 
@@ -14,21 +15,57 @@ const OUT_DIR = join(ROOT, 'docs/screenshots');
 const PORT = 6007;
 
 const MIME = {
-  '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
-  '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml',
-  '.png': 'image/png', '.jpg': 'image/jpeg', '.woff': 'font/woff',
-  '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.ico': 'image/x-icon',
+  '.html': 'text/html',
+  '.js': 'text/javascript',
+  '.mjs': 'text/javascript',
+  '.css': 'text/css',
+  '.json': 'application/json',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.ico': 'image/x-icon',
   '.map': 'application/json',
 };
 
 const stories = [
-  { id: 'trivia-flow-triviaflow--game-modes-available', name: '01-trivia-flow', viewport: { width: 420, height: 820 } },
-  { id: 'leaderboard-podium--three-players', name: '02-leaderboard', viewport: { width: 640, height: 520 } },
-  { id: 'trivia-game-modes-casinorush--start-screen', name: '03-casino-rush', viewport: { width: 420, height: 760 } },
-  { id: 'trivia-game-modes-slotmachine--trivia-mode', name: '04-slot-machine', viewport: { width: 420, height: 760 } },
-  { id: 'timelineboard-facttimelinecard--default', name: '05-fact-card', viewport: { width: 520, height: 420 } },
-  { id: 'timelineboard-triviacomments--default', name: '06-comments', viewport: { width: 520, height: 700 } },
-  { id: 'familytree-familysplitview--full-tree', name: '07-family-tree', viewport: { width: 520, height: 720 } },
+  {
+    id: 'trivia-flow-triviaflow--game-modes-available',
+    name: '01-trivia-flow',
+    viewport: { width: 420, height: 820 },
+  },
+  {
+    id: 'leaderboard-podium--three-players',
+    name: '02-leaderboard',
+    viewport: { width: 640, height: 520 },
+  },
+  {
+    id: 'trivia-game-modes-casinorush--start-screen',
+    name: '03-casino-rush',
+    viewport: { width: 420, height: 760 },
+  },
+  {
+    id: 'trivia-game-modes-slotmachine--trivia-mode',
+    name: '04-slot-machine',
+    viewport: { width: 420, height: 760 },
+  },
+  {
+    id: 'timelineboard-facttimelinecard--default',
+    name: '05-fact-card',
+    viewport: { width: 520, height: 420 },
+  },
+  {
+    id: 'timelineboard-triviacomments--default',
+    name: '06-comments',
+    viewport: { width: 520, height: 700 },
+  },
+  {
+    id: 'familytree-familysplitview--full-tree',
+    name: '07-family-tree',
+    viewport: { width: 520, height: 720 },
+  },
   {
     id: 'notifications-notificationpanel--with-leader-change',
     name: '08-notifications',

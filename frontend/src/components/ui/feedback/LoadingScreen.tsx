@@ -1,6 +1,6 @@
 import { keyframes } from '@emotion/react';
-import { Box, Typography, Fade, useTheme } from '@mui/material';
-import React from 'react';
+import { Box, Fade, Typography, useTheme } from '@mui/material';
+import type React from 'react';
 
 const wave = keyframes`
   0%, 60%, 100% {

@@ -2,12 +2,9 @@ import AddIcon from '@mui/icons-material/Add';
 import InboxIcon from '@mui/icons-material/Inbox';
 import PersonOffIcon from '@mui/icons-material/PersonOff';
 import { Button } from '@mui/material';
-import React from 'react';
-import { expect, within } from 'storybook/test';
-
-import EmptyState from './EmptyState';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, within } from 'storybook/test';
+import EmptyState from './EmptyState';
 
 const meta: Meta<typeof EmptyState> = {
   title: 'Admin/EmptyState',
@@ -22,7 +19,11 @@ const meta: Meta<typeof EmptyState> = {
     },
   },
   decorators: [
-    (Story) => <div style={{ maxWidth: 480 }}><Story /></div>,
+    (Story) => (
+      <div style={{ maxWidth: 480 }}>
+        <Story />
+      </div>
+    ),
   ],
 };
 export default meta;

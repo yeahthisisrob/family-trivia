@@ -3,7 +3,7 @@
  * for the 3-step question generation pipeline.
  */
 
-import type { Question, DifficultyLevel, GenerateMode, FactCheckResult } from './question';
+import type { DifficultyLevel, FactCheckResult, GenerateMode, Question } from './question';
 
 // ── Step 1: Generate ──────────────────────────────────────────────
 

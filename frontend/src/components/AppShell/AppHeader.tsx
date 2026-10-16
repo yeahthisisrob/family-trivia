@@ -1,3 +1,4 @@
+import type { NotificationItem } from '@family-trivia/shared';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
@@ -6,24 +7,13 @@ import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded';
 import QuizIcon from '@mui/icons-material/Quiz';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Box,
-  Avatar,
-  IconButton,
-  useTheme,
-} from '@mui/material';
+import { AppBar, Avatar, Box, IconButton, Toolbar, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React from 'react';
-
+import type React from 'react';
 import { ROUTES } from '../../hooks/useApp';
 import { getUserColor, getUserInitials } from '../../utils';
 import { NotificationBell } from '../Notifications';
 import { LoadingDots } from '../ui/feedback';
-
-import type { NotificationItem } from '@family-trivia/shared';
 
 interface AppHeaderProps {
   selectedUser: string;
@@ -69,10 +59,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     <AppBar position="sticky" elevation={0} sx={{ bgcolor: headerBg }}>
       {/* Top bar */}
       <Toolbar sx={{ minHeight: { xs: 48, sm: 54 }, px: { xs: 1.5, sm: 2 } }}>
-        <Typography sx={{
-          fontWeight: 800, fontSize: { xs: '1.05rem', sm: '1.15rem' },
-          letterSpacing: 0.3, flex: 1, color: '#fff',
-        }}>
+        <Typography
+          sx={{
+            fontWeight: 800,
+            fontSize: { xs: '1.05rem', sm: '1.15rem' },
+            letterSpacing: 0.3,
+            flex: 1,
+            color: '#fff',
+          }}
+        >
           Family Trivia
         </Typography>
 
@@ -80,38 +75,51 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           <Avatar
             onClick={onAvatarClick}
             sx={{
-              bgcolor: userColor, width: 30, height: 30,
-              fontSize: '0.75rem', fontWeight: 700,
+              bgcolor: userColor,
+              width: 30,
+              height: 30,
+              fontSize: '0.75rem',
+              fontWeight: 700,
               cursor: onAvatarClick ? 'pointer' : 'default',
               border: `2px solid ${alpha('#fff', 0.25)}`,
               transition: 'all 0.15s',
-              '&:hover': onAvatarClick ? { transform: 'scale(1.1)', borderColor: alpha('#fff', 0.5) } : {},
+              '&:hover': onAvatarClick
+                ? { transform: 'scale(1.1)', borderColor: alpha('#fff', 0.5) }
+                : {},
             }}
           >
             {getUserInitials(selectedUser)}
           </Avatar>
           <NotificationBell onNotificationClick={onNotificationClick} />
           {isAdmin && (
-            <IconButton size="small" onClick={() => onNavigate(ROUTES.ADMIN)}
-              sx={{ color: inactiveText, '&:hover': { color: '#fff' } }}>
+            <IconButton
+              size="small"
+              onClick={() => onNavigate(ROUTES.ADMIN)}
+              sx={{ color: inactiveText, '&:hover': { color: '#fff' } }}
+            >
               <SettingsIcon sx={{ fontSize: 19 }} />
             </IconButton>
           )}
-          <IconButton size="small" onClick={onLogout}
-            sx={{ color: alpha(inactiveText, 0.6), '&:hover': { color: '#fff' } }}>
+          <IconButton
+            size="small"
+            onClick={onLogout}
+            sx={{ color: alpha(inactiveText, 0.6), '&:hover': { color: '#fff' } }}
+          >
             <LogoutIcon sx={{ fontSize: 17 }} />
           </IconButton>
         </Box>
       </Toolbar>
 
       {/* Nav tabs */}
-      <Box sx={{
-        display: 'flex',
-        px: { xs: 0.75, sm: 1.5 },
-        pb: 0.75,
-        gap: { xs: 0.5, sm: 0.75 },
-        bgcolor: alpha('#000', 0.08),
-      }}>
+      <Box
+        sx={{
+          display: 'flex',
+          px: { xs: 0.75, sm: 1.5 },
+          pb: 0.75,
+          gap: { xs: 0.5, sm: 0.75 },
+          bgcolor: alpha('#000', 0.08),
+        }}
+      >
         {NAV_ITEMS.map(({ label, icon: Icon, path }) => {
           const isActive = currentPath === path;
           return (
@@ -119,8 +127,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               key={path}
               onClick={() => onNavigate(path)}
               sx={{
-                flex: 1, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', gap: 0.2,
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 0.2,
                 py: { xs: 0.6, sm: 0.75 },
                 mt: 0.5,
                 borderRadius: 1.5,
@@ -130,19 +141,23 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 '&:hover': !isActive ? { bgcolor: alpha('#fff', 0.07) } : {},
               }}
             >
-              <Icon sx={{
-                fontSize: { xs: 19, sm: 21 },
-                color: isActive ? activeText : inactiveIcon,
-                transition: 'color 0.2s',
-              }} />
-              <Typography sx={{
-                fontSize: { xs: '0.6rem', sm: '0.65rem' },
-                fontWeight: isActive ? 700 : 500,
-                color: isActive ? activeText : inactiveText,
-                letterSpacing: 0.2,
-                transition: 'all 0.2s',
-                lineHeight: 1,
-              }}>
+              <Icon
+                sx={{
+                  fontSize: { xs: 19, sm: 21 },
+                  color: isActive ? activeText : inactiveIcon,
+                  transition: 'color 0.2s',
+                }}
+              />
+              <Typography
+                sx={{
+                  fontSize: { xs: '0.6rem', sm: '0.65rem' },
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? activeText : inactiveText,
+                  letterSpacing: 0.2,
+                  transition: 'all 0.2s',
+                  lineHeight: 1,
+                }}
+              >
                 {label}
               </Typography>
             </Box>

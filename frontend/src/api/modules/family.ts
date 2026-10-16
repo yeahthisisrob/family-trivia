@@ -1,14 +1,12 @@
 // Module: family
 // Family hierarchy, members, and group descriptions
 
+import type { FamilyHierarchy, MemberStatus } from '@family-trivia/shared';
 import { apiService } from '../../services/ApiService';
 import { cacheService } from '../../services/CacheService';
 import { createLogger } from '../../utils/logger';
 
-import type { FamilyHierarchy, FamilySideConfig, MemberStatus } from '@family-trivia/shared';
-
-export type { FamilySideConfig, FamilyHierarchy } from '@family-trivia/shared';
-export type { MemberStatus } from '@family-trivia/shared';
+export type { FamilyHierarchy, FamilySideConfig, MemberStatus } from '@family-trivia/shared';
 
 // ─── Group description types (locally defined, not from shared) ──────────────
 
@@ -173,7 +171,7 @@ export async function getGroupDescription(groupId: string): Promise<GroupDescrip
       );
 
       // Make sure we have a valid response with description property
-      if (!response || !response.description) {
+      if (!response?.description) {
         // Return a default empty description
         groupsLogger.warn(`No valid description found for group ${groupId}, using default`);
         return {
@@ -229,7 +227,7 @@ export async function getAllGroupDescriptions(): Promise<Record<string, GroupDes
       );
 
       // Validate response structure
-      if (!response || !response.descriptions) {
+      if (!response?.descriptions) {
         groupsLogger.warn('Invalid response format from getAllGroupDescriptions');
         return {};
       } else {
@@ -333,7 +331,7 @@ export async function suggestGroupDescription(userId: string): Promise<GroupDesc
         true, // Force fresh
       );
 
-      if (!response || !response.groupId || !response.suggestion) {
+      if (!response?.groupId || !response.suggestion) {
         groupsLogger.warn(`Invalid suggestion response for user ${userId}`);
         return {
           suggestion: 'Could not generate a suggestion at this time.',

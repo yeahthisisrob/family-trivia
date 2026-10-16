@@ -6,7 +6,8 @@
 // TriviaFlow writes to this context via useTriviaFlowPublisher().
 // Consumers read via useTriviaFlow().
 
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import type React from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -43,23 +44,18 @@ export const TriviaFlowProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [flowState, setFlowState] = useState<FlowState>('idle');
   const [activeGameMode, setActiveGameMode] = useState<string | null>(null);
 
-  const isActive = flowState !== 'idle' && flowState !== 'done' || activeGameMode !== null;
+  const isActive = (flowState !== 'idle' && flowState !== 'done') || activeGameMode !== null;
 
   const value = useMemo<TriviaFlowContextValue>(
     () => ({ flowState, activeGameMode, isActive }),
     [flowState, activeGameMode, isActive],
   );
 
-  const dispatch = useMemo<TriviaFlowDispatch>(
-    () => ({ setFlowState, setActiveGameMode }),
-    [],
-  );
+  const dispatch = useMemo<TriviaFlowDispatch>(() => ({ setFlowState, setActiveGameMode }), []);
 
   return (
     <FlowContext.Provider value={value}>
-      <DispatchContext.Provider value={dispatch}>
-        {children}
-      </DispatchContext.Provider>
+      <DispatchContext.Provider value={dispatch}>{children}</DispatchContext.Provider>
     </FlowContext.Provider>
   );
 };

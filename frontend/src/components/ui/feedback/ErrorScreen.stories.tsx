@@ -1,8 +1,6 @@
-import { fn } from 'storybook/test';
-
-import { ErrorScreen } from './ErrorScreen';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import { ErrorScreen } from './ErrorScreen';
 
 const meta: Meta<typeof ErrorScreen> = {
   title: 'Feedback/ErrorScreen',

@@ -1,0 +1,63 @@
+// Biome formats and lints the whole repo (it replaced ESLint + Prettier, see
+// docs/decisions/0003-biome.md). Rule of thumb: auto-fixable rules are errors;
+// a rule that needs a human must catch real defects.
+//
+// Rules switched off below are DEBT, with the count of findings when they were
+// switched off. Burn one down, then turn it back on. Don't add to the list
+// without a count and a reason.
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": {
+    "includes": [
+      "**",
+      "!**/generated/api-types.ts",
+      "!**/public/mockServiceWorker.js",
+      "!**/storybook-static",
+      "!**/cdk.out"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "jsxQuoteStyle": "double",
+      "trailingCommas": "all",
+      "semicolons": "always"
+    }
+  },
+  "json": { "parser": { "allowComments": true } },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "correctness": {
+        // DEBT (55): hook dependency arrays that don't match what the hook
+        // closes over. Each needs a human: some are deliberate run-once effects.
+        "useExhaustiveDependencies": "off",
+        // DEBT (80 + 18): unused locals and parameters left by refactors.
+        "noUnusedVariables": "warn",
+        "noUnusedFunctionParameters": "warn"
+      },
+      "suspicious": {
+        // DEBT (323): `any`, mostly in route handlers parsing request bodies.
+        // Goes away as handlers move to contract-typed input.
+        "noExplicitAny": "warn",
+        // DEBT (41): React key={index}. Safe only for static lists.
+        "noArrayIndexKey": "warn",
+        // DEBT (13): `let x;` without a type.
+        "noImplicitAnyLet": "warn"
+      },
+      "style": {
+        // DEBT (25): non-null assertions `x!`.
+        "noNonNullAssertion": "warn"
+      }
+    }
+  }
+}

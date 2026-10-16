@@ -1,12 +1,11 @@
 // Module: notifications
 // Fetch unread notifications, mark read, mark all read.
 
+import type { CommentContentType, NotificationSummary } from '@family-trivia/shared';
 import { apiService } from '../../services/ApiService';
 import { createLogger } from '../../utils/logger';
 
-import type { CommentContentType, NotificationSummary } from '@family-trivia/shared';
-
-export type { NotificationSummary, NotificationItem } from '@family-trivia/shared';
+export type { NotificationItem, NotificationSummary } from '@family-trivia/shared';
 
 const logger = createLogger('NotificationsAPI');
 

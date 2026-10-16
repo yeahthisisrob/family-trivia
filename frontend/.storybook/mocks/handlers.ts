@@ -1,14 +1,8 @@
 // File: .storybook/mocks/handlers.ts
 // MSW request handlers for Storybook — mock the step pipeline + common endpoints.
 
-import { http, HttpResponse, delay } from 'msw';
-
-import type {
-  Step1Response,
-  Step2Response,
-  Step3Response,
-  Question,
-} from '@family-trivia/shared';
+import type { Question, Step1Response, Step2Response, Step3Response } from '@family-trivia/shared';
+import { delay, HttpResponse, http } from 'msw';
 
 // ── Mock Data ─────────────────────────────────────────────────────
 
@@ -54,7 +48,12 @@ export const stepPipelineHandlers = [
     await delay(1200);
     const response: Step3Response = {
       question: mockQuestion,
-      factCheckResult: { isAccurate: true, confidence: 1, checkedBy: 'Claude Haiku', explanation: 'Verified' },
+      factCheckResult: {
+        isAccurate: true,
+        confidence: 1,
+        checkedBy: 'Claude Haiku',
+        explanation: 'Verified',
+      },
       sessionId: `mock_${Date.now()}_abc123`,
       completedAt: Date.now(),
       ready: true,
@@ -87,7 +86,13 @@ export const duplicateDetectedHandlers = [
         isDuplicate: true,
         matchMethod: 'topic_overlap',
         matchedTopics: ['kodak', 'camera'],
-        similarQuestions: [{ question: 'Which company made the first portable camera?', similarity: 0.85, matchMethod: 'topic_overlap' }],
+        similarQuestions: [
+          {
+            question: 'Which company made the first portable camera?',
+            similarity: 0.85,
+            matchMethod: 'topic_overlap',
+          },
+        ],
         sessionId: `mock_${Date.now()}_retry`,
         checkedAt: Date.now(),
         question: mockQuestion,
@@ -105,7 +110,12 @@ export const factCheckFailHandlers = [
       ok: true,
       data: {
         question: mockQuestion,
-        factCheckResult: { isAccurate: false, confidence: 0.4, checkedBy: 'Claude Haiku', explanation: 'Answer may be incorrect' },
+        factCheckResult: {
+          isAccurate: false,
+          confidence: 0.4,
+          checkedBy: 'Claude Haiku',
+          explanation: 'Answer may be incorrect',
+        },
         sessionId: `mock_${Date.now()}_fail`,
         completedAt: Date.now(),
         ready: false,
@@ -123,9 +133,7 @@ export const commonHandlers = [
   // would use `public/config.json` (which points at localhost:3001),
   // every literal `/api/...` story handler would miss, fetches would fall
   // through, and components would render their empty/error fallback state.
-  http.get('*/config.json', () =>
-    HttpResponse.json({ REACT_APP_API_URL: '/api' }),
-  ),
+  http.get('*/config.json', () => HttpResponse.json({ REACT_APP_API_URL: '/api' })),
 
   // User profile
   http.get('*/user-profile', () =>
@@ -158,12 +166,18 @@ export const commonHandlers = [
 
   // Catchup status
   http.get('*/catchup-status', () =>
-    HttpResponse.json({ ok: true, data: { questionsBehind: 0, userAnswerCount: 5, maxQuestionsAvailable: 5 } }),
+    HttpResponse.json({
+      ok: true,
+      data: { questionsBehind: 0, userAnswerCount: 5, maxQuestionsAvailable: 5 },
+    }),
   ),
 
   // Can answer
   http.get('*/can-answer-question', () =>
-    HttpResponse.json({ ok: true, data: { canAnswer: true, nextQuestionAt: '', todayET: new Date().toISOString().slice(0, 10) } }),
+    HttpResponse.json({
+      ok: true,
+      data: { canAnswer: true, nextQuestionAt: '', todayET: new Date().toISOString().slice(0, 10) },
+    }),
   ),
 
   // Submit answer
@@ -174,13 +188,16 @@ export const commonHandlers = [
 
   // App init
   http.get('*/app-init', () =>
-    HttpResponse.json({ ok: true, data: { catchupStatus: { questionsBehind: 0 }, seasonStatus: null } }),
+    HttpResponse.json({
+      ok: true,
+      data: { catchupStatus: { questionsBehind: 0 }, seasonStatus: null },
+    }),
   ),
 ];
 
 // ── Notification mock handlers ────────────────────────────────────
 
-import type { NotificationSummary, NotificationItem as NItem } from '@family-trivia/shared';
+import type { NotificationItem as NItem, NotificationSummary } from '@family-trivia/shared';
 
 const mockCommentNotifications: NItem[] = [
   {
@@ -232,7 +249,7 @@ export const notificationHandlers = [
   http.get('*/notifications', () => {
     const items = [...mockCommentNotifications];
     const summary: NotificationSummary = {
-      unreadCount: items.filter(i => !i.read).length,
+      unreadCount: items.filter((i) => !i.read).length,
       items,
     };
     return HttpResponse.json({ ok: true, data: summary });
@@ -251,7 +268,7 @@ export const notificationWithLeaderHandlers = [
   http.get('*/notifications', () => {
     const items = [mockLeaderNotification, ...mockCommentNotifications];
     const summary: NotificationSummary = {
-      unreadCount: items.filter(i => !i.read).length,
+      unreadCount: items.filter((i) => !i.read).length,
       items,
     };
     return HttpResponse.json({ ok: true, data: summary });

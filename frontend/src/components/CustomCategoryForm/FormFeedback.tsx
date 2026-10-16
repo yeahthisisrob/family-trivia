@@ -4,8 +4,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import { Box, Paper, Typography, IconButton, SxProps, Theme } from '@mui/material';
-import React from 'react';
+import { Box, IconButton, Paper, type SxProps, type Theme, Typography } from '@mui/material';
+import type React from 'react';
 
 interface FormFeedbackProps {
   message: string;
@@ -46,7 +46,6 @@ const FormFeedback: React.FC<FormFeedbackProps> = ({
           icon: <CheckCircleOutlineIcon />,
           title: 'Success',
         };
-      case 'info':
       default:
         return {
           color: 'info.main',

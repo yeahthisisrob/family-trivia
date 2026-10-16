@@ -4,7 +4,7 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import QuizIcon from '@mui/icons-material/Quiz';
 import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React from 'react';
+import type React from 'react';
 
 export const CONTENT_TYPES = {
   funFacts: { id: 'funFacts', label: 'Facts', icon: AutoStoriesIcon },
@@ -24,11 +24,16 @@ const ContentTypeSelector: React.FC<ContentTypeSelectorProps> = ({ value, onChan
   const theme = useTheme();
 
   return (
-    <Box sx={{
-      display: 'flex', gap: 0.5, mb: 2,
-      p: 0.5, borderRadius: 2,
-      bgcolor: alpha(theme.palette.divider, 0.08),
-    }}>
+    <Box
+      sx={{
+        display: 'flex',
+        gap: 0.5,
+        mb: 2,
+        p: 0.5,
+        borderRadius: 2,
+        bgcolor: alpha(theme.palette.divider, 0.08),
+      }}
+    >
       {Object.values(CONTENT_TYPES).map((type) => {
         const isActive = value === type.id;
         const Icon = type.icon;
@@ -37,24 +42,35 @@ const ContentTypeSelector: React.FC<ContentTypeSelectorProps> = ({ value, onChan
             key={type.id}
             onClick={() => onChange(type.id as ContentType)}
             sx={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: 0.5, py: 0.75, borderRadius: 1.5, cursor: 'pointer',
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 0.5,
+              py: 0.75,
+              borderRadius: 1.5,
+              cursor: 'pointer',
               transition: 'all 0.2s ease',
               bgcolor: isActive ? theme.palette.background.paper : 'transparent',
               boxShadow: isActive ? `0 1px 3px ${alpha('#000', 0.1)}` : 'none',
               '&:hover': !isActive ? { bgcolor: alpha(theme.palette.background.paper, 0.5) } : {},
             }}
           >
-            <Icon sx={{
-              fontSize: 16,
-              color: isActive ? theme.palette.primary.main : theme.palette.text.disabled,
-              transition: 'color 0.2s',
-            }} />
-            <Typography sx={{
-              fontSize: '0.75rem', fontWeight: isActive ? 700 : 500,
-              color: isActive ? theme.palette.text.primary : theme.palette.text.secondary,
-              transition: 'all 0.2s',
-            }}>
+            <Icon
+              sx={{
+                fontSize: 16,
+                color: isActive ? theme.palette.primary.main : theme.palette.text.disabled,
+                transition: 'color 0.2s',
+              }}
+            />
+            <Typography
+              sx={{
+                fontSize: '0.75rem',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? theme.palette.text.primary : theme.palette.text.secondary,
+                transition: 'all 0.2s',
+              }}
+            >
               {type.label}
             </Typography>
           </Box>

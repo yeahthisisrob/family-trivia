@@ -18,11 +18,8 @@ export async function updateCasinoBalance(
   userId: string,
   balance: number,
 ): Promise<CasinoBalanceResponse> {
-  return apiService.request<CasinoBalanceResponse>(
-    '/casino/balance',
-    {
-      method: 'POST',
-      body: JSON.stringify({ userId, balance }),
-    },
-  );
+  return apiService.request<CasinoBalanceResponse>('/casino/balance', {
+    method: 'POST',
+    body: JSON.stringify({ userId, balance }),
+  });
 }

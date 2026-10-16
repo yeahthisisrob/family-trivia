@@ -1,9 +1,7 @@
-import { fn } from 'storybook/test';
-
-import AddCelebrationDialog from './AddCelebrationDialog';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import { StoryProviders } from '../../test/storyContexts';
+import AddCelebrationDialog from './AddCelebrationDialog';
 
 const meta: Meta<typeof AddCelebrationDialog> = {
   title: 'UpcomingDates/AddCelebrationDialog',
@@ -15,7 +13,13 @@ const meta: Meta<typeof AddCelebrationDialog> = {
     onSuccess: fn(),
     currentUserId: 'alice',
   },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof AddCelebrationDialog>;

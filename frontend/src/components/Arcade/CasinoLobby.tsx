@@ -7,19 +7,17 @@
  * back to the shared pool.
  */
 
+import type { HighScoreEntry } from '@family-trivia/shared';
 import CasinoIcon from '@mui/icons-material/Casino';
 import CloseIcon from '@mui/icons-material/Close';
 import FiberSmartRecordIcon from '@mui/icons-material/FiberSmartRecord';
 import StyleIcon from '@mui/icons-material/Style';
-import {
-  Box, Button, Card, IconButton, Typography, useTheme,
-} from '@mui/material';
+import { Box, Card, IconButton, Typography, useTheme } from '@mui/material';
 import { alpha, keyframes } from '@mui/material/styles';
-import React, { useCallback, useEffect, useState } from 'react';
-
-import ArcadeLeaderboard from './ArcadeLeaderboard';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getArcadeLeaderboard } from '../../api/modules/arcade';
-import { getCasinoBalance, updateCasinoBalance } from '../../api/modules/casino';
+import { getCasinoBalance } from '../../api/modules/casino';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { getUserColor, getUserInitials } from '../../utils';
 import { createLogger } from '../../utils/logger';
@@ -27,8 +25,7 @@ import CommentsThread from '../common/CommentsThread';
 import BlackjackGame from '../TriviaCard/BlackjackGame';
 import RouletteGame from '../TriviaCard/RouletteGame';
 import SlotMachine from '../TriviaCard/SlotMachine';
-
-import type { HighScoreEntry } from '@family-trivia/shared';
+import ArcadeLeaderboard from './ArcadeLeaderboard';
 
 const logger = createLogger('CasinoLobby');
 
@@ -67,10 +64,17 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
   }, [userId]);
 
   const loadScores = useCallback(async () => {
-    try { setScores(await getArcadeLeaderboard('casino')); } catch { /* ok */ }
+    try {
+      setScores(await getArcadeLeaderboard('casino'));
+    } catch {
+      /* ok */
+    }
   }, []);
 
-  useEffect(() => { loadBalance(); loadScores(); }, [loadBalance, loadScores]);
+  useEffect(() => {
+    loadBalance();
+    loadScores();
+  }, [loadBalance, loadScores]);
 
   const handleGameClose = useCallback(async () => {
     setActiveGame(null);
@@ -93,18 +97,26 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
   return (
     <Box sx={{ maxWidth: 400, mx: 'auto', width: '100%' }}>
       {/* Casino frame */}
-      <Card sx={{
-        bgcolor: darkBg, borderRadius: 3,
-        border: `3px solid ${gold}`,
-        overflow: 'hidden',
-        boxShadow: `0 10px 40px rgba(0,0,0,0.6), inset 0 1px 0 ${alpha(gold, 0.2)}`,
-      }}>
+      <Card
+        sx={{
+          bgcolor: darkBg,
+          borderRadius: 3,
+          border: `3px solid ${gold}`,
+          overflow: 'hidden',
+          boxShadow: `0 10px 40px rgba(0,0,0,0.6), inset 0 1px 0 ${alpha(gold, 0.2)}`,
+        }}
+      >
         {/* Header */}
-        <Box sx={{
-          bgcolor: frameBg, py: 1.25, px: 2,
-          borderBottom: `2px solid ${gold}`,
-          display: 'flex', alignItems: 'center',
-        }}>
+        <Box
+          sx={{
+            bgcolor: frameBg,
+            py: 1.25,
+            px: 2,
+            borderBottom: `2px solid ${gold}`,
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
           <Box sx={{ flex: 1 }}>
             <Typography sx={{ fontSize: '0.72rem', color: alpha('#fff', 0.55) }}>
               CREDITS{' '}
@@ -115,15 +127,24 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <CasinoIcon sx={{ color: gold, fontSize: 20 }} />
-            <Typography sx={{
-              fontWeight: 900, color: gold, fontSize: '1rem', letterSpacing: 2,
-              animation: `${glow} 2s ease-in-out infinite`,
-            }}>
+            <Typography
+              sx={{
+                fontWeight: 900,
+                color: gold,
+                fontSize: '1rem',
+                letterSpacing: 2,
+                animation: `${glow} 2s ease-in-out infinite`,
+              }}
+            >
               CASINO
             </Typography>
           </Box>
           <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
-            <IconButton size="small" onClick={onClose} sx={{ color: alpha('#fff', 0.4), '&:hover': { color: '#fff' } }}>
+            <IconButton
+              size="small"
+              onClick={onClose}
+              sx={{ color: alpha('#fff', 0.4), '&:hover': { color: '#fff' } }}
+            >
               <CloseIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Box>
@@ -132,45 +153,111 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
         {/* Game tiles */}
         <Box sx={{ p: 2, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.25 }}>
           {/* Slots */}
-          <Box onClick={() => setActiveGame('slots')} sx={{
-            py: 2, borderRadius: `${radii.lg}px`,
-            background: 'linear-gradient(135deg, #c62828, #ef6c00)',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
-            cursor: 'pointer', border: `2px solid ${alpha(gold, 0.2)}`,
-            transition: 'all 0.15s',
-            '&:hover': { transform: 'translateY(-2px)', boxShadow: `0 6px 20px ${alpha('#000', 0.4)}` },
-          }}>
+          <Box
+            onClick={() => setActiveGame('slots')}
+            sx={{
+              py: 2,
+              borderRadius: `${radii.lg}px`,
+              background: 'linear-gradient(135deg, #c62828, #ef6c00)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 0.75,
+              cursor: 'pointer',
+              border: `2px solid ${alpha(gold, 0.2)}`,
+              transition: 'all 0.15s',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: `0 6px 20px ${alpha('#000', 0.4)}`,
+              },
+            }}
+          >
             <CasinoIcon sx={{ fontSize: 30, color: '#ffd54f' }} />
-            <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: '0.75rem' }}>Slots</Typography>
-            <Typography sx={{ fontSize: '0.5rem', color: alpha('#fff', 0.65), letterSpacing: 1, fontWeight: 700 }}>BET & SPIN</Typography>
+            <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: '0.75rem' }}>
+              Slots
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: '0.5rem',
+                color: alpha('#fff', 0.65),
+                letterSpacing: 1,
+                fontWeight: 700,
+              }}
+            >
+              BET & SPIN
+            </Typography>
           </Box>
 
           {/* Blackjack */}
-          <Box onClick={() => setActiveGame('blackjack')} sx={{
-            py: 2, borderRadius: `${radii.lg}px`,
-            background: 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
-            cursor: 'pointer', border: `2px solid ${alpha(gold, 0.2)}`,
-            transition: 'all 0.15s',
-            '&:hover': { transform: 'translateY(-2px)', boxShadow: `0 6px 20px ${alpha('#000', 0.4)}` },
-          }}>
+          <Box
+            onClick={() => setActiveGame('blackjack')}
+            sx={{
+              py: 2,
+              borderRadius: `${radii.lg}px`,
+              background: 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 0.75,
+              cursor: 'pointer',
+              border: `2px solid ${alpha(gold, 0.2)}`,
+              transition: 'all 0.15s',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: `0 6px 20px ${alpha('#000', 0.4)}`,
+              },
+            }}
+          >
             <StyleIcon sx={{ fontSize: 30, color: gold }} />
-            <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: '0.75rem' }}>Blackjack</Typography>
-            <Typography sx={{ fontSize: '0.5rem', color: alpha('#fff', 0.65), letterSpacing: 1, fontWeight: 700 }}>HIT · STAND</Typography>
+            <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: '0.75rem' }}>
+              Blackjack
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: '0.5rem',
+                color: alpha('#fff', 0.65),
+                letterSpacing: 1,
+                fontWeight: 700,
+              }}
+            >
+              HIT · STAND
+            </Typography>
           </Box>
 
           {/* Roulette */}
-          <Box onClick={() => setActiveGame('roulette')} sx={{
-            py: 2, borderRadius: `${radii.lg}px`,
-            background: 'linear-gradient(135deg, #1b5e20, #2e7d32, #4caf50)',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
-            cursor: 'pointer', border: `2px solid ${alpha(gold, 0.2)}`,
-            transition: 'all 0.15s',
-            '&:hover': { transform: 'translateY(-2px)', boxShadow: `0 6px 20px ${alpha('#000', 0.4)}` },
-          }}>
+          <Box
+            onClick={() => setActiveGame('roulette')}
+            sx={{
+              py: 2,
+              borderRadius: `${radii.lg}px`,
+              background: 'linear-gradient(135deg, #1b5e20, #2e7d32, #4caf50)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 0.75,
+              cursor: 'pointer',
+              border: `2px solid ${alpha(gold, 0.2)}`,
+              transition: 'all 0.15s',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: `0 6px 20px ${alpha('#000', 0.4)}`,
+              },
+            }}
+          >
             <FiberSmartRecordIcon sx={{ fontSize: 30, color: gold }} />
-            <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: '0.75rem' }}>Roulette</Typography>
-            <Typography sx={{ fontSize: '0.5rem', color: alpha('#fff', 0.65), letterSpacing: 1, fontWeight: 700 }}>RED · BLACK</Typography>
+            <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: '0.75rem' }}>
+              Roulette
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: '0.5rem',
+                color: alpha('#fff', 0.65),
+                letterSpacing: 1,
+                fontWeight: 700,
+              }}
+            >
+              RED · BLACK
+            </Typography>
           </Box>
         </Box>
 
@@ -183,16 +270,22 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
       </Card>
 
       {/* Leaderboard */}
-      <Card sx={{
-        mt: 2, overflow: 'hidden',
-        border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
-        borderRadius: 3,
-      }}>
-        <Box sx={{
-          px: 2, py: 1,
-          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
-          background: `linear-gradient(135deg, ${alpha(gold, 0.08)}, transparent)`,
-        }}>
+      <Card
+        sx={{
+          mt: 2,
+          overflow: 'hidden',
+          border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
+          borderRadius: 3,
+        }}
+      >
+        <Box
+          sx={{
+            px: 2,
+            py: 1,
+            borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+            background: `linear-gradient(135deg, ${alpha(gold, 0.08)}, transparent)`,
+          }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
             <CasinoIcon sx={{ fontSize: 18, color: gold }} />
             <Typography sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
@@ -206,11 +299,14 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
       </Card>
 
       {/* Comments */}
-      <Card sx={{
-        mt: 2, overflow: 'hidden',
-        border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
-        borderRadius: 3,
-      }}>
+      <Card
+        sx={{
+          mt: 2,
+          overflow: 'hidden',
+          border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
+          borderRadius: 3,
+        }}
+      >
         <Box sx={{ p: 1.5 }}>
           <CommentsThread
             contentId="casino"

@@ -1,9 +1,7 @@
-import { http, HttpResponse, delay } from 'msw';
-
-import DailyFactCard from './DailyFactCard';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { delay, HttpResponse, http } from 'msw';
+import { StoryProviders } from '../../test/storyContexts';
+import DailyFactCard from './DailyFactCard';
 
 const API = '/api';
 
@@ -12,7 +10,13 @@ const meta: Meta<typeof DailyFactCard> = {
   component: DailyFactCard,
   parameters: { layout: 'padded' },
   args: { userId: 'alice' },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof DailyFactCard>;
@@ -45,7 +49,14 @@ const emptyHistory = {
 
 const historyWithMissed = {
   history: [
-    { date: '2026-04-09', questionType: 'shared', answered: true, skipped: false, question: "What's your favorite meal?", answer: 'Pizza' },
+    {
+      date: '2026-04-09',
+      questionType: 'shared',
+      answered: true,
+      skipped: false,
+      question: "What's your favorite meal?",
+      answer: 'Pizza',
+    },
   ],
   basicQuestions: [],
   allSharedQuestions: [
@@ -141,7 +152,9 @@ export const FirstPerson: Story = {
           await delay(1200);
           return HttpResponse.json(questionOptions);
         }),
-        http.post(`${API}/daily-fact`, () => HttpResponse.json({ question: questionOptions.options[0].question, answered: false })),
+        http.post(`${API}/daily-fact`, () =>
+          HttpResponse.json({ question: questionOptions.options[0].question, answered: false }),
+        ),
         http.post(`${API}/submit-daily-fact`, async () => {
           await delay(800);
           return HttpResponse.json(factResponse);

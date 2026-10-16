@@ -1,108 +1,42 @@
-# CDK build output
-cdk.out/
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
 dist/
 build/
+cdk.out/
 .cdk.staging/
+storybook-static/
+coverage/
+*.tsbuildinfo
+*storybook.log
 
-# TypeScript compiled files
-*.js
-*.d.ts
-!jest.config.js
-!frontend/eslint.config.js
-!frontend/vite.config.ts
-!frontend/vitest.config.ts
-!cdk/lambda/build.js
-!cdk/lambda/jest.config.js
-!frontend/src/vite-env.d.ts
-*.js.map
-
-# Lambda packaged files
-lambda/node_modules/
-lambda/*.zip
-
-# Frontend build output
-frontend/build/
-frontend/dist/
-frontend/config.json
+# Local config and secrets (copy the *.example.* files)
+infra/cdk.config.json
 frontend/public/config.json
-frontend/public/config.json.bak
 frontend/public/config.local.json
+frontend/config.json
+backend/.env.local
+.env
+.env.*
+!.env.example
 
-# Node dependencies
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-package-lock.json
-yarn.lock
+# The leak guard's private list of names (see docs/decisions/0006-privacy-by-default.md)
+.leakguard
 
-# IDE and editor files
+# Editors and OS
 .idea/
 .vscode/
 *.swp
-*.swo
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
-# Testing
-coverage/
-.jest/
-/test-reports/
-
-# Logs
-logs
+# Logs and temp
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Environment variables
-.env
-.env.local
-.env.development
-.env.test
-.env.production
-
-# AWS SAM
-.aws-sam/
-
-# Temporary files
 tmp/
-temp/
-*.tmp
-
-# CDK asset staging directory
-.cdk.staging
-cdk.out
-
-# Parcel default cache directory
-.parcel-cache
-
-# Next.js build output
-.next
-out
-
-# Debug files
-.pnpm-debug.log*
-
-# Local development
-.localstack/
-.dynamodb/
-**/.claude/settings.local.json
-sam/env.json
-cdk/lambda/dist/
-shared/dist/
-shared/generated/api-types.ts
+.local/
 
 # Claude Code session data (not the project instructions)
 .claude/worktrees/
 .claude/plans/
 .claude/settings.local.json
-*storybook.log
-storybook-static
-# Local-only working directory (scripts, s3 backups, SAM config, etc.)
-.local/
-cdk/cdk.config.json

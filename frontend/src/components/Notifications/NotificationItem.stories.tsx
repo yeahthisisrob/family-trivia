@@ -1,10 +1,7 @@
-import { Box } from '@mui/material';
-import React from 'react';
-
-import NotificationItem from './NotificationItem';
-
 import type { NotificationItem as NotificationItemType } from '@family-trivia/shared';
+import { Box } from '@mui/material';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import NotificationItem from './NotificationItem';
 
 const meta: Meta<typeof NotificationItem> = {
   title: 'Notifications/NotificationItem',

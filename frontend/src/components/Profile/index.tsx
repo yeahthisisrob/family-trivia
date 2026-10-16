@@ -4,14 +4,10 @@ import GroupIcon from '@mui/icons-material/Group';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import { Typography, Box, Paper, Avatar, useTheme, Fade } from '@mui/material';
-import React, { useState, useEffect } from 'react';
-
-import CustomCategorySection from './CustomCategorySection';
-import IntegratedGroupDescription from './IntegratedGroupDescription';
-import ScoreHistory from './ScoreHistory';
-import UserTimeline from './UserTimeline';
+import { Avatar, Box, Fade, Paper, Typography, useTheme } from '@mui/material';
+import React, { useEffect, useState } from 'react';
 import * as api from '../../api';
+import type { UserProfile } from '../../api/modules/user';
 import { useTimeline } from '../../contexts/TimelineContext';
 import { useTrivia } from '../../contexts/TriviaContext';
 import { loadSession } from '../../session';
@@ -21,8 +17,10 @@ import CustomCategoryForm from '../CustomCategoryForm';
 import { computePoints } from '../Leaderboard/utils';
 import PersonalQuestionsHistory from '../PersonalQuestionsHistory';
 import { LoadingDots } from '../ui/feedback';
-
-import type { UserProfile } from '../../api/modules/user';
+import CustomCategorySection from './CustomCategorySection';
+import IntegratedGroupDescription from './IntegratedGroupDescription';
+import ScoreHistory from './ScoreHistory';
+import UserTimeline from './UserTimeline';
 
 interface ProfileProps {
   userId: string;
@@ -77,7 +75,6 @@ const Profile: React.FC<ProfileProps> = ({
   const dataLoadedRef = React.useRef(false);
   const lastUserIdRef = React.useRef(userId);
 
-   
   useEffect(() => {
     const loadProfile = async () => {
       // If the user ID has changed, always reload the data
@@ -88,7 +85,7 @@ const Profile: React.FC<ProfileProps> = ({
       }
 
       // Use the timeline data for history when available
-      if (timelineData && timelineData.trivia) {
+      if (timelineData?.trivia) {
         // Filter timeline data for this user
         const userTriviaHistory = timelineData.trivia.filter((item) => item.userId === userId);
 
@@ -153,7 +150,6 @@ const Profile: React.FC<ProfileProps> = ({
     // We intentionally exclude history.length and facts.length to avoid circular dependency
     // This fixes the issue when navigating between different user profiles
   }, [userId, refreshTimestamp, timelineData, timelineLoading]);
-   
 
   // Update loading state when timeline loading changes
   useEffect(() => {
@@ -410,32 +406,33 @@ const Profile: React.FC<ProfileProps> = ({
               </Box>
 
               {/* Category Bonus */}
-              {profileData?.categoryBonusStats && profileData.categoryBonusStats.timesBonusEarned > 0 && (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    minWidth: { xs: '30%', sm: 'auto' },
-                  }}
-                >
-                  <Typography
-                    variant="h5"
+              {profileData?.categoryBonusStats &&
+                profileData.categoryBonusStats.timesBonusEarned > 0 && (
+                  <Box
                     sx={{
-                      fontWeight: 'bold',
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
-                      color: '#ff9800',
+                      minWidth: { xs: '30%', sm: 'auto' },
                     }}
                   >
-                    <LocalFireDepartmentIcon sx={{ mr: 0.3, fontSize: '0.8em' }} />
-                    {profileData.categoryBonusStats.totalBonusPoints}
-                  </Typography>
-                  <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                    BONUS PTS
-                  </Typography>
-                </Box>
-              )}
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: '#ff9800',
+                      }}
+                    >
+                      <LocalFireDepartmentIcon sx={{ mr: 0.3, fontSize: '0.8em' }} />
+                      {profileData.categoryBonusStats.totalBonusPoints}
+                    </Typography>
+                    <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                      BONUS PTS
+                    </Typography>
+                  </Box>
+                )}
             </Box>
           </Box>
 

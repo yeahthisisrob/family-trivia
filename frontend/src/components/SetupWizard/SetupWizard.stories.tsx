@@ -1,8 +1,6 @@
-import { fn } from 'storybook/test';
-
-import SetupWizard from './SetupWizard';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import SetupWizard from './SetupWizard';
 
 const meta: Meta<typeof SetupWizard> = {
   title: 'SetupWizard/SetupWizard',

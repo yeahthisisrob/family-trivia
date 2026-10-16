@@ -1,10 +1,7 @@
-import React from 'react';
-import { expect, within } from 'storybook/test';
-
-import HistoryCard from './HistoryCard';
-import { StubTimelineProvider } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, within } from 'storybook/test';
+import { StubTimelineProvider } from '../../test/storyContexts';
+import HistoryCard from './HistoryCard';
 
 const meta: Meta<typeof HistoryCard> = {
   title: 'Trivia/Cards/HistoryCard',
@@ -26,7 +23,9 @@ const meta: Meta<typeof HistoryCard> = {
   decorators: [
     (Story) => (
       <StubTimelineProvider>
-        <div style={{ maxWidth: 400 }}><Story /></div>
+        <div style={{ maxWidth: 400 }}>
+          <Story />
+        </div>
       </StubTimelineProvider>
     ),
   ],
@@ -95,7 +94,8 @@ export const WithHighPoints: Story = {
 export const LongQuestionText: Story = {
   args: {
     ...baseArgs,
-    question: 'Which of these countries was NOT one of the 13 original member states that signed the North Atlantic Treaty at the founding of NATO on April 4, 1949 in Washington, D.C.?',
+    question:
+      'Which of these countries was NOT one of the 13 original member states that signed the North Atlantic Treaty at the founding of NATO on April 4, 1949 in Washington, D.C.?',
     choices: ['Canada', 'Norway', 'Spain', 'Portugal'],
     answer: 'Spain',
     selectedAnswer: 'Spain',

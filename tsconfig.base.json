@@ -1,0 +1,17 @@
+{
+  // Strictness every package inherits. A package's own tsconfig sets only what
+  // is specific to it: module/target for its runtime, jsx, paths, include.
+  // Flags still to turn on are listed in docs/decisions/0002-toolchain.md.
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  }
+}

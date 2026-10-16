@@ -7,23 +7,19 @@ import { getSecondsElapsedTodayET } from '@family-trivia/shared';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import {
-  Box, Card, Chip, IconButton, Typography,
-  alpha, keyframes, useTheme,
-} from '@mui/material';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-
-import HistoryCard from './HistoryCard';
-import TriviaFlow from './TriviaFlow';
-import { getUserProfile, QuestionHistory } from '../../api/modules/user';
+import { alpha, Box, Card, Chip, IconButton, keyframes, Typography, useTheme } from '@mui/material';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { Question } from '../../api/modules/trivia';
+import { getUserProfile, type QuestionHistory } from '../../api/modules/user';
 import { useTimeline } from '../../contexts/TimelineContext';
 import { useTriviaFlow } from '../../contexts/TriviaFlowContext';
 import { useUserStatus } from '../../contexts/UserStatusContext';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { shadows } from '../../shared/design-system/tokens/shadows';
-
-import type { Question } from '../../api/modules/trivia';
+import HistoryCard from './HistoryCard';
+import TriviaFlow from './TriviaFlow';
 
 const fadeHint = keyframes`
   0%, 100% { opacity: 0.4; }
@@ -33,14 +29,23 @@ const fadeHint = keyframes`
 interface TriviaCarouselProps {
   userId: string;
   groupId: string;
-  onAnswerResult?: (result: { correct: boolean; streak: number; pointsEarned?: number }, question?: Question, selected?: string | null) => void;
+  onAnswerResult?: (
+    result: { correct: boolean; streak: number; pointsEarned?: number },
+    question?: Question,
+    selected?: string | null,
+  ) => void;
   forceDisabled?: boolean;
 }
 
 // No limit — all history is swipeable. Cards are lightweight (no API calls).
 // Oldest on the far left, newest closest to the active card.
 
-const TriviaCarousel: React.FC<TriviaCarouselProps> = ({ userId, groupId, onAnswerResult, forceDisabled }) => {
+const TriviaCarousel: React.FC<TriviaCarouselProps> = ({
+  userId,
+  groupId,
+  onAnswerResult,
+  forceDisabled,
+}) => {
   const theme = useTheme();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { hasAnsweredToday, canAnswerQuestion: ctxCanAnswer } = useUserStatus();
@@ -81,7 +86,9 @@ const TriviaCarousel: React.FC<TriviaCarouselProps> = ({ userId, groupId, onAnsw
       }
     };
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [userId, forceDisabled]);
 
   // Total cards: history + active + (preview if done)
@@ -140,7 +147,7 @@ const TriviaCarousel: React.FC<TriviaCarouselProps> = ({ userId, groupId, onAnsw
   // Fire-and-forget — results go into the TimelineContext Map.
   const { fetchTriviaCommentsForId } = useTimeline();
   useEffect(() => {
-    [activeIndex, activeIndex + 1].forEach(idx => {
+    [activeIndex, activeIndex + 1].forEach((idx) => {
       if (idx >= 0 && idx < history.length) {
         const h = history[idx];
         fetchTriviaCommentsForId(`${userId}_${h.timestamp}`);
@@ -209,7 +216,9 @@ const TriviaCarousel: React.FC<TriviaCarouselProps> = ({ userId, groupId, onAnsw
 
       {/* Dot indicators — hidden during active flow */}
       {!flowActive && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 0.5, mb: 1 }}>
+        <Box
+          sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 0.5, mb: 1 }}
+        >
           {Array.from({ length: totalCards }).map((_, i) => {
             const isCurrent = i === activeIndex;
             const isActiveDot = i === activeCardIndex;
@@ -253,31 +262,32 @@ const TriviaCarousel: React.FC<TriviaCarouselProps> = ({ userId, groupId, onAnsw
         }}
       >
         {/* History cards (left side) — hidden during active flow */}
-        {!flowActive && history.map((h, i) => (
-          <Box
-            key={`history-${h.timestamp}-${i}`}
-            sx={{
-              scrollSnapAlign: 'center',
-              minWidth: '100%',
-              maxWidth: '100%',
-              flexShrink: 0,
-              px: 1,
-              boxSizing: 'border-box',
-            }}
-          >
-            <HistoryCard
-              userId={userId}
-              question={h.question?.question || ''}
-              choices={h.question?.choices || []}
-              answer={h.question?.answer || ''}
-              selectedAnswer={h.selectedAnswer || ''}
-              correct={h.correct}
-              category={h.question?.category}
-              pointsEarned={h.pointsEarned}
-              timestamp={h.timestamp}
-            />
-          </Box>
-        ))}
+        {!flowActive &&
+          history.map((h, i) => (
+            <Box
+              key={`history-${h.timestamp}-${i}`}
+              sx={{
+                scrollSnapAlign: 'center',
+                minWidth: '100%',
+                maxWidth: '100%',
+                flexShrink: 0,
+                px: 1,
+                boxSizing: 'border-box',
+              }}
+            >
+              <HistoryCard
+                userId={userId}
+                question={h.question?.question || ''}
+                choices={h.question?.choices || []}
+                answer={h.question?.answer || ''}
+                selectedAnswer={h.selectedAnswer || ''}
+                correct={h.correct}
+                category={h.question?.category}
+                pointsEarned={h.pointsEarned}
+                timestamp={h.timestamp}
+              />
+            </Box>
+          ))}
 
         {/* Active card — TriviaFlow always mounted, never remounted */}
         <Box
@@ -310,20 +320,31 @@ const TriviaCarousel: React.FC<TriviaCarouselProps> = ({ userId, groupId, onAnsw
               boxSizing: 'border-box',
             }}
           >
-            <Card sx={{
-              overflow: 'hidden', borderRadius: `${radii.xl}px`,
-              boxShadow: shadows.card,
-              border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-              position: 'relative',
-            }}>
-              <Box sx={{
-                px: 2, py: 1.25,
-                background: `linear-gradient(135deg, ${alpha(colors.brand.primary, 0.06)}, ${alpha(colors.brand.primaryDark, 0.03)})`,
-                borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1,
-              }}>
+            <Card
+              sx={{
+                overflow: 'hidden',
+                borderRadius: `${radii.xl}px`,
+                boxShadow: shadows.card,
+                border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                position: 'relative',
+              }}
+            >
+              <Box
+                sx={{
+                  px: 2,
+                  py: 1.25,
+                  background: `linear-gradient(135deg, ${alpha(colors.brand.primary, 0.06)}, ${alpha(colors.brand.primaryDark, 0.03)})`,
+                  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 1,
+                }}
+              >
                 <AccessTimeIcon sx={{ fontSize: 16, color: colors.text.secondary }} />
-                <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: colors.text.secondary }}>
+                <Typography
+                  sx={{ fontSize: '0.8rem', fontWeight: 600, color: colors.text.secondary }}
+                >
                   Next question in {countdown}
                 </Typography>
               </Box>
@@ -331,8 +352,11 @@ const TriviaCarousel: React.FC<TriviaCarouselProps> = ({ userId, groupId, onAnsw
                 <Typography sx={{ fontSize: '0.85rem', color: colors.text.secondary }}>
                   Come back tomorrow for your next trivia question
                 </Typography>
-                <Chip label="Categories will appear here" size="small"
-                  sx={{ mt: 2, fontSize: '0.7rem' }} />
+                <Chip
+                  label="Categories will appear here"
+                  size="small"
+                  sx={{ mt: 2, fontSize: '0.7rem' }}
+                />
               </Box>
             </Card>
           </Box>
@@ -341,12 +365,16 @@ const TriviaCarousel: React.FC<TriviaCarouselProps> = ({ userId, groupId, onAnsw
 
       {/* Swipe hint — only when idle/done with history */}
       {!flowActive && history.length > 0 && activeIndex === activeCardIndex && (
-        <Typography sx={{
-          textAlign: 'center', mt: 0.75,
-          fontSize: '0.65rem', color: colors.text.disabled,
-          animation: `${fadeHint} 3s ease-in-out`,
-          animationIterationCount: 2,
-        }}>
+        <Typography
+          sx={{
+            textAlign: 'center',
+            mt: 0.75,
+            fontSize: '0.65rem',
+            color: colors.text.disabled,
+            animation: `${fadeHint} 3s ease-in-out`,
+            animationIterationCount: 2,
+          }}
+        >
           ← Swipe to see past questions
         </Typography>
       )}

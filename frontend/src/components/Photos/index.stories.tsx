@@ -1,9 +1,7 @@
-import { http, HttpResponse } from 'msw';
-
-import PhotosPage from './index';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { HttpResponse, http } from 'msw';
+import { StoryProviders } from '../../test/storyContexts';
+import PhotosPage from './index';
 
 const API = '/api';
 
@@ -12,7 +10,13 @@ const meta: Meta<typeof PhotosPage> = {
   component: PhotosPage,
   parameters: { layout: 'padded' },
   args: { userId: 'alice' },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof PhotosPage>;
@@ -68,18 +72,19 @@ export const AsAdmin: Story = {
 export const Empty: Story = {
   parameters: {
     msw: {
-      handlers: [
-        http.get(`${API}/photo-albums`, () => HttpResponse.json({ albums: [] })),
-      ],
+      handlers: [http.get(`${API}/photo-albums`, () => HttpResponse.json({ albums: [] }))],
     },
   },
 };
 
-export const Error: Story = {
+export const ErrorState: Story = {
+  name: 'Error',
   parameters: {
     msw: {
       handlers: [
-        http.get(`${API}/photo-albums`, () => HttpResponse.json({ ok: false, error: 'boom' }, { status: 500 })),
+        http.get(`${API}/photo-albums`, () =>
+          HttpResponse.json({ ok: false, error: 'boom' }, { status: 500 }),
+        ),
       ],
     },
   },

@@ -2,7 +2,7 @@
 import AddIcon from '@mui/icons-material/Add';
 import StarsIcon from '@mui/icons-material/Stars';
 import { Box, Button } from '@mui/material';
-import React from 'react';
+import type React from 'react';
 
 import appStrings from '../../constants/strings';
 import { createLogger } from '../../utils/logger';

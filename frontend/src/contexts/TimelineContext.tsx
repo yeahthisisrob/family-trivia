@@ -1,26 +1,20 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-
-import { useFamilyData } from './FamilyDataContext';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import type { Comment, CommentContentType, CommentThread } from '../api/modules/social';
 import {
-  getCommentThread as fetchThread,
-  getCommentCounts as fetchCounts,
   addComment as apiAddComment,
+  getCommentCounts as fetchCounts,
+  getCommentThread as fetchThread,
 } from '../api/modules/social';
-import { TimelineData, getTimelineData } from '../api/modules/timeline';
-import { FamilySide } from '../utils/familyUtils';
+import { getTimelineData, type TimelineData } from '../api/modules/timeline';
+import type { FamilySide } from '../utils/familyUtils';
 import { createLogger } from '../utils/logger';
-
-import type {
-  Comment,
-  CommentThread,
-  CommentContentType,
-} from '../api/modules/social';
+import { useFamilyData } from './FamilyDataContext';
 
 // Initialize logger
 const logger = createLogger('TimelineContext');
 
 // Re-export unified types for consumers
-export type { Comment, CommentThread, CommentContentType };
+export type { Comment, CommentContentType, CommentThread };
 
 // Cache duration in milliseconds (5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000;
@@ -150,9 +144,13 @@ export const TimelineProvider: React.FC<TimelineProviderProps> = ({ children }) 
         // Only use in-memory cache if initial load is done, we have REAL data, and it's fresh
         const now = Date.now();
         const hasMeaningfulData =
-          hasDataRef.current &&
-          (timelineData.trivia.length > 0 || timelineData.facts.length > 0);
-        if (!forceRefresh && initialLoadDone && hasMeaningfulData && now - lastRefreshedRef.current < CACHE_DURATION) {
+          hasDataRef.current && (timelineData.trivia.length > 0 || timelineData.facts.length > 0);
+        if (
+          !forceRefresh &&
+          initialLoadDone &&
+          hasMeaningfulData &&
+          now - lastRefreshedRef.current < CACHE_DURATION
+        ) {
           logger.debug('Using cached timeline data');
           setLoading(false);
           return true;
@@ -172,7 +170,9 @@ export const TimelineProvider: React.FC<TimelineProviderProps> = ({ children }) 
         }
 
         // Update state with new data
-        logger.info(`Timeline data received: facts=${data.facts.length}, trivia=${data.trivia.length}, hasData=${data.trivia.length > 0 || data.facts.length > 0}`);
+        logger.info(
+          `Timeline data received: facts=${data.facts.length}, trivia=${data.trivia.length}, hasData=${data.trivia.length > 0 || data.facts.length > 0}`,
+        );
         setTimelineData(data);
         setLastRefreshed(now);
         setError(null);
@@ -244,7 +244,9 @@ export const TimelineProvider: React.FC<TimelineProviderProps> = ({ children }) 
         const factKeys = new Set(prevData.facts.map((f) => `${f.userId}_${f.timestamp}`));
         const triviaKeys = new Set(prevData.trivia.map((t) => `${t.userId}_${t.timestamp}`));
         const newFacts = moreData.facts.filter((f) => !factKeys.has(`${f.userId}_${f.timestamp}`));
-        const newTrivia = moreData.trivia.filter((t) => !triviaKeys.has(`${t.userId}_${t.timestamp}`));
+        const newTrivia = moreData.trivia.filter(
+          (t) => !triviaKeys.has(`${t.userId}_${t.timestamp}`),
+        );
         return {
           ...prevData,
           facts: [...prevData.facts, ...newFacts],
@@ -374,12 +376,8 @@ export const TimelineProvider: React.FC<TimelineProviderProps> = ({ children }) 
     setCommentsLoading(true);
     try {
       // Collect IDs from timeline data
-      const factIds = (timelineData.facts || []).map(
-        (f) => `${f.userId}_${f.timestamp}`,
-      );
-      const triviaIds = (timelineData.trivia || []).map(
-        (t) => `${t.userId}_${t.timestamp}`,
-      );
+      const factIds = (timelineData.facts || []).map((f) => `${f.userId}_${f.timestamp}`);
+      const triviaIds = (timelineData.trivia || []).map((t) => `${t.userId}_${t.timestamp}`);
 
       // Fetch counts in parallel
       const emptyResult = { counts: {}, commenters: {} };
@@ -455,7 +453,7 @@ export const TimelineProvider: React.FC<TimelineProviderProps> = ({ children }) 
 
       // Return cached if fresh
       const cached = commentThreads.get(key);
-      if (cached && cached._fetchedAt && Date.now() - cached._fetchedAt < 60_000) {
+      if (cached?._fetchedAt && Date.now() - cached._fetchedAt < 60_000) {
         return cached;
       }
 
@@ -480,7 +478,12 @@ export const TimelineProvider: React.FC<TimelineProviderProps> = ({ children }) 
         .catch((err) => {
           inFlightFetches.current.delete(key);
           logger.error(`Failed to fetch comments for ${key}:`, err);
-          return { contentType, contentId, comments: [], lastUpdated: new Date().toISOString() } as CommentThread;
+          return {
+            contentType,
+            contentId,
+            comments: [],
+            lastUpdated: new Date().toISOString(),
+          } as CommentThread;
         });
 
       inFlightFetches.current.set(key, promise);
@@ -591,10 +594,7 @@ export const TimelineProvider: React.FC<TimelineProviderProps> = ({ children }) 
     (triviaId: string) => fetchComments('trivia', triviaId),
     [fetchComments],
   );
-  const refreshComments = useCallback(
-    () => refreshCommentCounts(),
-    [refreshCommentCounts],
-  );
+  const refreshComments = useCallback(() => refreshCommentCounts(), [refreshCommentCounts]);
 
   // Context value
   const contextValue: TimelineContextType = {

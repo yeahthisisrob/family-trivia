@@ -1,28 +1,28 @@
 // File: frontend/src/components/Profile/ScoreHistory.tsx
 import {
-  Close as CloseIcon,
-  CheckCircle as CheckIcon,
   Cancel as CancelIcon,
   Casino as CasinoIcon,
+  CheckCircle as CheckIcon,
+  Close as CloseIcon,
   QuestionAnswer as QuizIcon,
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  IconButton,
-  Chip,
+  alpha,
   Box,
-  Typography,
+  Chip,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  IconButton,
+  Paper,
   ToggleButton,
   ToggleButtonGroup,
-  Paper,
-  Divider,
+  Typography,
   useTheme,
-  alpha,
 } from '@mui/material';
-import React, { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 interface ScoreHistoryEntry {
   date: string;

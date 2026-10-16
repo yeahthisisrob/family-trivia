@@ -1,15 +1,12 @@
 import StarIcon from '@mui/icons-material/Star';
-import { Box, Typography, Stack, Divider, Avatar, Button, IconButton, Chip } from '@mui/material';
-import React from 'react';
-
-
+import { Avatar, Box, Button, Chip, Divider, IconButton, Stack, Typography } from '@mui/material';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import type React from 'react';
 import { colors } from '../tokens/colors';
 import { radii } from '../tokens/radii';
 import { shadows } from '../tokens/shadows';
 import { spacing } from '../tokens/spacing';
 import { typography } from '../tokens/typography';
-
-import type { Meta, StoryObj } from '@storybook/react-vite';
 
 const meta: Meta = {
   title: 'Design System/Theme',
@@ -45,7 +42,12 @@ const Swatch = ({ color, label }: { color: string; label: string }) => (
     <Typography variant="caption" sx={{ fontSize: '0.625rem', wordBreak: 'break-all' }}>
       {label}
     </Typography>
-    <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.6rem' }}>
+    <Typography
+      variant="caption"
+      display="block"
+      color="text.secondary"
+      sx={{ fontSize: '0.6rem' }}
+    >
       {color}
     </Typography>
   </Box>
@@ -145,7 +147,17 @@ export const Colors: Story = {
 
 export const TypographyScale: Story = {
   render: () => {
-    const variants = ['h1', 'h2', 'h3', 'subtitle1', 'subtitle2', 'body1', 'body2', 'caption', 'chip'] as const;
+    const variants = [
+      'h1',
+      'h2',
+      'h3',
+      'subtitle1',
+      'subtitle2',
+      'body1',
+      'body2',
+      'caption',
+      'chip',
+    ] as const;
 
     return (
       <Box sx={{ p: 2 }}>
@@ -162,7 +174,11 @@ export const TypographyScale: Story = {
             return (
               <Box key={name} sx={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
                 <Box sx={{ minWidth: 80 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ fontFamily: 'monospace' }}
+                  >
                     {name}
                   </Typography>
                 </Box>
@@ -244,8 +260,20 @@ export const SpacingAndTouchTargets: Story = {
             gap: 1,
           }}
         >
-          <Box sx={{ width: 48, height: 48, border: '2px solid red', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography variant="caption" color="error">48px</Typography>
+          <Box
+            sx={{
+              width: 48,
+              height: 48,
+              border: '2px solid red',
+              borderRadius: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Typography variant="caption" color="error">
+              48px
+            </Typography>
           </Box>
           <Typography variant="caption" color="text.secondary">
             Minimum touch target

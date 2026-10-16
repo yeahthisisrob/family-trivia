@@ -1,4 +1,4 @@
-import { HistoryEntry } from './history';
+import type { HistoryEntry } from './history';
 
 /** A single fact item from a user's profile */
 export interface FactItem {

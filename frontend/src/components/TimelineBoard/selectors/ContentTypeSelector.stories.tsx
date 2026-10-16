@@ -1,13 +1,19 @@
-import React, { useState } from 'react';
-import { fn } from 'storybook/test';
-
-import ContentTypeSelector, { ContentType } from './ContentTypeSelector';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useState } from 'react';
+import { fn } from 'storybook/test';
+import ContentTypeSelector, { type ContentType } from './ContentTypeSelector';
 
 const Stateful = (props: { initial: ContentType; onChange: (v: ContentType) => void }) => {
   const [value, setValue] = useState<ContentType>(props.initial);
-  return <ContentTypeSelector value={value} onChange={(v) => { setValue(v); props.onChange(v); }} />;
+  return (
+    <ContentTypeSelector
+      value={value}
+      onChange={(v) => {
+        setValue(v);
+        props.onChange(v);
+      }}
+    />
+  );
 };
 
 const meta: Meta<typeof Stateful> = {

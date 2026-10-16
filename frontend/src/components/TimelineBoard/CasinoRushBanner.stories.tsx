@@ -1,6 +1,5 @@
-import CasinoRushBanner from './CasinoRushBanner';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import CasinoRushBanner from './CasinoRushBanner';
 
 const meta: Meta<typeof CasinoRushBanner> = {
   title: 'TimelineBoard/CasinoRushBanner',

@@ -12,14 +12,10 @@
  * so they're big, clear, and labeled for older users.
  */
 
-import {
-  Autocomplete,
-  TextField,
-  Box,
-  Typography,
-} from '@mui/material';
+import { Autocomplete, Box, TextField, Typography } from '@mui/material';
 import Fuse from 'fuse.js';
-import React, { useState, useEffect, useMemo } from 'react';
+import type React from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { getFactStarters } from '../../api/modules/facts';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
@@ -66,15 +62,19 @@ const FactAnswerInput: React.FC<FactAnswerInputProps> = ({
   useEffect(() => {
     let cancelled = false;
     getFactStarters()
-      .then(s => { if (!cancelled && s.length > 0) setStarters(s); })
-      .catch(err => logger.error('Failed to load fact starters', err));
-    return () => { cancelled = true; };
+      .then((s) => {
+        if (!cancelled && s.length > 0) setStarters(s);
+      })
+      .catch((err) => logger.error('Failed to load fact starters', err));
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const fuse = useMemo(() => {
     const items: Suggestion[] = [
-      ...starters.map(text => ({ text, source: 'starter' as const })),
-      ...members.map(m => ({ text: m.name, source: 'name' as const })).filter(s => s.text),
+      ...starters.map((text) => ({ text, source: 'starter' as const })),
+      ...members.map((m) => ({ text: m.name, source: 'name' as const })).filter((s) => s.text),
     ];
     return new Fuse(items, {
       keys: ['text'],
@@ -87,9 +87,9 @@ const FactAnswerInput: React.FC<FactAnswerInputProps> = ({
 
   const suggestions = useMemo((): Suggestion[] => {
     if (!value.trim()) {
-      return starters.slice(0, 5).map(text => ({ text, source: 'starter' }));
+      return starters.slice(0, 5).map((text) => ({ text, source: 'starter' }));
     }
-    return fuse.search(value, { limit: 6 }).map(r => r.item);
+    return fuse.search(value, { limit: 6 }).map((r) => r.item);
   }, [value, fuse, starters]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -103,7 +103,7 @@ const FactAnswerInput: React.FC<FactAnswerInputProps> = ({
     <Autocomplete<string, false, true, true>
       freeSolo
       disableClearable
-      options={suggestions.map(s => s.text)}
+      options={suggestions.map((s) => s.text)}
       inputValue={value}
       onInputChange={(_e, newValue, reason) => {
         if (reason !== 'reset') onChange(newValue);
@@ -113,21 +113,28 @@ const FactAnswerInput: React.FC<FactAnswerInputProps> = ({
       }}
       filterOptions={(options) => options}
       renderOption={(props, option) => {
-        const s = suggestions.find(s => s.text === option);
+        const s = suggestions.find((s) => s.text === option);
         return (
           <Box
             component="li"
             {...props}
             sx={{
-              py: 1.5, px: 2,
-              fontSize: '1rem', minHeight: 48,
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              py: 1.5,
+              px: 2,
+              fontSize: '1rem',
+              minHeight: 48,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
               '&:active': { bgcolor: 'action.selected' },
             }}
           >
             <span>{option}</span>
             {s?.source === 'name' && (
-              <Typography component="span" sx={{ fontSize: '0.65rem', color: 'text.disabled', ml: 1 }}>
+              <Typography
+                component="span"
+                sx={{ fontSize: '0.65rem', color: 'text.disabled', ml: 1 }}
+              >
                 family
               </Typography>
             )}

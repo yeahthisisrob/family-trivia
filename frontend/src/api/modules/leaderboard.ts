@@ -1,26 +1,25 @@
 // Module: leaderboard
 // All leaderboard functions (basic, enhanced, group, consolidated)
 
-import { getUserProfile, QuestionHistory } from './user';
+import type {
+  FactItem,
+  GroupLeaderboardEntry,
+  HistoryEntry,
+  LeaderboardEntry,
+  SeasonInfo,
+} from '@family-trivia/shared';
 import {
   computePoints,
-  type LeaderboardEntry as LeaderboardUtilEntry,
   type GroupScore as GroupLeaderboardUtilEntry,
+  type LeaderboardEntry as LeaderboardUtilEntry,
 } from '../../components/Leaderboard/utils';
 import { apiService } from '../../services/ApiService';
 import { cacheService } from '../../services/CacheService';
 import { getUserGroup } from '../../utils';
 import { createLogger } from '../../utils/logger';
+import { getUserProfile, type QuestionHistory } from './user';
 
-import type {
-  LeaderboardEntry,
-  GroupLeaderboardEntry,
-  HistoryEntry,
-  FactItem,
-  SeasonInfo,
-} from '@family-trivia/shared';
-
-export type { LeaderboardEntry, GroupLeaderboardEntry, SeasonInfo } from '@family-trivia/shared';
+export type { GroupLeaderboardEntry, LeaderboardEntry, SeasonInfo } from '@family-trivia/shared';
 
 // Initialize logger
 const logger = createLogger('LeaderboardAPI');
@@ -62,7 +61,7 @@ export async function getEnhancedLeaderboard(groupId: string): Promise<Leaderboa
     const allData = await getLeaderboard('all');
 
     // Use the appropriate group's data or all data
-    const basic = groupId !== 'all' && allData[groupId] ? allData[groupId] : allData['all'];
+    const basic = groupId !== 'all' && allData[groupId] ? allData[groupId] : allData.all;
 
     if (!basic) return [];
 
@@ -330,19 +329,19 @@ export async function getOptimizedLeaderboardData(season?: number): Promise<{
     // Use a single API call to avoid partial data issues
     const data = await getConsolidatedLeaderboard(season);
 
-    if (!data || !data.success) {
+    if (!data?.success) {
       logger.warn('Failed to get consolidated leaderboard or received unsuccessful response');
       return { players: [], groups: [], userGroups: {}, seasons: [] };
     }
 
     // Process and sort the data
     const players = Object.values(data.users)
-      .filter((user) => user && user.leaderboardEntry)
+      .filter((user) => user?.leaderboardEntry)
       .map((user) => user.leaderboardEntry)
       .sort((a, b) => b.score - a.score);
 
     const groups = Object.values(data.groups)
-      .filter((group) => group && group.groupId && group.memberCount > 0)
+      .filter((group) => group?.groupId && group.memberCount > 0)
       .sort((a, b) => b.totalScore - a.totalScore);
 
     return {

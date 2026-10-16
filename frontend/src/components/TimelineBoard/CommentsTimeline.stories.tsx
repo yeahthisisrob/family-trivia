@@ -1,9 +1,7 @@
-import { fn } from 'storybook/test';
-
-import CommentsTimeline from './CommentsTimeline';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import { StoryProviders } from '../../test/storyContexts';
+import CommentsTimeline from './CommentsTimeline';
 
 const meta: Meta<typeof CommentsTimeline> = {
   title: 'TimelineBoard/CommentsTimeline',
@@ -14,7 +12,13 @@ const meta: Meta<typeof CommentsTimeline> = {
     currentUserId: 'alice',
     onUserClick: fn(),
   },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof CommentsTimeline>;

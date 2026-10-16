@@ -74,15 +74,15 @@ export const GAME_MODES: GameModeConfig[] = [
 
 /** Lookup a config by id */
 export function getGameMode(id: GameModeId): GameModeConfig | undefined {
-  return GAME_MODES.find(m => m.id === id);
+  return GAME_MODES.find((m) => m.id === id);
 }
 
 /** True if a history entry came from any game mode */
 export function isGameModeEntry(h: HistoryEntry): boolean {
-  return GAME_MODES.some(m => !!(h as any)[m.historyFlag]);
+  return GAME_MODES.some((m) => !!(h as any)[m.historyFlag]);
 }
 
 /** Get the game mode config that matches this history entry, if any */
 export function gameModeOfEntry(h: HistoryEntry): GameModeConfig | undefined {
-  return GAME_MODES.find(m => !!(h as any)[m.historyFlag]);
+  return GAME_MODES.find((m) => !!(h as any)[m.historyFlag]);
 }

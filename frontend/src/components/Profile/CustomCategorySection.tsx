@@ -1,9 +1,9 @@
 // File: components/Profile/CustomCategorySection.tsx
 import StarsIcon from '@mui/icons-material/Stars';
-import { Typography, Box, Paper, Divider, useTheme, Chip } from '@mui/material';
-import React from 'react';
+import { Box, Chip, Divider, Paper, Typography, useTheme } from '@mui/material';
+import type React from 'react';
 
-import { CustomCategory } from '../../api';
+import type { CustomCategory } from '../../api';
 import appStrings from '../../constants/strings';
 import CreateCustomCategoryButton from '../common/CreateCustomCategoryButton';
 

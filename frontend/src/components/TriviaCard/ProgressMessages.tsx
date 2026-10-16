@@ -1,8 +1,9 @@
 // Progress messages display component
 import { Box, Fade, LinearProgress, Paper, Typography } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 
-import { ProgressMessage } from '../../api/modules/trivia';
+import type { ProgressMessage } from '../../api/modules/trivia';
 
 interface ProgressMessagesProps {
   messages: ProgressMessage[];
@@ -24,6 +25,7 @@ const ProgressMessages: React.FC<ProgressMessagesProps> = ({ messages, isGenerat
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [messages, visibleMessages.length]);
 
   if (!isGenerating && messages.length === 0) {

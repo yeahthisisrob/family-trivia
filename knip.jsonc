@@ -1,0 +1,33 @@
+// Dead code: unused files, exports, types and dependencies across the
+// workspace. Biome catches unused imports inside a file; knip catches what
+// no other file uses.
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    "backend": {
+      "entry": ["index.ts", "tests/**/*.test.ts"],
+      "project": ["**/*.ts"]
+    },
+    "frontend": {
+      "entry": ["src/**/*.stories.tsx", "src/**/*.test.{ts,tsx}", ".storybook/*.{ts,tsx}"],
+      "project": ["src/**/*.{ts,tsx,mdx}", ".storybook/**/*.{ts,tsx}"]
+    },
+    "infra": {
+      "entry": ["bin/app.ts"],
+      "project": ["**/*.ts"]
+    },
+    ".": {
+      "entry": ["scripts/*.mjs"]
+    },
+    "shared": {
+      "project": ["**/*.ts"]
+    }
+  },
+  // infra: cdk.json runs the app with tsx and NodejsFunction bundles with
+  // esbuild; root: the justfile runs concurrently. knip reads neither.
+  "ignoreDependencies": ["tsx", "esbuild", "concurrently"],
+  "ignoreBinaries": ["just"],
+  // DEBT (128 exports, types): exported but never imported. Most go away as
+  // routes and services move into slices; fix them as you touch a file.
+  "rules": { "exports": "warn", "types": "warn", "duplicates": "warn", "enumMembers": "warn" }
+}

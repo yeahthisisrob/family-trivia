@@ -1,13 +1,16 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-
+import type {
+  CommentContentType,
+  NotificationItem,
+  NotificationSummary,
+} from '@family-trivia/shared';
+import type React from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
-  getNotifications,
-  markThreadRead as apiMarkThreadRead,
   markAllRead as apiMarkAllRead,
+  markThreadRead as apiMarkThreadRead,
+  getNotifications,
 } from '../api/modules/notifications';
 import { createLogger } from '../utils/logger';
-
-import type { CommentContentType, NotificationItem, NotificationSummary } from '@family-trivia/shared';
 
 const logger = createLogger('NotificationContext');
 
@@ -69,41 +72,46 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ user
     };
   }, [userId, fetchNotifications]);
 
-  const markRead = useCallback(async (contentType: CommentContentType, contentId: string) => {
-    if (!userId) return;
-    // Optimistic update
-    setSummary(prev => {
-      const targetId = `comment-${contentType}-${contentId}`;
-      const updated = prev.items.map(item =>
-        item.id === targetId ? { ...item, read: true } : item,
-      );
-      return {
-        items: updated,
-        unreadCount: updated.filter(i => !i.read).length,
-      };
-    });
-    await apiMarkThreadRead(userId, contentType, contentId);
-  }, [userId]);
+  const markRead = useCallback(
+    async (contentType: CommentContentType, contentId: string) => {
+      if (!userId) return;
+      // Optimistic update
+      setSummary((prev) => {
+        const targetId = `comment-${contentType}-${contentId}`;
+        const updated = prev.items.map((item) =>
+          item.id === targetId ? { ...item, read: true } : item,
+        );
+        return {
+          items: updated,
+          unreadCount: updated.filter((i) => !i.read).length,
+        };
+      });
+      await apiMarkThreadRead(userId, contentType, contentId);
+    },
+    [userId],
+  );
 
   const markAllReadFn = useCallback(async () => {
     if (!userId) return;
     // Optimistic update
-    setSummary(prev => ({
-      items: prev.items.map(i => ({ ...i, read: true })),
+    setSummary((prev) => ({
+      items: prev.items.map((i) => ({ ...i, read: true })),
       unreadCount: 0,
     }));
     await apiMarkAllRead(userId);
   }, [userId]);
 
   return (
-    <NotificationContext.Provider value={{
-      unreadCount: summary.unreadCount,
-      notifications: summary.items,
-      loading,
-      refresh: fetchNotifications,
-      markRead,
-      markAllRead: markAllReadFn,
-    }}>
+    <NotificationContext.Provider
+      value={{
+        unreadCount: summary.unreadCount,
+        notifications: summary.items,
+        loading,
+        refresh: fetchNotifications,
+        markRead,
+        markAllRead: markAllReadFn,
+      }}
+    >
       {children}
     </NotificationContext.Provider>
   );

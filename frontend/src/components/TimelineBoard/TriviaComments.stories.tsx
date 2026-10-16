@@ -1,8 +1,7 @@
-import TriviaComments from './TriviaComments';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StoryProviders } from '../../test/storyContexts';
 import { getUserColor, getUserInitials } from '../../utils';
-
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import TriviaComments from './TriviaComments';
 
 const meta: Meta<typeof TriviaComments> = {
   title: 'TimelineBoard/TriviaComments',
@@ -14,7 +13,13 @@ const meta: Meta<typeof TriviaComments> = {
     getUserColor,
     getUserInitials,
   },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof TriviaComments>;

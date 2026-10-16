@@ -2,27 +2,27 @@
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import StarsIcon from '@mui/icons-material/Stars';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Typography,
-  Box,
-  Chip,
   Alert,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Typography,
 } from '@mui/material';
-import React, { useState, useEffect } from 'react';
-
-import FormFeedback from './FormFeedback';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import type { CustomCategory } from '../../api';
 import * as api from '../../api';
-import { CustomCategory } from '../../api';
 import appStrings from '../../constants/strings';
 import { useTrivia } from '../../contexts/TriviaContext';
 import { loadSession } from '../../session';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
+import FormFeedback from './FormFeedback';
 
 interface CustomCategoryFormProps {
   open: boolean;
@@ -177,11 +177,7 @@ const CustomCategoryForm: React.FC<CustomCategoryFormProps> = ({ open, onClose, 
               onClick={handleGenerate}
               fullWidth
             >
-              {loading ? (
-                <LoadingDots size={5} inline />
-              ) : (
-                appStrings.generateCategory
-              )}
+              {loading ? <LoadingDots size={5} inline /> : appStrings.generateCategory}
             </Button>
           </>
         ) : (
@@ -230,11 +226,7 @@ const CustomCategoryForm: React.FC<CustomCategoryFormProps> = ({ open, onClose, 
                 onClick={handleSubmit}
                 disabled={loading}
               >
-                {loading ? (
-                  <LoadingDots size={5} inline />
-                ) : (
-                  appStrings.useThisCategory
-                )}
+                {loading ? <LoadingDots size={5} inline /> : appStrings.useThisCategory}
               </Button>
             </Box>
           </Box>

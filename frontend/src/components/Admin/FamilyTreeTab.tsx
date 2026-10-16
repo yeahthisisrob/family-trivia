@@ -11,9 +11,10 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 
-import { SideConfig } from '../../api/modules/admin';
+import type { SideConfig } from '../../api/modules/admin';
 import { useAdmin } from '../../contexts/AdminContext';
 
 const FamilyTreeTab: React.FC = () => {

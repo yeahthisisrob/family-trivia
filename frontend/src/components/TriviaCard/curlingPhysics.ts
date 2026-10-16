@@ -112,12 +112,26 @@ export class CurlingSimulation {
     // Side walls only — top/bottom open for knockouts.
     const wallThickness = 20;
     const walls = [
-      Matter.Bodies.rectangle(-wallThickness / 2, SHEET_HEIGHT / 2, wallThickness, SHEET_HEIGHT + 400, {
-        isStatic: true, restitution: WALL_RESTITUTION,
-      }),
-      Matter.Bodies.rectangle(SHEET_WIDTH + wallThickness / 2, SHEET_HEIGHT / 2, wallThickness, SHEET_HEIGHT + 400, {
-        isStatic: true, restitution: WALL_RESTITUTION,
-      }),
+      Matter.Bodies.rectangle(
+        -wallThickness / 2,
+        SHEET_HEIGHT / 2,
+        wallThickness,
+        SHEET_HEIGHT + 400,
+        {
+          isStatic: true,
+          restitution: WALL_RESTITUTION,
+        },
+      ),
+      Matter.Bodies.rectangle(
+        SHEET_WIDTH + wallThickness / 2,
+        SHEET_HEIGHT / 2,
+        wallThickness,
+        SHEET_HEIGHT + 400,
+        {
+          isStatic: true,
+          restitution: WALL_RESTITUTION,
+        },
+      ),
     ];
     Matter.Composite.add(this.engine.world, walls);
 
@@ -184,8 +198,10 @@ export class CurlingSimulation {
 
     const speed = (s: StoneState) => Math.sqrt(s.vx * s.vx + s.vy * s.vy);
     const isOff = (s: StoneState) =>
-      s.y < -OFF_SHEET_MARGIN || s.y > SHEET_HEIGHT + OFF_SHEET_MARGIN ||
-      s.x < -OFF_SHEET_MARGIN || s.x > SHEET_WIDTH + OFF_SHEET_MARGIN;
+      s.y < -OFF_SHEET_MARGIN ||
+      s.y > SHEET_HEIGHT + OFF_SHEET_MARGIN ||
+      s.x < -OFF_SHEET_MARGIN ||
+      s.x > SHEET_WIDTH + OFF_SHEET_MARGIN;
 
     const isStopped = (s: StoneState) => speed(s) < STOP_THRESHOLD || isOff(s);
     const allStopped = isStopped(player) && opponents.every(isStopped);

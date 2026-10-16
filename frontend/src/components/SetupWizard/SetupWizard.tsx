@@ -15,6 +15,7 @@ import {
   IconButton,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   Step,
   StepContent,
@@ -28,11 +29,11 @@ import {
   TableRow,
   TextField,
   Typography,
-  Paper,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import React, { useState, useCallback } from 'react';
+import type React from 'react';
+import { useCallback, useState } from 'react';
 
 import * as adminApi from '../../api/modules/admin';
 import { importQuestions } from '../../api/modules/triviaBank';
@@ -70,18 +71,67 @@ interface MemberDraft {
 // ── Word lists for passphrase generation ────────────────────────
 
 const ADJECTIVES = [
-  'happy', 'brave', 'clever', 'gentle', 'swift', 'bright', 'calm',
-  'eager', 'fancy', 'golden', 'jolly', 'keen', 'lucky', 'merry',
-  'noble', 'proud', 'quiet', 'royal', 'sunny', 'vivid', 'warm',
-  'witty', 'bold', 'cozy', 'daring', 'fierce', 'grand', 'humble',
+  'happy',
+  'brave',
+  'clever',
+  'gentle',
+  'swift',
+  'bright',
+  'calm',
+  'eager',
+  'fancy',
+  'golden',
+  'jolly',
+  'keen',
+  'lucky',
+  'merry',
+  'noble',
+  'proud',
+  'quiet',
+  'royal',
+  'sunny',
+  'vivid',
+  'warm',
+  'witty',
+  'bold',
+  'cozy',
+  'daring',
+  'fierce',
+  'grand',
+  'humble',
 ];
 
 const NOUNS = [
-  'tiger', 'river', 'mountain', 'garden', 'falcon', 'ocean',
-  'forest', 'castle', 'meadow', 'sunset', 'dragon', 'crystal',
-  'thunder', 'phoenix', 'harbor', 'village', 'island', 'canyon',
-  'dolphin', 'panther', 'sparrow', 'willow', 'breeze', 'comet',
-  'glacier', 'pebble', 'lantern', 'orchid', 'raven', 'tulip',
+  'tiger',
+  'river',
+  'mountain',
+  'garden',
+  'falcon',
+  'ocean',
+  'forest',
+  'castle',
+  'meadow',
+  'sunset',
+  'dragon',
+  'crystal',
+  'thunder',
+  'phoenix',
+  'harbor',
+  'village',
+  'island',
+  'canyon',
+  'dolphin',
+  'panther',
+  'sparrow',
+  'willow',
+  'breeze',
+  'comet',
+  'glacier',
+  'pebble',
+  'lantern',
+  'orchid',
+  'raven',
+  'tulip',
 ];
 
 function generatePassphrase(): string {
@@ -138,13 +188,19 @@ interface FamilySidesStepProps {
 }
 
 const FamilySidesStep: React.FC<FamilySidesStepProps> = ({
-  sides, setSides,
-  rootPartner1, setRootPartner1,
-  rootPartner2, setRootPartner2,
-  onNext, onBack, saving, error,
+  sides,
+  setSides,
+  rootPartner1,
+  setRootPartner1,
+  rootPartner2,
+  setRootPartner2,
+  onNext,
+  onBack,
+  saving,
+  error,
 }) => {
   const updateSide = (index: 0 | 1, field: keyof FamilySide, value: string) => {
-    setSides(prev => {
+    setSides((prev) => {
       const next = [...prev] as [FamilySide, FamilySide];
       next[index] = { ...next[index], [field]: value };
       if (field === 'name') {
@@ -154,44 +210,58 @@ const FamilySidesStep: React.FC<FamilySidesStepProps> = ({
     });
   };
 
-  const canProceed = sides[0].name.trim() && sides[1].name.trim()
-    && rootPartner1.trim() && rootPartner2.trim();
+  const canProceed =
+    sides[0].name.trim() && sides[1].name.trim() && rootPartner1.trim() && rootPartner2.trim();
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ mb: 2 }}>Create your two family sides</Typography>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Create your two family sides
+      </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        These represent each partner&apos;s side of the family (e.g. &quot;Smith Side&quot; and &quot;Jones Side&quot;).
+        These represent each partner&apos;s side of the family (e.g. &quot;Smith Side&quot; and
+        &quot;Jones Side&quot;).
       </Typography>
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
-      <Typography variant="subtitle2" sx={{ mb: 1 }}>Root Couple</Typography>
+      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+        Root Couple
+      </Typography>
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
         <TextField
           label="Partner 1 Name"
           value={rootPartner1}
-          onChange={e => setRootPartner1(e.target.value)}
+          onChange={(e) => setRootPartner1(e.target.value)}
           size="small"
           sx={{ flex: 1, minWidth: 180 }}
         />
         <TextField
           label="Partner 2 Name"
           value={rootPartner2}
-          onChange={e => setRootPartner2(e.target.value)}
+          onChange={(e) => setRootPartner2(e.target.value)}
           size="small"
           sx={{ flex: 1, minWidth: 180 }}
         />
       </Box>
 
-      {[0, 1].map(i => (
-        <Box key={i} sx={{ mb: 3, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>Side {i + 1}</Typography>
+      {[0, 1].map((i) => (
+        <Box
+          key={i}
+          sx={{ mb: 3, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}
+        >
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Side {i + 1}
+          </Typography>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
             <TextField
               label="Side Name"
               value={sides[i as 0 | 1].name}
-              onChange={e => updateSide(i as 0 | 1, 'name', e.target.value)}
+              onChange={(e) => updateSide(i as 0 | 1, 'name', e.target.value)}
               size="small"
               sx={{ flex: 1, minWidth: 180 }}
             />
@@ -199,7 +269,7 @@ const FamilySidesStep: React.FC<FamilySidesStepProps> = ({
               label="Color"
               type="color"
               value={sides[i as 0 | 1].color}
-              onChange={e => updateSide(i as 0 | 1, 'color', e.target.value)}
+              onChange={(e) => updateSide(i as 0 | 1, 'color', e.target.value)}
               size="small"
               sx={{ width: 80 }}
               InputProps={{ sx: { height: 40 } }}
@@ -230,43 +300,61 @@ interface GroupsStepProps {
 }
 
 const GroupsStep: React.FC<GroupsStepProps> = ({
-  groups, setGroups, sides, onNext, onBack, saving, error,
+  groups,
+  setGroups,
+  sides,
+  onNext,
+  onBack,
+  saving,
+  error,
 }) => {
-  const [form, setForm] = useState<GroupDraft>({ groupId: '', name: '', description: '', side: sides[0]?.id || '' });
+  const [form, setForm] = useState<GroupDraft>({
+    groupId: '',
+    name: '',
+    description: '',
+    side: sides[0]?.id || '',
+  });
 
   const addGroup = () => {
     if (!form.name.trim()) return;
     const groupId = toSlug(form.name);
-    if (groups.some(g => g.groupId === groupId)) return;
-    setGroups(prev => [...prev, { ...form, groupId }]);
+    if (groups.some((g) => g.groupId === groupId)) return;
+    setGroups((prev) => [...prev, { ...form, groupId }]);
     setForm({ groupId: '', name: '', description: '', side: form.side });
   };
 
   const removeGroup = (groupId: string) => {
-    setGroups(prev => prev.filter(g => g.groupId !== groupId));
+    setGroups((prev) => prev.filter((g) => g.groupId !== groupId));
   };
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ mb: 2 }}>Create groups</Typography>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Create groups
+      </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Groups organize members within each side (e.g. &quot;Kids&quot;, &quot;Grandkids&quot;, &quot;Aunts &amp; Uncles&quot;).
+        Groups organize members within each side (e.g. &quot;Kids&quot;, &quot;Grandkids&quot;,
+        &quot;Aunts &amp; Uncles&quot;).
       </Typography>
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
       <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <TextField
           label="Group Name"
           value={form.name}
-          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
           size="small"
           sx={{ flex: 1, minWidth: 150 }}
         />
         <TextField
           label="Description (optional)"
           value={form.description}
-          onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
           size="small"
           sx={{ flex: 1, minWidth: 150 }}
         />
@@ -275,10 +363,12 @@ const GroupsStep: React.FC<GroupsStepProps> = ({
           <Select
             label="Side"
             value={form.side}
-            onChange={e => setForm(f => ({ ...f, side: e.target.value }))}
+            onChange={(e) => setForm((f) => ({ ...f, side: e.target.value }))}
           >
-            {sides.map(s => (
-              <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
+            {sides.map((s) => (
+              <MenuItem key={s.id} value={s.id}>
+                {s.name}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -299,10 +389,10 @@ const GroupsStep: React.FC<GroupsStepProps> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {groups.map(g => (
+              {groups.map((g) => (
                 <TableRow key={g.groupId}>
                   <TableCell>{g.name}</TableCell>
-                  <TableCell>{sides.find(s => s.id === g.side)?.name || g.side}</TableCell>
+                  <TableCell>{sides.find((s) => s.id === g.side)?.name || g.side}</TableCell>
                   <TableCell>{g.description || '--'}</TableCell>
                   <TableCell>
                     <IconButton size="small" onClick={() => removeGroup(g.groupId)}>
@@ -338,11 +428,21 @@ interface MembersStepProps {
 }
 
 const EMPTY_MEMBER: MemberDraft = {
-  userId: '', group: '', color: '#4CAF50', passphrase: '', isAdmin: false,
+  userId: '',
+  group: '',
+  color: '#4CAF50',
+  passphrase: '',
+  isAdmin: false,
 };
 
 const MembersStep: React.FC<MembersStepProps> = ({
-  members, setMembers, groups, onNext, onBack, saving, error,
+  members,
+  setMembers,
+  groups,
+  onNext,
+  onBack,
+  saving,
+  error,
 }) => {
   const [form, setForm] = useState<MemberDraft>({
     ...EMPTY_MEMBER,
@@ -353,8 +453,8 @@ const MembersStep: React.FC<MembersStepProps> = ({
   const addMember = () => {
     if (!form.userId.trim() || !form.group) return;
     const userId = toSlug(form.userId);
-    if (members.some(m => m.userId === userId)) return;
-    setMembers(prev => [...prev, { ...form, userId }]);
+    if (members.some((m) => m.userId === userId)) return;
+    setMembers((prev) => [...prev, { ...form, userId }]);
     setForm({
       ...EMPTY_MEMBER,
       group: form.group,
@@ -363,19 +463,25 @@ const MembersStep: React.FC<MembersStepProps> = ({
   };
 
   const removeMember = (userId: string) => {
-    setMembers(prev => prev.filter(m => m.userId !== userId));
+    setMembers((prev) => prev.filter((m) => m.userId !== userId));
   };
 
-  const hasAdmin = members.some(m => m.isAdmin);
+  const hasAdmin = members.some((m) => m.isAdmin);
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ mb: 2 }}>Add family members</Typography>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Add family members
+      </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         Each member needs a name, group, and passphrase. Mark at least one person as admin.
       </Typography>
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
       {!hasAdmin && members.length > 0 && (
         <Alert severity="warning" sx={{ mb: 2 }}>
           No admin selected. At least one member must be an admin.
@@ -386,7 +492,7 @@ const MembersStep: React.FC<MembersStepProps> = ({
         <TextField
           label="Name"
           value={form.userId}
-          onChange={e => setForm(f => ({ ...f, userId: e.target.value }))}
+          onChange={(e) => setForm((f) => ({ ...f, userId: e.target.value }))}
           size="small"
           placeholder="e.g. uncle-buddy"
           sx={{ flex: 1, minWidth: 140 }}
@@ -396,10 +502,12 @@ const MembersStep: React.FC<MembersStepProps> = ({
           <Select
             label="Group"
             value={form.group}
-            onChange={e => setForm(f => ({ ...f, group: e.target.value }))}
+            onChange={(e) => setForm((f) => ({ ...f, group: e.target.value }))}
           >
-            {groups.map(g => (
-              <MenuItem key={g.groupId} value={g.groupId}>{g.name}</MenuItem>
+            {groups.map((g) => (
+              <MenuItem key={g.groupId} value={g.groupId}>
+                {g.name}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -407,7 +515,7 @@ const MembersStep: React.FC<MembersStepProps> = ({
           label="Color"
           type="color"
           value={form.color}
-          onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+          onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
           size="small"
           sx={{ width: 80 }}
           InputProps={{ sx: { height: 40 } }}
@@ -417,14 +525,14 @@ const MembersStep: React.FC<MembersStepProps> = ({
         <TextField
           label="Passphrase"
           value={form.passphrase}
-          onChange={e => setForm(f => ({ ...f, passphrase: e.target.value }))}
+          onChange={(e) => setForm((f) => ({ ...f, passphrase: e.target.value }))}
           size="small"
           sx={{ flex: 1, minWidth: 200 }}
         />
         <Button
           variant="outlined"
           size="small"
-          onClick={() => setForm(f => ({ ...f, passphrase: generatePassphrase() }))}
+          onClick={() => setForm((f) => ({ ...f, passphrase: generatePassphrase() }))}
         >
           Generate
         </Button>
@@ -432,13 +540,17 @@ const MembersStep: React.FC<MembersStepProps> = ({
           control={
             <Checkbox
               checked={form.isAdmin}
-              onChange={e => setForm(f => ({ ...f, isAdmin: e.target.checked }))}
+              onChange={(e) => setForm((f) => ({ ...f, isAdmin: e.target.checked }))}
               size="small"
             />
           }
           label="Admin"
         />
-        <Button variant="outlined" onClick={addMember} disabled={!form.userId.trim() || !form.group}>
+        <Button
+          variant="outlined"
+          onClick={addMember}
+          disabled={!form.userId.trim() || !form.group}
+        >
           Add
         </Button>
       </Box>
@@ -456,17 +568,31 @@ const MembersStep: React.FC<MembersStepProps> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {members.map(m => (
+              {members.map((m) => (
                 <TableRow key={m.userId}>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: m.color, flexShrink: 0 }} />
+                      <Box
+                        sx={{
+                          width: 12,
+                          height: 12,
+                          borderRadius: '50%',
+                          bgcolor: m.color,
+                          flexShrink: 0,
+                        }}
+                      />
                       {m.userId}
                     </Box>
                   </TableCell>
-                  <TableCell>{groups.find(g => g.groupId === m.group)?.name || m.group}</TableCell>
-                  <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{m.passphrase}</TableCell>
-                  <TableCell>{m.isAdmin ? <Chip label="Admin" size="small" color="primary" /> : 'Member'}</TableCell>
+                  <TableCell>
+                    {groups.find((g) => g.groupId === m.group)?.name || m.group}
+                  </TableCell>
+                  <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                    {m.passphrase}
+                  </TableCell>
+                  <TableCell>
+                    {m.isAdmin ? <Chip label="Admin" size="small" color="primary" /> : 'Member'}
+                  </TableCell>
                   <TableCell>
                     <IconButton size="small" onClick={() => removeMember(m.userId)}>
                       <DeleteIcon fontSize="small" />
@@ -506,22 +632,34 @@ interface SeasonStepProps {
 }
 
 const SeasonStep: React.FC<SeasonStepProps> = ({
-  seasonName, setSeasonName, startDate, setStartDate,
-  onNext, onBack, saving, error,
+  seasonName,
+  setSeasonName,
+  startDate,
+  setStartDate,
+  onNext,
+  onBack,
+  saving,
+  error,
 }) => (
   <Box>
-    <Typography variant="h6" sx={{ mb: 2 }}>Create your first season</Typography>
+    <Typography variant="h6" sx={{ mb: 2 }}>
+      Create your first season
+    </Typography>
     <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
       Seasons organize trivia into time periods. You can create more later.
     </Typography>
 
-    {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+    {error && (
+      <Alert severity="error" sx={{ mb: 2 }}>
+        {error}
+      </Alert>
+    )}
 
     <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
       <TextField
         label="Season Name"
         value={seasonName}
-        onChange={e => setSeasonName(e.target.value)}
+        onChange={(e) => setSeasonName(e.target.value)}
         size="small"
         placeholder="e.g. Season 1"
         sx={{ flex: 1, minWidth: 200 }}
@@ -530,7 +668,7 @@ const SeasonStep: React.FC<SeasonStepProps> = ({
         label="Start Date"
         type="date"
         value={startDate}
-        onChange={e => setStartDate(e.target.value)}
+        onChange={(e) => setStartDate(e.target.value)}
         size="small"
         sx={{ width: 180 }}
         InputLabelProps={{ shrink: true }}
@@ -571,13 +709,17 @@ const OPENTDB_CATEGORIES = [
 ];
 
 const ImportStep: React.FC<ImportStepProps> = ({ onNext, onBack, adminUserId }) => {
-  const [selected, setSelected] = useState<Set<string>>(new Set(['General Knowledge', 'Science', 'History']));
+  const [selected, setSelected] = useState<Set<string>>(
+    new Set(['General Knowledge', 'Science', 'History']),
+  );
   const [importing, setImporting] = useState(false);
-  const [importResults, setImportResults] = useState<Array<{ category: string; added: number; error?: string }>>([]);
+  const [importResults, setImportResults] = useState<
+    Array<{ category: string; added: number; error?: string }>
+  >([]);
   const [done, setDone] = useState(false);
 
   const toggle = (cat: string) => {
-    setSelected(prev => {
+    setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(cat)) next.delete(cat);
       else next.add(cat);
@@ -607,13 +749,16 @@ const ImportStep: React.FC<ImportStepProps> = ({ onNext, onBack, adminUserId }) 
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ mb: 2 }}>Import starter questions</Typography>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Import starter questions
+      </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Import free trivia questions from OpenTDB to get started. You can always import more later from the admin panel.
+        Import free trivia questions from OpenTDB to get started. You can always import more later
+        from the admin panel.
       </Typography>
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
-        {OPENTDB_CATEGORIES.map(cat => (
+        {OPENTDB_CATEGORIES.map((cat) => (
           <Chip
             key={cat.id}
             label={cat.label}
@@ -627,7 +772,7 @@ const ImportStep: React.FC<ImportStepProps> = ({ onNext, onBack, adminUserId }) 
 
       {importResults.length > 0 && (
         <Box sx={{ mb: 3 }}>
-          {importResults.map(r => (
+          {importResults.map((r) => (
             <Typography
               key={r.category}
               variant="body2"
@@ -641,7 +786,9 @@ const ImportStep: React.FC<ImportStepProps> = ({ onNext, onBack, adminUserId }) 
       )}
 
       <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-        <Button onClick={onBack} disabled={importing}>Back</Button>
+        <Button onClick={onBack} disabled={importing}>
+          Back
+        </Button>
         {!done ? (
           <>
             <Button onClick={onNext} disabled={importing}>
@@ -674,7 +821,7 @@ interface DoneStepProps {
 const DoneStep: React.FC<DoneStepProps> = ({ members, onComplete }) => {
   const [copied, setCopied] = useState(false);
 
-  const passphraseText = members.map(m => `${m.userId}: ${m.passphrase}`).join('\n');
+  const passphraseText = members.map((m) => `${m.userId}: ${m.passphrase}`).join('\n');
 
   const handleCopy = async () => {
     try {
@@ -693,25 +840,33 @@ const DoneStep: React.FC<DoneStepProps> = ({ members, onComplete }) => {
         You&apos;re all set!
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Share these passphrases with your family members.
-        They&apos;ll sign in with Google and enter their passphrase to link their account.
+        Share these passphrases with your family members. They&apos;ll sign in with Google and enter
+        their passphrase to link their account.
       </Typography>
 
       <Paper variant="outlined" sx={{ maxWidth: 400, mx: 'auto', mb: 3, textAlign: 'left' }}>
         <Box sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}
+          >
             <Typography variant="subtitle2">Passphrases</Typography>
             <IconButton size="small" onClick={handleCopy} title="Copy all">
               <ContentCopyIcon fontSize="small" />
             </IconButton>
           </Box>
           {copied && (
-            <Alert severity="success" sx={{ mb: 1, py: 0 }}>Copied to clipboard!</Alert>
+            <Alert severity="success" sx={{ mb: 1, py: 0 }}>
+              Copied to clipboard!
+            </Alert>
           )}
-          {members.map(m => (
+          {members.map((m) => (
             <Box key={m.userId} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>{m.userId}</Typography>
-              <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>{m.passphrase}</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                {m.userId}
+              </Typography>
+              <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                {m.passphrase}
+              </Typography>
             </Box>
           ))}
         </Box>
@@ -754,7 +909,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
 
   // Identify the first admin for API calls
   const getAdminUserId = useCallback((): string => {
-    const admin = members.find(m => m.isAdmin);
+    const admin = members.find((m) => m.isAdmin);
     return admin?.userId || members[0]?.userId || 'setup-admin';
   }, [members]);
 
@@ -929,13 +1084,15 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
   // ── Layout ────────────────────────────────────────────────
 
   return (
-    <Box sx={{
-      maxWidth: 600,
-      mx: 'auto',
-      px: 2,
-      py: 4,
-      minHeight: '100vh',
-    }}>
+    <Box
+      sx={{
+        maxWidth: 600,
+        mx: 'auto',
+        px: 2,
+        py: 4,
+        minHeight: '100vh',
+      }}
+    >
       <Stepper
         activeStep={activeStep}
         orientation={isMobile ? 'vertical' : 'horizontal'}
@@ -945,9 +1102,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
           <Step key={label} completed={index < activeStep}>
             <StepLabel>{isMobile || index === activeStep ? label : ''}</StepLabel>
             {isMobile && (
-              <StepContent>
-                {index === activeStep && renderStepContent(index)}
-              </StepContent>
+              <StepContent>{index === activeStep && renderStepContent(index)}</StepContent>
             )}
           </Step>
         ))}

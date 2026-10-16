@@ -1,6 +1,7 @@
 // File: src/components/Arcade/ArcadePage.tsx
 // Arcade tab — swipeable game carousel with leaderboards. CSS scroll-snap.
 
+import type { ArcadeGameId, HighScoreEntry } from '@family-trivia/shared';
 import AcUnitIcon from '@mui/icons-material/AcUnit';
 import CasinoIcon from '@mui/icons-material/Casino';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
@@ -8,26 +9,22 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import GamepadIcon from '@mui/icons-material/Gamepad';
 import GridOnIcon from '@mui/icons-material/GridOn';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
-import {
-  Box, Button, Card, IconButton, Typography, useTheme,
-} from '@mui/material';
+import { Box, Button, Card, IconButton, Typography, useTheme } from '@mui/material';
 import { alpha, keyframes } from '@mui/material/styles';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-
-import ArcadeLeaderboard from './ArcadeLeaderboard';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { getArcadeLeaderboard } from '../../api/modules/arcade';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { shadows } from '../../shared/design-system/tokens/shadows';
 import { getUserColor, getUserInitials } from '../../utils';
 import { createLogger } from '../../utils/logger';
-import CasinoLobby from './CasinoLobby';
 import CommentsThread from '../common/CommentsThread';
 import CrosswordGame from '../TriviaCard/CrosswordGame';
 import CurlingGame from '../TriviaCard/CurlingGame';
 import SnakeGame from '../TriviaCard/SnakeGame';
 import TetrisGame from '../TriviaCard/TetrisGame';
-
-import type { ArcadeGameId, HighScoreEntry } from '@family-trivia/shared';
+import ArcadeLeaderboard from './ArcadeLeaderboard';
+import CasinoLobby from './CasinoLobby';
 
 const logger = createLogger('ArcadePage');
 
@@ -117,9 +114,11 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
   const refreshLeaderboards = useCallback(async () => {
     setLoadingScores(true);
     try {
-      const results = await Promise.all(GAMES.map(g => getArcadeLeaderboard(g.id)));
+      const results = await Promise.all(GAMES.map((g) => getArcadeLeaderboard(g.id)));
       const boards: Record<string, HighScoreEntry[]> = {};
-      GAMES.forEach((g, i) => { boards[g.id] = results[i]; });
+      GAMES.forEach((g, i) => {
+        boards[g.id] = results[i];
+      });
       setLeaderboards(boards);
     } catch (err) {
       logger.error('Failed to load leaderboards', err);
@@ -128,7 +127,9 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
     }
   }, []);
 
-  useEffect(() => { refreshLeaderboards(); }, [refreshLeaderboards]);
+  useEffect(() => {
+    refreshLeaderboards();
+  }, [refreshLeaderboards]);
 
   // Track scroll position for dots
   const handleScroll = useCallback(() => {
@@ -162,12 +163,8 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
         {activeGame === 'curling' && (
           <CurlingGame userId={userId} mode="arcade" onClose={handleGameClose} />
         )}
-        {activeGame === 'crossword' && (
-          <CrosswordGame userId={userId} onClose={handleGameClose} />
-        )}
-        {activeGame === 'snake' && (
-          <SnakeGame userId={userId} onClose={handleGameClose} />
-        )}
+        {activeGame === 'crossword' && <CrosswordGame userId={userId} onClose={handleGameClose} />}
+        {activeGame === 'snake' && <SnakeGame userId={userId} onClose={handleGameClose} />}
       </Box>
     );
   }
@@ -178,18 +175,19 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
   return (
     <Box>
       {/* Header */}
-      <Card sx={{
-        mb: 2, overflow: 'hidden',
-        border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
-        borderRadius: 3,
-        background: `linear-gradient(135deg, ${alpha('#7b1fa2', 0.08)}, ${alpha('#1976d2', 0.06)})`,
-      }}>
+      <Card
+        sx={{
+          mb: 2,
+          overflow: 'hidden',
+          border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
+          borderRadius: 3,
+          background: `linear-gradient(135deg, ${alpha('#7b1fa2', 0.08)}, ${alpha('#1976d2', 0.06)})`,
+        }}
+      >
         <Box sx={{ px: 2, py: 1.25, display: 'flex', alignItems: 'center', gap: 1 }}>
           <SportsEsportsIcon sx={{ fontSize: 22, color: theme.palette.secondary.main }} />
           <Box>
-            <Typography sx={{ fontWeight: 800, fontSize: '0.95rem' }}>
-              Arcade
-            </Typography>
+            <Typography sx={{ fontWeight: 800, fontSize: '0.95rem' }}>Arcade</Typography>
             <Typography sx={{ fontSize: '0.65rem', color: theme.palette.text.secondary }}>
               Swipe to pick a game — play for high scores
             </Typography>
@@ -204,8 +202,13 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
             onClick={() => scrollTo(activeIndex - 1)}
             size="small"
             sx={{
-              position: 'absolute', left: -4, top: '50%', transform: 'translateY(-50%)', zIndex: 2,
-              width: 30, height: 30,
+              position: 'absolute',
+              left: -4,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 2,
+              width: 30,
+              height: 30,
               bgcolor: alpha(theme.palette.background.paper, 0.92),
               boxShadow: shadows.md,
               border: `1px solid ${alpha(theme.palette.divider, 0.3)}`,
@@ -220,8 +223,13 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
             onClick={() => scrollTo(activeIndex + 1)}
             size="small"
             sx={{
-              position: 'absolute', right: -4, top: '50%', transform: 'translateY(-50%)', zIndex: 2,
-              width: 30, height: 30,
+              position: 'absolute',
+              right: -4,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 2,
+              width: 30,
+              height: 30,
               bgcolor: alpha(theme.palette.background.paper, 0.92),
               boxShadow: shadows.md,
               border: `1px solid ${alpha(theme.palette.divider, 0.3)}`,
@@ -242,9 +250,10 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
                 width: i === activeIndex ? 18 : 6,
                 height: 6,
                 borderRadius: 3,
-                bgcolor: i === activeIndex
-                  ? theme.palette.secondary.main
-                  : alpha(theme.palette.text.disabled, 0.25),
+                bgcolor:
+                  i === activeIndex
+                    ? theme.palette.secondary.main
+                    : alpha(theme.palette.text.disabled, 0.25),
                 transition: 'all 0.25s ease',
                 cursor: 'pointer',
               }}
@@ -279,21 +288,31 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
                 boxSizing: 'border-box',
               }}
             >
-              <Card sx={{
-                overflow: 'hidden',
-                borderRadius: 3,
-                border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
-              }}>
+              <Card
+                sx={{
+                  overflow: 'hidden',
+                  borderRadius: 3,
+                  border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
+                }}
+              >
                 {/* Game banner — matches trivia game mode tile style */}
-                <Box sx={{
-                  background: game.gradient,
-                  px: 2, py: 2,
-                  display: 'flex', alignItems: 'center', gap: 1.5,
-                }}>
-                  <Box sx={{
-                    color: game.accentColor, fontSize: 0,
-                    '& .MuiSvgIcon-root': { fontSize: 32 },
-                  }}>
+                <Box
+                  sx={{
+                    background: game.gradient,
+                    px: 2,
+                    py: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      color: game.accentColor,
+                      fontSize: 0,
+                      '& .MuiSvgIcon-root': { fontSize: 32 },
+                    }}
+                  >
                     {game.icon}
                   </Box>
                   <Box sx={{ flex: 1 }}>
@@ -301,12 +320,18 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
                       <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: '#fff' }}>
                         {game.label}
                       </Typography>
-                      <Box sx={{
-                        px: 0.75, py: 0.15, borderRadius: 1,
-                        bgcolor: alpha('#000', 0.25),
-                        fontSize: '0.5rem', fontWeight: 800,
-                        color: game.accentColor, letterSpacing: 1,
-                      }}>
+                      <Box
+                        sx={{
+                          px: 0.75,
+                          py: 0.15,
+                          borderRadius: 1,
+                          bgcolor: alpha('#000', 0.25),
+                          fontSize: '0.5rem',
+                          fontWeight: 800,
+                          color: game.accentColor,
+                          letterSpacing: 1,
+                        }}
+                      >
                         {game.badge}
                       </Box>
                     </Box>
@@ -319,11 +344,15 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
                 {/* Play button */}
                 <Box sx={{ px: 2, py: 1.5 }}>
                   <Button
-                    fullWidth variant="contained" color="secondary"
+                    fullWidth
+                    variant="contained"
+                    color="secondary"
                     onClick={() => setActiveGame(game.id)}
                     sx={{
-                      py: 1.25, borderRadius: 2,
-                      fontWeight: 700, fontSize: '0.85rem',
+                      py: 1.25,
+                      borderRadius: 2,
+                      fontWeight: 700,
+                      fontSize: '0.85rem',
                       textTransform: 'none',
                     }}
                   >
@@ -337,29 +366,45 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
 
         {/* Swipe hint */}
         {GAMES.length > 1 && activeIndex === 0 && (
-          <Typography sx={{
-            textAlign: 'center', mt: 0.5,
-            fontSize: '0.6rem', color: theme.palette.text.disabled,
-            animation: `${fadeHint} 3s ease-in-out 2`,
-          }}>
+          <Typography
+            sx={{
+              textAlign: 'center',
+              mt: 0.5,
+              fontSize: '0.6rem',
+              color: theme.palette.text.disabled,
+              animation: `${fadeHint} 3s ease-in-out 2`,
+            }}
+          >
             Swipe for more games →
           </Typography>
         )}
       </Box>
 
       {/* Leaderboard for current game */}
-      <Card sx={{
-        mt: 2, overflow: 'hidden',
-        border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
-        borderRadius: 3,
-      }}>
-        <Box sx={{
-          px: 2, py: 1,
-          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
-          background: `linear-gradient(135deg, ${alpha(theme.palette.secondary.main, 0.06)}, transparent)`,
-        }}>
+      <Card
+        sx={{
+          mt: 2,
+          overflow: 'hidden',
+          border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
+          borderRadius: 3,
+        }}
+      >
+        <Box
+          sx={{
+            px: 2,
+            py: 1,
+            borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+            background: `linear-gradient(135deg, ${alpha(theme.palette.secondary.main, 0.06)}, transparent)`,
+          }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-            <Box sx={{ color: theme.palette.secondary.main, fontSize: 0, '& .MuiSvgIcon-root': { fontSize: 18 } }}>
+            <Box
+              sx={{
+                color: theme.palette.secondary.main,
+                fontSize: 0,
+                '& .MuiSvgIcon-root': { fontSize: 18 },
+              }}
+            >
               {currentGame.icon}
             </Box>
             <Typography sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
@@ -369,7 +414,14 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
         </Box>
         <Box sx={{ p: 1.5 }}>
           {loadingScores ? (
-            <Typography sx={{ fontSize: '0.7rem', color: theme.palette.text.disabled, textAlign: 'center', py: 2 }}>
+            <Typography
+              sx={{
+                fontSize: '0.7rem',
+                color: theme.palette.text.disabled,
+                textAlign: 'center',
+                py: 2,
+              }}
+            >
               Loading...
             </Typography>
           ) : (
@@ -385,11 +437,14 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
       {/* Comment thread for the currently-focused game.
           Each game has its own thread keyed by gameId so talk doesn't
           bleed across games. */}
-      <Card sx={{
-        mt: 2, overflow: 'hidden',
-        border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
-        borderRadius: 3,
-      }}>
+      <Card
+        sx={{
+          mt: 2,
+          overflow: 'hidden',
+          border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
+          borderRadius: 3,
+        }}
+      >
         <Box sx={{ p: 1.5 }}>
           <CommentsThread
             contentId={currentGame.id}

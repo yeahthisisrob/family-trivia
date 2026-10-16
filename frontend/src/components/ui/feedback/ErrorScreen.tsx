@@ -1,6 +1,6 @@
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { Box, Paper, Typography, Button, Fade, useTheme } from '@mui/material';
-import React from 'react';
+import { Box, Button, Fade, Paper, Typography, useTheme } from '@mui/material';
+import type React from 'react';
 
 /**
  * ErrorScreen Component

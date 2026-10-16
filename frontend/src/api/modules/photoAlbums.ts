@@ -56,10 +56,7 @@ export async function updatePhotoAlbum(
   );
 }
 
-export async function deletePhotoAlbum(
-  userId: string,
-  id: string,
-): Promise<{ success: boolean }> {
+export async function deletePhotoAlbum(userId: string, id: string): Promise<{ success: boolean }> {
   return apiService.request<{ success: boolean }>(
     `/photo-albums?userId=${encodeURIComponent(userId)}&id=${encodeURIComponent(id)}`,
     { method: 'DELETE' },

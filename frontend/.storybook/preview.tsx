@@ -1,15 +1,12 @@
-import React from 'react';
-
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
 import type { Preview } from '@storybook/react-vite';
 import { initialize, mswLoader } from 'msw-storybook-addon';
 import { MemoryRouter } from 'react-router-dom';
-
-import { allHandlers } from './mocks/handlers';
-import { MockAppProviders } from './mocks/providers';
 import { apiService } from '../src/services/ApiService';
 import { theme } from '../src/shared/design-system';
+import { allHandlers } from './mocks/handlers';
+import { MockAppProviders } from './mocks/providers';
 
 // Start MSW once via the addon. The addon installs a loader that swaps in
 // per-story `parameters.msw.handlers` on top of these defaults — without
@@ -24,7 +21,11 @@ const preview: Preview = {
   //   - sessionStorage (dismissed tips like the dictation hint)
   beforeEach: async () => {
     apiService.clearCache();
-    try { window.sessionStorage.clear(); } catch { /* ok */ }
+    try {
+      window.sessionStorage.clear();
+    } catch {
+      /* ok */
+    }
   },
   parameters: {
     controls: {

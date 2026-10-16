@@ -1,6 +1,7 @@
 // File: src/components/Notifications/NotificationItem.tsx
 // Single notification row — unread dot, avatar, message, time-ago.
 
+import type { NotificationItem as NotificationItemType } from '@family-trivia/shared';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import PeopleIcon from '@mui/icons-material/People';
@@ -9,11 +10,8 @@ import StarIcon from '@mui/icons-material/Star';
 import { Avatar, Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { formatDistance } from 'date-fns';
-import React from 'react';
-
+import type React from 'react';
 import { getUserColor, getUserInitials } from '../../utils';
-
-import type { NotificationItem as NotificationItemType } from '@family-trivia/shared';
 
 interface Props {
   item: NotificationItemType;
@@ -46,17 +44,26 @@ const NotificationItem: React.FC<Props> = ({ item, onClick }) => {
           : item.newLeaderId;
 
   const GAME_LABELS: Record<string, string> = {
-    tetris: 'Tetris', curling: 'Curling', 'slot-machine': 'Slots',
-    snake: 'Snake', crossword: 'Crossword', blackjack: 'Blackjack', casino: 'Casino',
+    tetris: 'Tetris',
+    curling: 'Curling',
+    'slot-machine': 'Slots',
+    snake: 'Snake',
+    crossword: 'Crossword',
+    blackjack: 'Blackjack',
+    casino: 'Casino',
   };
-  const gameLabel = item.gameId ? GAME_LABELS[item.gameId] ?? item.gameId : '';
+  const gameLabel = item.gameId ? (GAME_LABELS[item.gameId] ?? item.gameId) : '';
 
   const contentLabel =
-    item.contentType === 'fact' ? 'Fact'
-    : item.contentType === 'trivia' ? 'Trivia'
-    : item.contentType === 'album' ? 'Album'
-    : item.contentType === 'arcade' ? 'Arcade'
-    : '';
+    item.contentType === 'fact'
+      ? 'Fact'
+      : item.contentType === 'trivia'
+        ? 'Trivia'
+        : item.contentType === 'album'
+          ? 'Album'
+          : item.contentType === 'arcade'
+            ? 'Arcade'
+            : '';
 
   const message = isComment
     ? `${item.commentUserId} commented${item.threadCommentCount && item.threadCommentCount > 1 ? ` (${item.threadCommentCount} new)` : ''}`
@@ -108,56 +115,81 @@ const NotificationItem: React.FC<Props> = ({ item, onClick }) => {
     >
       {/* Avatar or icon */}
       {displayUser ? (
-        <Avatar sx={{
-          width: 28, height: 28, fontSize: '0.6rem', fontWeight: 700,
-          bgcolor: getUserColor(displayUser), mt: 0.25,
-        }}>
+        <Avatar
+          sx={{
+            width: 28,
+            height: 28,
+            fontSize: '0.6rem',
+            fontWeight: 700,
+            bgcolor: getUserColor(displayUser),
+            mt: 0.25,
+          }}
+        >
           {getUserInitials(displayUser)}
         </Avatar>
       ) : (
-        <Avatar sx={{
-          width: 28, height: 28, mt: 0.25,
-          bgcolor: isHighScore ? '#FFD700'
-            : isFeud ? '#9c27b0'
-              : isAlbumAdded ? theme.palette.info.main
-                : theme.palette.primary.main,
-        }}>
-          {isComment ? <ChatBubbleOutlineIcon sx={{ fontSize: 14 }} />
-            : isHighScore ? <StarIcon sx={{ fontSize: 14 }} />
-            : isFeud ? <PeopleIcon sx={{ fontSize: 14 }} />
-            : isAlbumAdded ? <PhotoLibraryRoundedIcon sx={{ fontSize: 14 }} />
-            : <EmojiEventsIcon sx={{ fontSize: 14 }} />}
+        <Avatar
+          sx={{
+            width: 28,
+            height: 28,
+            mt: 0.25,
+            bgcolor: isHighScore
+              ? '#FFD700'
+              : isFeud
+                ? '#9c27b0'
+                : isAlbumAdded
+                  ? theme.palette.info.main
+                  : theme.palette.primary.main,
+          }}
+        >
+          {isComment ? (
+            <ChatBubbleOutlineIcon sx={{ fontSize: 14 }} />
+          ) : isHighScore ? (
+            <StarIcon sx={{ fontSize: 14 }} />
+          ) : isFeud ? (
+            <PeopleIcon sx={{ fontSize: 14 }} />
+          ) : isAlbumAdded ? (
+            <PhotoLibraryRoundedIcon sx={{ fontSize: 14 }} />
+          ) : (
+            <EmojiEventsIcon sx={{ fontSize: 14 }} />
+          )}
         </Avatar>
       )}
 
       {/* Content */}
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{
-          fontSize: '0.75rem',
-          fontWeight: item.read ? 400 : 600,
-          lineHeight: 1.3,
-          color: theme.palette.text.primary,
-        }}>
+        <Typography
+          sx={{
+            fontSize: '0.75rem',
+            fontWeight: item.read ? 400 : 600,
+            lineHeight: 1.3,
+            color: theme.palette.text.primary,
+          }}
+        >
           {message}
         </Typography>
         {detail && (
-          <Typography sx={{
-            fontSize: '0.68rem',
-            color: theme.palette.text.secondary,
-            lineHeight: 1.3,
-            mt: 0.15,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}>
+          <Typography
+            sx={{
+              fontSize: '0.68rem',
+              color: theme.palette.text.secondary,
+              lineHeight: 1.3,
+              mt: 0.15,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
             &ldquo;{detail}&rdquo;
           </Typography>
         )}
-        <Typography sx={{
-          fontSize: '0.6rem',
-          color: theme.palette.text.disabled,
-          mt: 0.25,
-        }}>
+        <Typography
+          sx={{
+            fontSize: '0.6rem',
+            color: theme.palette.text.disabled,
+            mt: 0.25,
+          }}
+        >
           {isComment && contentLabel && (
             <Box component="span" sx={{ mr: 0.5 }}>
               {contentLabel}

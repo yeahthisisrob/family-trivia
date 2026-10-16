@@ -1,11 +1,12 @@
 // components/Leaderboard/PlayerRankings.tsx
-import { Box, useTheme, useMediaQuery, Typography, Divider } from '@mui/material';
+import { Box, Divider, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
-import React, { useMemo } from 'react';
+import type React from 'react';
+import { useMemo } from 'react';
 
 import PlayerCard from './PlayerCard';
 import Podium from './Podium';
-import { LeaderboardEntry } from './utils';
+import type { LeaderboardEntry } from './utils';
 
 interface PlayerRankingsProps {
   players: LeaderboardEntry[];
@@ -22,10 +23,14 @@ const PlayerRankings: React.FC<PlayerRankingsProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const sortedPlayers = useMemo(() => [...players].sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    return (b.accuracy ?? 0) - (a.accuracy ?? 0);
-  }), [players]);
+  const sortedPlayers = useMemo(
+    () =>
+      [...players].sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return (b.accuracy ?? 0) - (a.accuracy ?? 0);
+      }),
+    [players],
+  );
 
   // Handler for navigating to a player's profile
   const handleViewProfile = (userId: string) => {
@@ -47,7 +52,13 @@ const PlayerRankings: React.FC<PlayerRankingsProps> = ({
   return (
     <Box>
       {/* Podium for top 3 */}
-      {topThree.length > 0 && <Podium players={topThree} onPlayerClick={handleViewProfile} maxQuestionsAsked={maxQuestionsAsked} />}
+      {topThree.length > 0 && (
+        <Podium
+          players={topThree}
+          onPlayerClick={handleViewProfile}
+          maxQuestionsAsked={maxQuestionsAsked}
+        />
+      )}
 
       {/* Divider between podium and all players */}
       {sortedPlayers.length > 0 && (

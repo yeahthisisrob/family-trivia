@@ -6,8 +6,9 @@
 
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import TodayIcon from '@mui/icons-material/Today';
-import { Box, ToggleButton, ToggleButtonGroup, useTheme, alpha } from '@mui/material';
-import React, { useState } from 'react';
+import { alpha, Box, ToggleButton, ToggleButtonGroup, useTheme } from '@mui/material';
+import type React from 'react';
+import { useState } from 'react';
 
 import FactStatusBar from './FactStatusBar';
 import TriviaStatusBar from './TriviaCard/TriviaStatusBar';
@@ -27,7 +28,9 @@ const StatusGridToggle: React.FC<StatusGridToggleProps> = ({ userId }) => {
         <ToggleButtonGroup
           value={view}
           exclusive
-          onChange={(_, v) => { if (v) setView(v); }}
+          onChange={(_, v) => {
+            if (v) setView(v);
+          }}
           size="small"
           sx={{
             height: 30,
@@ -62,11 +65,7 @@ const StatusGridToggle: React.FC<StatusGridToggleProps> = ({ userId }) => {
       </Box>
 
       {/* Grid */}
-      {view === 'facts' ? (
-        <FactStatusBar userId={userId} />
-      ) : (
-        <TriviaStatusBar userId={userId} />
-      )}
+      {view === 'facts' ? <FactStatusBar userId={userId} /> : <TriviaStatusBar userId={userId} />}
     </Box>
   );
 };

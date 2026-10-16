@@ -244,8 +244,8 @@ export async function updateUserFact(
   adminUserId: string,
   data: {
     userId: string;
-    timestamp?: string;       // preferred — exact entry identity
-    factKey?: string;         // legacy fallback
+    timestamp?: string; // preferred — exact entry identity
+    factKey?: string; // legacy fallback
     // Updatable fields:
     answer?: string;
     question?: string;
@@ -320,9 +320,7 @@ export interface StuckSessionInfo {
   startTime: string;
 }
 
-export async function getAllStuckSessions(
-  adminUserId: string,
-): Promise<StuckSessionInfo[]> {
+export async function getAllStuckSessions(adminUserId: string): Promise<StuckSessionInfo[]> {
   const result = await apiService.request<{ sessions: StuckSessionInfo[] }>(
     `/admin/game-sessions?adminUserId=${encodeURIComponent(adminUserId)}`,
     { method: 'GET' },

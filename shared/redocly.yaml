@@ -1,0 +1,8 @@
+# Lint rules for the API contract. Skipped rules are listed with the reason.
+extends:
+  - recommended
+rules:
+  operation-4xx-response: off # most operations share one error envelope
+  security-defined: off # bearer auth is documented globally once auth lands in the spec
+  no-server-example.com: off
+  info-license: off

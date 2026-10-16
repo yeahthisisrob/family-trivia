@@ -1,8 +1,6 @@
-import path from 'path';
-
+import path, { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { StorybookConfig } from '@storybook/react-vite';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
 
 // ESM doesn't expose __dirname; derive from import.meta.url
 const __dirname = dirname(fileURLToPath(import.meta.url));

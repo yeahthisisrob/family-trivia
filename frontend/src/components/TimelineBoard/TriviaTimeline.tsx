@@ -1,17 +1,16 @@
 // File: src/components/TimelineBoard/TriviaTimeline.tsx
- 
-import { Box, Typography, Divider } from '@mui/material';
-import { format, parseISO, isToday, isYesterday } from 'date-fns';
-import React, { useState, useMemo } from 'react';
 
+import { Box, Divider, Typography } from '@mui/material';
+import { format, isToday, isYesterday, parseISO } from 'date-fns';
+import React, { useMemo, useState } from 'react';
+import { getUserColor, getUserInitials } from '../../utils';
+import { isCustomCategory } from '../../utils/categoryUtils';
+import { type FamilySide, shouldIncludeInFamilySide } from '../../utils/familyUtils';
+import { createLogger } from '../../utils/logger';
 import FamilyFeudTimelineCard from './FamilyFeudTimelineCard';
 import GameModeCard from './GameModeCard';
 import TriviaComments from './TriviaComments';
 import TimelineCard from './TriviaTimelineCard';
-import { getUserColor, getUserInitials } from '../../utils';
-import { isCustomCategory } from '../../utils/categoryUtils';
-import { FamilySide, shouldIncludeInFamilySide } from '../../utils/familyUtils';
-import { createLogger } from '../../utils/logger';
 
 interface TriviaTimelineProps {
   refreshKey?: number;
@@ -132,9 +131,17 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
 
         // Handle both nested question object and flat question string
         // (timelineService returns flat, old format uses nested)
-        const q = typeof item.question === 'object' && item.question !== null
-          ? item.question
-          : { question: item.question as unknown as string, choices: (item as any).choices || [], answer: (item as any).answer || '', category: (item as any).category, difficulty: (item as any).difficulty, mode: (item as any).mode };
+        const q =
+          typeof item.question === 'object' && item.question !== null
+            ? item.question
+            : {
+                question: item.question as unknown as string,
+                choices: (item as any).choices || [],
+                answer: (item as any).answer || '',
+                category: (item as any).category,
+                difficulty: (item as any).difficulty,
+                mode: (item as any).mode,
+              };
 
         return {
           userId: item.userId,
@@ -157,11 +164,13 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
           totalQuestions: item.totalQuestions,
           reason: item.reason,
           isCustomCategory:
-            item.isCustomCategory ||
-            (q.category ? isCustomCategory(q.category) : false),
+            item.isCustomCategory || (q.category ? isCustomCategory(q.category) : false),
           isSlotMachine,
           multiplier: item.multiplier,
-          isFamilyFeud: !!(item as any).isFamilyFeud || (item as any).mode === 'family-feud' || q.mode === 'family-feud',
+          isFamilyFeud:
+            !!(item as any).isFamilyFeud ||
+            (item as any).mode === 'family-feud' ||
+            q.mode === 'family-feud',
           feudGuesses: (item as any).allGuesses,
           feudWinners: (item as any).winners,
           feudGuessCount: (item as any).guessCount,
@@ -169,11 +178,15 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
       });
 
       // Debug: check for Family Feud data in raw items
-      const rawFeud = (timelineData?.trivia || []).filter((item: any) =>
-        item.isFamilyFeud || item.mode === 'family-feud' ||
-        (item.question && typeof item.question === 'object' && item.question.mode === 'family-feud')
+      const rawFeud = (timelineData?.trivia || []).filter(
+        (item: any) =>
+          item.isFamilyFeud ||
+          item.mode === 'family-feud' ||
+          (item.question &&
+            typeof item.question === 'object' &&
+            item.question.mode === 'family-feud'),
       );
-      const feudEntries = entries.filter(e => e.isFamilyFeud);
+      const feudEntries = entries.filter((e) => e.isFamilyFeud);
 
       // Sort newest first
       entries.sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
@@ -343,7 +356,7 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
     return Array.from(dateGroups.entries())
       .sort(([a], [b]) => b.localeCompare(a))
       .map(([dateKey, items]) => ({
-        date: parseISO(dateKey + 'T00:00:00'),
+        date: parseISO(`${dateKey}T00:00:00`),
         dateKey,
         items,
       }));
@@ -412,7 +425,9 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
                       <GameModeCard
                         mode={e.isCasinoRush ? 'casino-rush' : 'slot-machine'}
                         entries={e.entries.map((en: any) => ({
-                          question: en.question || (typeof en.question === 'object' ? en.question.question : ''),
+                          question:
+                            en.question ||
+                            (typeof en.question === 'object' ? en.question.question : ''),
                           choices: en.choices,
                           answer: en.answer,
                           selectedAnswer: en.selectedAnswer,
@@ -427,15 +442,14 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
                         group={e.entries[0]?.group || ''}
                         timestamp={e.timestamp}
                         totalPoints={e.totalPoints || 0}
-                        allCorrect={e.isCasinoRush ? e.entries.every((en: any) => en.correct) : undefined}
+                        allCorrect={
+                          e.isCasinoRush ? e.entries.every((en: any) => en.correct) : undefined
+                        }
                         multiplier={e.isSlotMachine ? e.bestMultiplier : undefined}
                         onUserClick={onUserClick}
                       />
                     ) : displayEntry.isFamilyFeud ? (
-                      <FamilyFeudTimelineCard
-                        entry={displayEntry}
-                        onUserClick={onUserClick}
-                      />
+                      <FamilyFeudTimelineCard entry={displayEntry} onUserClick={onUserClick} />
                     ) : (
                       <>
                         <TimelineCard

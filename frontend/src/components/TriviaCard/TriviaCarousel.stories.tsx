@@ -1,10 +1,7 @@
-import React from 'react';
-import { expect, within } from 'storybook/test';
-
-import TriviaCarousel from './TriviaCarousel';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, within } from 'storybook/test';
+import { StoryProviders } from '../../test/storyContexts';
+import TriviaCarousel from './TriviaCarousel';
 
 const meta: Meta<typeof TriviaCarousel> = {
   title: 'Trivia/Flow/TriviaCarousel',
@@ -28,10 +25,7 @@ const meta: Meta<typeof TriviaCarousel> = {
   },
   decorators: [
     (Story, context) => (
-      <StoryProviders
-        userStatus={context.parameters.userStatus}
-        trivia={context.parameters.trivia}
-      >
+      <StoryProviders userStatus={context.parameters.userStatus} trivia={context.parameters.trivia}>
         <div style={{ maxWidth: 420, margin: '0 auto', overflow: 'hidden' }}>
           <Story />
         </div>
