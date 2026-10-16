@@ -133,6 +133,21 @@ export const AI_TASKS = [
     usage: { callsPerPersonPerDay: 0.005, inputTokens: 9000, outputTokens: 700 },
   },
   {
+    id: 'knowledge',
+    label: 'Knowledge index',
+    description:
+      'Reads new answers and notes what each person talks about: places, food, people, things they love.',
+    role: 'fast',
+    usage: { callsPerPersonPerDay: 0.05, inputTokens: 4000, outputTokens: 1200 },
+  },
+  {
+    id: 'persona',
+    label: 'Personas',
+    description: 'A few sentences on who each person is, written from their index when it grows.',
+    role: 'writer',
+    usage: { callsPerPersonPerDay: 0.02, inputTokens: 2500, outputTokens: 300 },
+  },
+  {
     id: 'gameMoves',
     label: 'Game opponents',
     description: 'Plays against you in arcade games.',

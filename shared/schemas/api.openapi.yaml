@@ -3486,6 +3486,50 @@ paths:
         "503":
           description: The copy did not finish (the reason is in the error)
 
+  # ──────────────────────────────────────────────
+  # Knowledge index (backend/features/knowledge)
+  # ──────────────────────────────────────────────
+
+  /family/knowledge:
+    get:
+      summary: What the family shares, each person's top things and persona, and counted statistics
+      operationId: getFamilyKnowledge
+      tags: [Family]
+      responses:
+        "200":
+          description: The family's knowledge view (shape in shared/src/knowledge.ts)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamilyKnowledge"
+
+  /admin/knowledge/build:
+    post:
+      summary: Read the next batch of new answers into the index and refresh personas (admins). Call again while left > 0.
+      operationId: buildKnowledge
+      tags: [Family, Admin]
+      responses:
+        "200":
+          description: What this call did
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [read, personas, left, failures]
+                properties:
+                  read:
+                    type: integer
+                  personas:
+                    type: integer
+                  left:
+                    type: integer
+                  failures:
+                    type: array
+                    items:
+                      type: string
+        "403":
+          description: Not an admin
+
 components:
   schemas:
     # ──────────────────────────────────────────────
@@ -4450,3 +4494,44 @@ components:
         configured:
           type: boolean
           description: False when the deployment has no backups bucket
+
+    FamilyKnowledge:
+      type: object
+      required: [themes, people, stats, unread, builtAt]
+      properties:
+        themes:
+          type: array
+          items:
+            type: object
+            required: [name, kind, people, quotes]
+            properties:
+              name:
+                type: string
+              kind:
+                type: string
+              people:
+                type: array
+                items:
+                  type: string
+              quotes:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    personId:
+                      type: string
+                    says:
+                      type: string
+        people:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties: true
+        stats:
+          type: object
+          additionalProperties: true
+        unread:
+          type: integer
+        builtAt:
+          type: string
+          nullable: true

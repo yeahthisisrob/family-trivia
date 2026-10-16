@@ -13,6 +13,7 @@ import { backupsRoutes } from './features/backups/routes';
 import { familyRoutes } from './features/family/routes';
 import { fillInRoutes } from './features/fill-in/routes';
 import { graphRoutes } from './features/graph/routes';
+import { knowledgeRoutes } from './features/knowledge/routes';
 import { reactionsRoutes } from './features/reactions/routes';
 import { settingsRoutes } from './features/settings/routes';
 import * as adminHandlers from './routes/admin';
@@ -158,6 +159,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...reactionsRoutes,
   ...fillInRoutes,
   ...backupsRoutes,
+  ...knowledgeRoutes,
 
   // ── Public (no auth) ─────────────────────────────────────────
   'POST /auth/google': authGoogle,

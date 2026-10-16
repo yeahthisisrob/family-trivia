@@ -3,7 +3,7 @@
  * app's words, what they said in their own, and what the reader shares with
  * them. Full screen on a phone.
  */
-import type { Likeness, MemberInsight } from '@family-trivia/shared';
+import type { FamilyKnowledge, Likeness, MemberInsight } from '@family-trivia/shared';
 import CloseIcon from '@mui/icons-material/Close';
 import {
   Box,
@@ -28,14 +28,30 @@ import { Face } from './Face';
 
 type TabId = 'about' | 'words' | 'you';
 
-const About: React.FC<{ person: PersonView; dedication?: string }> = ({ person, dedication }) => {
-  const [summary, setSummary] = useState<{ text: string; insights: MemberInsight[] } | null>(null);
+type Known = FamilyKnowledge['people'][string];
+
+const About: React.FC<{ person: PersonView; dedication?: string; known?: Known }> = ({
+  person,
+  dedication,
+  known,
+}) => {
+  const persona = known?.persona;
+  const [summary, setSummary] = useState<{ text: string; insights: MemberInsight[] } | null>(
+    persona
+      ? {
+          text: persona.text,
+          insights: persona.traits.map((t) => ({ text: t, category: 'personality' as const })),
+        }
+      : null,
+  );
   const [failed, setFailed] = useState(false);
   useEffect(() => {
+    // The persona from the family's index comes first; the spotlight summary fills in until there is one.
+    if (persona) return;
     getMemberSummary(person.id, 'regular')
       .then((r) => setSummary({ text: r.summary, insights: r.insights ?? [] }))
       .catch(() => setFailed(true));
-  }, [person.id]);
+  }, [person.id, persona]);
 
   return (
     <Stack spacing={2}>
@@ -66,10 +82,25 @@ const About: React.FC<{ person: PersonView; dedication?: string }> = ({ person, 
           ))}
         </Stack>
       )}
+      {known && known.top.length > 0 && (
+        <Box>
+          <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 0.75 }}>
+            Often talks about
+          </Typography>
+          <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap' }}>
+            {known.top.map((t) => (
+              <Chip key={`${t.kind}:${t.name}`} label={t.name} size="small" variant="outlined" />
+            ))}
+          </Stack>
+        </Box>
+      )}
       <Stack direction="row" sx={{ gap: 3, flexWrap: 'wrap' }}>
         <Fact value={person.facts} label="answers shared" />
         {person.accuracy !== null && <Fact value={`${person.accuracy}%`} label="trivia right" />}
         {person.sinceYear && <Fact value={person.sinceYear} label="playing since" />}
+        {!!known?.stats.bestStreak && known.stats.bestStreak > 1 && (
+          <Fact value={`${known.stats.bestStreak} days`} label="longest run of answers" />
+        )}
       </Stack>
     </Stack>
   );
@@ -172,8 +203,9 @@ export const PersonPage: React.FC<{
   photo?: string;
   dedication?: string;
   likenesses: Likeness[];
+  known?: Known;
   onClose: () => void;
-}> = ({ person, meId, photo, dedication, likenesses, onClose }) => {
+}> = ({ person, meId, photo, dedication, likenesses, known, onClose }) => {
   const theme = useTheme();
   const phone = useMediaQuery(theme.breakpoints.down('sm'));
   const isMe = person.id === meId;
@@ -218,6 +250,7 @@ export const PersonPage: React.FC<{
             size={72}
             photo={photo}
             remembered={person.remembered}
+            ring
           />
           <Box>
             <Typography
@@ -248,7 +281,7 @@ export const PersonPage: React.FC<{
         {!isMe && <Tab value="you" label="You & them" />}
       </Tabs>
       <Box sx={{ p: 3 }}>
-        {tab === 'about' && <About person={person} dedication={dedication} />}
+        {tab === 'about' && <About person={person} dedication={dedication} known={known} />}
         {tab === 'words' && <InTheirWords person={person} />}
         {tab === 'you' && !isMe && (
           <YouAndThem person={person} likeness={likeness} meIsA={likeness?.a === meId} />
