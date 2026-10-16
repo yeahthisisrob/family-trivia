@@ -21,3 +21,4 @@ when the decision is made, so the reason survives the people who made it.
 | [0008](0008-engineering-principles.md) | Engineering principles: Clean Code, DRY, FSD, VSA, OpenAPI-first | Accepted |
 | [0009](0009-people-and-relationships.md) | People and relationships that change over time | Accepted |
 | [0010](0010-seasons-drive-what-is-asked.md) | Seasons decide what is asked, and carry letters | Accepted |
+| [0011](0011-light-dark-and-the-night-surface.md) | Light and dark, one theme per scheme, and a night surface for graphs | Accepted |

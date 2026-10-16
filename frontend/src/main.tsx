@@ -1,12 +1,9 @@
-// File: frontend/src/index.tsx
-import CssBaseline from '@mui/material/CssBaseline';
-import { ThemeProvider } from '@mui/material/styles';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import AppProvider from './AppProvider';
-import theme from './theme';
+import { ColorModeProvider } from './shared/design-system';
 
 const container = document.getElementById('root');
 if (!container) {
@@ -17,10 +14,10 @@ const root = createRoot(container);
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
+      {/* Light or dark: follows the device until someone picks one (ColorModeToggle). */}
+      <ColorModeProvider>
         <AppProvider />
-      </ThemeProvider>
+      </ColorModeProvider>
     </BrowserRouter>
   </React.StrictMode>,
 );
