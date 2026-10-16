@@ -51,16 +51,3 @@ export async function linkGoogleAccount(
 ): Promise<AuthResponse> {
   return authGoogleRaw({ googleIdToken, passphrase });
 }
-
-/**
- * Legacy passphrase validation (kept for first-time linking flow).
- */
-export async function validatePassphrase(
-  userId: string,
-  passphrase: string,
-): Promise<{ valid: boolean }> {
-  return apiService.request<{ valid: boolean }>('/validate-passphrase', {
-    method: 'POST',
-    body: JSON.stringify({ userId, passphrase }),
-  });
-}

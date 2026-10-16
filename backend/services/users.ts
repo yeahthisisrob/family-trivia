@@ -21,6 +21,23 @@ export interface UserConfigData {
   users: Record<string, UserConfig>;
 }
 
+/**
+ * The user config without secrets, safe to send to any signed-in player.
+ * Passphrases are one-time links to a Google account; only admins see them,
+ * through the admin routes.
+ */
+export function toPublicUserConfig(config: UserConfigData): UserConfigData {
+  return {
+    ...config,
+    users: Object.fromEntries(
+      Object.entries(config.users ?? {}).map(([id, { passphrase: _secret, ...rest }]) => [
+        id,
+        rest,
+      ]),
+    ),
+  };
+}
+
 // Cache for user configuration
 let userConfigCache: UserConfigData | null = null;
 let lastCacheTime = 0;

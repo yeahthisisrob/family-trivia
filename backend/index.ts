@@ -2,6 +2,10 @@
 import type { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
 import { CORS_HEADERS, jsonResponse } from './config';
 import { requireAuth } from './middleware/requireAuth';
+
+// Routes where `userId` names the person being looked at, not the caller.
+const SUBJECT = { userId: 'subject' } as const;
+
 // Admin endpoints
 import * as adminHandlers from './routes/admin';
 // Answer grid for trivia status matrix
@@ -124,8 +128,6 @@ import {
 // Upcoming birthdays endpoint
 import { getUpcomingBirthdays } from './routes/upcomingBirthdays';
 import { userProfile } from './routes/userProfile';
-// Import your route-handlers
-import { validatePassphrase } from './routes/validatePassphrase';
 // Weekly fact summary endpoint
 import { getWeeklyFactSummary } from './routes/weeklyFactSummary';
 import { invalidateFactHistoryCache } from './services/factHistoryService';
@@ -137,11 +139,10 @@ import { invalidateS3ReadCache } from './services/s3';
 
 const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   // ── Public (no auth) ─────────────────────────────────────────
-  'POST /validate-passphrase': validatePassphrase,
   'POST /auth/google': authGoogle,
-  'GET /members': listMembers,
 
-  // ── Protected (JWT required, migration fallback for userId) ──
+  // ── Protected: identity comes from the token (middleware/requireAuth.ts) ──
+  'GET /members': requireAuth(listMembers),
   'POST /submit-answer': requireAuth(submitAnswer),
   'GET /daily-fact': requireAuth(getDailyFact),
   'POST /daily-fact': requireAuth(getDailyFact),
@@ -150,10 +151,10 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   'POST /daily-fact-options': requireAuth(getDailyFactOptions),
   'POST /generate-question-options': requireAuth(generateQuestionOptions),
   'GET /recent-shared-questions': requireAuth(getRecentSharedQuestions),
-  'GET /user-fact-history': requireAuth(getUserFactHistory),
+  'GET /user-fact-history': requireAuth(getUserFactHistory, SUBJECT),
   'POST /submit-historical-fact': requireAuth(submitHistoricalFact),
   'GET /leaderboard': requireAuth(leaderboard),
-  'GET /user-profile': requireAuth(userProfile),
+  'GET /user-profile': requireAuth(userProfile, SUBJECT),
   'POST /generate-question': requireAuth(generateQuestion),
   'GET /notifications': requireAuth(getNotificationsHandler),
   'POST /notifications/mark-read': requireAuth(markReadHandler),
@@ -175,7 +176,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   'POST /update-group-description': requireAuth(updateGroupDescription),
   'POST /suggest-group-description': requireAuth(suggestGroupDescription),
   'GET /family-hierarchy': requireAuth(getFamilyHierarchy),
-  'GET /member-summary': requireAuth(getMemberSummary),
+  'GET /member-summary': requireAuth(getMemberSummary, SUBJECT),
   'GET /daily-fact-summary': requireAuth(getWeeklyFactSummary),
   'GET /user-config': requireAuth(getUserConfig),
   'GET /timeline-data': requireAuth(getTimelineData),
@@ -227,36 +228,36 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   'DELETE /photo-albums': requireAuth(deletePhotoAlbum),
 
   // Admin routes — all require auth
-  'GET /admin/players': requireAuth(adminHandlers.getPlayers),
-  'POST /admin/players': requireAuth(adminHandlers.addPlayer),
-  'PUT /admin/players': requireAuth(adminHandlers.updatePlayer),
-  'DELETE /admin/players': requireAuth(adminHandlers.deletePlayer),
-  'GET /admin/groups': requireAuth(adminHandlers.getGroups),
-  'POST /admin/groups': requireAuth(adminHandlers.addGroup),
-  'PUT /admin/groups': requireAuth(adminHandlers.updateGroup),
-  'DELETE /admin/groups': requireAuth(adminHandlers.deleteGroup),
-  'GET /admin/family-tree': requireAuth(adminHandlers.getFamilyTree),
-  'PUT /admin/family-tree': requireAuth(adminHandlers.updateFamilyTree),
-  'GET /admin/seasons': requireAuth(adminHandlers.getSeasons),
-  'POST /admin/seasons': requireAuth(adminHandlers.addSeason),
-  'PUT /admin/seasons': requireAuth(adminHandlers.updateSeason),
-  'DELETE /admin/seasons': requireAuth(adminHandlers.deleteSeason),
-  'GET /admin/user-facts': requireAuth(adminHandlers.getUserFacts),
-  'PUT /admin/user-facts': requireAuth(adminHandlers.updateUserFact),
-  'DELETE /admin/user-facts': requireAuth(adminHandlers.deleteUserFact),
-  'GET /admin/user-trivia': requireAuth(adminHandlers.getUserTrivia),
-  'DELETE /admin/user-trivia': requireAuth(adminHandlers.deleteUserTrivia),
-  'GET /admin/game-sessions': requireAuth(adminHandlers.getGameSessions),
-  'DELETE /admin/game-sessions': requireAuth(adminHandlers.resetGameSession),
-  'GET /admin/daily-questions': requireAuth(adminHandlers.getDailyQuestions),
-  'DELETE /admin/daily-questions': requireAuth(adminHandlers.deleteDailyQuestion),
-  'GET /admin/trivia-bank/stats': requireAuth(triviaBankStats),
-  'GET /admin/trivia-bank/browse': requireAuth(triviaBankBrowse),
-  'DELETE /admin/trivia-bank/question': requireAuth(triviaBankDelete),
-  'POST /admin/trivia-bank/import': requireAuth(triviaBankImport),
-  'GET /admin/family-feud': requireAuth(adminGetFamilyFeud),
-  'DELETE /admin/family-feud': requireAuth(adminResetFamilyFeud),
-  'GET /admin/system-info': requireAuth(getSystemInfo),
+  'GET /admin/players': requireAuth(adminHandlers.getPlayers, SUBJECT),
+  'POST /admin/players': requireAuth(adminHandlers.addPlayer, SUBJECT),
+  'PUT /admin/players': requireAuth(adminHandlers.updatePlayer, SUBJECT),
+  'DELETE /admin/players': requireAuth(adminHandlers.deletePlayer, SUBJECT),
+  'GET /admin/groups': requireAuth(adminHandlers.getGroups, SUBJECT),
+  'POST /admin/groups': requireAuth(adminHandlers.addGroup, SUBJECT),
+  'PUT /admin/groups': requireAuth(adminHandlers.updateGroup, SUBJECT),
+  'DELETE /admin/groups': requireAuth(adminHandlers.deleteGroup, SUBJECT),
+  'GET /admin/family-tree': requireAuth(adminHandlers.getFamilyTree, SUBJECT),
+  'PUT /admin/family-tree': requireAuth(adminHandlers.updateFamilyTree, SUBJECT),
+  'GET /admin/seasons': requireAuth(adminHandlers.getSeasons, SUBJECT),
+  'POST /admin/seasons': requireAuth(adminHandlers.addSeason, SUBJECT),
+  'PUT /admin/seasons': requireAuth(adminHandlers.updateSeason, SUBJECT),
+  'DELETE /admin/seasons': requireAuth(adminHandlers.deleteSeason, SUBJECT),
+  'GET /admin/user-facts': requireAuth(adminHandlers.getUserFacts, SUBJECT),
+  'PUT /admin/user-facts': requireAuth(adminHandlers.updateUserFact, SUBJECT),
+  'DELETE /admin/user-facts': requireAuth(adminHandlers.deleteUserFact, SUBJECT),
+  'GET /admin/user-trivia': requireAuth(adminHandlers.getUserTrivia, SUBJECT),
+  'DELETE /admin/user-trivia': requireAuth(adminHandlers.deleteUserTrivia, SUBJECT),
+  'GET /admin/game-sessions': requireAuth(adminHandlers.getGameSessions, SUBJECT),
+  'DELETE /admin/game-sessions': requireAuth(adminHandlers.resetGameSession, SUBJECT),
+  'GET /admin/daily-questions': requireAuth(adminHandlers.getDailyQuestions, SUBJECT),
+  'DELETE /admin/daily-questions': requireAuth(adminHandlers.deleteDailyQuestion, SUBJECT),
+  'GET /admin/trivia-bank/stats': requireAuth(triviaBankStats, SUBJECT),
+  'GET /admin/trivia-bank/browse': requireAuth(triviaBankBrowse, SUBJECT),
+  'DELETE /admin/trivia-bank/question': requireAuth(triviaBankDelete, SUBJECT),
+  'POST /admin/trivia-bank/import': requireAuth(triviaBankImport, SUBJECT),
+  'GET /admin/family-feud': requireAuth(adminGetFamilyFeud, SUBJECT),
+  'DELETE /admin/family-feud': requireAuth(adminResetFamilyFeud, SUBJECT),
+  'GET /admin/system-info': requireAuth(getSystemInfo, SUBJECT),
 };
 
 export const handler: APIGatewayProxyHandler = async (event) => {

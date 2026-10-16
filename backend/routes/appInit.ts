@@ -12,7 +12,7 @@ import { calculateCatchupStatus, checkPlayEligibility } from '../services/player
 import { getJson, putJson } from '../services/s3';
 import { getSeasonStatusResponse } from '../services/seasonService';
 import { type HierarchyPerson, loadTimeline } from '../services/timelineService';
-import { getUsersInGroup, type UserConfigData } from '../services/users';
+import { getUsersInGroup, toPublicUserConfig, type UserConfigData } from '../services/users';
 
 // Hierarchy types
 interface HierarchyData {
@@ -185,7 +185,7 @@ export async function appInit(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     return successResponse({
       isFirstRun,
-      userConfig: userConfig || null,
+      userConfig: userConfig ? toPublicUserConfig(userConfig) : null,
       hierarchy: hierarchy
         ? {
             hierarchy,
