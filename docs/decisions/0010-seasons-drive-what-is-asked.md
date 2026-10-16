@@ -38,7 +38,14 @@ the family's own words, shown once.
 - Every season can be looked back on (Family › Look back,
   `GET /seasons/review`): its numbers, the questions most of the family
   answered side by side, what was loved, everyone's season, and every day's
-  question with everyone's answers, which saves as a book.
+  question with everyone's answers. A season can be made into a printed
+  book: a 6 × 9 inch PDF a print-on-demand press takes as it is
+  (`features/look-back/book.ts`, EB Garamond embedded under the OFL). Its
+  foreword and chapter openings are written by AI once per season and tone
+  and kept under `books/`; the PDF is kept too and made again only when the
+  season's answers change or someone asks. Nothing is replaced: every PDF is
+  kept beside the input it was set from (answers, people, writing, layout
+  version), and every piece of writing beside the AI's prompt and reply.
 
 ## Consequences
 The season is the one switch for what the app asks: general trivia, family

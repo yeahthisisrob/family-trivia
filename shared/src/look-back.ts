@@ -60,3 +60,52 @@ export interface SeasonReview {
 export const TOGETHER = 5;
 /** How many answers "what we loved" shows. */
 export const LOVED = 6;
+
+/** How the book is written around the family's answers. */
+export type BookTone = 'plain' | 'warm' | 'playful';
+
+export const BOOK_TONES: readonly { id: BookTone; label: string; help: string }[] = [
+  { id: 'plain', label: 'Just our words', help: 'Every answer, nothing added.' },
+  {
+    id: 'warm',
+    label: 'Warm',
+    help: 'A foreword, and a few lines opening each month, written from our answers.',
+  },
+  {
+    id: 'playful',
+    label: 'Playful',
+    help: 'The same, lighter: the running jokes and the surprises.',
+  },
+];
+
+export const isBookTone = (v: unknown): v is BookTone =>
+  typeof v === 'string' && BOOK_TONES.some((t) => t.id === v);
+
+/** What the AI wrote for a season's book: kept, so it's written once per tone. */
+export interface BookWriting {
+  tone: BookTone;
+  foreword: string;
+  /** A few lines opening each month (YYYY-MM). */
+  chapters: Record<string, string>;
+  writtenAt: string;
+}
+
+/** A finished book, ready to download. */
+export interface SeasonBook {
+  url: string;
+  pages: number;
+  tone: BookTone;
+  madeAt: string;
+  /** False when the kept copy was still current and nothing was made. */
+  made: boolean;
+}
+
+/** One book that was made. Every version is kept; none is replaced. */
+export interface BookVersion {
+  tone: BookTone;
+  madeAt: string;
+  pages: number;
+  /** When its writing was written; null for just our words. */
+  writtenAt: string | null;
+  url: string;
+}

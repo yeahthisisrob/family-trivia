@@ -148,6 +148,14 @@ export const AI_TASKS = [
     usage: { callsPerPersonPerDay: 0.02, inputTokens: 2500, outputTokens: 300 },
   },
   {
+    id: 'book',
+    label: 'Season books',
+    description:
+      'Writes the foreword and the few lines that open each month of a season’s book. Once per season and tone; the book is kept.',
+    role: 'writer',
+    usage: { callsPerPersonPerDay: 0.001, inputTokens: 12000, outputTokens: 1500 },
+  },
+  {
     id: 'gameMoves',
     label: 'Game opponents',
     description: 'Plays against you in arcade games.',

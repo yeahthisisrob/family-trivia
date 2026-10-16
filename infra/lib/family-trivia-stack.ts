@@ -104,6 +104,14 @@ export class FamilyTriviaStack extends Stack {
         minify: true,
         sourceMap: false,
         target: 'node22',
+        // The season book embeds its typeface (backend/features/look-back/book.ts).
+        commandHooks: {
+          beforeBundling: () => [],
+          beforeInstall: () => [],
+          afterBundling: (_input: string, output: string) => [
+            `cp -r "${path.join(__dirname, '../../backend/features/look-back/fonts')}" "${output}/fonts"`,
+          ],
+        },
       },
       environment: {
         BUCKET_NAME: triviaBucket.bucketName,
