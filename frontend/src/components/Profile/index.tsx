@@ -5,13 +5,15 @@ import HowToRegIcon from '@mui/icons-material/HowToReg';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { Avatar, Box, Fade, Paper, Typography, useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import React, { useEffect, useState } from 'react';
 import * as api from '../../api';
 import type { UserProfile } from '../../api/modules/user';
 import { useTimeline } from '../../contexts/TimelineContext';
 import { useTrivia } from '../../contexts/TriviaContext';
 import { loadSession } from '../../session';
-import { getUserGroup } from '../../utils';
+import { colors } from '../../shared/design-system';
+import { getUserColor, getUserGroup } from '../../utils';
 import { createLogger } from '../../utils/logger';
 import CustomCategoryForm from '../CustomCategoryForm';
 import { computePoints } from '../Leaderboard/utils';
@@ -199,22 +201,6 @@ const Profile: React.FC<ProfileProps> = ({
   const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
   const score = history.reduce((sum, item) => (item.correct ? sum + computePoints(item) : sum), 0);
 
-  // Helper to pick avatar color
-  const getUserColor = (id: string) => {
-    const colors = [
-      '#1976d2',
-      '#388e3c',
-      '#d32f2f',
-      '#7b1fa2',
-      '#c2185b',
-      '#0288d1',
-      '#fbc02d',
-      '#455a64',
-    ];
-    const hash = id.split('').reduce((s, c) => s + c.charCodeAt(0), 0);
-    return colors[hash % colors.length];
-  };
-
   // Initials helper
   const getUserInitials = (id: string) => {
     const parts = id.split(/[-_ ]/);
@@ -245,7 +231,7 @@ const Profile: React.FC<ProfileProps> = ({
               px: { xs: 2, sm: 3 },
               pb: { xs: 2, sm: 3 },
               bgcolor: theme.palette.primary.main,
-              color: 'white',
+              color: theme.palette.primary.contrastText,
               borderBottom: `4px solid ${getUserColor(userId)}`,
             }}
           >
@@ -262,8 +248,8 @@ const Profile: React.FC<ProfileProps> = ({
                 sx={{
                   width: { xs: 80, sm: 88 },
                   height: { xs: 80, sm: 88 },
-                  border: '3px solid white',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  border: `3px solid ${theme.palette.primary.contrastText}`,
+                  boxShadow: `0 4px 12px ${alpha(colors.scrim, 0.15)}`,
                   bgcolor: getUserColor(userId),
                   fontSize: '2rem',
                   fontWeight: 'bold',
@@ -292,7 +278,7 @@ const Profile: React.FC<ProfileProps> = ({
                       borderRadius: 1,
                       py: 0.5,
                       px: 1,
-                      bgcolor: 'rgba(255,255,255,0.15)',
+                      bgcolor: alpha(theme.palette.primary.contrastText, 0.15),
                       fontWeight: 'medium',
                     }}
                   >
@@ -422,7 +408,7 @@ const Profile: React.FC<ProfileProps> = ({
                         fontWeight: 'bold',
                         display: 'flex',
                         alignItems: 'center',
-                        color: '#ff9800',
+                        color: 'warning.light',
                       }}
                     >
                       <LocalFireDepartmentIcon sx={{ mr: 0.3, fontSize: '0.8em' }} />

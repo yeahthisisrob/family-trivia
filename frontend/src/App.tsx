@@ -15,7 +15,7 @@ import { LeaderboardProvider } from './contexts/LeaderboardContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { appearanceApi } from './entities/appearance';
 import { ROUTES, useApp } from './hooks/useApp';
-import { useAppearance } from './shared/design-system';
+import { colors, tint, useAppearance } from './shared/design-system';
 import { createLogger } from './utils/logger';
 
 // Lazy-loaded: these chunks are deferred until the route is first visited
@@ -186,9 +186,9 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
             p: 2,
             mb: 2,
             borderRadius: 2,
-            bgcolor: 'rgba(255, 152, 0, 0.06)',
+            bgcolor: tint(colors.brand.secondary, 0.06),
             border: 1,
-            borderColor: 'rgba(255, 152, 0, 0.15)',
+            borderColor: tint(colors.brand.secondary, 0.15),
           }}
         >
           <Typography variant="subtitle2" color="secondary" sx={{ fontWeight: 600 }}>

@@ -8,6 +8,7 @@ import type {
   UserProfile,
 } from '@family-trivia/shared';
 import { apiService } from '../../services/ApiService';
+import { identityColor } from '../../shared/design-system';
 import { createLogger } from '../../utils/logger';
 
 // ── Type re-exports ────────────────────────────────────────────────
@@ -59,20 +60,10 @@ export function getUserGroup(userConfig: UserConfigResponse, userId: string): st
 }
 
 /**
- * Get user color based on userId
+ * Get user color: the one set in config, else the person's identity color.
  */
 export function getUserColor(userConfig: UserConfigResponse, userId: string): string {
-  // If user exists in config, return their color
-  if (userConfig.users[userId]?.color) {
-    return userConfig.users[userId].color;
-  }
-
-  // Fallback to the original algorithm if user not found in config
-  const USER_COLORS = ['#FF5722', '#4CAF50', '#2196F3', '#9C27B0', '#FFC107', '#E91E63', '#00BCD4'];
-
-  const idx =
-    userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % USER_COLORS.length;
-  return USER_COLORS[idx];
+  return userConfig.users[userId]?.color || identityColor(userId);
 }
 
 // ── Profile ────────────────────────────────────────────────────────

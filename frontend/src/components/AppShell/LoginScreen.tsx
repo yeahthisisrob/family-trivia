@@ -141,7 +141,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate })
               sx={{
                 borderRadius: 3,
                 overflow: 'hidden',
-                boxShadow: `0 4px 20px ${alpha('#000', 0.08)}`,
+                boxShadow: `0 4px 20px ${alpha(colors.scrim, 0.08)}`,
               }}
             >
               <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>

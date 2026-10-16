@@ -5,7 +5,8 @@ import { alpha } from '@mui/material/styles';
 import { motion } from 'framer-motion';
 import type React from 'react';
 import { colors as dsColors } from '../../shared/design-system/tokens/colors';
-import { getUserColor, getUserInitials } from './utils';
+import { getUserColor } from '../../utils';
+import { getUserInitials } from './utils';
 
 interface PodiumPlayer {
   userId: string;
@@ -88,7 +89,7 @@ const PodiumStep: React.FC<{
               left: '50%',
               transform: 'translateX(-50%)',
               bgcolor: medal.color,
-              color: position === 'first' ? '#5a3d00' : '#fff',
+              color: position === 'first' ? dsColors.accent.brown : dsColors.onColor,
               fontSize: '0.55rem',
               fontWeight: 800,
               lineHeight: 1,

@@ -12,22 +12,6 @@ export const getUserInitials = (userId: string): string => {
     : userId.slice(0, 2).toUpperCase();
 };
 
-/** Helper to get consistent color for a user */
-export const getUserColor = (userId: string): string => {
-  const colors = [
-    '#1976d2',
-    '#388e3c',
-    '#d32f2f',
-    '#7b1fa2',
-    '#c2185b',
-    '#0288d1',
-    '#fbc02d',
-    '#455a64',
-  ];
-  const hash = userId.split('').reduce((s, c) => s + c.charCodeAt(0), 0);
-  return colors[hash % colors.length];
-};
-
 /** Represents a single question history entry */
 export interface QuestionHistory {
   question: {

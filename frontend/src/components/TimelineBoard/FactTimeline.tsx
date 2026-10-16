@@ -4,6 +4,7 @@ import { alpha } from '@mui/material/styles';
 import { format, isToday, isYesterday, parseISO } from 'date-fns';
 import type React from 'react';
 import { useMemo } from 'react';
+import { getUserColor } from '../../utils';
 import { shouldIncludeInFamilySide } from '../../utils/familyUtils';
 import { createLogger } from '../../utils/logger';
 import FactComments from './FactComments';
@@ -55,22 +56,6 @@ const FactTimeline: React.FC<FactTimelineProps> = ({
         : facts.filter((fact) => shouldIncludeInFamilySide(fact.userId, selectedSide)),
     [facts, selectedSide],
   );
-
-  // Get user color - utility function
-  const getUserColor = (userId: string) => {
-    const colors = [
-      '#1976d2',
-      '#388e3c',
-      '#d32f2f',
-      '#7b1fa2',
-      '#c2185b',
-      '#0288d1',
-      '#fbc02d',
-      '#455a64',
-    ];
-    const sum = userId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    return colors[sum % colors.length];
-  };
 
   // Get user initials - utility function
   const getUserInitials = (userId: string) => {

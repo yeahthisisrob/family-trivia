@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import type { MemberStatus } from '../../api';
 import { useTimeline } from '../../contexts/TimelineContext';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
+import { colors } from '../../shared/design-system';
 import { getUserColor, getUserInitials } from '../../utils';
 import type { FamilySide } from '../../utils/familyUtils';
 import { LoadingDots } from '../ui/feedback';
@@ -120,7 +121,7 @@ const TimelineBoardOptimized: React.FC<TimelineBoardOptimizedProps> = ({
         overflow: 'hidden',
         border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
         borderRadius: 3,
-        boxShadow: `0 2px 12px ${alpha('#000', 0.06)}`,
+        boxShadow: `0 2px 12px ${alpha(colors.scrim, 0.06)}`,
       }}
     >
       {/* Header */}

@@ -8,6 +8,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import { Avatar, Box, Card, Chip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
+import { colors } from '../../shared/design-system';
 
 interface FeudGuess {
   userName: string;
@@ -194,8 +195,10 @@ const FamilyFeudTimelineCard: React.FC<FamilyFeudTimelineCardProps> = ({
                 {/* Right side: trophy+points for correct, X for wrong */}
                 {g.correct ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.2 }}>
-                    <EmojiEventsIcon sx={{ fontSize: 13, color: '#B8860B' }} />
-                    <Typography sx={{ fontSize: '0.55rem', fontWeight: 700, color: '#B8860B' }}>
+                    <EmojiEventsIcon sx={{ fontSize: 13, color: colors.accent.amber }} />
+                    <Typography
+                      sx={{ fontSize: '0.55rem', fontWeight: 700, color: colors.accent.amber }}
+                    >
                       +2
                     </Typography>
                     <CheckCircleIcon

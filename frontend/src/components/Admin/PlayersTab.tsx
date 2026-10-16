@@ -30,6 +30,7 @@ import {
 import type React from 'react';
 import { useState } from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
+import { colors } from '../../shared/design-system';
 import AdminCard from './shared/AdminCard';
 import ConfirmDialog from './shared/ConfirmDialog';
 import EmptyState from './shared/EmptyState';
@@ -45,7 +46,7 @@ interface PlayerForm {
 const EMPTY_FORM: PlayerForm = {
   userId: '',
   group: '',
-  color: '#4CAF50',
+  color: colors.user[1],
   passphrase: '',
   isAdmin: false,
 };
@@ -167,7 +168,7 @@ const PlayersTab: React.FC = () => {
                       borderRadius: '50%',
                       flexShrink: 0,
                       bgcolor: p.color,
-                      border: `1px solid ${alpha('#000', 0.15)}`,
+                      border: `1px solid ${alpha(colors.scrim, 0.15)}`,
                     }}
                   />
                   <Chip

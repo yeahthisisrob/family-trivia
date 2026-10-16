@@ -3,8 +3,8 @@ import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useEffect, useMemo } from 'react';
-
 import { useFamilyData } from '../../../contexts/FamilyDataContext';
+import { colors } from '../../../shared/design-system';
 import { getFamilySides } from '../../../utils/familyUtils';
 
 interface FamilySideSelectorProps {
@@ -50,7 +50,7 @@ const FamilySideSelector: React.FC<FamilySideSelectorProps> = ({ value, onChange
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               bgcolor: isActive ? theme.palette.background.paper : 'transparent',
-              boxShadow: isActive ? `0 1px 3px ${alpha('#000', 0.08)}` : 'none',
+              boxShadow: isActive ? `0 1px 3px ${alpha(colors.scrim, 0.08)}` : 'none',
               borderBottom: isActive ? `2px solid ${side.color}` : '2px solid transparent',
               '&:hover': !isActive ? { bgcolor: alpha(theme.palette.background.paper, 0.5) } : {},
             }}

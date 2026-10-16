@@ -39,6 +39,7 @@ import {
 } from '../../api/modules/admin';
 import { adminGetFamilyFeud, adminResetFamilyFeud } from '../../api/modules/familyFeud';
 import { useAdmin } from '../../contexts/AdminContext';
+import { colors } from '../../shared/design-system';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
 import AdminCard from './shared/AdminCard';
@@ -376,7 +377,7 @@ const DataTab: React.FC = () => {
                         {fact.question || '-'}
                       </Typography>
                       <Typography sx={{ fontSize: '0.82rem' }}>
-                        {fact.answer || <em style={{ color: '#999' }}>No answer</em>}
+                        {fact.answer || <em style={{ color: colors.text.disabled }}>No answer</em>}
                       </Typography>
                     </AdminCard>
                   );

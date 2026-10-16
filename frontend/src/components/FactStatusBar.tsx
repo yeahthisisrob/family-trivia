@@ -6,10 +6,14 @@ import { alpha, Box, Divider, keyframes, Typography, useTheme } from '@mui/mater
 import React, { useEffect, useRef, useState } from 'react';
 
 import { apiService } from '../services/ApiService';
+import { colors } from '../shared/design-system';
 
-const catchupPulse = keyframes`
-  0%, 100% { transform: scale(1); background-color: rgba(158,158,158,0.25); box-shadow: none; }
-  50% { transform: scale(1.15); background-color: rgba(156,39,176,0.45); box-shadow: 0 0 6px 2px rgba(156,39,176,0.25); }
+const ANSWERED = colors.accent.blue;
+const CATCHUP = colors.accent.purple;
+
+const catchupPulse = (gap: string) => keyframes`
+  0%, 100% { transform: scale(1); background-color: ${gap}; box-shadow: none; }
+  50% { transform: scale(1.15); background-color: ${alpha(CATCHUP, 0.45)}; box-shadow: 0 0 6px 2px ${alpha(CATCHUP, 0.25)}; }
 `;
 
 interface FactStatusBarProps {
@@ -42,6 +46,8 @@ const NAME_W = 56;
 
 const FactStatusBar: React.FC<FactStatusBarProps> = ({ userId }) => {
   const theme = useTheme();
+  const gapColor = alpha(theme.palette.grey[500], 0.25);
+  const gapPulse = catchupPulse(gapColor);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [grid, setGrid] = useState<FactGridData | null>(null);
@@ -241,17 +247,17 @@ const FactStatusBar: React.FC<FactStatusBarProps> = ({ userId }) => {
                             // Blue = answered, grey = skipped, purple pulse = catch-up
                             bgcolor:
                               c.result === true
-                                ? '#2196f3'
+                                ? ANSWERED
                                 : c.result === false
                                   ? alpha(theme.palette.text.disabled, 0.25)
                                   : isActiveGap
                                     ? isMe
-                                      ? 'rgba(158,158,158,0.25)'
-                                      : 'rgba(158,158,158,0.15)'
+                                      ? gapColor
+                                      : alpha(theme.palette.grey[500], 0.15)
                                     : 'transparent',
                             ...(isMe &&
                               isActiveGap && {
-                                animation: `${catchupPulse} 1.8s ease-in-out infinite`,
+                                animation: `${gapPulse} 1.8s ease-in-out infinite`,
                                 animationDelay: `${(ci % 4) * 0.15}s`,
                               }),
                           }}
@@ -268,9 +274,9 @@ const FactStatusBar: React.FC<FactStatusBarProps> = ({ userId }) => {
       {/* Legend */}
       <Box sx={{ display: 'flex', gap: 1.5, mt: 0.75, ml: `${NAME_W}px`, flexWrap: 'wrap' }}>
         {[
-          { color: '#2196f3', label: 'Answered' },
+          { color: ANSWERED, label: 'Answered' },
           { color: alpha(theme.palette.text.disabled, 0.25), label: 'Skipped' },
-          { color: 'rgba(158,158,158,0.25)', label: 'Catch-up' },
+          { color: gapColor, label: 'Catch-up' },
         ].map((item) => (
           <Box key={item.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
             <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: item.color }} />

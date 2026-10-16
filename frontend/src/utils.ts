@@ -1,23 +1,12 @@
 // File: frontend/src/utils.ts
 import type { UserConfigResponse } from './api/modules/user';
 import { cacheService } from './services/CacheService';
+import { identityColor } from './shared/design-system';
 
-// Get user color from config or fall back to algorithm
+// A color set in user config wins; otherwise the person's identity color.
 export function getUserColor(userId: string): string {
-  // Try to get from cache first
   const userConfig = cacheService.get<UserConfigResponse>('user-config');
-
-  if (userConfig?.users[userId]?.color) {
-    // If user found in config, return their color
-    return userConfig.users[userId].color;
-  }
-
-  // Fallback to original algorithm
-  const USER_COLORS = ['#FF5722', '#4CAF50', '#2196F3', '#9C27B0', '#FFC107', '#E91E63', '#00BCD4'];
-
-  const idx =
-    userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % USER_COLORS.length;
-  return USER_COLORS[idx];
+  return userConfig?.users[userId]?.color || identityColor(userId);
 }
 
 /**

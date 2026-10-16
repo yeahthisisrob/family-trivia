@@ -2,6 +2,7 @@
 import { Chip, useMediaQuery, useTheme } from '@mui/material';
 import type React from 'react';
 
+import { colors } from '../../shared/design-system';
 import { getCategoryColor, isCustomCategory } from '../../utils/categoryUtils';
 
 interface CategoryChipProps {
@@ -36,7 +37,7 @@ const CategoryChip: React.FC<CategoryChipProps> = ({ category, score, size: prop
 
   // Get the color (for custom categories, use a fixed color)
   // Always use CUSTOM_CATEGORY_COLOR from categoryUtils.ts for consistency
-  const chipColor = isCustomCat ? '#9C27B0' : getCategoryColor(category);
+  const chipColor = isCustomCat ? colors.category.custom : getCategoryColor(category);
 
   return (
     <Chip
@@ -44,7 +45,7 @@ const CategoryChip: React.FC<CategoryChipProps> = ({ category, score, size: prop
       size={size}
       sx={{
         bgcolor: chipColor,
-        color: 'white',
+        color: colors.onColor,
         fontWeight: 'bold',
         height: size === 'small' ? 24 : 32,
         fontSize: size === 'small' ? '0.75rem' : '0.9rem',

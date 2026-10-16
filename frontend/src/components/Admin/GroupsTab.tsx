@@ -26,6 +26,7 @@ import type React from 'react';
 import { useState } from 'react';
 
 import { useAdmin } from '../../contexts/AdminContext';
+import { colors } from '../../shared/design-system';
 
 interface GroupForm {
   groupId: string;
@@ -173,7 +174,7 @@ const GroupsTab: React.FC = () => {
                       <Chip
                         label={sideData.name}
                         size="small"
-                        sx={{ bgcolor: sideData.color, color: '#fff' }}
+                        sx={{ bgcolor: sideData.color, color: colors.onColor }}
                       />
                     )}
                   </Box>

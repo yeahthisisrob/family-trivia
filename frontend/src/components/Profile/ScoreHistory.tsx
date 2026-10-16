@@ -23,6 +23,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
+import { colors } from '../../shared/design-system';
 
 interface ScoreHistoryEntry {
   date: string;
@@ -50,11 +51,11 @@ interface ScoreHistoryProps {
 const getDifficultyColor = (difficulty: string) => {
   switch (difficulty?.toLowerCase()) {
     case 'easy':
-      return '#4caf50';
+      return colors.difficulty.easy;
     case 'hard':
-      return '#f44336';
+      return colors.difficulty.hard;
     default:
-      return '#ff9800';
+      return colors.accent.orange;
   }
 };
 

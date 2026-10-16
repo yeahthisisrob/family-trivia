@@ -6,6 +6,7 @@ import { alpha } from '@mui/material/styles';
 import type React from 'react';
 
 import type { FamilyHierarchy } from '../../api';
+import { colors as dsColors } from '../../shared/design-system/tokens/colors';
 import { shadows } from '../../shared/design-system/tokens/shadows';
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -47,8 +48,8 @@ const VLine: React.FC<{ color: string; height?: number }> = ({ color, height = 2
 
 /** Horizontal T-branch splitting left and right to each side */
 const TBranch: React.FC<{ colors: string[] }> = ({ colors }) => {
-  const left = colors[0] || '#999';
-  const right = colors[1] || colors[0] || '#999';
+  const left = colors[0] || dsColors.familySide.neutral;
+  const right = colors[1] || colors[0] || dsColors.familySide.neutral;
   return (
     <Box sx={{ display: 'flex', alignItems: 'flex-start', mx: 2 }}>
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -113,7 +114,7 @@ const PersonBadge: React.FC<{
         fontSize: compact ? '0.5rem' : '0.6rem',
         fontWeight: 700,
         bgcolor: isCurrentUser ? color.main : alpha(color.main, 0.15),
-        color: isCurrentUser ? '#fff' : color.main,
+        color: isCurrentUser ? dsColors.onColor : color.main,
       }}
     >
       {initials(name)}
@@ -167,7 +168,7 @@ const CoupleBadge: React.FC<{
         top: -5,
         right: 8,
         fontSize: 11,
-        color: '#e91e63',
+        color: dsColors.accent.pink,
         bgcolor: 'background.paper',
         borderRadius: '50%',
         p: '1px',

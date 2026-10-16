@@ -5,6 +5,7 @@ import QuizIcon from '@mui/icons-material/Quiz';
 import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
+import { colors } from '../../../shared/design-system';
 
 export const CONTENT_TYPES = {
   funFacts: { id: 'funFacts', label: 'Facts', icon: AutoStoriesIcon },
@@ -52,7 +53,7 @@ const ContentTypeSelector: React.FC<ContentTypeSelectorProps> = ({ value, onChan
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               bgcolor: isActive ? theme.palette.background.paper : 'transparent',
-              boxShadow: isActive ? `0 1px 3px ${alpha('#000', 0.1)}` : 'none',
+              boxShadow: isActive ? `0 1px 3px ${alpha(colors.scrim, 0.1)}` : 'none',
               '&:hover': !isActive ? { bgcolor: alpha(theme.palette.background.paper, 0.5) } : {},
             }}
           >
