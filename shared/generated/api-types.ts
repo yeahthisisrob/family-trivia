@@ -1506,6 +1506,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/family/remembering": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A remembered person's page, everything they told the family and what it loved most */
+        get: operations["getRemembering"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/family/words": {
         parameters: {
             query?: never;
@@ -1978,8 +1995,32 @@ export interface components {
             timestamp: string;
             parentId?: string;
         };
+        Remembering: {
+            personId: string;
+            words: {
+                /** @description {personId}_{timestamp}, what comments and reactions hang on */
+                id: string;
+                question: string;
+                answer: string;
+                date: string;
+            }[];
+            last: string[];
+            loved: {
+                id: string;
+                reactions: number;
+                comments: number;
+            }[];
+            trivia: {
+                played: number;
+                right: number;
+            };
+            span: {
+                first: string | null;
+                last: string | null;
+            };
+        };
         /** @enum {string} */
-        CommentContentType: "fact" | "trivia" | "album" | "arcade";
+        CommentContentType: "fact" | "trivia" | "album" | "arcade" | "memorial";
         CommentThread: {
             contentType: components["schemas"]["CommentContentType"];
             contentId: string;
@@ -5202,6 +5243,35 @@ export interface operations {
             };
             /** @description The AI model could not write it right now */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getRemembering: {
+        parameters: {
+            query: {
+                personId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Their words, oldest first, with the last few and the most loved picked out */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Remembering"];
+                };
+            };
+            /** @description Not someone the family remembers */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
