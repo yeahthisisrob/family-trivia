@@ -42,6 +42,11 @@ export function useApp({ onUserChange, onAuthChange }: UseAppOptions) {
   const debugPromptFromUrl =
     isDebug && new URLSearchParams(window.location.search).get('debug-prompt') === 'true';
 
+  // Old links to the Photos tab land on Family, where albums live now.
+  useEffect(() => {
+    if (location.pathname === ROUTES.PHOTOS) navigate(ROUTES.FAMILY, { replace: true });
+  }, [location.pathname, navigate]);
+
   // Derive profileUser from URL
   const profileUserFromUrl = useMemo(() => {
     const match = location.pathname.match(/^\/profile\/(.+)$/);

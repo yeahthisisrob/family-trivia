@@ -1,9 +1,7 @@
 import type { NotificationItem } from '@family-trivia/shared';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import LogoutIcon from '@mui/icons-material/Logout';
-import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded';
 import QuizIcon from '@mui/icons-material/Quiz';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
@@ -33,9 +31,7 @@ interface AppHeaderProps {
 const NAV_ITEMS = [
   { label: 'Home', icon: HomeRoundedIcon, path: ROUTES.HOME },
   { label: 'Trivia', icon: QuizIcon, path: ROUTES.PLAY },
-  { label: 'Leaderboard', icon: EmojiEventsIcon, path: ROUTES.LEADERBOARD },
   { label: 'Family', icon: Diversity3Icon, path: ROUTES.FAMILY },
-  { label: 'Photos', icon: PhotoLibraryRoundedIcon, path: ROUTES.PHOTOS },
   { label: 'Arcade', icon: SportsEsportsIcon, path: ROUTES.ARCADE },
 ];
 
@@ -137,53 +133,53 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           bgcolor: alpha(colors.scrim, 0.08),
         }}
       >
-        {NAV_ITEMS.filter(
-          (n) =>
-            (n.path !== ROUTES.PHOTOS || features.photos) &&
-            (n.path !== ROUTES.ARCADE || features.arcade),
-        ).map(({ label, icon: Icon, path }) => {
-          const isActive = currentPath === path;
-          return (
-            <Box
-              key={path}
-              onClick={() => onNavigate(path)}
-              sx={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 0.2,
-                py: { xs: 0.6, sm: 0.75 },
-                mt: 0.5,
-                borderRadius: 1.5,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                bgcolor: isActive ? activeBg : 'transparent',
-                '&:hover': !isActive ? { bgcolor: tint(onHeader, 0.07) } : {},
-              }}
-            >
-              <Icon
+        {NAV_ITEMS.filter((n) => n.path !== ROUTES.ARCADE || features.arcade).map(
+          ({ label, icon: Icon, path }) => {
+            // The leaderboard lives inside the Trivia tab.
+            const isActive =
+              currentPath === path || (path === ROUTES.PLAY && currentPath === ROUTES.LEADERBOARD);
+            return (
+              <Box
+                key={path}
+                onClick={() => onNavigate(path)}
                 sx={{
-                  fontSize: { xs: 19, sm: 21 },
-                  color: isActive ? activeText : inactiveIcon,
-                  transition: 'color 0.2s',
-                }}
-              />
-              <Typography
-                sx={{
-                  fontSize: { xs: '0.6rem', sm: '0.65rem' },
-                  fontWeight: isActive ? 700 : 500,
-                  color: isActive ? activeText : inactiveText,
-                  letterSpacing: 0.2,
-                  transition: 'all 0.2s',
-                  lineHeight: 1,
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 0.2,
+                  py: { xs: 0.6, sm: 0.75 },
+                  mt: 0.5,
+                  borderRadius: 1.5,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  bgcolor: isActive ? activeBg : 'transparent',
+                  '&:hover': !isActive ? { bgcolor: tint(onHeader, 0.07) } : {},
                 }}
               >
-                {label}
-              </Typography>
-            </Box>
-          );
-        })}
+                <Icon
+                  sx={{
+                    fontSize: { xs: 19, sm: 21 },
+                    color: isActive ? activeText : inactiveIcon,
+                    transition: 'color 0.2s',
+                  }}
+                />
+                <Typography
+                  sx={{
+                    fontSize: { xs: '0.6rem', sm: '0.65rem' },
+                    fontWeight: isActive ? 700 : 500,
+                    color: isActive ? activeText : inactiveText,
+                    letterSpacing: 0.2,
+                    transition: 'all 0.2s',
+                    lineHeight: 1,
+                  }}
+                >
+                  {label}
+                </Typography>
+              </Box>
+            );
+          },
+        )}
       </Box>
 
       {/* Loading dots */}

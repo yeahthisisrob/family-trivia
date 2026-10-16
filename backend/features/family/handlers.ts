@@ -14,6 +14,7 @@ import { loadFamily } from '../../services/family/roster';
 import { logger } from '../../services/logger';
 import { isMediaKey, readUrl } from '../../services/media';
 import { getJson, putJson } from '../../services/s3';
+import { readStory, writeStory } from './story';
 
 /** Photo keys in the family, signed for display. */
 async function photoUrls(family: Family): Promise<Record<string, string>> {
@@ -68,4 +69,53 @@ export async function saveFamily(
     ties: family.ties.length,
   });
   return successResponse({ family, photoUrls: await photoUrls(family) });
+}
+
+/** GET /family/story: the family's story (cached) and its numbers. */
+export async function getFamilyStory(_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  return successResponse(await readStory(await loadFamily()));
+}
+
+/** POST /admin/family/story: write the story again from the family's latest answers. */
+export async function refreshFamilyStory(
+  _event: APIGatewayProxyEvent,
+  userId: string,
+): Promise<APIGatewayProxyResult> {
+  const denied = await requireAdmin(userId);
+  if (denied) return errorResponse(denied, 403);
+  try {
+    return successResponse(await writeStory(await loadFamily()));
+  } catch (err) {
+    logger.error('Family story failed', {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    return errorResponse('The story could not be written right now. Try again in a moment.', 503);
+  }
+}
+
+interface WordsEntry {
+  date?: string;
+  question?: string;
+  answer?: string;
+  skipped?: boolean;
+  questionType?: string;
+  timestamp?: string;
+}
+
+/** GET /family/words?personId=: someone's answers in their own words, newest first. */
+export async function getWords(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const id = event.queryStringParameters?.personId ?? '';
+  const family = await loadFamily();
+  if (!family.people[id]) return errorResponse('Unknown person', 404);
+  const facts = (await getJson<WordsEntry[]>(`facts/answers/${id}.json`)) ?? [];
+  const words = facts
+    .filter((f) => f.answer?.trim() && !f.skipped && f.questionType !== 'basic' && f.question)
+    .sort((a, b) => (b.date ?? b.timestamp ?? '').localeCompare(a.date ?? a.timestamp ?? ''))
+    .slice(0, 60)
+    .map((f) => ({
+      question: f.question,
+      answer: f.answer,
+      date: f.date ?? f.timestamp?.slice(0, 10) ?? null,
+    }));
+  return successResponse({ personId: id, words });
 }

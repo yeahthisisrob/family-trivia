@@ -21,8 +21,8 @@ import {
 import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D, { type ForceGraphMethods } from 'react-force-graph-2d';
+import type { GraphData } from '../../../entities/family';
 import { colors, identityColor } from '../../../shared/design-system';
-import type { GraphData } from '../api/graphApi';
 import {
   asFamily,
   buildGraph,
