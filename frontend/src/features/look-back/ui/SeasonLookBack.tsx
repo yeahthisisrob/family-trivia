@@ -2,7 +2,8 @@
  * Looking back on a season. Top to bottom by what the family comes back
  * for: which season and its numbers, the questions most of us answered with
  * everyone's answers side by side, what we loved, everyone's season, then
- * every day's question, month by month. The whole season saves as a book.
+ * every day's question, month by month. The season can be made into a
+ * printed book (BookDialog).
  */
 import type { BookPage, SeasonReview } from '@family-trivia/shared';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
@@ -24,7 +25,8 @@ import { useFamily } from '../../../entities/family';
 import { identityColor } from '../../../shared/design-system';
 import { dayName, monthName } from '../../../shared/keepsake';
 import { lookBackApi } from '../api/lookBackApi';
-import { saveBook, seasonDates } from '../model/book';
+import { seasonDates } from '../model/dates';
+import { BookDialog } from './BookDialog';
 
 const FIRST_MONTHS = 1;
 const plural = (n: number, one: string) => `${n.toLocaleString()} ${n === 1 ? one : `${one}s`}`;
@@ -74,6 +76,7 @@ export const SeasonLookBack: React.FC<{ onOpenPerson?: (id: string) => void }> =
   const [review, setReview] = useState<SeasonReview | null>(null);
   const [failed, setFailed] = useState(false);
   const [allMonths, setAllMonths] = useState(false);
+  const [bookOpen, setBookOpen] = useState(false);
 
   useEffect(() => {
     setReview(null);
@@ -147,9 +150,9 @@ export const SeasonLookBack: React.FC<{ onOpenPerson?: (id: string) => void }> =
             <Button
               variant="contained"
               startIcon={<AutoStoriesIcon />}
-              onClick={() => saveBook(review, family?.name ?? 'Our family', nameOf)}
+              onClick={() => setBookOpen(true)}
             >
-              Save the season as a book
+              Make it a book
             </Button>
           </Box>
         )}
@@ -283,6 +286,7 @@ export const SeasonLookBack: React.FC<{ onOpenPerson?: (id: string) => void }> =
           )}
         </Section>
       )}
+      {bookOpen && <BookDialog season={review.season} onClose={() => setBookOpen(false)} />}
     </Stack>
   );
 };

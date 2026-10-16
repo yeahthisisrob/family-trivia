@@ -69,14 +69,29 @@ export async function buildSeasonReview(season: Season, all: Season[]): Promise<
     ).then((pairs) => new Map(pairs)),
   ]);
 
-  // The day's shared question, everyone's answer to it.
+  // The day's shared question, everyone's answer to it. A question from
+  // before the season, answered during it, sits on the day it was first
+  // answered, so the season's months hold only the season.
   const pages = new Map<string, BookPage>();
+  const latest = new Map<string, string>();
   for (const a of answers) {
     if (a.entry.questionType !== 'shared') continue;
-    const date = a.entry.date || dayOf(a.entry.timestamp);
-    const key = `${date}|${a.entry.question}`;
-    const page = pages.get(key) ?? { date, question: a.entry.question, answers: [] };
-    page.answers.push({ personId: a.personId, answer: a.entry.answer.trim() });
+    const asked = a.entry.date || dayOf(a.entry.timestamp);
+    const key = `${asked}|${a.entry.question}`;
+    const answered = dayOf(a.entry.timestamp);
+    const page = pages.get(key) ?? {
+      date: inSeason(asked) ? asked : answered,
+      question: a.entry.question,
+      answers: [],
+    };
+    if (!inSeason(asked) && answered < page.date) page.date = answered;
+    // One answer per person per question: the latest, if they answered twice.
+    const said = { personId: a.personId, answer: a.entry.answer.trim() };
+    const before = page.answers.findIndex((x) => x.personId === a.personId);
+    if (before < 0) page.answers.push(said);
+    else if (a.entry.timestamp > (latest.get(`${key}|${a.personId}`) ?? ''))
+      page.answers[before] = said;
+    latest.set(`${key}|${a.personId}`, a.entry.timestamp);
     pages.set(key, page);
   }
   const book = [...pages.values()].sort((a, b) => a.date.localeCompare(b.date));

@@ -1,5 +1,14 @@
-import type { SeasonReview } from '@family-trivia/shared';
+import type {
+  BookTone,
+  BookVersion,
+  BookWriting,
+  SeasonBook,
+  SeasonReview,
+} from '@family-trivia/shared';
 import { apiService } from '../../../services/ApiService';
+
+const post = <T>(path: string, body: unknown) =>
+  apiService.request<T>(path, { method: 'POST', body: JSON.stringify(body) }, undefined, true);
 
 export const lookBackApi = {
   review: (season?: number) =>
@@ -8,4 +17,20 @@ export const lookBackApi = {
       { method: 'GET' },
       `season_review_${season ?? 'latest'}`,
     ),
+  /** The foreword and chapter openings: written once per tone, unless asked fresh. */
+  writeBook: (season: number, tone: BookTone, fresh = false) =>
+    post<{ writing: BookWriting | null }>('/seasons/book/writing', { season, tone, fresh }),
+  /** The print-ready PDF: kept until the season's answers change, unless asked fresh. */
+  makeBook: (season: number, tone: BookTone, fresh = false) =>
+    post<SeasonBook>('/seasons/book', { season, tone, fresh }),
+  /** Every book made for the season; none is ever replaced. */
+  versions: (season: number) =>
+    apiService
+      .request<{ versions: BookVersion[] }>(
+        `/seasons/book/versions?season=${season}`,
+        { method: 'GET' },
+        undefined,
+        true,
+      )
+      .then((r) => r.versions),
 };

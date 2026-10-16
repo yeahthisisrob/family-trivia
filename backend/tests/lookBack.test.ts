@@ -105,6 +105,18 @@ test('a season’s answers only, and the question most of us answered first', as
   expect(data.together[0].answers).toHaveLength(3);
 });
 
+test('an old question answered in the season sits on the day it was answered', async () => {
+  seedRaw('facts/answers/bob.json', [
+    said('2024-01-02', 'Happy place?', 'Garden'),
+    {
+      ...said('2023-11-20', 'Old question?', 'Late answer'),
+      timestamp: '2024-01-20T09:00:00.000Z',
+    },
+  ]);
+  const { data } = await ask(1);
+  expect(data.book.at(-1)).toMatchObject({ date: '2024-01-20', question: 'Old question?' });
+});
+
 test('the book is every shared question, oldest first; basics stay on profiles', async () => {
   const { data } = await ask(1);
   expect(data.book.map((p: { question: string }) => p.question)).toEqual([

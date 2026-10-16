@@ -1506,6 +1506,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/seasons/book/writing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The foreword and chapter openings of a season's book, written once per tone and kept */
+        post: operations["writeSeasonBook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seasons/book/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every book made for a season, newest first; none is ever replaced */
+        get: operations["listSeasonBooks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seasons/book": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A season as a print-ready 6 x 9 inch PDF, made once and kept until its answers change */
+        post: operations["makeSeasonBook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/seasons/review": {
         parameters: {
             query?: never;
@@ -2018,6 +2069,14 @@ export interface components {
             text: string;
             timestamp: string;
             parentId?: string;
+        };
+        /** @enum {string} */
+        BookTone: "plain" | "warm" | "playful";
+        BookRequest: {
+            season: number;
+            tone: components["schemas"]["BookTone"];
+            /** @description Write or make it again even if a kept copy is current */
+            fresh?: boolean;
         };
         SaidBy: {
             personId: string;
@@ -5314,6 +5373,107 @@ export interface operations {
             };
             /** @description The AI model could not write it right now */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    writeSeasonBook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookRequest"];
+            };
+        };
+        responses: {
+            /** @description The kept writing, or new writing when asked for fresh (null for just our words) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        writing: {
+                            tone: components["schemas"]["BookTone"];
+                            foreword: string;
+                            chapters: {
+                                [key: string]: string;
+                            };
+                            writtenAt: string;
+                        } | null;
+                    };
+                };
+            };
+        };
+    };
+    listSeasonBooks: {
+        parameters: {
+            query: {
+                season: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Each version with a download link */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        versions: {
+                            tone: components["schemas"]["BookTone"];
+                            madeAt: string;
+                            pages: number;
+                            writtenAt: string | null;
+                            url: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    makeSeasonBook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookRequest"];
+            };
+        };
+        responses: {
+            /** @description A download link to the book */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        url: string;
+                        pages: number;
+                        tone: components["schemas"]["BookTone"];
+                        madeAt: string;
+                        /** @description False when the kept copy was still current */
+                        made: boolean;
+                    };
+                };
+            };
+            /** @description The book's writing hasn't been written yet (call /seasons/book/writing first) */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

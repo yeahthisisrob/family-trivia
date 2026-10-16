@@ -25,6 +25,11 @@ export function seedRaw(key: string, value: unknown): void {
   store.set(key, value);
 }
 
+/** Every stored key under a prefix. */
+export function listStored(prefix: string): string[] {
+  return [...store.keys()].filter((k) => k.startsWith(prefix));
+}
+
 export function getStored<T>(key: string): T | undefined {
   return store.get(key) as T | undefined;
 }

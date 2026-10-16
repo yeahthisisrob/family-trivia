@@ -2955,6 +2955,114 @@ paths:
         "503":
           description: The AI model could not write it right now
 
+  /seasons/book/writing:
+    post:
+      summary: The foreword and chapter openings of a season's book, written once per tone and kept
+      operationId: writeSeasonBook
+      tags: [Seasons]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookRequest"
+      responses:
+        "200":
+          description: The kept writing, or new writing when asked for fresh (null for just our words)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [writing]
+                properties:
+                  writing:
+                    type: object
+                    nullable: true
+                    required: [tone, foreword, chapters, writtenAt]
+                    properties:
+                      tone:
+                        $ref: "#/components/schemas/BookTone"
+                      foreword:
+                        type: string
+                      chapters:
+                        type: object
+                        additionalProperties:
+                          type: string
+                      writtenAt:
+                        type: string
+
+  /seasons/book/versions:
+    get:
+      summary: Every book made for a season, newest first; none is ever replaced
+      operationId: listSeasonBooks
+      tags: [Seasons]
+      parameters:
+        - name: season
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Each version with a download link
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [versions]
+                properties:
+                  versions:
+                    type: array
+                    items:
+                      type: object
+                      required: [tone, madeAt, pages, writtenAt, url]
+                      properties:
+                        tone:
+                          $ref: "#/components/schemas/BookTone"
+                        madeAt:
+                          type: string
+                        pages:
+                          type: integer
+                        writtenAt:
+                          type: string
+                          nullable: true
+                        url:
+                          type: string
+
+  /seasons/book:
+    post:
+      summary: A season as a print-ready 6 x 9 inch PDF, made once and kept until its answers change
+      operationId: makeSeasonBook
+      tags: [Seasons]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookRequest"
+      responses:
+        "200":
+          description: A download link to the book
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url, pages, tone, madeAt, made]
+                properties:
+                  url:
+                    type: string
+                  pages:
+                    type: integer
+                  tone:
+                    $ref: "#/components/schemas/BookTone"
+                  madeAt:
+                    type: string
+                  made:
+                    type: boolean
+                    description: False when the kept copy was still current
+        "409":
+          description: The book's writing hasn't been written yet (call /seasons/book/writing first)
+
   /seasons/review:
     get:
       summary: Look back on a season, the family's answers gathered to read together
@@ -3951,6 +4059,22 @@ components:
           type: string
         parentId:
           type: string
+
+    BookTone:
+      type: string
+      enum: [plain, warm, playful]
+
+    BookRequest:
+      type: object
+      required: [season, tone]
+      properties:
+        season:
+          type: integer
+        tone:
+          $ref: "#/components/schemas/BookTone"
+        fresh:
+          type: boolean
+          description: Write or make it again even if a kept copy is current
 
     SaidBy:
       type: object
