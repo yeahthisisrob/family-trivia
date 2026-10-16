@@ -1,4 +1,6 @@
-// File: src/components/common/CommentsThread.tsx
+// Comments under a fact, a trivia answer, an album or an arcade game, with reactions above.
+
+import type { Comment, CommentContentType } from '@family-trivia/shared';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
@@ -17,13 +19,12 @@ import { alpha } from '@mui/material/styles';
 import { formatDistance, parseISO } from 'date-fns';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Comment, CommentContentType } from '../../api';
-import { useFamilyData } from '../../contexts/FamilyDataContext';
-import { useNotifications } from '../../contexts/NotificationContext';
-import { useTimeline } from '../../contexts/TimelineContext';
-import { ReactionBar } from '../../features/reactions';
-import { createLogger } from '../../utils/logger';
-import { LoadingDots } from '../ui/feedback';
+import { LoadingDots } from '../../../components/ui/feedback';
+import { useFamilyData } from '../../../contexts/FamilyDataContext';
+import { useNotifications } from '../../../contexts/NotificationContext';
+import { useTimeline } from '../../../contexts/TimelineContext';
+import { createLogger } from '../../../utils/logger';
+import { ReactionBar } from '../../reactions';
 
 const logger = createLogger('CommentsThread');
 

@@ -2,7 +2,7 @@
 
 import type React from 'react';
 
-import CommentsThread from '../common/CommentsThread';
+import { CommentsThread } from '../../features/comments';
 
 interface TriviaCommentsProps {
   triviaId: string;

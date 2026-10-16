@@ -1,11 +1,15 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import type { Comment, CommentContentType, CommentThread } from '../api/modules/social';
+import { getTimelineData, type TimelineData } from '../api/modules/timeline';
+import type {
+  Comment,
+  CommentContentType,
+  CommentThread,
+} from '../features/comments/api/commentsApi';
 import {
   addComment as apiAddComment,
   getCommentCounts as fetchCounts,
   getCommentThread as fetchThread,
-} from '../api/modules/social';
-import { getTimelineData, type TimelineData } from '../api/modules/timeline';
+} from '../features/comments/api/commentsApi';
 import type { FamilySide } from '../utils/familyUtils';
 import { createLogger } from '../utils/logger';
 import { useFamilyData } from './FamilyDataContext';

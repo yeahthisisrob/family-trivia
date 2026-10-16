@@ -8,9 +8,9 @@ import type React from 'react';
 
 import type { Question } from '../../api/modules/trivia';
 import appStrings from '../../constants/strings';
+import { CommentsThread } from '../../features/comments';
 import { colors } from '../../shared/design-system';
 import { getUserColor, getUserInitials } from '../../utils';
-import CommentsThread from '../common/CommentsThread';
 
 interface AnswerResultDialogProps {
   open: boolean;

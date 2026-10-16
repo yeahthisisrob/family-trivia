@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
-import { StoryProviders } from '../../test/storyContexts';
+import { StoryProviders } from '../../../test/storyContexts';
 import CommentsThread from './CommentsThread';
 
 const getUserColor = (userId: string) => {
@@ -13,7 +13,7 @@ const getUserColor = (userId: string) => {
 const getUserInitials = (userId: string) => userId.slice(0, 2).toUpperCase();
 
 const meta: Meta<typeof CommentsThread> = {
-  title: 'Common/CommentsThread',
+  title: 'Comments/CommentsThread',
   component: CommentsThread,
   parameters: {
     layout: 'padded',

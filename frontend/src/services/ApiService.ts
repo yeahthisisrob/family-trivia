@@ -86,8 +86,8 @@ export class ApiService {
     const errorKey = `${endpoint}_${JSON.stringify(options?.body || '')}`;
 
     // Clear fatal errors for comment endpoints
-    if (endpoint.startsWith('/fact-comments')) {
-      cacheService.clearEndpointErrors('/fact-comments');
+    if (endpoint.startsWith('/comments')) {
+      cacheService.clearEndpointErrors(endpoint.split('?')[0] ?? endpoint);
       // Don't immediately return here; proceed with the request
     }
     // For other endpoints, check for fatal errors
@@ -143,7 +143,7 @@ export class ApiService {
         endpoint.includes('recent-shared-questions') ||
         endpoint.includes('casino-rush') ||
         endpoint.includes('app-init') ||
-        endpoint.includes('fact-comments') ||
+        endpoint.startsWith('/comments') ||
         endpoint.includes('members');
       // Use provided timeout or determine based on endpoint
       // In local dev (proxied through Vite), SAM needs more time
@@ -332,7 +332,7 @@ export class ApiService {
       if (error instanceof ApiError && error.statusCode < 500) throw error;
 
       // Special handling for comment endpoints
-      const isCommentEndpoint = endpoint.startsWith('/fact-comments');
+      const isCommentEndpoint = endpoint.startsWith('/comments');
 
       if (!isCommentEndpoint) {
         // Record error against endpoint for circuit breaking (except for comments)
