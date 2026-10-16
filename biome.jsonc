@@ -32,6 +32,20 @@
     }
   },
   "json": { "parser": { "allowComments": true } },
+  "overrides": [
+    {
+      // Components get their colors from the design system. Tokens, themes,
+      // stories and canvas-drawn games are where literals legitimately live.
+      "includes": [
+        "frontend/src/**/*.{ts,tsx}",
+        "!frontend/src/shared/design-system/tokens/**",
+        "!frontend/src/shared/design-system/themes/**",
+        "!**/*.stories.tsx",
+        "!**/*.test.{ts,tsx}"
+      ],
+      "plugins": ["./biome-plugins/no-raw-colors.grit"]
+    }
+  ],
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
     "enabled": true,

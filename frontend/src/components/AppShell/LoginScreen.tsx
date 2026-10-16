@@ -1,3 +1,4 @@
+import { tint } from '../../shared/design-system/tint';
 // LoginScreen — Google OAuth with passphrase-based account linking.
 //
 // Flow:
@@ -98,7 +99,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate })
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: `linear-gradient(160deg, ${alpha(colors.brand.primary, 0.06)} 0%, ${alpha(colors.brand.secondary, 0.04)} 100%)`,
+          background: `linear-gradient(160deg, ${tint(colors.brand.primary, 0.06)} 0%, ${tint(colors.brand.secondary, 0.04)} 100%)`,
           p: 2,
         }}
       >

@@ -334,7 +334,7 @@ const TriviaCarousel: React.FC<TriviaCarouselProps> = ({
                 sx={{
                   px: 2,
                   py: 1.25,
-                  background: `linear-gradient(135deg, ${alpha(colors.brand.primary, 0.06)}, ${alpha(colors.brand.primaryDark, 0.03)})`,
+                  background: `linear-gradient(135deg, ${tint(colors.brand.primary, 0.06)}, ${tint(colors.brand.primaryDark, 0.03)})`,
                   borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
                   display: 'flex',
                   alignItems: 'center',

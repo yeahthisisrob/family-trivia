@@ -1,3 +1,4 @@
+import { tint } from '../../shared/design-system/tint';
 /**
  * DailyFactCard — sleek presentational shell for the daily fact flow.
  *
@@ -141,7 +142,7 @@ const DailyFactCard: React.FC<DailyFactCardProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        background: `linear-gradient(135deg, ${alpha(colors.brand.primary, 0.1)}, ${alpha(colors.brand.primaryDark, 0.05)})`,
+        background: `linear-gradient(135deg, ${tint(colors.brand.primary, 0.1)}, ${tint(colors.brand.primaryDark, 0.05)})`,
         borderBottom: `1px solid ${colors.border.light}`,
       }}
     >
@@ -166,9 +167,9 @@ const DailyFactCard: React.FC<DailyFactCardProps> = ({
             height: 22,
             fontSize: isModal ? '0.7rem' : '0.62rem',
             fontWeight: 700,
-            bgcolor: alpha(colors.brand.secondary, 0.12),
+            bgcolor: tint(colors.brand.secondary, 0.12),
             color: colors.brand.secondaryDark,
-            border: `1px solid ${alpha(colors.brand.secondary, 0.25)}`,
+            border: `1px solid ${tint(colors.brand.secondary, 0.25)}`,
           }}
         />
       )}
@@ -278,7 +279,7 @@ const DailyFactCard: React.FC<DailyFactCardProps> = ({
         mb: 2,
         overflow: 'hidden',
         borderRadius: `${radii.lg}px`,
-        border: `1px solid ${alpha(colors.brand.primary, 0.18)}`,
+        border: `1px solid ${tint(colors.brand.primary, 0.18)}`,
         boxShadow: `0 2px 12px ${alpha('#000', 0.06)}`,
         bgcolor: colors.surface.card,
       }}
@@ -308,7 +309,7 @@ const CatchupProgress: React.FC<{ total: number; remaining: number; isModal: boo
         sx={{
           height: isModal ? 5 : 3,
           borderRadius: `${radii.full}px`,
-          bgcolor: alpha(colors.brand.secondary, 0.1),
+          bgcolor: tint(colors.brand.secondary, 0.1),
           '& .MuiLinearProgress-bar': {
             borderRadius: `${radii.full}px`,
             bgcolor: colors.brand.secondary,
@@ -390,8 +391,8 @@ const DictationTip: React.FC = () => {
         borderBottomLeftRadius: 16,
         borderBottomRightRadius: 16,
         border: `1px solid ${colors.border.medium}`,
-        borderTop: `1px solid ${alpha(colors.brand.primary, 0.12)}`,
-        bgcolor: alpha(colors.brand.primary, 0.05),
+        borderTop: `1px solid ${tint(colors.brand.primary, 0.12)}`,
+        bgcolor: tint(colors.brand.primary, 0.05),
       }}
     >
       <KeyboardVoiceOutlinedIcon
@@ -419,7 +420,7 @@ const DictationTip: React.FC = () => {
           p: 0.25,
           flexShrink: 0,
           color: colors.text.disabled,
-          '&:hover': { color: colors.text.secondary, bgcolor: alpha(colors.brand.primary, 0.08) },
+          '&:hover': { color: colors.text.secondary, bgcolor: tint(colors.brand.primary, 0.08) },
         }}
       >
         <CloseIcon sx={{ fontSize: 13 }} />
@@ -468,7 +469,7 @@ const QuestionPanel: React.FC<QuestionPanelProps> = ({
           fontSize: '0.62rem',
           fontWeight: 800,
           color: colors.brand.secondaryDark,
-          bgcolor: alpha(colors.brand.secondary, 0.1),
+          bgcolor: tint(colors.brand.secondary, 0.1),
           display: 'inline-block',
           px: 1,
           py: 0.3,
@@ -530,13 +531,13 @@ const QuestionPanel: React.FC<QuestionPanelProps> = ({
         fontWeight: 700,
         fontSize: isModal ? '1rem' : '0.9rem',
         bgcolor: colors.brand.primary,
-        boxShadow: `0 2px 8px ${alpha(colors.brand.primary, 0.25)}`,
+        boxShadow: `0 2px 8px ${tint(colors.brand.primary, 0.25)}`,
         '&:hover': {
           bgcolor: colors.brand.primaryDark,
-          boxShadow: `0 4px 12px ${alpha(colors.brand.primary, 0.35)}`,
+          boxShadow: `0 4px 12px ${tint(colors.brand.primary, 0.35)}`,
         },
         '&.Mui-disabled': {
-          bgcolor: alpha(colors.brand.primary, 0.18),
+          bgcolor: tint(colors.brand.primary, 0.18),
           color: colors.text.inverse,
         },
       }}
@@ -646,7 +647,7 @@ const QuestionPanel: React.FC<QuestionPanelProps> = ({
               py: 0,
               minWidth: 0,
               px: 1,
-              '&:hover': { bgcolor: alpha(colors.brand.primary, 0.06) },
+              '&:hover': { bgcolor: tint(colors.brand.primary, 0.06) },
             }}
           >
             No
@@ -715,13 +716,13 @@ const FirstPersonCategoryPicker: React.FC<FirstPersonCategoryPickerProps> = ({
               minHeight: 36,
               transition: 'background-color 0.15s, border-color 0.15s, color 0.15s',
               fontSize: isModal ? '0.78rem' : '0.7rem',
-              bgcolor: selected ? alpha(colors.brand.primary, 0.1) : 'transparent',
-              border: `1px solid ${selected ? colors.brand.primary : alpha(colors.brand.primary, 0.18)}`,
+              bgcolor: selected ? tint(colors.brand.primary, 0.1) : 'transparent',
+              border: `1px solid ${selected ? colors.brand.primary : tint(colors.brand.primary, 0.18)}`,
               color: selected ? colors.brand.primary : colors.text.secondary,
               fontWeight: selected ? 700 : 500,
               '&:hover': {
-                bgcolor: alpha(colors.brand.primary, 0.06),
-                borderColor: alpha(colors.brand.primary, 0.4),
+                bgcolor: tint(colors.brand.primary, 0.06),
+                borderColor: tint(colors.brand.primary, 0.4),
               },
             }}
           >
@@ -823,12 +824,12 @@ const FirstPersonOptionPicker: React.FC<FirstPersonOptionPickerProps> = ({
             py: 1.25,
             borderRadius: `${radii.md}px`,
             minHeight: 48,
-            border: `1px solid ${alpha(colors.brand.primary, 0.18)}`,
+            border: `1px solid ${tint(colors.brand.primary, 0.18)}`,
             cursor: 'pointer',
             transition: 'all 0.15s',
             '&:hover': {
-              bgcolor: alpha(colors.brand.primary, 0.06),
-              borderColor: alpha(colors.brand.primary, 0.35),
+              bgcolor: tint(colors.brand.primary, 0.06),
+              borderColor: tint(colors.brand.primary, 0.35),
             },
           }}
         >
@@ -850,7 +851,7 @@ const FirstPersonOptionPicker: React.FC<FirstPersonOptionPickerProps> = ({
                 mt: 0.5,
                 height: 20,
                 fontSize: '0.62rem',
-                bgcolor: alpha(colors.brand.primary, 0.08),
+                bgcolor: tint(colors.brand.primary, 0.08),
                 color: colors.brand.primary,
               }}
             />

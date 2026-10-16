@@ -1,11 +1,41 @@
 export const colors = {
+  /** Text and icons on a colored surface (a button, a badge, a game tile). */
+  onColor: '#ffffff',
+  /** The base for shadows and dark overlays: use with alpha(), e.g. alpha(colors.scrim, 0.2). */
+  scrim: '#000000',
+
+  /**
+   * Fixed decorative hues: category icons, badges, charts. The same in every
+   * theme and mode, chosen to read on both light and dark surfaces. Reach for
+   * a theme role (primary, secondary, success, error) first; use an accent
+   * when a color names a thing, not a role.
+   */
+  accent: {
+    red: '#e53935',
+    orange: '#fb8c00',
+    amber: '#ffb300',
+    gold: '#ffd700',
+    green: '#43a047',
+    teal: '#00897b',
+    sky: '#64b5f6',
+    blue: '#1e88e5',
+    indigo: '#3949ab',
+    violet: '#7c4dff',
+    purple: '#8e24aa',
+    pink: '#d81b60',
+    brown: '#6d4c41',
+    slate: '#546e7a',
+  },
+
+  // Brand colors follow the active theme (themes/registry.ts): CSS
+  // variables set by AppearanceProvider, with Classic as the fallback.
   brand: {
-    primary: '#2e7d32',
-    primaryLight: '#4caf50',
-    primaryDark: '#1b5e20',
-    secondary: '#ff9800',
-    secondaryLight: '#ffb74d',
-    secondaryDark: '#f57c00',
+    primary: 'var(--ft-brand-primary, #2e7d32)',
+    primaryLight: 'var(--ft-brand-primary-light, #4caf50)',
+    primaryDark: 'var(--ft-brand-primary-dark, #1b5e20)',
+    secondary: 'var(--ft-brand-secondary, #ef6c00)',
+    secondaryLight: 'var(--ft-brand-secondary-light, #ffb74d)',
+    secondaryDark: 'var(--ft-brand-secondary-dark, #e65100)',
   },
 
   difficulty: {
@@ -34,14 +64,14 @@ export const colors = {
     defaultBg: 'rgba(96, 125, 139, 0.08)',
   },
 
-  // Surfaces, text and borders follow the color scheme: they are CSS
-  // variables set by ColorModeProvider (tokens/schemes.ts → schemeVars), with
+  // Surfaces, text and borders follow the theme and mode: they are CSS
+  // variables set by AppearanceProvider (themes/vars.ts), with
   // the light value as fallback. Use them anywhere a color string goes; to
   // fade one, use tint(), not alpha().
   surface: {
     default: 'var(--ft-surface-default, #f9f9f9)',
     card: 'var(--ft-surface-card, #ffffff)',
-    header: '#2e7d32',
+    header: 'var(--ft-surface-header, #1b5e20)',
     subtle: 'var(--ft-surface-subtle, #f5f5f5)',
   },
 
@@ -76,6 +106,11 @@ export const colors = {
 
   // Default fallback for users without an assigned color
   defaultUser: '#1976d2',
+
+  /**
+   * One color per person, picked by a stable hash of their id (identityColor).
+   * Identity follows the person, never their rank, and is the same in every theme.
+   */
 
   // Game mode gradients — used on Arcade tiles and CategorySelect cards.
   // Each is a CSS linear-gradient string plus a complementary accent.
