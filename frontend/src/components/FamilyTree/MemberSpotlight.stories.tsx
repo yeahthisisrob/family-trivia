@@ -143,7 +143,7 @@ const meta: Meta<typeof MemberSpotlight> = {
         style={{
           maxWidth: 420,
           margin: '0 auto',
-          background: '#f5f5f5',
+          background: 'var(--ft-surface-subtle)',
           padding: 16,
           borderRadius: 12,
           minHeight: 200,

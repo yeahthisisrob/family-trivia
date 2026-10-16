@@ -36,7 +36,14 @@ const meta: Meta<typeof CommentsThread> = {
   decorators: [
     (Story, context) => (
       <StoryProviders timeline={context.parameters.timeline}>
-        <div style={{ maxWidth: 420, background: '#f5f5f5', padding: 16, borderRadius: 8 }}>
+        <div
+          style={{
+            maxWidth: 420,
+            background: 'var(--ft-surface-subtle)',
+            padding: 16,
+            borderRadius: 8,
+          }}
+        >
           <Story />
         </div>
       </StoryProviders>

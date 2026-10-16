@@ -59,7 +59,7 @@ export const ErrorScreen: React.FC<ErrorScreenProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           height: '100vh',
-          bgcolor: theme.palette.grey[50],
+          bgcolor: theme.palette.background.default,
           p: 3,
         }}
       >

@@ -166,7 +166,7 @@ const CommentsTimeline: React.FC<CommentsTimelineProps> = ({
                       p: 2,
                       bgcolor:
                         entry.type === 'fact' && entry.skipped
-                          ? alpha('#f5f5f5', 0.5)
+                          ? theme.palette.action.hover
                           : 'background.paper',
                       borderLeft: `4px solid ${getUserColor(entry.userId)}`,
                       width: '100%',

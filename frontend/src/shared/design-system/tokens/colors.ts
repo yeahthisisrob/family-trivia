@@ -34,17 +34,21 @@ export const colors = {
     defaultBg: 'rgba(96, 125, 139, 0.08)',
   },
 
+  // Surfaces, text and borders follow the color scheme: they are CSS
+  // variables set by ColorModeProvider (tokens/schemes.ts → schemeVars), with
+  // the light value as fallback. Use them anywhere a color string goes; to
+  // fade one, use tint(), not alpha().
   surface: {
-    default: '#f9f9f9',
-    card: '#ffffff',
+    default: 'var(--ft-surface-default, #f9f9f9)',
+    card: 'var(--ft-surface-card, #ffffff)',
     header: '#2e7d32',
-    subtle: '#f5f5f5',
+    subtle: 'var(--ft-surface-subtle, #f5f5f5)',
   },
 
   text: {
-    primary: 'rgba(0, 0, 0, 0.87)',
-    secondary: 'rgba(0, 0, 0, 0.6)',
-    disabled: 'rgba(0, 0, 0, 0.38)',
+    primary: 'var(--ft-text-primary, rgba(0, 0, 0, 0.87))',
+    secondary: 'var(--ft-text-secondary, rgba(0, 0, 0, 0.6))',
+    disabled: 'var(--ft-text-disabled, rgba(0, 0, 0, 0.38))',
     inverse: '#ffffff',
   },
 
@@ -66,8 +70,8 @@ export const colors = {
   },
 
   border: {
-    light: 'rgba(0, 0, 0, 0.12)',
-    medium: 'rgba(0, 0, 0, 0.23)',
+    light: 'var(--ft-border-light, rgba(0, 0, 0, 0.12))',
+    medium: 'var(--ft-border-medium, rgba(0, 0, 0, 0.23))',
   },
 
   // Default fallback for users without an assigned color

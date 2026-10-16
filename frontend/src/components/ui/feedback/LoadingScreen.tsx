@@ -1,5 +1,5 @@
 import { keyframes } from '@emotion/react';
-import { Box, Fade, Typography, useTheme } from '@mui/material';
+import { alpha, Box, Fade, Typography, useTheme } from '@mui/material';
 import type React from 'react';
 
 const wave = keyframes`
@@ -49,7 +49,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           height: '100vh',
-          background: `linear-gradient(160deg, ${theme.palette.grey[50]} 0%, #e8f4fd 100%)`,
+          background: `linear-gradient(160deg, ${theme.palette.background.default} 0%, ${alpha(theme.palette.primary.main, 0.08)} 100%)`,
           gap: 3,
         }}
       >

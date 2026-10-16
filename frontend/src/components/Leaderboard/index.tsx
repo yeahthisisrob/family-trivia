@@ -179,7 +179,7 @@ const EnhancedLeaderboard: React.FC<LeaderboardProps> = ({
           slotProps={{
             indicator: {
               style: {
-                backgroundColor: theme.palette.common.white,
+                backgroundColor: theme.palette.background.paper,
               },
             },
           }}

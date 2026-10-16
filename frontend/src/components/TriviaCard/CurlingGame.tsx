@@ -920,6 +920,8 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
           {/* The house — 4 concentric rings: 12ft(blue), 8ft(white),
             4ft(red), button(blue). Proportions match real curling. */}
           <Box
+            // The ice and house are drawn light on purpose, in both schemes.
+            data-light-surface
             sx={{
               position: 'absolute',
               left: '50%',
@@ -1663,7 +1665,7 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
         sx={{
           p: 2,
           pb: 'calc(16px + env(safe-area-inset-bottom, 0px))',
-          bgcolor: '#fafafa',
+          bgcolor: 'background.default',
           touchAction: 'none',
           userSelect: 'none',
         }}

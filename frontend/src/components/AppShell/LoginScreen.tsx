@@ -148,10 +148,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate })
                   onSuccess={handleGoogleSuccess}
                   onError={() => setError('Google sign-in was cancelled')}
                   size="large"
+                  theme={theme.palette.mode === 'dark' ? 'filled_black' : 'outline'}
                   width="320"
                   text="signin_with"
                   shape="rectangular"
-                  theme="outline"
                 />
                 <Typography
                   sx={{ fontSize: '0.68rem', color: 'text.disabled', mt: 2, textAlign: 'center' }}
