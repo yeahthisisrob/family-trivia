@@ -45,3 +45,4 @@ tmp/
 .*.cts
 .*.mts
 *.local.test.ts
+*.local.stories.tsx

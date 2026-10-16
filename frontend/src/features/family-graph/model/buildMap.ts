@@ -89,7 +89,7 @@ export function buildMap(
   }
   for (const [personId, k] of Object.entries(knowledge.people)) {
     if (!visible.has(personId)) continue;
-    for (const item of k.top.slice(0, OWN_TOPICS)) {
+    for (const item of k.top.filter((t) => t.kind !== 'person').slice(0, OWN_TOPICS)) {
       const id = topicId(item.kind, item.name);
       const had = byId.get(id);
       if (had) {
@@ -105,7 +105,32 @@ export function buildMap(
         });
     }
   }
-  const chosen = [...byId.values()]
+  // One topic per name: the same thing filed under two kinds (Hanukkah as a
+  // value and as something we do) sits once, where most people put it.
+  const byName = new Map<string, Omit<MapTopic, 'x' | 'y'>>();
+  // "cats" and "cat" are one topic, under whichever form more people used.
+  const names = new Set([...byId.values()].map((t) => t.name));
+  const keyOf = (name: string) =>
+    name.endsWith('s') && names.has(name.slice(0, -1)) ? name.slice(0, -1) : name;
+  for (const t of byId.values()) {
+    if (t.kind === 'person') continue; // people are the stars, not topics
+    const key = keyOf(t.name);
+    const had = byName.get(key);
+    if (!had) byName.set(key, t);
+    else {
+      const [keep, fold] = had.people.length >= t.people.length ? [had, t] : [t, had];
+      byName.set(key, {
+        ...keep,
+        people: [...new Set([...keep.people, ...fold.people])],
+        quotes: [
+          ...keep.quotes,
+          ...fold.quotes.filter((q) => !keep.quotes.some((k) => k.personId === q.personId)),
+        ],
+        weight: Math.max(keep.weight, new Set([...keep.people, ...fold.people]).size),
+      });
+    }
+  }
+  const chosen = [...byName.values()]
     .sort((a, b) => b.weight - a.weight || a.id.localeCompare(b.id))
     .slice(0, MAX_TOPICS);
 
@@ -123,8 +148,8 @@ export function buildMap(
       kind: k.id,
       label: k.label,
       angle: mid,
-      x: Math.cos(mid) * ring.rx * 1.12,
-      y: Math.sin(mid) * ring.ry * 1.18,
+      x: Math.cos(mid) * ring.rx * 1.08,
+      y: Math.sin(mid) * ring.ry * 1.1,
     });
     mine.forEach((t, i) => {
       const a = start + span * ((i + 0.5) / mine.length);
@@ -148,13 +173,15 @@ export function buildMap(
     let wy = 0;
     let w = 0;
     for (const t of mine) {
-      const weight = t.people.length > 1 ? 2 : 1;
+      // What fewer of us share says more about where someone belongs: pizza
+      // pulls everyone a little, the one thing only two of us love pulls hard.
+      const weight = 1 / t.people.length;
       wx += t.x * weight;
       wy += t.y * weight;
       w += weight;
     }
     // Pulled inward, so people sit inside the ring of what they love.
-    const pull = 0.78;
+    const pull = 0.85;
     const jitter = (hash01(id) - 0.5) * 40;
     return {
       id,

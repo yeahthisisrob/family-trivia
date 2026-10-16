@@ -193,7 +193,7 @@ export const FamilyMap: React.FC<{
   // Fit the whole map as soon as it's laid out, and again once it settles.
   useEffect(() => {
     if (!graph.nodes.length) return undefined;
-    const t = setTimeout(() => fg.current?.zoomToFit(0, width < 600 ? 70 : 40), 60);
+    const t = setTimeout(() => fg.current?.zoomToFit(0, width < 600 ? 80 : 90), 60);
     return () => clearTimeout(t);
   }, [graph]);
 
@@ -258,7 +258,7 @@ export const FamilyMap: React.FC<{
           warmupTicks={80}
           cooldownTicks={220}
           d3VelocityDecay={0.35}
-          onEngineStop={() => fg.current?.zoomToFit(600, width < 600 ? 70 : 40)}
+          onEngineStop={() => fg.current?.zoomToFit(600, width < 600 ? 80 : 90)}
           enableNodeDrag={false}
           onNodeClick={(n) => {
             const node = n as Node;
