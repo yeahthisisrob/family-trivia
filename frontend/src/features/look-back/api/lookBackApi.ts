@@ -7,8 +7,17 @@ import type {
 } from '@family-trivia/shared';
 import { apiService } from '../../../services/ApiService';
 
+/** Writing a book's foreword takes the AI up to half a minute; give it a full one. */
+const BOOK_TIMEOUT_MS = 60_000;
+
 const post = <T>(path: string, body: unknown) =>
-  apiService.request<T>(path, { method: 'POST', body: JSON.stringify(body) }, undefined, true);
+  apiService.request<T>(
+    path,
+    { method: 'POST', body: JSON.stringify(body) },
+    undefined,
+    true,
+    BOOK_TIMEOUT_MS,
+  );
 
 export const lookBackApi = {
   review: (season?: number) =>
