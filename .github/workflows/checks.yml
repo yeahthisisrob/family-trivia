@@ -18,12 +18,13 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       # mise installs the node/pnpm/gitleaks pinned in mise.toml, so CI runs
       # the same binaries as laptops. No `node-version:` here to drift.
-      - uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v4
         with:
+          version: 2026.9.2
           cache: true
 
       - run: pnpm install --frozen-lockfile
@@ -60,11 +61,12 @@ jobs:
     name: Secret scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v4
         with:
+          version: 2026.9.2
           cache: true
       - run: gitleaks git --no-banner --redact
 
@@ -72,9 +74,10 @@ jobs:
     name: Storybook stories
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: jdx/mise-action@v3
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v4
         with:
+          version: 2026.9.2
           cache: true
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @family-trivia/web exec playwright install --with-deps chromium

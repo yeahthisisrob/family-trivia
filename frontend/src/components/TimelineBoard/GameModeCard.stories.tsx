@@ -24,6 +24,12 @@ const meta: Meta<typeof GameModeCard> = {
     mode: 'casino-rush',
     entries: [baseEntry, baseEntry, baseEntry],
     userId: 'alice',
+    color: '#2196F3',
+    initials: 'A',
+    group: 'parents',
+    timestamp: '2026-04-10T14:30:00.000Z',
+    totalPoints: 9,
+    allCorrect: true,
     onUserClick: fn(),
   },
   decorators: [
@@ -41,8 +47,10 @@ export const CasinoRushAllCorrect: Story = {};
 export const CasinoRushFailed: Story = {
   args: {
     entries: [baseEntry, { ...baseEntry, selectedAnswer: 'Jupiter', correct: false }, baseEntry],
+    allCorrect: false,
+    totalPoints: 0,
   },
 };
 export const SlotMachine: Story = {
-  args: { mode: 'slot-machine', entries: [baseEntry] },
+  args: { mode: 'slot-machine', entries: [baseEntry], multiplier: 2, totalPoints: 2 },
 };

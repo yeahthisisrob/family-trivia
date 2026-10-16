@@ -1,5 +1,7 @@
 import type React from 'react';
 import { createContext, useContext } from 'react';
+import { AdminProvider } from '../../src/contexts/AdminContext';
+import { NotificationProvider } from '../../src/contexts/NotificationContext';
 
 // ---------------------------------------------------------------------------
 // 1. FamilyDataContext mock
@@ -315,7 +317,12 @@ export const MockAppProviders: React.FC<{ children: React.ReactNode }> = ({ chil
     <MockTriviaStatusProvider>
       <MockFamilyDataProvider>
         <MockTimelineProvider>
-          <MockUserStatusProvider>{children}</MockUserStatusProvider>
+          <MockUserStatusProvider>
+            {/* Real providers: their hooks throw outside them. MSW answers their calls. */}
+            <NotificationProvider userId="alice">
+              <AdminProvider adminUserId="alice">{children}</AdminProvider>
+            </NotificationProvider>
+          </MockUserStatusProvider>
         </MockTimelineProvider>
       </MockFamilyDataProvider>
     </MockTriviaStatusProvider>
