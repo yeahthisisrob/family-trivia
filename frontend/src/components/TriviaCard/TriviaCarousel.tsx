@@ -1,3 +1,4 @@
+import { tint } from '../../shared/design-system/tint';
 // File: src/components/TriviaCard/TriviaCarousel.tsx
 // Swipeable card carousel for the trivia tab.
 // History cards (left) → Active card (center) → Preview (right)
@@ -183,9 +184,9 @@ const TriviaCarousel: React.FC<TriviaCarouselProps> = ({
             zIndex: 2,
             width: 32,
             height: 32,
-            bgcolor: alpha(colors.surface.card, 0.92),
+            bgcolor: tint(colors.surface.card, 0.92),
             boxShadow: shadows.md,
-            border: `1px solid ${alpha(colors.border.light, 0.5)}`,
+            border: `1px solid ${tint(colors.border.light, 0.5)}`,
             '&:hover': { bgcolor: colors.surface.card },
           }}
         >
@@ -204,9 +205,9 @@ const TriviaCarousel: React.FC<TriviaCarouselProps> = ({
             zIndex: 2,
             width: 32,
             height: 32,
-            bgcolor: alpha(colors.surface.card, 0.92),
+            bgcolor: tint(colors.surface.card, 0.92),
             boxShadow: shadows.md,
-            border: `1px solid ${alpha(colors.border.light, 0.5)}`,
+            border: `1px solid ${tint(colors.border.light, 0.5)}`,
             '&:hover': { bgcolor: colors.surface.card },
           }}
         >
@@ -234,7 +235,7 @@ const TriviaCarousel: React.FC<TriviaCarouselProps> = ({
                     ? colors.brand.primary
                     : isCurrent
                       ? colors.text.secondary
-                      : alpha(colors.text.disabled, 0.25),
+                      : tint(colors.text.disabled, 0.25),
                   transition: 'all 0.25s ease',
                   cursor: 'pointer',
                 }}

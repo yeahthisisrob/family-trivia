@@ -350,7 +350,7 @@ const PersonalQuestionsHistory: React.FC<PersonalQuestionsHistoryProps> = ({ use
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         {questions.length === 0 ? (
-          <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: 'grey.50' }}>
+          <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: 'action.hover' }}>
             <Typography
               variant="body1"
               sx={{
@@ -501,7 +501,7 @@ const PersonalQuestionsHistory: React.FC<PersonalQuestionsHistoryProps> = ({ use
                               elevation={0}
                               sx={{
                                 p: 2,
-                                bgcolor: alpha(theme.palette.grey[100], 0.5),
+                                bgcolor: theme.palette.action.hover,
                                 borderLeft: `4px solid ${theme.palette.primary.main}`,
                               }}
                             >

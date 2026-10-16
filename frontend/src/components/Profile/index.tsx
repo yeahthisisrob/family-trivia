@@ -443,7 +443,7 @@ const Profile: React.FC<ProfileProps> = ({
                 px: 3,
                 pt: 2.5,
                 pb: 1,
-                bgcolor: theme.palette.grey[50],
+                bgcolor: theme.palette.action.hover,
                 borderBottom: `1px solid ${theme.palette.divider}`,
               }}
             >

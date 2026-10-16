@@ -104,7 +104,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
   // First-time setup wizard — show before anything else
   if (familyData.isFirstRun && isAppReady) {
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
         <Container maxWidth="sm" sx={{ py: 3 }}>
           <React.Suspense fallback={null}>
             <SetupWizard onComplete={() => window.location.reload()} />
@@ -284,7 +284,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
             }}
           />
           {isAppReady ? (
-            <Box sx={{ flex: 1, p: 2, bgcolor: 'grey.50' }}>
+            <Box sx={{ flex: 1, p: 2, bgcolor: 'background.default' }}>
               <Container maxWidth="sm">
                 {/* Profile route — shown as overlay when URL matches */}
                 {profileUser && user && (

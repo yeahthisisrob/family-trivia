@@ -3,10 +3,11 @@
  * remembers the choice on this device. Provides the matching theme to
  * everything below it.
  */
-import { CssBaseline, ThemeProvider } from '@mui/material';
+import { CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
 import type React from 'react';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { makeTheme } from '../theme';
+import { schemeVars } from '../tokens/schemes';
 
 export type ColorMode = 'light' | 'dark' | 'system';
 const STORAGE_KEY = 'ft:colorMode';
@@ -73,6 +74,7 @@ export const ColorModeProvider: React.FC<{
     <Ctx.Provider value={value}>
       <ThemeProvider theme={themes[resolved]}>
         <CssBaseline />
+        <GlobalStyles styles={{ ':root': { ...schemeVars(resolved), colorScheme: resolved } }} />
         {children}
       </ThemeProvider>
     </Ctx.Provider>

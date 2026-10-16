@@ -94,6 +94,12 @@ test *args:
 test-stories:
     {{x}} pnpm --filter @family-trivia/web run storybook:test
 
+# Render every story in dark mode and fail on light backgrounds
+[group('check')]
+dark-audit:
+    {{x}} pnpm --filter @family-trivia/web run build-storybook
+    {{x}} node scripts/dark-audit.mjs
+
 # ── build ──────────────────────────────────────────────────────────────────
 
 # Production build of every package

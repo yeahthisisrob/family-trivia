@@ -170,7 +170,7 @@ const FactTimeline: React.FC<FactTimelineProps> = ({
                       borderColor: alpha(getUserColor(entry.userId), 0.3),
                       boxShadow: 0,
                       p: 0.75,
-                      bgcolor: entry.skipped ? alpha('#f5f5f5', 0.5) : 'background.paper',
+                      bgcolor: entry.skipped ? 'action.hover' : 'background.paper',
                       borderLeft: `4px solid ${getUserColor(entry.userId)}`,
                       width: '100%',
                       overflowX: 'hidden',
