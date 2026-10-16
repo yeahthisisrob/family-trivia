@@ -11,6 +11,7 @@ import { appearanceRoutes } from './features/appearance/routes';
 import { archiveRoutes } from './features/archive/routes';
 import { familyRoutes } from './features/family/routes';
 import { graphRoutes } from './features/graph/routes';
+import { reactionsRoutes } from './features/reactions/routes';
 import { settingsRoutes } from './features/settings/routes';
 import * as adminHandlers from './routes/admin';
 // Answer grid for trivia status matrix
@@ -152,6 +153,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...archiveRoutes,
   ...graphRoutes,
   ...settingsRoutes,
+  ...reactionsRoutes,
 
   // ── Public (no auth) ─────────────────────────────────────────
   'POST /auth/google': authGoogle,

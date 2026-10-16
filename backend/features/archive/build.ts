@@ -116,6 +116,7 @@ export function buildArchive({
     put(`${dir}/games.json`, JSON.stringify(a.games, null, 2));
     put(`${dir}/comments.md`, commentsMarkdown(p, a));
     put(`${dir}/comments.json`, JSON.stringify(a.comments, null, 2));
+    put(`${dir}/reactions.json`, JSON.stringify(a.reactions, null, 2));
     put(`${dir}/family-feud.json`, JSON.stringify(a.feud, null, 2));
   }
 
@@ -154,6 +155,7 @@ export function buildArchive({
       '- `trivia-answers.csv`: every trivia question they answered (opens in any spreadsheet)',
       '- `games.json`, `family-feud.json`: game sessions, scores and Family Feud rounds',
       '- `comments.md`: what they wrote to the family',
+      '- `reactions.json`: the reactions they gave, and the ones their answers got',
       '',
       'The `.json` files hold the same data in full, for importing elsewhere.',
       '`family.json` lists the people included and how they are connected.',

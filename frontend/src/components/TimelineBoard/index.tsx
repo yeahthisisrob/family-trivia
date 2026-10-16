@@ -69,9 +69,13 @@ const TimelineBoardOptimized: React.FC<TimelineBoardOptimizedProps> = ({
 
   const getFilteredData = () => {
     if (contentType === 'comments') {
+      // Items with comments, plus the one a notification pointed at (it may
+      // only have reactions so far).
+      const talkedAbout = (key: string) =>
+        (commentCounts.get(key) ?? 0) > 0 || key === highlightContentId;
       // Build merged items from timeline data using comment counts
       const factsWithComments = timelineData.facts
-        .filter((f) => (commentCounts.get(`fact:${f.userId}_${f.timestamp}`) ?? 0) > 0)
+        .filter((f) => talkedAbout(`fact:${f.userId}_${f.timestamp}`))
         .map((fact) => ({
           ...fact,
           type: 'fact' as const,
@@ -79,7 +83,7 @@ const TimelineBoardOptimized: React.FC<TimelineBoardOptimizedProps> = ({
         }));
 
       const triviaWithComments = timelineData.trivia
-        .filter((t) => (commentCounts.get(`trivia:${t.userId}_${t.timestamp}`) ?? 0) > 0)
+        .filter((t) => talkedAbout(`trivia:${t.userId}_${t.timestamp}`))
         .map((trivia) => ({
           ...trivia,
           type: 'trivia' as const,

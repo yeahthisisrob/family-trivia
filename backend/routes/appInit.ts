@@ -6,6 +6,7 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
+import { visibleHierarchy } from '../services/family/joined';
 import { accountIsPlaying, loadFamily } from '../services/family/roster';
 import { canPlayGameModeAny } from '../services/gameModeService';
 import { logger } from '../services/logger';
@@ -145,7 +146,7 @@ export async function appInit(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         : Promise.resolve(null),
     ]);
 
-    const hierarchy = validateHierarchy(rawHierarchy);
+    const hierarchy = await visibleHierarchy(validateHierarchy(rawHierarchy));
 
     // Member activation (1 S3 read from cached file)
     const groupIds = hierarchy?.family?.groups ? Object.keys(hierarchy.family.groups) : [];
@@ -234,7 +235,7 @@ export async function appInitDeferred(event: APIGatewayProxyEvent): Promise<APIG
     const family = await loadFamily();
     // Load hierarchy for people/sides filtering (TTL-cached, no extra S3 read)
     const rawHierarchy = await getJson<HierarchyData>(S3_PATHS.FAMILY_HIERARCHY);
-    const hierarchy = validateHierarchy(rawHierarchy);
+    const hierarchy = await visibleHierarchy(validateHierarchy(rawHierarchy));
     const people = hierarchy?.family?.people || {};
     const allUserIds = Object.keys(people);
 

@@ -11,6 +11,7 @@ import type {
 import { getAllThreads } from './commentsService';
 import { logger } from './logger';
 import { getAllPlayerState, getSeasonSummary } from './playerStateService';
+import { readInbox } from './reactions';
 import { getJson, putJson } from './s3';
 import { computePoints } from './scoring';
 import { getAllUsers } from './users';
@@ -294,19 +295,50 @@ export async function checkLeaderChange(): Promise<NotificationItem[]> {
  * Get all notifications for a user: unread comments + leader changes + high scores.
  */
 export async function getNotifications(userId: string): Promise<NotificationSummary> {
-  const [commentItems, leaderItems, highScoreItems, feudItems, albumItems] = await Promise.all([
-    getUnreadComments(userId),
-    getLeaderChangeNotifications(userId),
-    getHighScoreNotifications(userId),
-    getFeudNotifications(userId),
-    getAlbumAddedNotifications(userId),
-  ]);
+  const [commentItems, leaderItems, highScoreItems, feudItems, albumItems, reactionItems] =
+    await Promise.all([
+      getUnreadComments(userId),
+      getLeaderChangeNotifications(userId),
+      getHighScoreNotifications(userId),
+      getFeudNotifications(userId),
+      getAlbumAddedNotifications(userId),
+      getReactionNotifications(userId),
+    ]);
 
-  const items = [...feudItems, ...highScoreItems, ...leaderItems, ...albumItems, ...commentItems];
+  const items = [
+    ...feudItems,
+    ...highScoreItems,
+    ...leaderItems,
+    ...albumItems,
+    ...commentItems,
+    ...reactionItems,
+  ].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
   return {
     unreadCount: items.filter((i) => !i.read).length,
     items,
   };
+}
+
+// ── Reactions ─────────────────────────────────────────────────────
+
+/** Reactions to the user's own answers and facts since they last looked. */
+async function getReactionNotifications(userId: string): Promise<NotificationItem[]> {
+  const [readState, inbox] = await Promise.all([getReadState(userId), readInbox(userId)]);
+  return inbox
+    .filter((e) => {
+      const seen = readState.viewedThreads[`${e.type}:${e.contentId}`] || readState.lastViewedAt;
+      return e.at > seen;
+    })
+    .map((e) => ({
+      id: `reaction-${e.type}-${e.contentId}-${e.userId}`,
+      type: 'reaction' as const,
+      timestamp: e.at,
+      read: false,
+      contentType: e.type,
+      contentId: e.contentId,
+      reactionUserId: e.userId,
+      reaction: e.reaction,
+    }));
 }
 
 // ── High Score Notifications ──────────────────────────────────────

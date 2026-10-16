@@ -2,6 +2,8 @@
  * Notification types — shared between frontend and backend.
  */
 
+import type { ReactionId } from './reactions';
+
 // ── Notification Items ────────────────────────────────────────────
 
 export type NotificationType =
@@ -9,7 +11,8 @@ export type NotificationType =
   | 'leader_change'
   | 'high_score'
   | 'family_feud'
-  | 'album_added';
+  | 'album_added'
+  | 'reaction';
 
 export interface NotificationItem {
   id: string;
@@ -22,6 +25,9 @@ export interface NotificationItem {
   commentUserId?: string;
   commentText?: string;
   threadCommentCount?: number;
+  /** Reaction fields: who reacted, and with what */
+  reactionUserId?: string;
+  reaction?: ReactionId;
   /** Album fields (for album_added notifications) */
   albumName?: string;
   albumAddedBy?: string;

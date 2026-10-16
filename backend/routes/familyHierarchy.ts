@@ -1,7 +1,9 @@
 // File: lambda/routes/familyHierarchy.ts
+
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
+import { visibleHierarchy } from '../services/family/joined';
 import { logger } from '../services/logger';
 import { getJson } from '../services/s3';
 
@@ -53,7 +55,7 @@ export async function getFamilyHierarchy(
     }
 
     // Validate and ensure complete data structure
-    const hierarchyData: HierarchyData = {
+    const hierarchyData: HierarchyData = await visibleHierarchy({
       ...rawHierarchyData,
       family: {
         ...rawHierarchyData.family,
@@ -61,7 +63,7 @@ export async function getFamilyHierarchy(
         groups: rawHierarchyData.family?.groups || {},
         sides: rawHierarchyData.family?.sides || {},
       },
-    };
+    });
 
     // Log if we had to repair the structure
     if (!rawHierarchyData.family?.people || !rawHierarchyData.family?.groups) {

@@ -18,8 +18,10 @@ import { formatDistance, parseISO } from 'date-fns';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Comment, CommentContentType } from '../../api';
+import { useFamilyData } from '../../contexts/FamilyDataContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useTimeline } from '../../contexts/TimelineContext';
+import { ReactionBar } from '../../features/reactions';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
 
@@ -67,6 +69,8 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
     commentCommenters,
   } = useTimeline();
   const { markRead } = useNotifications();
+  const { members } = useFamilyData();
+  const nameOf = (id: string) => members.find((m) => m.userId === id)?.name ?? id;
   const comments = getComments(contentType, contentId);
 
   useEffect(() => {
@@ -287,6 +291,17 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
 
   return (
     <Box sx={{ mt: 0.75 }}>
+      {/* Reactions: answers and facts only, a quicker reply than words */}
+      {(contentType === 'fact' || contentType === 'trivia') && currentUserId && (
+        <Box sx={{ mb: 0.5 }}>
+          <ReactionBar
+            contentType={contentType}
+            contentId={contentId}
+            me={currentUserId}
+            nameOf={nameOf}
+          />
+        </Box>
+      )}
       {/* Trigger bar */}
       <Box
         onClick={() => setExpanded(!expanded)}

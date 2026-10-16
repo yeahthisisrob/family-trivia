@@ -2983,6 +2983,423 @@ paths:
                         theme:
                           type: string
 
+  # ──────────────────────────────────────────────
+  # Family (backend/features/family) — docs/decisions/0009
+  # ──────────────────────────────────────────────
+
+  /family:
+    get:
+      summary: The family — people, ties, households — and short-lived photo URLs
+      operationId: getFamily
+      tags: [Family]
+      responses:
+        "200":
+          description: The family
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamilyResponse"
+
+  /admin/family:
+    put:
+      summary: Replace the family (admins). The version it replaces is kept.
+      operationId: saveFamily
+      tags: [Family, Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [family]
+              properties:
+                family:
+                  $ref: "#/components/schemas/Family"
+      responses:
+        "200":
+          description: The saved family
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamilyResponse"
+        "400":
+          description: The family has problems (listed in details)
+        "403":
+          description: Not an admin
+
+  /family/story:
+    get:
+      summary: The family's story for the top of the Family tab, and a few numbers
+      operationId: getFamilyStory
+      tags: [Family]
+      responses:
+        "200":
+          description: The story (markdown is null until an admin writes it)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamilyStory"
+
+  /admin/family/story:
+    post:
+      summary: Write the family's story again from everyone's latest answers (admins)
+      operationId: writeFamilyStory
+      tags: [Family, Admin]
+      responses:
+        "200":
+          description: The new story
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamilyStory"
+        "403":
+          description: Not an admin
+        "503":
+          description: The AI model could not write it right now
+
+  /family/words:
+    get:
+      summary: Someone's answers in their own words, newest first
+      operationId: getFamilyWords
+      tags: [Family]
+      parameters:
+        - name: personId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Up to 60 answers
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [personId, words]
+                properties:
+                  personId:
+                    type: string
+                  words:
+                    type: array
+                    items:
+                      type: object
+                      required: [question, answer, date]
+                      properties:
+                        question:
+                          type: string
+                        answer:
+                          type: string
+                        date:
+                          type: string
+                          nullable: true
+
+  /graph:
+    get:
+      summary: The family as a graph — people with activity, ties, households, answered-alike pairs
+      operationId: getFamilyGraph
+      tags: [Family]
+      responses:
+        "200":
+          description: Graph data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamilyGraph"
+
+  # ──────────────────────────────────────────────
+  # Reactions (backend/features/reactions)
+  # ──────────────────────────────────────────────
+
+  /reactions:
+    get:
+      summary: Reactions on a batch of answers or facts, as the viewer sees them
+      operationId: getReactions
+      tags: [Reactions]
+      parameters:
+        - name: contentType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [fact, trivia]
+        - name: ids
+          in: query
+          required: true
+          description: Comma-separated content ids ("{ownerId}_{timestamp}"), at most 200
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Summary per id
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [reactions]
+                properties:
+                  reactions:
+                    type: object
+                    additionalProperties:
+                      $ref: "#/components/schemas/ReactionSummary"
+    put:
+      summary: Set the viewer's reaction; the same one again, or null, takes it back
+      operationId: putReaction
+      tags: [Reactions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contentType, contentId, reaction]
+              properties:
+                contentType:
+                  type: string
+                  enum: [fact, trivia]
+                contentId:
+                  type: string
+                reaction:
+                  type: string
+                  enum: [love, laugh, same, wow, hug]
+                  nullable: true
+      responses:
+        "200":
+          description: The item's reactions after the change
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [contentId, summary]
+                properties:
+                  contentId:
+                    type: string
+                  summary:
+                    $ref: "#/components/schemas/ReactionSummary"
+        "400":
+          description: Unknown reaction or content
+
+  # ──────────────────────────────────────────────
+  # Appearance (backend/features/appearance) — docs/decisions/0011
+  # ──────────────────────────────────────────────
+
+  /appearance:
+    get:
+      summary: The family's chosen theme (null for the default)
+      operationId: getAppearance
+      tags: [Appearance]
+      responses:
+        "200":
+          description: Theme
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appearance"
+
+  /admin/appearance:
+    put:
+      summary: Choose the family's theme (admins)
+      operationId: saveAppearance
+      tags: [Appearance, Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Appearance"
+      responses:
+        "200":
+          description: Saved theme
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appearance"
+        "400":
+          description: Unknown theme
+        "403":
+          description: Not an admin
+
+  # ──────────────────────────────────────────────
+  # Family archive (backend/features/archive)
+  # ──────────────────────────────────────────────
+
+  /archive/options:
+    get:
+      summary: Whether the viewer may export, and the people and homes to choose from
+      operationId: getArchiveOptions
+      tags: [Archive]
+      responses:
+        "200":
+          description: Options
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [canExport, people, households]
+                properties:
+                  canExport:
+                    type: boolean
+                  people:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, name, remembered]
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        remembered:
+                          type: boolean
+                  households:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, name, members]
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        members:
+                          type: array
+                          items:
+                            type: string
+
+  /archive/export:
+    post:
+      summary: Build a zip of the chosen people's answers, facts, games and comments
+      operationId: exportArchive
+      tags: [Archive]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [people]
+              properties:
+                people:
+                  oneOf:
+                    - type: array
+                      items:
+                        type: string
+                    - type: string
+                      enum: [all]
+      responses:
+        "200":
+          description: A short-lived download link
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url, bytes, people]
+                properties:
+                  url:
+                    type: string
+                  bytes:
+                    type: integer
+                  people:
+                    type: integer
+        "400":
+          description: Nobody chosen
+        "403":
+          description: Exporting is turned off for the viewer
+
+  /admin/archive/permissions:
+    get:
+      summary: Who may export the family archive (admins)
+      operationId: getArchivePermissions
+      tags: [Archive, Admin]
+      responses:
+        "200":
+          description: Permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportPermissions"
+    put:
+      summary: Set who may export the family archive (admins)
+      operationId: saveArchivePermissions
+      tags: [Archive, Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExportPermissions"
+      responses:
+        "200":
+          description: Saved permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportPermissions"
+
+  # ──────────────────────────────────────────────
+  # Settings (backend/features/settings) — docs/decisions/0013
+  # ──────────────────────────────────────────────
+
+  /settings/features:
+    get:
+      summary: Which optional parts of the app are on
+      operationId: getFeatures
+      tags: [Settings]
+      responses:
+        "200":
+          description: Feature name to on/off
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: boolean
+
+  /admin/settings:
+    get:
+      summary: Every setting with where its value comes from, the AI models, tasks and spend (admins)
+      operationId: getAdminSettings
+      tags: [Settings, Admin]
+      parameters:
+        - name: refreshModels
+          in: query
+          required: false
+          description: "1 re-checks which models work"
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The admin view (shape in frontend/src/entities/settings)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+    put:
+      summary: Save settings (admins); null clears a value back to its default
+      operationId: saveAdminSettings
+      tags: [Settings, Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [values]
+              properties:
+                values:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: The admin view after saving
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "400":
+          description: A value didn't fit its setting
+
 components:
   schemas:
     # ──────────────────────────────────────────────
@@ -3649,3 +4066,184 @@ components:
           type: array
           items:
             type: object
+
+    # ── Family, reactions, appearance, archive (feature slices) ──
+
+    Family:
+      type: object
+      description: The people model (shared/src/people.ts, docs/decisions/0009)
+      required: [version, name, people, ties, households]
+      properties:
+        version:
+          type: integer
+          enum: [2]
+        name:
+          type: string
+        people:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties: true
+        ties:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        households:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties: true
+
+    FamilyResponse:
+      type: object
+      required: [family, photoUrls]
+      properties:
+        family:
+          $ref: "#/components/schemas/Family"
+        photoUrls:
+          type: object
+          description: Photo key to a short-lived URL
+          additionalProperties:
+            type: string
+
+    FamilyStory:
+      type: object
+      required: [markdown, generatedAt, stats]
+      properties:
+        markdown:
+          type: string
+          nullable: true
+        generatedAt:
+          type: string
+          nullable: true
+        stats:
+          type: object
+          required: [people, playing, households, answers, since]
+          properties:
+            people:
+              type: integer
+            playing:
+              type: integer
+            households:
+              type: integer
+            answers:
+              type: integer
+            since:
+              type: string
+              nullable: true
+
+    FamilyGraph:
+      type: object
+      required: [people, ties, households, likenesses]
+      properties:
+        people:
+          type: array
+          items:
+            type: object
+            required: [id, name, participation, remembered, died]
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              participation:
+                type: string
+                enum: [playing, paused, not-playing]
+              remembered:
+                type: boolean
+              died:
+                type: string
+                nullable: true
+              activity:
+                type: object
+                properties:
+                  facts:
+                    type: integer
+                  trivia:
+                    type: integer
+                  correct:
+                    type: integer
+                  since:
+                    type: string
+                    nullable: true
+        ties:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        households:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        likenesses:
+          type: array
+          items:
+            type: object
+            required: [a, b, count, strength, examples]
+            properties:
+              a:
+                type: string
+              b:
+                type: string
+              count:
+                type: integer
+              strength:
+                type: number
+              examples:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    question:
+                      type: string
+                    a:
+                      type: string
+                    b:
+                      type: string
+
+    ReactionId:
+      type: string
+      enum: [love, laugh, same, wow, hug]
+      description: shared/src/reactions.ts
+
+    ReactionSummary:
+      type: object
+      required: [by, mine]
+      properties:
+        by:
+          type: array
+          description: Who reacted with what, newest first
+          items:
+            type: object
+            required: [userId, reaction]
+            properties:
+              userId:
+                type: string
+              reaction:
+                $ref: "#/components/schemas/ReactionId"
+        mine:
+          type: string
+          enum: [love, laugh, same, wow, hug]
+          nullable: true
+
+    Appearance:
+      type: object
+      required: [themeId]
+      properties:
+        themeId:
+          type: string
+          nullable: true
+
+    ExportPermissions:
+      type: object
+      required: [everyone, users]
+      properties:
+        everyone:
+          type: boolean
+        users:
+          type: object
+          description: Per-person overrides
+          additionalProperties:
+            type: boolean
