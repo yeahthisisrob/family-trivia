@@ -43,6 +43,7 @@ import UserTimeline from '../../../components/Profile/UserTimeline';
 import { graphApi, knowledgeApi, storyApi, useFamily } from '../../../entities/family';
 import { identityColor } from '../../../shared/design-system';
 import { FillIn } from '../../fill-in';
+import { PersonBookButton } from '../../person-book';
 import { RememberingPage } from '../../remembering';
 
 const LATELY = 5;
@@ -419,6 +420,13 @@ export const StoryProfile: React.FC<{
               Read all {story?.words.length} answers
             </Button>
           )}
+          <Box sx={{ mt: 1 }}>
+            <PersonBookButton
+              personId={userId}
+              name={name}
+              label={isMe ? 'Make a book of your answers' : `Make a book of ${name}’s answers`}
+            />
+          </Box>
         </Section>
       )}
 

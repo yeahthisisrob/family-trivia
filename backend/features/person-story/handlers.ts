@@ -34,7 +34,8 @@ export async function buildPersonStory(personId: string): Promise<PersonStory> {
       id: `${personId}_${f.timestamp}`,
       question: f.question,
       answer: f.answer.trim(),
-      date: f.date || f.timestamp.slice(0, 10),
+      // When they said it: an old question answered late belongs to the day it was answered.
+      date: f.timestamp.slice(0, 10),
     }));
 
   const ids = words.map((w) => w.id);

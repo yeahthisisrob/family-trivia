@@ -22,8 +22,8 @@ import {
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useFamily } from '../../../entities/family';
+import { dayName, monthName } from '../../../shared/dates';
 import { identityColor } from '../../../shared/design-system';
-import { dayName, monthName } from '../../../shared/keepsake';
 import { lookBackApi } from '../api/lookBackApi';
 import { seasonDates } from '../model/dates';
 import { BookDialog } from './BookDialog';

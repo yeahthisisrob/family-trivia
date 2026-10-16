@@ -17,7 +17,6 @@
  *
  * Two calls, because the writing can take longer than one request may.
  */
-import { createHash } from 'node:crypto';
 import {
   type BookTone,
   type BookVersion,
@@ -30,34 +29,16 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
 import { loadJoined } from '../../services/family/joined';
 import { logger } from '../../services/logger';
-import { downloadUrl } from '../../services/media';
-import { fileExists, getJson, putBytes, putJson } from '../../services/s3';
+import { keepBook, keptVersions } from '../../services/press/keep';
 import { getSeasonsConfig } from '../../services/seasonService';
 import { type BookPerson, seasonBook } from './book';
 import { buildSeasonReview } from './review';
 import { readWriting, writeBook } from './writing';
 
-interface Version {
-  madeAt: string;
-  pages: number;
-  key: string;
-  /** Everything the book was made from, so it can be made again exactly. */
-  inputKey: string;
-  writtenAt: string | null;
-}
-
 /** Bump when the layout in book.ts changes, so a kept input says which layout it was set in. */
-export const LAYOUT = 1;
+export const LAYOUT = 2;
 
-/** The record of a season's books in one tone: what the latest was made from, and every version. */
-interface Kept {
-  fingerprint: string;
-  versions: Version[];
-}
-
-const pdfKey = (season: number, tone: BookTone, madeAt: string) =>
-  `books/season-${season}/${tone}/${madeAt.replace(/[:.]/g, '-')}.pdf`;
-const keptKey = (season: number, tone: BookTone) => `books/season-${season}/${tone}.book.json`;
+const prefixOf = (season: number, tone: BookTone) => `books/season-${season}/${tone}`;
 const TONES: readonly BookTone[] = ['plain', 'warm', 'playful'];
 
 function parse(event: APIGatewayProxyEvent) {
@@ -130,50 +111,16 @@ export async function makeSeasonBook(event: APIGatewayProxyEvent): Promise<APIGa
   const writing: BookWriting | null = tone === 'plain' ? null : await readWriting(season, tone);
   if (tone !== 'plain' && !writing) return errorResponse('The book isn’t written yet', 409);
 
-  const fingerprint = createHash('sha256')
-    .update(JSON.stringify([review.book, familyName, people, writing?.writtenAt ?? null]))
-    .digest('hex');
-  const fileName = `${familyName} - ${review.season.name}.pdf`.replace(/[^\p{L}\p{N} .-]/gu, '');
-
-  const kept = await getJson<Kept>(keptKey(season, tone));
-  const latest = kept?.versions[0];
-  if (!fresh && latest && kept?.fingerprint === fingerprint && (await fileExists(latest.key))) {
-    const book: SeasonBook = {
-      url: await downloadUrl(latest.key, fileName),
-      pages: latest.pages,
-      tone,
-      madeAt: latest.madeAt,
-      made: false,
-    };
-    return successResponse(book);
-  }
-
-  const madeOn = new Date();
-  const madeAt = madeOn.toISOString();
-  const made = await seasonBook({ review, familyName, people, madeOn, writing });
-  const key = pdfKey(season, tone, madeAt);
-  const inputKey = key.replace(/\.pdf$/, '.input.json');
-  await putJson(inputKey, { layout: LAYOUT, madeAt, tone, familyName, people, review, writing });
-  await putBytes(key, made.pdf, 'application/pdf');
-  const version: Version = {
-    madeAt,
-    pages: made.pages,
-    key,
-    inputKey,
-    writtenAt: writing?.writtenAt ?? null,
-  };
-  await putJson(keptKey(season, tone), {
-    fingerprint,
-    versions: [version, ...(kept?.versions ?? [])],
-  } satisfies Kept);
-  logger.info('Season book made', { season, tone, pages: made.pages, bytes: made.pdf.length });
-  const book: SeasonBook = {
-    url: await downloadUrl(key, fileName),
-    pages: made.pages,
-    tone,
-    madeAt,
-    made: true,
-  };
+  const kept = await keepBook({
+    prefix: prefixOf(season, tone),
+    input: { layout: LAYOUT, tone, familyName, people, review, writing },
+    fileName: `${familyName} - ${review.season.name}.pdf`.replace(/[^\p{L}\p{N} .-]/gu, ''),
+    fresh,
+    about: { tone, writtenAt: writing?.writtenAt ?? null },
+    make: (madeOn) => seasonBook({ review, familyName, people, madeOn, writing }),
+  });
+  if (kept.made) logger.info('Season book made', { season, tone, pages: kept.pages });
+  const book: SeasonBook = { ...kept, tone };
   return successResponse(book);
 }
 
@@ -185,20 +132,24 @@ export async function listBookVersions(
   if (!Number.isFinite(season)) return errorResponse('Which season?', 400);
   const { seasons } = await getSeasonsConfig();
   const name = seasons.find((s) => s.seasonNumber === season)?.name ?? `Season ${season}`;
-  const kept = await Promise.all(
-    TONES.map(async (tone) => ({ tone, kept: await getJson<Kept>(keptKey(season, tone)) })),
+  const all = await Promise.all(
+    TONES.map(async (tone) =>
+      (
+        await keptVersions(
+          prefixOf(season, tone),
+          (v) => `${name} - ${tone} - ${v.madeAt.slice(0, 10)}.pdf`,
+        )
+      ).map(
+        (v): BookVersion => ({
+          tone,
+          madeAt: v.madeAt,
+          pages: v.pages,
+          writtenAt: v.about?.writtenAt ?? null,
+          url: v.url,
+        }),
+      ),
+    ),
   );
-  const versions: BookVersion[] = await Promise.all(
-    kept
-      .flatMap(({ tone, kept }) => (kept?.versions ?? []).map((v) => ({ tone, ...v })))
-      .sort((a, b) => b.madeAt.localeCompare(a.madeAt))
-      .map(async ({ tone, madeAt, pages, key, writtenAt }) => ({
-        tone,
-        madeAt,
-        pages,
-        writtenAt,
-        url: await downloadUrl(key, `${name} - ${tone} - ${madeAt.slice(0, 10)}.pdf`),
-      })),
-  );
+  const versions = all.flat().sort((a, b) => b.madeAt.localeCompare(a.madeAt));
   return successResponse({ versions });
 }

@@ -109,7 +109,7 @@ export class FamilyTriviaStack extends Stack {
           beforeBundling: () => [],
           beforeInstall: () => [],
           afterBundling: (_input: string, output: string) => [
-            `cp -r "${path.join(__dirname, '../../backend/features/look-back/fonts')}" "${output}/fonts"`,
+            `cp -r "${path.join(__dirname, '../../backend/services/press/fonts')}" "${output}/fonts"`,
           ],
         },
       },

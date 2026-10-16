@@ -163,11 +163,11 @@ test('nothing is replaced: every book and every earlier writing is kept', async 
   expect(pdfs).toHaveLength(3);
   // Each book beside what it was made from.
   for (const pdf of pdfs) {
-    const input = getStored<{ layout: number; review: unknown; tone: string }>(
+    const kept = getStored<{ input: { layout: number; review: unknown } }>(
       pdf.replace(/\.pdf$/, '.input.json'),
     );
-    expect(input?.layout).toBe(1);
-    expect(input?.review).toBeTruthy();
+    expect(kept?.input.layout).toBe(2);
+    expect(kept?.input.review).toBeTruthy();
   }
   // The writing that was replaced, and both AI calls word for word.
   const history = listStored('books/season-1/history/');
