@@ -1,3 +1,4 @@
+import { modelFor } from '../core/models';
 // File: lambda/services/bedrock/members/memberSummary.ts
 
 import {
@@ -10,7 +11,7 @@ import {
   parentsOf,
   siblingsOf,
 } from '@family-trivia/shared';
-import { FEATURE_FLAGS, getModelForService } from '../../../config';
+import { FEATURE_FLAGS } from '../../../config';
 import { S3_PATHS } from '../../../constants';
 import { loadFamily } from '../../family/roster';
 import { logger } from '../../logger';
@@ -889,8 +890,8 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
     if (generateBoth) {
       logger.info('Generating both summaries in parallel');
 
-      const memberSummaryModel = getModelForService('MEMBER_SUMMARIES');
-      const roastModel = getModelForService('ROAST_SUMMARIES');
+      const memberSummaryModel = modelFor('spotlight');
+      const roastModel = modelFor('roast');
 
       // Create promises for both summaries
       const regularPromise = (async () => {
@@ -899,7 +900,7 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
             regularPrompt,
             2048,
             0.7,
-            { summaryMode: 'regular' },
+            { task: 'spotlight', summaryMode: 'regular' },
             memberSummaryModel,
           );
 
@@ -919,7 +920,7 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
             roastPrompt,
             2048,
             0.9,
-            { summaryMode: 'roast' },
+            { task: 'roast', summaryMode: 'roast' },
             roastModel,
           );
 
@@ -946,7 +947,7 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
           insightsPrompt,
           1024,
           0.5,
-          { summaryMode: 'insights' },
+          { task: 'spotlight', summaryMode: 'insights' },
           memberSummaryModel,
         );
 
@@ -1030,13 +1031,13 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
       // Generate only regular summary
       logger.info('Generating regular summary only');
       try {
-        const memberSummaryModel = getModelForService('MEMBER_SUMMARIES');
+        const memberSummaryModel = modelFor('spotlight');
 
         const regularResponse = await invokeBedrockPrompt(
           regularPrompt,
           2048,
           0.7,
-          { summaryMode: 'regular' },
+          { task: 'spotlight', summaryMode: 'regular' },
           memberSummaryModel,
         );
 
@@ -1052,7 +1053,7 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
               insightsPrompt,
               1024,
               0.5,
-              { summaryMode: 'insights' },
+              { task: 'spotlight', summaryMode: 'insights' },
               memberSummaryModel,
             );
 
@@ -1151,13 +1152,13 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
       // Generate only roast summary
       logger.info('Generating roast summary only');
       try {
-        const roastModel = getModelForService('ROAST_SUMMARIES');
+        const roastModel = modelFor('roast');
 
         const roastResponse = await invokeBedrockPrompt(
           roastPrompt,
           2048,
           0.9,
-          { summaryMode: 'roast' },
+          { task: 'roast', summaryMode: 'roast' },
           roastModel,
         );
 

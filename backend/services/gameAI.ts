@@ -1,3 +1,4 @@
+import { modelFor } from './bedrock/core/models';
 /**
  * gameAI — shared Haiku-powered strategy service for arcade games.
  *
@@ -21,7 +22,6 @@ export interface GameAIPrompt<TState, TMove> {
   parseMove: (raw: Record<string, unknown>) => TMove;
 }
 
-const MODEL = MODELS.FAST;
 const MAX_TOKENS = 128;
 const TEMPERATURE = 0.5;
 
@@ -35,7 +35,14 @@ export async function getAIMove<TState, TMove>(
 ): Promise<TMove | null> {
   try {
     const prompt = game.buildPrompt(state);
-    const stream = await invokeBedrockPrompt(prompt, MAX_TOKENS, TEMPERATURE, {}, MODEL);
+    const MODEL = modelFor('gameMoves');
+    const stream = await invokeBedrockPrompt(
+      prompt,
+      MAX_TOKENS,
+      TEMPERATURE,
+      { task: 'gameMoves' },
+      MODEL,
+    );
     const buf = await collectResponseBody(stream);
     const raw = extractJsonFromResponse(buf, MODEL);
     return game.parseMove(raw);

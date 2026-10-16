@@ -1,3 +1,4 @@
+import { modelFor } from '../core/models';
 // File: services/bedrock/questions/utils.ts
 // Purpose: Utility functions for question generation and deduplication
 
@@ -456,7 +457,13 @@ Return the response in this exact JSON format:
     attempt++;
     try {
       const temp = 0.7 + (attempt - 1) * 0.1;
-      const stream = await invokeBedrockPrompt(prompt, 512, temp);
+      const stream = await invokeBedrockPrompt(
+        prompt,
+        512,
+        temp,
+        { task: 'trivia' },
+        modelFor('trivia'),
+      );
       const buf = await collectResponseBody(stream);
 
       let parsed = extractJsonFromResponse(buf);

@@ -11,6 +11,7 @@ import { appearanceRoutes } from './features/appearance/routes';
 import { archiveRoutes } from './features/archive/routes';
 import { familyRoutes } from './features/family/routes';
 import { graphRoutes } from './features/graph/routes';
+import { settingsRoutes } from './features/settings/routes';
 import * as adminHandlers from './routes/admin';
 // Answer grid for trivia status matrix
 import { getAnswerGrid } from './routes/answerGrid';
@@ -135,6 +136,8 @@ import {
 import { getUpcomingBirthdays } from './routes/upcomingBirthdays';
 import { userProfile } from './routes/userProfile';
 import { getWeeklyFactSummary } from './routes/weeklyFactSummary';
+import { loadModelChoices } from './services/bedrock/core/models';
+import { flushUsage } from './services/bedrock/core/usage';
 import { invalidateFactHistoryCache } from './services/factHistoryService';
 import { invalidateGameModeCache } from './services/gameModeService';
 import { logger } from './services/logger';
@@ -148,6 +151,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...appearanceRoutes,
   ...archiveRoutes,
   ...graphRoutes,
+  ...settingsRoutes,
 
   // ── Public (no auth) ─────────────────────────────────────────
   'POST /auth/google': authGoogle,
@@ -311,6 +315,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
   }
 
   try {
+    await loadModelChoices();
     return await fn(event);
   } catch (err: any) {
     logger.error('Unhandled error in route', {
@@ -326,5 +331,8 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       },
       500,
     );
+  } finally {
+    // One write per request for whatever the AI used (services/bedrock/core/usage.ts).
+    await flushUsage();
   }
 };

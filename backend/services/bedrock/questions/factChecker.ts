@@ -1,6 +1,6 @@
+import { modelFor } from '../core/models';
 // Fact checking service for trivia questions
 
-import { SERVICE_MODELS } from '../../../config';
 import { logger } from '../../logger';
 import { invokeBedrockPrompt } from '../core/bedrockClient';
 import { collectResponseBody, extractJsonFromResponse } from '../core/responseParser';
@@ -24,8 +24,7 @@ export async function factCheckQuestion(
   expectedDifficulty?: 'easy' | 'normal' | 'hard',
 ): Promise<FactCheckResult> {
   // Randomly select a fact checker model
-  const factCheckers = SERVICE_MODELS.FACT_CHECKERS;
-  const selectedModel = factCheckers[Math.floor(Math.random() * factCheckers.length)];
+  const selectedModel = modelFor('factCheck');
 
   // Determine model name for display
   const modelDisplayName = 'AI fact checker';
@@ -43,7 +42,7 @@ export async function factCheckQuestion(
       prompt,
       256, // Max tokens - fact check should be concise
       0.1, // Low temperature for accuracy
-      { factChecking: true },
+      { task: 'factCheck', factChecking: true },
       selectedModel,
     );
 

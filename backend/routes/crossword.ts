@@ -1,10 +1,11 @@
+import { modelFor } from '../services/bedrock/core/models';
 // File: lambda/routes/crossword.ts
 // Purpose: Generate crossword puzzles from family facts.
 // Uses an algorithmic grid builder for dense intersections,
 // not AI (LLMs are bad at spatial constraint satisfaction).
 
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { errorResponse, getModelForService, successResponse } from '../config';
+import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
 import { invokeBedrockPrompt } from '../services/bedrock/core/bedrockClient';
 import {
@@ -321,8 +322,8 @@ Return ONLY valid JSON:
   ]
 }`;
 
-    const model = getModelForService('QUESTION_GENERATION');
-    const stream = await invokeBedrockPrompt(prompt, 1024, 0.4, { task: 'crossword-clues' }, model);
+    const model = modelFor('trivia');
+    const stream = await invokeBedrockPrompt(prompt, 1024, 0.4, { task: 'trivia' }, model);
     const buf = await collectResponseBody(stream);
     const parsed = extractJsonFromResponse(buf, model);
 

@@ -1,7 +1,7 @@
+import { modelFor } from '../core/models';
 // File: services/bedrock/questions/trivia.ts
 // Purpose: Generate general trivia questions with difficulty levels
 
-import { getModelForService } from '../../../config';
 import { logger } from '../../../services/logger';
 import { externalTriviaS3Service } from '../../externalTriviaS3';
 import { getFactContent } from '../../factHistoryService';
@@ -289,7 +289,7 @@ export async function generateTriviaQuestionBase(
   const fullPrompt = buildTriviaPrompt(parts, difficulty);
 
   const temperature = 0.7;
-  const modelId = getModelForService('QUESTION_GENERATION');
+  const modelId = modelFor('trivia');
 
   logger.info(`Generating question`, {
     mode,
@@ -300,7 +300,13 @@ export async function generateTriviaQuestionBase(
     modelId,
   });
 
-  const bodyStream = await invokeBedrockPrompt(fullPrompt, 512, temperature, {}, modelId);
+  const bodyStream = await invokeBedrockPrompt(
+    fullPrompt,
+    512,
+    temperature,
+    { task: 'trivia' },
+    modelId,
+  );
   const responseBuffer = await collectResponseBody(bodyStream);
   const parsedResponse = extractJsonFromResponse(responseBuffer, modelId);
 
@@ -480,7 +486,7 @@ export async function generateQuestion(
         // Adjust temperature slightly on retry for variation
         // Keep temperature within valid range (0-1)
         const temperature = Math.min(0.7 + (attempts - 1) * 0.1, 1.0);
-        const modelId = getModelForService('QUESTION_GENERATION');
+        const modelId = modelFor('trivia');
 
         logger.info(`Generating question`, {
           attempt: attempts,
@@ -493,7 +499,13 @@ export async function generateQuestion(
         });
 
         // Invoke Bedrock
-        const bodyStream = await invokeBedrockPrompt(fullPrompt, 512, temperature, {}, modelId);
+        const bodyStream = await invokeBedrockPrompt(
+          fullPrompt,
+          512,
+          temperature,
+          { task: 'trivia' },
+          modelId,
+        );
 
         // Collect response and extract JSON
         const responseBuffer = await collectResponseBody(bodyStream);

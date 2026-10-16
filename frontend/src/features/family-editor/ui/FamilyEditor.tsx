@@ -245,24 +245,6 @@ export const FamilyEditor: React.FC<{ adminUserId: string }> = ({ adminUserId })
         ))}
       </Box>
 
-      {exportPerms && (
-        <Card variant="outlined" sx={{ mt: 3, p: 2 }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={exportPerms.everyone}
-                onChange={(e) => setExport({ ...exportPerms, everyone: e.target.checked })}
-              />
-            }
-            label="Everyone can download the family archive"
-          />
-          <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-            A zip of everyone's answers, facts, games and comments, one folder per person. Admins
-            can always download it; you can also allow or block one person in their details.
-          </Typography>
-        </Card>
-      )}
-
       <Typography variant="subtitle2" sx={{ mt: 4, mb: 1 }}>
         Households
       </Typography>

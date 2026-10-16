@@ -1,5 +1,6 @@
 // Core types
 
+export * from './ai';
 export * from './api';
 export * from './arcade';
 export * from './casino-rush';
@@ -20,6 +21,7 @@ export * from './profile';
 export * from './question';
 export * from './question-gen';
 export * from './season';
+export * from './settings';
 export * from './similarity';
 export * from './slot-machine';
 export * from './timeline';

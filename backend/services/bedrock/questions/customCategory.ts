@@ -1,7 +1,7 @@
+import { modelFor } from '../core/models';
 // File: services/bedrock/questions/customCategory.ts
 // Purpose: Generate custom categories from user topics with AI assistance
 
-import { getModelForService } from '../../../config';
 import { logger } from '../../logger';
 import { invokeBedrockPrompt } from '../core/bedrockClient';
 import { collectResponseBody, extractJsonFromResponse } from '../core/responseParser';
@@ -55,8 +55,14 @@ export async function generateCustomCategory(
     });
 
     // Call the model to generate the category
-    const customCategoryModel = getModelForService('CUSTOM_CATEGORIES');
-    const bodyStream = await invokeBedrockPrompt(prompt, 300, 0.7, {}, customCategoryModel);
+    const customCategoryModel = modelFor('trivia');
+    const bodyStream = await invokeBedrockPrompt(
+      prompt,
+      300,
+      0.7,
+      { task: 'trivia' },
+      customCategoryModel,
+    );
 
     // Collect response and extract JSON
     const responseBuffer = await collectResponseBody(bodyStream);

@@ -1,6 +1,6 @@
+import { modelFor } from '../core/models';
 // File: lambda/services/bedrock/facts/dailySummary.ts
 
-import { getModelForService } from '../../../config';
 import { logger } from '../../logger';
 import { invokeBedrockPrompt } from '../core/bedrockClient';
 import { collectResponseBody } from '../core/responseParser';
@@ -63,7 +63,7 @@ export async function generateDailyFactSummary(data: DailyFactData): Promise<str
     const prompt = buildSummaryPrompt(data, sideAFacts, sideBFacts, factsByGroup, patterns);
 
     // Get the model for member summaries (using same model as member summaries)
-    const model = getModelForService('MEMBER_SUMMARIES');
+    const model = modelFor('summaries');
 
     // Generate summary - use more tokens for weekly summaries
     const isWeekly = data.date.includes(' to ');
@@ -73,7 +73,7 @@ export async function generateDailyFactSummary(data: DailyFactData): Promise<str
       prompt,
       maxTokens,
       0.7, // Temperature
-      { summaryType: isWeekly ? 'weekly-facts' : 'daily-facts' },
+      { task: 'summaries', summaryType: isWeekly ? 'weekly-facts' : 'daily-facts' },
       model,
     );
 

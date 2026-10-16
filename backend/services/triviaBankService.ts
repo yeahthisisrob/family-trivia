@@ -1,3 +1,4 @@
+import { modelFor } from './bedrock/core/models';
 // File: lambda/services/triviaBankService.ts
 // Purpose: Trivia bank management — stats, import from external APIs,
 // AI-generated local categories, question browsing, dedup tracking.
@@ -439,8 +440,8 @@ Return a JSON array of objects:
 Return ONLY the JSON array.`;
 
   try {
-    const modelId = MODELS.WRITER;
-    const stream = await invokeBedrockPrompt(prompt, 4096, 0.8, {}, modelId);
+    const modelId = modelFor('trivia');
+    const stream = await invokeBedrockPrompt(prompt, 4096, 0.8, { task: 'trivia' }, modelId);
     const buf = await collectResponseBody(stream);
     const parsed = extractJsonFromResponse(buf, modelId);
 

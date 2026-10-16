@@ -24,44 +24,6 @@ export const MODELS = {
 
 export const MODEL_ID = MODELS.WRITER;
 
-// Service-specific model selection
-type ServiceModelMap = {
-  MEMBER_SUMMARIES: string;
-  ROAST_SUMMARIES: string;
-  FUN_FACTS: string;
-  CUSTOM_CATEGORIES: string;
-  GROUP_DESCRIPTIONS: string;
-  PERSONAL_QUESTIONS: string;
-  QUESTION_GENERATION: string;
-  FACT_CHECKERS: readonly string[];
-};
-
-export const SERVICE_MODELS: ServiceModelMap = {
-  // The writer for anything the family reads
-  MEMBER_SUMMARIES: MODELS.WRITER,
-  FUN_FACTS: MODELS.WRITER,
-  CUSTOM_CATEGORIES: MODELS.WRITER,
-  GROUP_DESCRIPTIONS: MODELS.WRITER,
-  PERSONAL_QUESTIONS: MODELS.WRITER,
-  QUESTION_GENERATION: MODELS.WRITER,
-
-  // The fast model for roasts and fact checking
-  ROAST_SUMMARIES: MODELS.FAST,
-  FACT_CHECKERS: [MODELS.FAST],
-};
-
-/**
- * Gets the appropriate model ID for a specific service
- */
-export function getModelForService(serviceName: keyof ServiceModelMap): string {
-  const model = SERVICE_MODELS[serviceName];
-  // For fact checkers, return a random one
-  if (Array.isArray(model)) {
-    return model[Math.floor(Math.random() * model.length)];
-  }
-  return model as string;
-}
-
 // Response headers. API routes through CloudFront (same-origin) but
 // API Gateway proxy integration still needs these to pass responses through.
 export const CORS_HEADERS: Record<string, string> = {

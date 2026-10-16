@@ -1,8 +1,9 @@
+import { modelFor } from '../services/bedrock/core/models';
 // File: lambda/routes/generateQuestionOptions.ts
 
 import { getWeekStartDateET as getWeekStartDate } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { errorResponse, getModelForService, successResponse } from '../config';
+import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
 import { invokeBedrockPrompt } from '../services/bedrock/core/bedrockClient';
 import {
@@ -216,6 +217,7 @@ Return ONLY a JSON array with exactly 3 questions:
       // Invoke Bedrock
       // Higher temperature (0.9) for more variety — avoids the food default
       const responseBody = await invokeBedrockPrompt(fullPrompt, 1024, 0.9, {
+        task: 'familyQuestions',
         userId,
         theme,
         regenerate,
@@ -223,7 +225,7 @@ Return ONLY a JSON array with exactly 3 questions:
 
       // Collect and parse response
       const responseBuffer = await collectResponseBody(responseBody);
-      const modelId = getModelForService('PERSONAL_QUESTIONS');
+      const modelId = modelFor('familyQuestions');
       const parsedResponse = extractJsonFromResponse(responseBuffer, modelId);
 
       // Parse the response
