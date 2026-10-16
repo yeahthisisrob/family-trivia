@@ -30,7 +30,9 @@ export const PersonBookButton: React.FC<{
   const [busy, setBusy] = useState(false);
   const [book, setBook] = useState<PersonBook | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
-  const [versions, setVersions] = useState<{ madeAt: string; pages: number; url: string }[]>([]);
+  const [versions, setVersions] = useState<
+    { madeAt: string; pages: number; url: string; coverUrl?: string }[]
+  >([]);
 
   const make = async (fresh = false) => {
     setOpen(true);
@@ -82,10 +84,22 @@ export const PersonBookButton: React.FC<{
                   target="_blank"
                   rel="noopener"
                 >
-                  Download the PDF
+                  Download the book
                 </Button>
+                {book.coverUrl && (
+                  <Button
+                    variant="outlined"
+                    startIcon={<DownloadIcon />}
+                    href={book.coverUrl}
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    Download its cover
+                  </Button>
+                )}
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  A 6 × 9 inch book a printer such as Lulu, Blurb or Amazon KDP takes as it is.
+                  A 6 × 9 inch paperback and its cover, ready for a press such as Amazon KDP or
+                  Lulu.
                 </Typography>
                 {versions.length > 1 && (
                   <Stack spacing={0.5}>
@@ -103,8 +117,13 @@ export const PersonBookButton: React.FC<{
                           })}
                         </Typography>
                         <Button size="small" href={v.url} target="_blank" rel="noopener">
-                          Download
+                          Book
                         </Button>
+                        {v.coverUrl && (
+                          <Button size="small" href={v.coverUrl} target="_blank" rel="noopener">
+                            Cover
+                          </Button>
+                        )}
                       </Stack>
                     ))}
                   </Stack>

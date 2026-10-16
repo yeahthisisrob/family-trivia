@@ -42,7 +42,7 @@ export const MakeTheBook: Story = {
     await userEvent.click(within(canvasElement).getByRole('button', { name: 'Make it a book' }));
     const page = within(document.body);
     await expect(await page.findByText(/Ready: 28 pages/)).toBeInTheDocument();
-    await expect(page.getByRole('link', { name: 'Download the PDF' })).toHaveAttribute(
+    await expect(page.getByRole('link', { name: 'Download the book' })).toHaveAttribute(
       'href',
       'https://example.test/grace.pdf',
     );

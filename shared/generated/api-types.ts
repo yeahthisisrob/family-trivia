@@ -2110,6 +2110,8 @@ export interface components {
             madeAt: string;
             /** @description False when the kept copy was still current */
             made: boolean;
+            /** @description The wraparound cover, sized for the book's page count */
+            coverUrl?: string;
         };
         /** @enum {string} */
         BookTone: "plain" | "warm" | "playful";
@@ -5510,6 +5512,8 @@ export interface operations {
                         madeAt: string;
                         /** @description False when the kept copy was still current */
                         made: boolean;
+                        /** @description The wraparound cover, sized for the book's page count */
+                        coverUrl?: string;
                     };
                 };
             };

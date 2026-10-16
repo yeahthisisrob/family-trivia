@@ -47,7 +47,9 @@ the family's own words, shown once.
   once per season and tone and kept under `books/`; the PDF is kept too and made again only when the
   season's answers change or someone asks. Nothing is replaced: every PDF is
   kept beside the input it was set from (answers, people, writing, layout
-  version), and every piece of writing beside the AI's prompt and reply.
+  version) and its wraparound cover (back, spine sized to the page count,
+  front, with bleed; `services/press/cover.ts`), and every piece of writing
+  beside the AI's prompt and reply.
 
 ## Consequences
 The season is the one switch for what the app asks: general trivia, family

@@ -3060,6 +3060,9 @@ paths:
                   made:
                     type: boolean
                     description: False when the kept copy was still current
+                  coverUrl:
+                    type: string
+                    description: The wraparound cover, sized for the book's page count
         "409":
           description: The book's writing hasn't been written yet (call /seasons/book/writing first)
 
@@ -4130,6 +4133,9 @@ components:
         made:
           type: boolean
           description: False when the kept copy was still current
+        coverUrl:
+          type: string
+          description: The wraparound cover, sized for the book's page count
 
     BookTone:
       type: string

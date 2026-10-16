@@ -224,7 +224,7 @@ export async function seasonBook(input: BookInput): Promise<{ pdf: Buffer; pages
 }
 
 /** The months the season's questions ran, from the first day asked to the last. */
-function seasonSpan(review: SeasonReview) {
+export function seasonSpan(review: SeasonReview) {
   const first = review.book[0]?.date ?? review.season.startDate;
   const last = review.book.at(-1)?.date ?? review.season.endDate ?? first;
   const [from, to] = [monthName(first), monthName(last)];

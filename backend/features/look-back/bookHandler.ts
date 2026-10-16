@@ -30,9 +30,11 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
 import { loadJoined } from '../../services/family/joined';
 import { logger } from '../../services/logger';
+import { bookCover } from '../../services/press/cover';
 import { keepBook, keptVersions } from '../../services/press/keep';
+import { getBytes } from '../../services/s3';
 import { getSeasonsConfig } from '../../services/seasonService';
-import { type BookPerson, seasonBook } from './book';
+import { type BookPerson, seasonBook, seasonSpan } from './book';
 import { buildSeasonReview } from './review';
 import { advanceWriting, readWriting } from './writing';
 
@@ -77,7 +79,7 @@ async function gather(seasonNumber: number) {
       },
     ]),
   );
-  return { review, familyName: visible.name, people };
+  return { season, review, familyName: visible.name, people };
 }
 
 /**
@@ -114,7 +116,7 @@ export async function makeSeasonBook(event: APIGatewayProxyEvent): Promise<APIGa
   if (!tone) return errorResponse('Choose how the book is written', 400);
   const found = await gather(season);
   if (!found) return errorResponse('Unknown season', 404);
-  const { review, familyName, people } = found;
+  const { season: seasonInfo, review, familyName, people } = found;
   if (!review.book.length) return errorResponse('This season has no answers to print yet', 404);
 
   const writing: BookWriting | null = tone === 'plain' ? null : await readWriting(season, tone);
@@ -128,6 +130,22 @@ export async function makeSeasonBook(event: APIGatewayProxyEvent): Promise<APIGa
     fresh,
     about: { tone, writtenAt: writing?.writtenAt ?? null },
     make: (madeOn) => seasonBook({ review, familyName, people, madeOn, writing }),
+    cover: async (pages) => {
+      const image = seasonInfo.notes?.end?.image ?? seasonInfo.notes?.start?.image;
+      const n = review.numbers;
+      return bookCover({
+        title: review.season.name,
+        family: familyName,
+        subtitle: 'in our own words',
+        dates: seasonSpan(review),
+        blurb:
+          writing?.foreword.split(/\n\s*\n/)[0]?.trim() ||
+          `Every day of ${review.season.name}, the family answered the same question. These are the questions, and every answer, in our own words.`,
+        numbers: `${n.people} of us · ${n.answers.toLocaleString('en-US')} answers · ${n.days} days`,
+        photo: image ? await getBytes(image) : null,
+        pages,
+      });
+    },
   });
   if (kept.made) logger.info('Season book made', { season, tone, pages: kept.pages });
   const book: SeasonBook = { ...kept, tone };
@@ -156,6 +174,7 @@ export async function listBookVersions(
           pages: v.pages,
           writtenAt: v.about?.writtenAt ?? null,
           url: v.url,
+          ...(v.coverUrl ? { coverUrl: v.coverUrl } : {}),
         }),
       ),
     ),

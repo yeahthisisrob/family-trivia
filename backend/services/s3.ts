@@ -171,6 +171,17 @@ export async function putJson(key: string, data: any): Promise<void> {
  * @param data Data to store as JSON
  * @returns true if successfully written, false if object already exists
  */
+/** Read raw bytes (photos for a book's cover); null when there's nothing there. */
+export async function getBytes(key: string): Promise<Uint8Array | null> {
+  try {
+    const r = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
+    return r.Body ? await r.Body.transformToByteArray() : null;
+  } catch (err) {
+    logger.warn('Could not read bytes', { key, error: err instanceof Error ? err.message : err });
+    return null;
+  }
+}
+
 /** Write raw bytes (exports, generated files). */
 export async function putBytes(key: string, body: Uint8Array, contentType: string): Promise<void> {
   await s3.send(
