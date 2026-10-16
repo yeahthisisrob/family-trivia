@@ -1,0 +1,19 @@
+# Decisions
+
+Short records of why the project is the way it is. One page each, written
+when the decision is made, so the reason survives the people who made it.
+
+- Add one when a choice would surprise a newcomer, is costly to undo, or
+  closes off an alternative someone will propose again.
+- Copy `0000-template.md`, take the next number, keep it under a page.
+- Records aren't edited after the fact. If a decision changes, write a new
+  one that supersedes it and mark the old one `Superseded by NNNN`.
+
+| # | Decision | Status |
+|---|---|---|
+| [0001](0001-why-this-exists.md) | Why this exists: connection as families age | Accepted |
+| [0002](0002-toolchain.md) | mise + pnpm workspace + one strict TypeScript base | Accepted |
+| [0003](0003-biome.md) | Biome for format and lint, with debt counted | Accepted |
+| [0004](0004-repo-layout.md) | `frontend/`, `backend/`, `infra/`, `shared/`; shared ships source | Accepted |
+| [0005](0005-local-dev-server.md) | Local API is the real handler on Node, not SAM | Accepted |
+| [0006](0006-privacy-by-default.md) | Privacy by default: no real family in the repo | Accepted |

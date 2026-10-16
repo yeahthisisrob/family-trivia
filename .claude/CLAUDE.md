@@ -1,38 +1,41 @@
-# Claude Code Instructions
+# Claude Code instructions
 
-## Principles
-- DRY — don't repeat yourself
-- VSA / FSD — vertical slice architecture, feature-sliced design
-- Storybook — every new UI component gets stories
-- OpenAPI — typed API contracts between frontend and backend
-- Best practices — follow existing patterns in the codebase
+Read `docs/decisions/` first: it says why the project is the way it is.
+0001 is the purpose every change answers to: helping families stay connected
+as they age and change.
 
-## Build & Check
+## Rules that are never broken
+- **No real family in the repo.** Fixtures, stories, prompts, screenshots and
+  commit messages use made-up people and places (alice, bob, carol,
+  Springfield). Family-specific things are data or config, never code.
+  `just leaks` must pass (0006).
+- **Memories are never lost.** Anything that changes stored data backs it up
+  first and is reversible.
+- **Families change.** Never assume one fixed couple, two sides, or that
+  everyone is active and alive. Use the people model, not raw user lists.
+
+## Toolchain (0002)
+mise pins node/pnpm/just/lefthook/gitleaks. Use `just`, never npm.
+
 ```bash
-# Frontend
-cd frontend && npm run lint -- --fix && npm run typecheck && npm run build
-
-# Backend
-cd cdk/lambda && npm run build
-
-# Shared types (build first — frontend + backend depend on it)
-cd shared && npm run build
-
-# Storybook
-cd frontend && npm run storybook
+just install     # once
+just dev         # API on :3001 (backend/.env.local) + web on :3000
+just check       # lint, leaks, deadcode, typecheck, test: what CI runs
+just fix         # Biome safe fixes
+just contract    # after editing shared/schemas/api.openapi.yaml
+just storybook
 ```
 
-## Stack
-- Frontend: React + TypeScript + MUI + Vite
-- Backend: AWS Lambda (Node.js/TS) behind API Gateway
-- Infra: AWS CDK
-- AI: Amazon Bedrock (Claude models)
-- Storage: S3
-- Shared types: `shared/` package (`@family-trivia/shared`)
+## Layout (0004)
+- `frontend/` React + TypeScript + MUI + Vite. Every new component gets a story.
+- `backend/` one Lambda; routes in `routes/`, logic in `services/`.
+- `infra/` AWS CDK.
+- `shared/` types and the OpenAPI contract (source only; generated types committed).
 
-## Key Patterns
-- Use LSP for refactors (findReferences, not grep)
-- Use the logger service, never console.log
-- Game modes register in `shared/src/game-modes.ts`
-- Config/secrets in `cdk/cdk.config.json` (gitignored)
-- MSW for Storybook API mocking
+## Patterns
+- The logger service, never `console.log`.
+- Game modes register in `shared/src/game-modes.ts`.
+- MSW mocks the API in Storybook (`frontend/.storybook/mocks`).
+- Lint rules switched off in `biome.jsonc` are counted DEBT; burn them down,
+  don't add to them.
+- A decision that would surprise a newcomer gets a record in `docs/decisions/`.
