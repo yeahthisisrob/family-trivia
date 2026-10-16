@@ -3088,6 +3088,48 @@ paths:
         "404":
           description: No such season, or none has started
 
+  /family/memory:
+    get:
+      summary: Today's memory from the family's pages, one past question with everyone's answers
+      operationId: getDailyMemory
+      tags: [Family]
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: The day (YYYY-MM-DD, Eastern); today when left out
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The memory, or null while there's nothing to bring back
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [memory]
+                properties:
+                  memory:
+                    type: object
+                    nullable: true
+                    required: [date, asked, question, answers, kind]
+                    properties:
+                      date: { type: string }
+                      asked: { type: string }
+                      question: { type: string }
+                      kind:
+                        type: string
+                        enum: [on-this-day, from-our-pages]
+                      answers:
+                        type: array
+                        items:
+                          type: object
+                          required: [id, personId, answer]
+                          properties:
+                            id: { type: string }
+                            personId: { type: string }
+                            answer: { type: string }
+
   /family/person-book:
     post:
       summary: Someone's words (and, for someone the family has lost, the family's memories) as a print-ready book; kept, never replaced

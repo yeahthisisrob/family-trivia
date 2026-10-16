@@ -1574,6 +1574,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/family/memory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Today's memory from the family's pages, one past question with everyone's answers */
+        get: operations["getDailyMemory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/family/person-book": {
         parameters: {
             query?: never;
@@ -5553,6 +5570,42 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    getDailyMemory: {
+        parameters: {
+            query?: {
+                /** @description The day (YYYY-MM-DD, Eastern); today when left out */
+                date?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The memory, or null while there's nothing to bring back */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        memory: {
+                            date: string;
+                            asked: string;
+                            question: string;
+                            /** @enum {string} */
+                            kind: "on-this-day" | "from-our-pages";
+                            answers: {
+                                id: string;
+                                personId: string;
+                                answer: string;
+                            }[];
+                        } | null;
+                    };
+                };
             };
         };
     };

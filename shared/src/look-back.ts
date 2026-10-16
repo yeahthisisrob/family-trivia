@@ -130,3 +130,16 @@ export interface BookVersion {
   url: string;
   coverUrl?: string;
 }
+
+/** A day's memory from the family's pages: one past question and everyone's answers. */
+export interface DailyMemory {
+  /** The day it's for (YYYY-MM-DD, Eastern). */
+  date: string;
+  /** When the question was asked. */
+  asked: string;
+  question: string;
+  /** Each answer with the id its reactions and comments hang on. */
+  answers: { id: string; personId: string; answer: string }[];
+  /** Asked on this calendar day in an earlier year, or chosen from the archive. */
+  kind: 'on-this-day' | 'from-our-pages';
+}

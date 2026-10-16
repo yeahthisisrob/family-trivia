@@ -51,6 +51,11 @@ the family's own words, shown once.
   front, with bleed; `services/press/cover.ts`), and every piece of writing
   beside the AI's prompt and reply.
 
+- Between seasons nothing new is asked, but the family's pages come back:
+  Home shows a memory a day (`GET /family/memory`), one past question with
+  everyone's answers, asked on this calendar day in an earlier year when
+  there is one, else a day from the archive, the same for everyone all day.
+
 ## Consequences
 The season is the one switch for what the app asks: general trivia, family
 trivia, both, or none.
