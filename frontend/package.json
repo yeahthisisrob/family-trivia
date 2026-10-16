@@ -58,7 +58,7 @@
     "typescript": "^5.8.3",
     "vite": "^5.4.20",
     "vite-plugin-checker": "^0.9.3",
-    "vitest": "^3.2.4"
+    "vitest": "^5.0.4"
   },
   "msw": {
     "workerDirectory": [
