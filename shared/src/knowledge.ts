@@ -131,8 +131,10 @@ export function bestStreak(dates: string[]): number {
   const days = [...new Set(dates)].sort().map((d) => Date.parse(`${d}T00:00:00Z`) / 86_400_000);
   let best = 0;
   let run = 0;
-  for (let i = 0; i < days.length; i++) {
-    run = i > 0 && days[i]! - days[i - 1]! === 1 ? run + 1 : 1;
+  let prev: number | undefined;
+  for (const day of days) {
+    run = prev !== undefined && day - prev === 1 ? run + 1 : 1;
+    prev = day;
     best = Math.max(best, run);
   }
   return best;

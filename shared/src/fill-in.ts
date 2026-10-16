@@ -56,7 +56,8 @@ export const median = (xs: number[]): number => {
     : Math.round(((s[m - 1] as number) + (s[m] as number)) / 2);
 };
 
-const real = (e: FactAnswerEntry | undefined) => !!e && e.answered && !e.skipped && !!e.answer;
+const real = (e: FactAnswerEntry | undefined): e is FactAnswerEntry =>
+  !!e && e.answered && !e.skipped && !!e.answer;
 
 /** Brief: under half the family's usual length, or a few words when they wrote more. */
 const isBrief = (words: number, familyWords: number) =>
@@ -72,9 +73,10 @@ export function fillInView(
   for (const [person, list] of answers)
     for (const e of list) {
       const k = keyOf(e);
-      if (!byKey.has(k)) byKey.set(k, new Map());
-      const prev = byKey.get(k)!.get(person);
-      if (!prev || real(e) || !real(prev)) byKey.get(k)!.set(person, e);
+      const forKey = byKey.get(k) ?? new Map<string, FactAnswerEntry>();
+      byKey.set(k, forKey);
+      const prev = forKey.get(person);
+      if (!prev || real(e) || !real(prev)) forKey.set(person, e);
     }
 
   const items: FillInItem[] = questions.map((q) => {
@@ -83,7 +85,7 @@ export function fillInView(
     const others = [...all]
       .filter(([id, e]) => id !== meId && real(e))
       .map(([, e]) => wordsIn(e.answer));
-    const words = real(mine) ? wordsIn(mine!.answer) : 0;
+    const words = real(mine) ? wordsIn(mine.answer) : 0;
     const familyWords = median(others);
     const state: FillInState = !mine
       ? 'missing'
@@ -94,7 +96,7 @@ export function fillInView(
           : 'full';
     return {
       ...q,
-      answer: real(mine) ? mine!.answer : null,
+      answer: real(mine) ? mine.answer : null,
       words,
       familyWords,
       familyAnswered: others.length,

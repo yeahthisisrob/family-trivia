@@ -44,6 +44,11 @@
         "!**/*.test.{ts,tsx}"
       ],
       "plugins": ["./biome-plugins/no-raw-colors.grit"]
+    },
+    {
+      // In tests and stories `x!` is an assertion: if it's missing, fail loudly.
+      "includes": ["**/*.test.{ts,tsx}", "**/*.stories.tsx", "**/tests/**"],
+      "linter": { "rules": { "style": { "noNonNullAssertion": "off" } } }
     }
   ],
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
@@ -55,22 +60,24 @@
         // DEBT (55): hook dependency arrays that don't match what the hook
         // closes over. Each needs a human: some are deliberate run-once effects.
         "useExhaustiveDependencies": "off",
-        // DEBT (80 + 18): unused locals and parameters left by refactors.
-        "noUnusedVariables": "warn",
-        "noUnusedFunctionParameters": "warn"
+        // Paid off Oct 2026: dead code deleted, not prefixed away.
+        "noUnusedVariables": "error",
+        "noUnusedFunctionParameters": "error",
+        "noUnusedImports": "error"
       },
       "suspicious": {
-        // DEBT (323): `any`, mostly in route handlers parsing request bodies.
+        // DEBT (310): `any`, mostly in route handlers parsing request bodies.
         // Goes away as handlers move to contract-typed input.
         "noExplicitAny": "warn",
-        // DEBT (41): React key={index}. Safe only for static lists.
+        // DEBT (39): React key={index}. Safe only for static lists; most left
+        // are board cells in the games, where position is the identity.
         "noArrayIndexKey": "warn",
-        // DEBT (13): `let x;` without a type.
-        "noImplicitAnyLet": "warn"
+        "noImplicitAnyLet": "error"
       },
       "style": {
-        // DEBT (25): non-null assertions `x!`.
-        "noNonNullAssertion": "warn"
+        // Paid off Oct 2026. Narrow instead; where an invariant really holds,
+        // say why in a biome-ignore.
+        "noNonNullAssertion": "error"
       }
     }
   }

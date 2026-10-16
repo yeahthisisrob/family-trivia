@@ -18,7 +18,7 @@ export type ReactableType = 'fact' | 'trivia';
 export const isReactionId = (v: unknown): v is ReactionId =>
   typeof v === 'string' && REACTIONS.some((r) => r.id === v);
 
-export const reactionById = (id: ReactionId) => REACTIONS.find((r) => r.id === id)!;
+export const reactionById = (id: ReactionId) => REACTIONS.find((r) => r.id === id) ?? REACTIONS[0];
 
 /** What one item's reactions look like to the person reading. */
 export interface ReactionSummary {

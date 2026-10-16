@@ -145,7 +145,7 @@ async function getOrCreateSession(
     if (existingSession && existingSession.status === 'active') {
       return existingSession;
     }
-  } catch (error) {
+  } catch {
     // No existing session, create new one
   }
 
@@ -238,7 +238,7 @@ export async function casinoRushStartGame(
         },
       });
     }
-  } catch (error) {
+  } catch {
     // No existing session, continue to create new one
     logger.info('No existing session found, will create new one', { userId });
   }
@@ -636,7 +636,11 @@ export async function casinoRushStatus(
 
   try {
     const { canPlay, nextAvailable } = await canPlayCasinoRush(userId);
-    let activeSession;
+    let activeSession:
+      | (Pick<CasinoRushSession, 'currentQuestionIndex' | 'difficulty' | 'potentialPoints'> & {
+          totalQuestions: number;
+        })
+      | undefined;
 
     try {
       const session = await getJson<CasinoRushSession>(CASINO_RUSH_SESSION_KEY(userId));
@@ -648,7 +652,7 @@ export async function casinoRushStatus(
           potentialPoints: session.potentialPoints,
         };
       }
-    } catch (sessionError) {
+    } catch {
       // If there's an error getting the session, just leave activeSession undefined
       logger.info('No active casino session found for user', { userId });
     }

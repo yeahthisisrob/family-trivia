@@ -89,7 +89,7 @@ const TriviaBankTab: React.FC = () => {
       setLoading(true);
       const data = await getBankStats(adminUserId);
       setStats(data);
-    } catch (err) {
+    } catch {
       setError('Failed to load trivia bank stats');
     } finally {
       setLoading(false);
@@ -115,7 +115,7 @@ const TriviaBankTab: React.FC = () => {
       const result = await importQuestions(adminUserId, importSource, cat, importDifficulty, 50);
       setImportResult(result);
       await loadStats();
-    } catch (err) {
+    } catch {
       setError('Import failed. Try again.');
     } finally {
       setImporting(false);

@@ -66,7 +66,7 @@ async function loadMemberActivation(
             groupId,
             members: members.map((memberId) => ({
               userId: memberId,
-              activated: !!activationCache![memberId],
+              activated: !!activationCache?.[memberId],
             })),
           };
         } catch (err) {
@@ -95,7 +95,7 @@ async function loadMemberActivation(
             try {
               const history = await getJson<any[]>(`answers/history/${memberId}.json`);
               const activated = Array.isArray(history) && history.length > 0;
-              if (activated) activationCache![memberId] = true;
+              if (activated && activationCache) activationCache[memberId] = true;
               return { userId: memberId, activated };
             } catch {
               return { userId: memberId, activated: false };

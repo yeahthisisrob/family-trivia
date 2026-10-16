@@ -19,7 +19,7 @@ const csvCell = (v: unknown) => {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 const csv = (header: string[], rows: unknown[][]) =>
-  [header, ...rows].map((r) => r.map(csvCell).join(',')).join('\n') + '\n';
+  `${[header, ...rows].map((r) => r.map(csvCell).join(',')).join('\n')}\n`;
 const day = (iso?: string) => (iso ? iso.slice(0, 10) : '');
 
 function profile(p: FamilyPerson): string {

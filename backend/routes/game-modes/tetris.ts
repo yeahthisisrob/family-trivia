@@ -98,7 +98,7 @@ export async function tetrisLock(event: APIGatewayProxyEvent): Promise<APIGatewa
   if (!categories.length) return errorResponse('No categories available', 500);
   const category = categories[Math.floor(Math.random() * categories.length)];
 
-  let questionData;
+  let questionData: Awaited<ReturnType<typeof generateQuestionWithOptions>>['question'];
   try {
     const result = await generateQuestionWithOptions({
       userId,

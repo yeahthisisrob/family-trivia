@@ -61,10 +61,7 @@ const OUTER_R = TWELVE_FOOT_R;
 // Physics — tuned so a good shot (≈65% power) lands on the button in ~2.5s
 const MAX_POWER = 100;
 const POWER_TO_VELOCITY = 1.5; // velocity units per % power
-const BASE_FRICTION = 0.988; // per frame decay (higher = longer slide)
-const SWEPT_FRICTION = 0.995; // sweeping reduces friction briefly
 const SWEEP_DURATION_MS = 600;
-const MIN_STOP_VELOCITY = 0.15;
 
 // Drag interaction
 const DRAG_HIT_RADIUS = 35; // px — how close to stone to start drag
@@ -461,14 +458,6 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
   );
 
   // ── Slide physics loop ──────────────────────────────────────────
-
-  // Regenerate opponent stones (called on "Play Again")
-  const initOpponents = useCallback(() => {
-    const newOpponents = generateOpponentStones();
-    opponentStonesRef.current = newOpponents;
-    startRingsRef.current = newOpponents.map((os) => stoneRing(os.x, os.y));
-    setOpponentStones(newOpponents);
-  }, []);
 
   const simRef = useRef<CurlingSimulation | null>(null);
 

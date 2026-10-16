@@ -43,7 +43,7 @@ function request(type: ReactableType, id: string) {
   if (asked.has(k)) return;
   asked.add(k);
   pending[type].add(id);
-  flushTimer ??= setTimeout(flush, 30);
+  if (!flushTimer) flushTimer = setTimeout(flush, 30);
 }
 
 /** Put a summary in the cache directly (stories, and the server's answer to a tap). */

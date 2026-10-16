@@ -8,19 +8,7 @@ import { logger } from '../services/logger';
 import { getJson } from '../services/s3';
 import { type UserConfigData as StoredUserConfig, toPublicUserConfig } from '../services/users';
 
-interface UserConfigData {
-  version: string;
-  lastUpdated: string;
-  users: Record<
-    string,
-    {
-      group: string;
-      color: string;
-    }
-  >;
-}
-
-export async function getUserConfig(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+export async function getUserConfig(_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   try {
     // Get user config from S3
     const userConfig = await getJson<StoredUserConfig>(S3_PATHS.USERS_CONFIG);

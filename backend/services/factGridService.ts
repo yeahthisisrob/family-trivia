@@ -100,7 +100,7 @@ export async function buildFactGrid(currentUserId: string): Promise<FactGridData
       }
     }
     if (!datesBySeason.has(seasonName)) datesBySeason.set(seasonName, []);
-    datesBySeason.get(seasonName)!.push(d);
+    datesBySeason.get(seasonName)?.push(d);
   }
 
   // 5. Build column layout: past seasons left-aligned, active right-aligned

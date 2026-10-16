@@ -27,10 +27,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControlLabel,
   MenuItem,
   Stack,
-  Switch,
   TextField,
   Typography,
 } from '@mui/material';

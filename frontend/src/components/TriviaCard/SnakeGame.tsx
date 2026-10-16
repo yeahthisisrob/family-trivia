@@ -143,11 +143,6 @@ const pulse = keyframes`
 
 const art = games.snake;
 
-const flashIn = keyframes`
-  0%   { background-color: ${colors.onColor}; }
-  100% { background-color: transparent; }
-`;
-
 const popUp = keyframes`
   0%   { opacity: 0; transform: translateY(10px) scale(0.7); }
   50%  { opacity: 1; transform: translateY(-5px) scale(1.1); }
@@ -187,7 +182,6 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
   // ── UI state (causes re-renders) ──────────────────────────────
   const [gameState, setGameState] = useState<GameState>('loading');
   const [snapshot, setSnapshot] = useState<RenderSnapshot>(INITIAL_SNAPSHOT);
-  const [flashCell, setFlashCell] = useState<string | null>(null);
   const [wordPopup, setWordPopup] = useState<string | null>(null);
   const [speedNotice, setSpeedNotice] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -364,7 +358,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
     syncSnapshotRef.current = syncSnapshot;
   }, [syncSnapshot]);
 
-  const gameLoopRef = useRef<(now: number) => void | undefined>(undefined);
+  const gameLoopRef = useRef<((now: number) => void) | undefined>(undefined);
   useEffect(() => {
     gameLoopRef.current = (now: number) => {
       if (gameStateRef.current !== 'playing') return;
@@ -376,9 +370,8 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
       lastTickRef.current = now;
 
       // Apply next buffered direction (or keep current)
-      if (inputBufferRef.current.length > 0) {
-        directionRef.current = inputBufferRef.current.shift()!;
-      }
+      const buffered = inputBufferRef.current.shift();
+      if (buffered) directionRef.current = buffered;
 
       const [dr, dc] = DIR_DELTA[directionRef.current];
       const head = snakeRef.current[0];
@@ -438,9 +431,6 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
               lettersRef.current[ni] = { ...lettersRef.current[ni], isTarget: true };
             }
           }
-
-          setFlashCell(headKey);
-          setTimeout(() => setFlashCell(null), 200);
 
           // Word complete?
           if (collectedCountRef.current >= answer.length) {
@@ -635,7 +625,6 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
   const {
     snake,
     letters,
-    food,
     score,
     currentClue,
     currentAnswer,
@@ -645,9 +634,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
   } = snapshot;
 
   const snakeSet = new Set(snake.map(coordKey));
-  const headKey2 = snake.length > 0 ? coordKey(snake[0]) : '';
   const letterMap = new Map(letters.map((l) => [coordKey(l), l]));
-  const foodSet = new Set(food.map(coordKey));
 
   // Letter progress display
   const progressLetters = currentAnswer.split('').map((ch, i) => ({

@@ -6,7 +6,6 @@ import type React from 'react';
 import { useMemo } from 'react';
 import { getUserColor } from '../../utils';
 import { shouldIncludeInFamilySide } from '../../utils/familyUtils';
-import { createLogger } from '../../utils/logger';
 import FactComments from './FactComments';
 import FactTimelineCard from './FactTimelineCard';
 import FamilyFeudTimelineCard from './FamilyFeudTimelineCard';
@@ -45,9 +44,6 @@ const FactTimeline: React.FC<FactTimelineProps> = ({
   currentUserId,
   selectedSide = 'all',
 }) => {
-  // Initialize logger for this component
-  const logger = createLogger('FactTimeline');
-
   // Filter facts by selected side — derived synchronously, no render delay
   const filteredFacts = useMemo(
     () =>
@@ -122,7 +118,7 @@ const FactTimeline: React.FC<FactTimelineProps> = ({
 
             {/* Facts for this date */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              {group.items.map((entry, i) =>
+              {group.items.map((entry) =>
                 (entry as any).isFamilyFeud || (entry as any).questionType === 'family-feud' ? (
                   <FamilyFeudTimelineCard
                     key={`feud-${entry.userId}_${entry.timestamp}`}

@@ -95,7 +95,7 @@ async function getUserStats(userId: string): Promise<SlotMachineStats> {
   try {
     const stats = await getJson<SlotMachineStats>(SLOT_MACHINE_STATS_KEY(userId));
     return stats || createDefaultStats(userId);
-  } catch (error) {
+  } catch {
     return createDefaultStats(userId);
   }
 }
@@ -354,12 +354,9 @@ async function calculateStreak(userId: string): Promise<number> {
       return session.streak;
     }
 
-    // Otherwise check stats
-    const stats = await getUserStats(userId);
-    // Return 0 if last play wasn't a win (streak broken)
-    // This is tracked in the stats when we update them
+    // No session streak: the last play wasn't a win.
     return 0;
-  } catch (error) {
+  } catch {
     return 0;
   }
 }
@@ -772,7 +769,12 @@ export async function slotMachineStatus(
     const currentStreak = await calculateStreak(userId);
 
     // Check for active session
-    let activeSession;
+    let activeSession:
+      | (Pick<SlotMachineSession, 'result' | 'bonusFeatures'> & {
+          hasActiveSession: boolean;
+          hasQuestion: boolean;
+        })
+      | undefined;
     try {
       const session = await getJson<SlotMachineSession>(SLOT_MACHINE_SESSION_KEY(userId));
       if (session?.status === 'active') {
@@ -783,7 +785,7 @@ export async function slotMachineStatus(
           bonusFeatures: session.bonusFeatures,
         };
       }
-    } catch (err) {
+    } catch {
       // No active session
     }
 

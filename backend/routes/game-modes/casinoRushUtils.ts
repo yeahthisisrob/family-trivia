@@ -39,7 +39,7 @@ export async function getAllCasinoRushSessions(userId: string): Promise<CasinoRu
         sessions.push(oldSession);
       }
     }
-  } catch (err) {
+  } catch {
     // Old session doesn't exist, which is fine
     logger.debug(`No old Casino Rush session for ${userId}`);
   }
@@ -57,7 +57,7 @@ export async function getAllCasinoRushSessions(userId: string): Promise<CasinoRu
         sessions.push(currentSession);
       }
     }
-  } catch (err) {
+  } catch {
     logger.debug(`No current Casino Rush session for ${userId}`);
   }
 
@@ -76,11 +76,11 @@ export async function getAllCasinoRushSessions(userId: string): Promise<CasinoRu
             sessions.push(session);
           }
         }
-      } catch (err) {
+      } catch {
         logger.debug(`Could not load session file ${sessionFile} for user ${userId}`);
       }
     }
-  } catch (err) {
+  } catch {
     logger.debug(`No Casino Rush sessions directory for ${userId}`);
   }
 
@@ -141,7 +141,7 @@ export async function getActiveCasinoRushSession(
     if (currentSession && currentSession.status === 'active') {
       return currentSession;
     }
-  } catch (err) {
+  } catch {
     logger.debug(`No current active session for ${userId}`);
   }
 
@@ -154,7 +154,7 @@ export async function getActiveCasinoRushSession(
       logger.info(`Found active session in old path for ${userId}, will use it`);
       return oldSession;
     }
-  } catch (err) {
+  } catch {
     logger.debug(`No old active session for ${userId}`);
   }
 

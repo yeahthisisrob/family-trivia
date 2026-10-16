@@ -121,7 +121,13 @@ export const SettingsPage: React.FC = () => {
       <Tabs
         value={section}
         onChange={(_, v: SectionId) =>
-          setParams((p) => (p.set('section', v), p), { replace: true })
+          setParams(
+            (p) => {
+              p.set('section', v);
+              return p;
+            },
+            { replace: true },
+          )
         }
         variant="scrollable"
         sx={{ mb: 2 }}
@@ -246,7 +252,6 @@ const AiSection: React.FC<{
           calls,
         };
       }),
-    // biome-ignore lint/correctness/useExhaustiveDependencies: setting reads data
     [data, draft],
   );
 
@@ -306,9 +311,10 @@ const AiSection: React.FC<{
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Stack direction="row" sx={{ gap: 1, alignItems: 'center' }}>
                 <Typography sx={{ fontWeight: 600 }}>{r.task.label}</Typography>
-                {setting(r.task.id) && (
-                  <SourceBadge source={setting(r.task.id)!.source} pending={r.key in draft} />
-                )}
+                {(() => {
+                  const s = setting(r.task.id);
+                  return s && <SourceBadge source={s.source} pending={r.key in draft} />;
+                })()}
               </Stack>
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                 {r.task.description}

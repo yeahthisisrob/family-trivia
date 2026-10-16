@@ -95,12 +95,6 @@ const dealCard = keyframes`
   to   { opacity: 1; transform: translateX(0) rotateY(0) scale(1); }
 `;
 
-const flipCard = keyframes`
-  0%   { transform: rotateY(0deg); }
-  50%  { transform: rotateY(90deg); }
-  100% { transform: rotateY(0deg); }
-`;
-
 const winPulse = keyframes`
   0%   { box-shadow: 0 0 0 0 ${alpha(gold, 0.6)}; transform: scale(1); }
   50%  { box-shadow: 0 0 30px 10px ${alpha(gold, 0.2)}; transform: scale(1.02); }
@@ -184,7 +178,8 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
 
   const draw = useCallback((faceDown = false): Card => {
     if (deckRef.current.length < 10) deckRef.current = buildDeck();
-    return { ...deckRef.current.pop()!, faceDown };
+    const card = deckRef.current.pop() as Card; // the deck always holds 10+
+    return { ...card, faceDown };
   }, []);
 
   const trackPeak = useCallback((_nb: number) => {
@@ -407,7 +402,6 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
         />
       );
     }
-    const isRed = card.suit === 'hearts' || card.suit === 'diamonds';
     return (
       <Box
         data-light-surface

@@ -50,7 +50,7 @@ async function getCasinoRushHistory(userId: string): Promise<HistoryEntry[]> {
         }
       });
     }
-  } catch (error) {
+  } catch {
     logger.debug(`No Casino Rush history for user ${userId} or error reading it`);
   }
 

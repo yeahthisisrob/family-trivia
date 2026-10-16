@@ -63,9 +63,6 @@ interface TriviaStatusContextType extends TriviaStatusState {
 
 const TriviaStatusContext = createContext<TriviaStatusContextType | undefined>(undefined);
 
-// Cache duration in milliseconds (15 seconds)
-const STATUS_CACHE_DURATION = 15000;
-
 export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Include the CategoryRefreshContext functionality
   const { refreshTimestamp, invalidateCategories } = useCategoryRefresh();

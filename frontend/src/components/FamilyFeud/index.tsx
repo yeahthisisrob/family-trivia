@@ -40,12 +40,6 @@ import { LoadingDots } from '../ui/feedback';
 
 const logger = createLogger('FamilyFeud');
 
-const pulse = keyframes`
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
-`;
-
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -58,7 +52,6 @@ interface FamilyFeudProps {
 const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
   const theme = useTheme();
   const [status, setStatus] = useState<FamilyFeudStatus | null>(null);
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [answer, setAnswer] = useState('');
   const [message, setMessage] = useState<string | null>(null);
@@ -884,7 +877,7 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
   const historySection =
     completedRounds.length > 0 ? (
       <Box sx={{ mt: 1 }}>
-        {completedRounds.slice(0, 3).map((r, i) => (
+        {completedRounds.slice(0, 3).map((r) => (
           <Card
             key={r.roundId}
             sx={{
@@ -983,7 +976,7 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
               )}
               {r.results && r.results.winners.length > 0 && (
                 <Box sx={{ mt: 0.5, display: 'flex', gap: 0.5 }}>
-                  {r.results!.winners.map((w) => (
+                  {r.results.winners.map((w) => (
                     <Chip
                       key={w.userId}
                       size="small"

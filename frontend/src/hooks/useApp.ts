@@ -9,10 +9,7 @@ import { useUserStatus } from '../contexts/UserStatusContext';
 import { cacheService } from '../services/CacheService';
 import { prefetchService } from '../services/PrefetchService';
 import { clearSession, loadSession, saveSession } from '../session';
-import { createLogger } from '../utils/logger';
 import { useAppReady } from './useAppReady';
-
-const logger = createLogger('App');
 
 interface UseAppOptions {
   onUserChange: (userId: string | null) => void;

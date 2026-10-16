@@ -32,10 +32,7 @@ function resolveContentType(event: APIGatewayProxyEvent): CommentContentType | n
  * New endpoints use ?contentId=X.
  * Legacy endpoints use ?factId=X or ?triviaId=X.
  */
-function resolveContentId(
-  event: APIGatewayProxyEvent,
-  contentType: CommentContentType,
-): string | undefined {
+function resolveContentId(event: APIGatewayProxyEvent): string | undefined {
   return (
     event.queryStringParameters?.contentId ||
     event.queryStringParameters?.factId ||
@@ -66,7 +63,7 @@ export async function getCommentsHandler(
       return successResponse({ threads });
     }
 
-    const contentId = resolveContentId(event, contentType);
+    const contentId = resolveContentId(event);
     if (!contentId) {
       return errorResponse('Missing contentId parameter', 400);
     }

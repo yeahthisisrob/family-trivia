@@ -50,8 +50,6 @@ const FactAnswerInput: React.FC<FactAnswerInputProps> = ({
   value,
   onChange,
   onSubmit,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  userId,
   disabled = false,
   placeholder = 'Type your answer...',
   autoFocus = false,

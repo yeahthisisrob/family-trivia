@@ -22,8 +22,6 @@ type Story = StoryObj<typeof AnswerGridView>;
 const cell = (result: boolean | null, isGameMode = false): GridCell => ({ result, isGameMode });
 
 const gapCells = (n: number): GridCell[] => Array.from({ length: n }, () => cell(null));
-const rightCells = (results: (boolean | 'game')[]): GridCell[] =>
-  results.map((r) => (r === 'game' ? cell(true, true) : cell(r)));
 
 function buildGrid(opts: {
   sStart: number;

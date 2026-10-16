@@ -263,7 +263,7 @@ function trimGrid(grid: string[][]): {
  * Step 3: Build grid algorithmically from those pairs
  */
 export async function generateCrossword(
-  event: APIGatewayProxyEvent,
+  _event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   try {
     // Load facts + user names + current season

@@ -164,7 +164,7 @@ async function enrichThreadsWithFactData(threads: CommentThread[]): Promise<void
     if (idx <= 0) continue;
     const userId = thread.contentId.substring(0, idx);
     if (!threadsByUser.has(userId)) threadsByUser.set(userId, []);
-    threadsByUser.get(userId)!.push(thread);
+    threadsByUser.get(userId)?.push(thread);
   }
 
   await Promise.all(

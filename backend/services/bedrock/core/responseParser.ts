@@ -157,7 +157,7 @@ export function extractJsonFromResponse(responseBuffer: Buffer, modelId?: string
       const result = JSON.parse(jsonText);
       logger.debug('Successfully extracted JSON from response');
       return result;
-    } catch (jsonError: any) {
+    } catch {
       logger.debug('Response contains raw text instead of JSON, returning as rawText', {
         textPreview: jsonText.slice(0, 200) + (jsonText.length > 200 ? '...' : ''),
       });
@@ -172,7 +172,7 @@ export function extractJsonFromResponse(responseBuffer: Buffer, modelId?: string
           return textAsJson;
         }
         return textAsJson;
-      } catch (e) {
+      } catch {
         // Really is raw text
         return { rawText: text };
       }
@@ -191,7 +191,7 @@ export function extractJsonFromResponse(responseBuffer: Buffer, modelId?: string
         preview: responseText.slice(0, 500),
         isValidJSON: isJsonString(responseText),
       });
-    } catch (logError) {
+    } catch {
       logger.error('Failed to log response details');
     }
 
@@ -204,7 +204,7 @@ function isJsonString(str: string): boolean {
   try {
     JSON.parse(str);
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }

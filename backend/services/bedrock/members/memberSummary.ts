@@ -12,7 +12,6 @@ import {
   siblingsOf,
 } from '@family-trivia/shared';
 import { FEATURE_FLAGS } from '../../../config';
-import { S3_PATHS } from '../../../constants';
 import { loadFamily } from '../../family/roster';
 import { logger } from '../../logger';
 import { getJson } from '../../s3';
@@ -189,7 +188,7 @@ async function analyzeMemberData(memberData: MemberData) {
             });
           });
       }
-    } catch (e) {
+    } catch {
       // No casino rush data found
     }
 
@@ -475,7 +474,7 @@ async function buildMemberSummaryPrompts(memberData: MemberData): Promise<{
   insightsPrompt: string;
 }> {
   logger.info('Building member summary prompts');
-  const { userId, name, memberInfo } = memberData;
+  const { userId, name } = memberData;
 
   // Analyze member data to extract insights
   const analysis = await analyzeMemberData(memberData);
@@ -483,7 +482,6 @@ async function buildMemberSummaryPrompts(memberData: MemberData): Promise<{
   // Build detailed family context using relationship data
   const buildFamilyContext = () => {
     const rel = analysis.detailedRelationships || {};
-    const side = analysis.familySide ? `${analysis.familySide}'s side` : 'family';
 
     const familyDesc = [];
 
@@ -959,7 +957,7 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
           const responseJson = JSON.parse(responseText);
 
           // Extract the actual insights array from the response
-          let insightsData;
+          let insightsData: unknown;
           if (isClaudeModel(memberSummaryModel)) {
             // Claude format
             const content = responseJson.content?.[0]?.text;
@@ -967,7 +965,7 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
               // Try to parse the content as JSON
               try {
                 insightsData = JSON.parse(content);
-              } catch (e) {
+              } catch {
                 // Content might be the insights array directly
                 insightsData = content;
               }
@@ -996,7 +994,12 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
                   insight.category,
                 ),
             );
-          } else if (insightsData && typeof insightsData === 'object' && insightsData.insights) {
+          } else if (
+            insightsData &&
+            typeof insightsData === 'object' &&
+            'insights' in insightsData &&
+            Array.isArray(insightsData.insights)
+          ) {
             // Object with insights property
             result.insights = insightsData.insights.filter(
               (insight: any) =>
@@ -1065,7 +1068,7 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
               const responseJson = JSON.parse(responseText);
 
               // Extract the actual insights array from the response
-              let insightsData;
+              let insightsData: unknown;
               if (isClaudeModel(memberSummaryModel)) {
                 // Claude format
                 const content = responseJson.content?.[0]?.text;
@@ -1073,7 +1076,7 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
                   // Try to parse the content as JSON
                   try {
                     insightsData = JSON.parse(content);
-                  } catch (e) {
+                  } catch {
                     // Content might be the insights array directly
                     insightsData = content;
                   }
@@ -1105,7 +1108,8 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
               } else if (
                 insightsData &&
                 typeof insightsData === 'object' &&
-                insightsData.insights
+                'insights' in insightsData &&
+                Array.isArray(insightsData.insights)
               ) {
                 // Object with insights property
                 result.insights = insightsData.insights.filter(

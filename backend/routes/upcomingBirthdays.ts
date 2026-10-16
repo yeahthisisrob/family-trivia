@@ -27,11 +27,6 @@ interface Birthday {
   remembered?: boolean;
 }
 
-interface UpcomingBirthdaysResponse {
-  birthdays: Birthday[];
-  todaysBirthdays: Birthday[];
-}
-
 interface Celebration {
   id: string;
   type: 'birthday' | 'anniversary' | 'holiday' | 'other';

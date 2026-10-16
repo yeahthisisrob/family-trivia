@@ -57,7 +57,6 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
   const theme = useTheme();
   const logger = createLogger('DailyFactSummary');
   const { hierarchyData } = useFamilyData();
-  const [expanded, setExpanded] = useState(false);
 
   // Format date as YYYY-MM-DD
   const formatDateString = (date: Date): string => {

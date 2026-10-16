@@ -45,7 +45,6 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
   userId,
   color,
   initials,
-  group,
   timestamp,
   totalPoints,
   allCorrect,

@@ -1,6 +1,6 @@
 // Component for custom category banner
 import StarsIcon from '@mui/icons-material/Stars';
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { colors } from '../../shared/design-system';
@@ -12,8 +12,6 @@ interface CustomCategoryBannerProps {
 const CustomCategoryBanner: React.FC<CustomCategoryBannerProps> = ({
   text = 'CUSTOM CATEGORY',
 }) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const theme = useTheme();
   const bannerColor = colors.category.custom;
 
   return (

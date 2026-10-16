@@ -55,7 +55,7 @@ export function extractTextContent(
 
     // Fallback to empty string
     return '';
-  } catch (error) {
+  } catch {
     // If the universal parser failed, try direct parsing for different model formats
     try {
       const responseText = responseBuffer.toString('utf-8');

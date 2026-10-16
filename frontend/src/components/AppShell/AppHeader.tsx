@@ -5,7 +5,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import QuizIcon from '@mui/icons-material/Quiz';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
-import { AppBar, Avatar, Box, IconButton, Toolbar, Typography, useTheme } from '@mui/material';
+import { AppBar, Avatar, Box, IconButton, Toolbar, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { appearanceApi } from '../../entities/appearance';
@@ -45,7 +45,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onAvatarClick,
   onNotificationClick,
 }) => {
-  const theme = useTheme();
   const features = useFeatures();
   const userColor = getUserColor(selectedUser);
 

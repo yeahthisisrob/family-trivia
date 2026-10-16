@@ -7,7 +7,7 @@ import { S3_PATHS } from '../constants';
 import { logger } from '../services/logger';
 import { fileExists, getJson, listObjects } from '../services/s3';
 
-export async function getSystemInfo(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+export async function getSystemInfo(_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   try {
     // Deployment info from environment
     const deployment = {

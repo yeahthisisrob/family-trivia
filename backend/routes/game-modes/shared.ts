@@ -51,7 +51,7 @@ export async function getAvailableCategories(userId: string): Promise<string[]> 
         count: userCategories.length,
         categories: userCategories.slice(0, 3), // Log first 3 for debugging
       });
-    } catch (err) {
+    } catch {
       logger.info('No custom categories for user', { userId });
     }
 

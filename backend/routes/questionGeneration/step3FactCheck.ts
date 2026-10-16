@@ -26,7 +26,7 @@ export async function step3FactCheck(event: APIGatewayProxyEvent): Promise<APIGa
     const shouldSkip =
       skipFactCheck || (question.category && SKIP_CATEGORIES.includes(question.category));
 
-    let factCheckResult;
+    let factCheckResult: Awaited<ReturnType<typeof factCheckQuestion>> | undefined;
     let isAccurate = true;
 
     if (!shouldSkip) {

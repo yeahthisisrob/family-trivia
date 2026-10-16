@@ -3,7 +3,6 @@ import { modelFor } from './bedrock/core/models';
 // Purpose: Trivia bank management — stats, import from external APIs,
 // AI-generated local categories, question browsing, dedup tracking.
 
-import { MODELS } from '../config';
 import { invokeBedrockPrompt } from './bedrock/core/bedrockClient';
 import { collectResponseBody, extractJsonFromResponse } from './bedrock/core/responseParser';
 import { logger } from './logger';
