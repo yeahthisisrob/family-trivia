@@ -12,7 +12,7 @@ import { canPlayGameModeAny } from '../services/gameModeService';
 import { logger } from '../services/logger';
 import { calculateCatchupStatus, checkPlayEligibility } from '../services/playerStateService';
 import { getJson, putJson } from '../services/s3';
-import { getSeasonStatusResponse } from '../services/seasonService';
+import { getSeasonStatusResponse, seasonCategories } from '../services/seasonService';
 import { type HierarchyPerson, loadTimeline } from '../services/timelineService';
 import { getUsersInGroup, toPublicUserConfig, type UserConfigData } from '../services/users';
 
@@ -204,7 +204,7 @@ export async function appInit(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       memberActivation,
       groupDescriptions: groupDescriptions || {},
       questionAvailability,
-      categories: categoriesData || [],
+      categories: await seasonCategories(categoriesData || []),
       userCategories: userCategoriesData || [],
     });
   } catch (err) {

@@ -1,6 +1,7 @@
 // File: lambda/routes/admin.ts
 // Purpose: Admin CRUD handlers for players, groups, family tree, and seasons
 
+import { isSeasonTrivia } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
@@ -502,7 +503,9 @@ export async function addSeason(event: APIGatewayProxyEvent): Promise<APIGateway
   if (denied) return denied;
 
   const body = JSON.parse(event.body || '{}');
-  const { seasonNumber, name, startDate, endDate, status, message } = body;
+  const { seasonNumber, name, startDate, endDate, status, message, trivia } = body;
+  if (trivia !== undefined && !isSeasonTrivia(trivia))
+    return errorResponse('trivia must be general, family or mixed', 400);
 
   if (!seasonNumber || !name || !startDate) {
     return errorResponse('seasonNumber, name, and startDate are required', 400);
@@ -524,6 +527,7 @@ export async function addSeason(event: APIGatewayProxyEvent): Promise<APIGateway
     endDate: endDate || null,
     status: status || 'upcoming',
     message: message || null,
+    ...(trivia ? { trivia } : {}),
   };
 
   config.seasons.push(newSeason);
@@ -546,8 +550,19 @@ export async function updateSeason(event: APIGatewayProxyEvent): Promise<APIGate
   if (denied) return denied;
 
   const body = JSON.parse(event.body || '{}');
-  const { seasonNumber, name, startDate, endDate, status, message, currentSeasonNumber, notes } =
-    body;
+  const {
+    seasonNumber,
+    name,
+    startDate,
+    endDate,
+    status,
+    message,
+    currentSeasonNumber,
+    notes,
+    trivia,
+  } = body;
+  if (trivia !== undefined && !isSeasonTrivia(trivia))
+    return errorResponse('trivia must be general, family or mixed', 400);
 
   const config = await getJson<SeasonsConfig>(S3_PATHS.SEASONS_CONFIG);
   if (!config) return errorResponse('Seasons config not found', 404);
@@ -568,6 +583,7 @@ export async function updateSeason(event: APIGatewayProxyEvent): Promise<APIGate
     if (endDate !== undefined) season.endDate = endDate;
     if (status !== undefined) season.status = status;
     if (message !== undefined) season.message = message;
+    if (trivia !== undefined) season.trivia = trivia;
     if (notes !== undefined) {
       const clean = cleanNotes(notes);
       if (!clean)

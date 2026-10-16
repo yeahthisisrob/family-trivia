@@ -29,6 +29,7 @@ import type {
   EndOfSeasonStatus as SeasonStatusResponse,
   SeasonsConfig,
 } from '@family-trivia/shared';
+import { categoriesFor, type SystemCategory, seasonTriviaOf } from '@family-trivia/shared';
 import { S3_PATHS } from '../constants';
 import { logger } from './logger';
 import { readUrl } from './media';
@@ -281,4 +282,9 @@ export async function markLetterSeen(
     seen.letters.push(id);
     await putJson(SEEN_KEY(userId), seen);
   }
+}
+
+/** The categories the current season offers (shared/src/categories.ts categoriesFor). */
+export async function seasonCategories(system: SystemCategory[]): Promise<SystemCategory[]> {
+  return categoriesFor(system, seasonTriviaOf(await getCurrentSeason()));
 }

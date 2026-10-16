@@ -1,3 +1,4 @@
+import { SEASON_TRIVIA, type SeasonTrivia, seasonTriviaOf } from '@family-trivia/shared';
 import MailOutlineIcon from '@mui/icons-material/MailOutlined';
 // File: frontend/src/components/Admin/SeasonsTab.tsx
 // Season management — hero card for active season, card list for others.
@@ -38,6 +39,7 @@ interface SeasonForm {
   endDate: string;
   status: string;
   message: string;
+  trivia: SeasonTrivia;
 }
 
 const EMPTY_FORM: SeasonForm = {
@@ -47,6 +49,7 @@ const EMPTY_FORM: SeasonForm = {
   endDate: '',
   status: 'upcoming',
   message: '',
+  trivia: 'general',
 };
 
 const statusColors: Record<string, 'success' | 'warning' | 'default'> = {
@@ -80,6 +83,7 @@ const SeasonsTab: React.FC = () => {
       endDate: s.endDate || '',
       status: s.status,
       message: s.message || '',
+      trivia: seasonTriviaOf(s),
     });
     setEditMode(true);
     setDialogOpen(true);
@@ -94,6 +98,7 @@ const SeasonsTab: React.FC = () => {
         endDate: form.endDate || undefined,
         status: form.status,
         message: form.message || undefined,
+        trivia: form.trivia,
       };
       if (editMode) await admin.updateSeason(data);
       else await admin.addSeason(data);
@@ -215,12 +220,22 @@ const SeasonsTab: React.FC = () => {
               title={s.name}
               subtitle={`${formatDate(s.startDate)}${s.endDate ? ` — ${formatDate(s.endDate)}` : ''}`}
               badge={
-                <Chip
-                  label={s.status}
-                  size="small"
-                  color={statusColors[s.status] || 'default'}
-                  sx={{ height: 20, fontSize: '0.6rem' }}
-                />
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  <Chip
+                    label={s.status}
+                    size="small"
+                    color={statusColors[s.status] || 'default'}
+                    sx={{ height: 20, fontSize: '0.6rem' }}
+                  />
+                  {seasonTriviaOf(s) !== 'general' && (
+                    <Chip
+                      label={SEASON_TRIVIA.find((t) => t.id === seasonTriviaOf(s))?.label}
+                      size="small"
+                      variant="outlined"
+                      sx={{ height: 20, fontSize: '0.6rem' }}
+                    />
+                  )}
+                </Box>
               }
               actions={
                 <>
@@ -329,6 +344,26 @@ const SeasonsTab: React.FC = () => {
               <MenuItem value="upcoming">Upcoming</MenuItem>
               <MenuItem value="active">Active</MenuItem>
               <MenuItem value="concluded">Concluded</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl fullWidth size="small">
+            <InputLabel>Trivia this season</InputLabel>
+            <Select
+              value={form.trivia}
+              label="Trivia this season"
+              onChange={(e) => setForm({ ...form, trivia: e.target.value as SeasonTrivia })}
+              renderValue={(v) => SEASON_TRIVIA.find((t) => t.id === v)?.label}
+            >
+              {SEASON_TRIVIA.map((t) => (
+                <MenuItem key={t.id} value={t.id}>
+                  <Box>
+                    <Typography sx={{ fontSize: '0.9rem', fontWeight: 600 }}>{t.label}</Typography>
+                    <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+                      {t.help}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
           <TextField

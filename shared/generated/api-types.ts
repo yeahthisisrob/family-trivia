@@ -1875,6 +1875,11 @@ export interface components {
             startDate: string;
             endDate?: string | null;
             message?: string | null;
+            /**
+             * @description What the trivia is about this season; general when unset
+             * @enum {string}
+             */
+            trivia?: "general" | "family" | "mixed";
         };
         EndOfSeasonStatus: {
             isEndOfSeason?: boolean;

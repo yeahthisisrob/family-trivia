@@ -21,7 +21,16 @@ the family's own words, shown once.
   browser uploads and reads them with short-lived presigned URLs
   (`backend/services/media.ts`); the bucket stays private.
 - The old plain-text `message` still works as an end letter.
+- Each season says what its trivia is about (`trivia`): **general** (the
+  categories), **family** (only Our Family), or **mixed** (Our Family as one
+  more category). Our Family questions come from the family itself
+  (`backend/services/familyTrivia.ts`): who-is-whose questions built from
+  current ties with no AI, and questions an AI writes from other people's
+  answers, which must cite the answer and are dropped unless the correct
+  choice is really in it. They're checked against the family, not against
+  world knowledge, so the general fact-checker skips them. A family that
+  hasn't shared enough yet gets a general question instead.
 
 ## Consequences
-Season content modes (family-only questions, facts only) build on this: the
-season becomes the one switch for what the app asks.
+The season is the one switch for what the app asks. A facts-only season (no
+trivia at all) is the next mode to add.
