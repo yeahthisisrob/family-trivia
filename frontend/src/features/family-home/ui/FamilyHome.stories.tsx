@@ -1,3 +1,5 @@
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import HubIcon from '@mui/icons-material/Hub';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, within } from 'storybook/test';
 import { FamilyHome } from './FamilyHome';
@@ -6,7 +8,25 @@ import { familyHomeHandlers } from './familyHomeMocks';
 const meta: Meta<typeof FamilyHome> = {
   title: 'Family/FamilyHome',
   component: FamilyHome,
-  args: { meId: 'carol' },
+  args: {
+    meId: 'carol',
+    doors: [
+      {
+        id: 'tree',
+        title: 'The family tree',
+        caption: 'Every side, every home',
+        icon: <AccountTreeIcon />,
+        render: () => 'The tree',
+      },
+      {
+        id: 'connections',
+        title: 'How we’re connected',
+        caption: 'Ties, and who answers alike',
+        icon: <HubIcon />,
+        render: () => 'The graph',
+      },
+    ],
+  },
   parameters: { layout: 'padded', msw: { handlers: familyHomeHandlers() } },
 };
 export default meta;

@@ -274,7 +274,10 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
             selectedUser={user}
             onLogout={handleLogout}
             currentPath={currentPath}
-            onNavigate={navigateTo}
+            // Between seasons there's nothing to play: Trivia opens on the last results.
+            onNavigate={(path) =>
+              navigateTo(path === ROUTES.PLAY && !isSeasonActive ? ROUTES.LEADERBOARD : path)
+            }
             isAdmin={isAdmin}
             loading={!isAppReady}
             onAvatarClick={() => setProfileUser(user)}

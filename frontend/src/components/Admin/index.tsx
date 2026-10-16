@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AdminProvider, useAdmin } from '../../contexts/AdminContext';
 import { FamilyEditor } from '../../features/family-editor';
+import { StoryAdmin } from '../../features/family-home';
 import { SettingsPage } from '../../features/settings';
 import { LoadingDots } from '../ui/feedback';
 import DailyQuestionsTab from './DailyQuestionsTab';
@@ -99,7 +100,15 @@ const AdminPageInner: React.FC<AdminPageInnerProps> = () => {
 
       <Box>
         <Routes>
-          <Route path="/admin/family" element={<FamilyEditor adminUserId={admin.adminUserId} />} />
+          <Route
+            path="/admin/family"
+            element={
+              <>
+                <StoryAdmin />
+                <FamilyEditor adminUserId={admin.adminUserId} />
+              </>
+            }
+          />
           <Route path="/admin/settings" element={<SettingsPage />} />
           <Route path="/admin/players" element={<PlayersTab />} />
           <Route path="/admin/groups" element={<GroupsTab />} />
