@@ -11,6 +11,7 @@ import * as api from '../../api';
 import type { UserProfile } from '../../api/modules/user';
 import { useTimeline } from '../../contexts/TimelineContext';
 import { useTrivia } from '../../contexts/TriviaContext';
+import { FillIn } from '../../features/fill-in';
 import { loadSession } from '../../session';
 import { colors } from '../../shared/design-system';
 import { getUserColor, getUserGroup } from '../../utils';
@@ -460,7 +461,12 @@ const Profile: React.FC<ProfileProps> = ({
           onCreateCategory={handleOpenCategoryForm}
         />
 
-        {/* Personal Questions History - Only show for profile owner */}
+        {/* Filling in, then every question: only for the profile owner */}
+        {isProfileOwner && (
+          <Box sx={{ mb: 3 }}>
+            <FillIn />
+          </Box>
+        )}
         {isProfileOwner && (
           <Box sx={{ mb: 3 }}>
             <PersonalQuestionsHistory userId={userId} />

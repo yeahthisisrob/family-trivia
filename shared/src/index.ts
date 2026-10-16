@@ -10,6 +10,7 @@ export * from './comments';
 export * from './eligibility';
 export * from './facts';
 export * from './family';
+export * from './fill-in';
 export * from './game-modes';
 export * from './group';
 export * from './history';

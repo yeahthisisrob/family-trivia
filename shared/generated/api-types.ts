@@ -1715,6 +1715,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/fill-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's family questions to go back to, and how full their answers run */
+        get: operations["getFillIn"];
+        /** Answer a question the caller missed or skipped, or add to an answer (the earlier text is kept) */
+        put: operations["putFillIn"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2114,6 +2132,35 @@ export interface components {
             /** @description Per-person overrides */
             users: {
                 [key: string]: boolean;
+            };
+        };
+        FillInItem: {
+            key: string;
+            /** @enum {string} */
+            questionType: "shared" | "basic";
+            date?: string;
+            questionIndex?: number;
+            question: string;
+            answer: string | null;
+            words: number;
+            /** @description Middle answer length among everyone else who answered */
+            familyWords: number;
+            familyAnswered: number;
+            /** @enum {string} */
+            state: "missing" | "skipped" | "brief" | "full";
+            /** @description How many times they have added to it */
+            added: number;
+        };
+        FillInView: {
+            items: components["schemas"]["FillInItem"][];
+            suggested: string[];
+            summary: {
+                answered: number;
+                total: number;
+                yourWords: number;
+                familyWords: number;
+                /** @enum {string} */
+                depth: "shorter" | "similar" | "fuller";
             };
         };
     };
@@ -5570,6 +5617,71 @@ export interface operations {
             };
             /** @description A value didn't fit its setting */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getFillIn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Every question with its state, the few most worth going back to, and a summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FillInView"];
+                };
+            };
+        };
+    };
+    putFillIn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description "shared:YYYY-MM-DD" or "basic:N" */
+                    key: string;
+                    answer: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved, with the fun fact written from it */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        key: string;
+                        fact: string;
+                    };
+                };
+            };
+            /** @description Empty or too long */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not one of the family's questions */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
