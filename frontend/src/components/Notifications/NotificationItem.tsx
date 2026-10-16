@@ -2,6 +2,7 @@
 // Single notification row — unread dot, avatar, message, time-ago.
 
 import type { NotificationItem as NotificationItemType } from '@family-trivia/shared';
+import { reactionById } from '@family-trivia/shared';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlined';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import PeopleIcon from '@mui/icons-material/People';
@@ -34,15 +35,19 @@ const NotificationItem: React.FC<Props> = ({ item, onClick }) => {
   const isHighScore = item.type === 'high_score';
   const isFeud = item.type === 'family_feud';
   const isAlbumAdded = item.type === 'album_added';
+  const isReaction = item.type === 'reaction';
+  const reaction = isReaction && item.reaction ? reactionById(item.reaction) : null;
   const displayUser = isComment
     ? item.commentUserId
-    : isHighScore
-      ? item.scoreUserId
-      : isFeud
-        ? item.feudTargetName
-        : isAlbumAdded
-          ? item.albumAddedBy
-          : item.newLeaderId;
+    : isReaction
+      ? item.reactionUserId
+      : isHighScore
+        ? item.scoreUserId
+        : isFeud
+          ? item.feudTargetName
+          : isAlbumAdded
+            ? item.albumAddedBy
+            : item.newLeaderId;
 
   const GAME_LABELS: Record<string, string> = {
     tetris: 'Tetris',
@@ -66,25 +71,27 @@ const NotificationItem: React.FC<Props> = ({ item, onClick }) => {
             ? 'Arcade'
             : '';
 
-  const message = isComment
-    ? `${item.commentUserId} commented${item.threadCommentCount && item.threadCommentCount > 1 ? ` (${item.threadCommentCount} new)` : ''}`
-    : isHighScore
-      ? `${item.scoreUserId} set a new ${gameLabel} high score!`
-      : isFeud
-        ? item.feudEventType === 'new_round'
-          ? `New Family Feud! About ${item.feudTargetName}`
-          : `Family Feud results are in! ${item.feudWinnerCount === 0 ? 'Nobody guessed right!' : `${item.feudWinnerCount} got it right`}`
-        : isAlbumAdded
-          ? `${item.albumAddedBy} shared a new album`
-          : item.leaderType === 'group'
-            ? `${item.newLeaderId} is now the top team!`
-            : item.podiumPosition === 1
-              ? `${item.newLeaderId} took the lead!`
-              : item.podiumPosition === 2
-                ? `${item.newLeaderId} moved into 2nd place!`
-                : item.podiumPosition === 3
-                  ? `${item.newLeaderId} cracked the top 3!`
-                  : `${item.newLeaderId} took the lead!`;
+  const message = reaction
+    ? `${item.reactionUserId} reacted ${reaction.emoji} to your ${item.contentType === 'trivia' ? 'answer' : 'fact'}`
+    : isComment
+      ? `${item.commentUserId} commented${item.threadCommentCount && item.threadCommentCount > 1 ? ` (${item.threadCommentCount} new)` : ''}`
+      : isHighScore
+        ? `${item.scoreUserId} set a new ${gameLabel} high score!`
+        : isFeud
+          ? item.feudEventType === 'new_round'
+            ? `New Family Feud! About ${item.feudTargetName}`
+            : `Family Feud results are in! ${item.feudWinnerCount === 0 ? 'Nobody guessed right!' : `${item.feudWinnerCount} got it right`}`
+          : isAlbumAdded
+            ? `${item.albumAddedBy} shared a new album`
+            : item.leaderType === 'group'
+              ? `${item.newLeaderId} is now the top team!`
+              : item.podiumPosition === 1
+                ? `${item.newLeaderId} took the lead!`
+                : item.podiumPosition === 2
+                  ? `${item.newLeaderId} moved into 2nd place!`
+                  : item.podiumPosition === 3
+                    ? `${item.newLeaderId} cracked the top 3!`
+                    : `${item.newLeaderId} took the lead!`;
 
   const detail = isComment
     ? item.commentText
@@ -191,7 +198,7 @@ const NotificationItem: React.FC<Props> = ({ item, onClick }) => {
             mt: 0.25,
           }}
         >
-          {isComment && contentLabel && (
+          {(isComment || isReaction) && contentLabel && (
             <Box component="span" sx={{ mr: 0.5 }}>
               {contentLabel}
             </Box>

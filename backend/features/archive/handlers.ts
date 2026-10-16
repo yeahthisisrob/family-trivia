@@ -6,6 +6,7 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
 import { requireAdmin } from '../../services/adminAuth';
+import { loadJoined } from '../../services/family/joined';
 import { loadFamily } from '../../services/family/roster';
 import { logger } from '../../services/logger';
 import { downloadUrl } from '../../services/media';
@@ -19,7 +20,7 @@ export async function archiveOptions(
   _e: APIGatewayProxyEvent,
   userId: string,
 ): Promise<APIGatewayProxyResult> {
-  const family = await loadFamily();
+  const { visible: family } = await loadJoined();
   return successResponse({
     canExport: await canExport(userId),
     people: Object.values(family.people)

@@ -7,6 +7,7 @@
 import { type Answer, likenesses } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { successResponse } from '../../config';
+import { loadJoined } from '../../services/family/joined';
 import { loadFamily } from '../../services/family/roster';
 import { getJson } from '../../services/s3';
 
@@ -20,7 +21,7 @@ interface FactEntry {
 }
 
 export async function getGraph(_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const family = await loadFamily();
+  const { visible: family } = await loadJoined();
   const ids = Object.keys(family.people);
   const [facts, trivia] = await Promise.all([
     Promise.all(ids.map((id) => getJson<FactEntry[]>(`facts/answers/${id}.json`))),

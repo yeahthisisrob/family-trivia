@@ -10,6 +10,7 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
 import { S3_PATHS } from '../../constants';
 import { requireAdmin } from '../../services/adminAuth';
+import { loadJoined } from '../../services/family/joined';
 import { loadFamily } from '../../services/family/roster';
 import { logger } from '../../services/logger';
 import { isMediaKey, readUrl } from '../../services/media';
@@ -73,7 +74,7 @@ export async function saveFamily(
 
 /** GET /family/story: the family's story (cached) and its numbers. */
 export async function getFamilyStory(_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  return successResponse(await readStory(await loadFamily()));
+  return successResponse(await readStory((await loadJoined()).visible));
 }
 
 /** POST /admin/family/story: write the story again from the family's latest answers. */
@@ -84,7 +85,7 @@ export async function refreshFamilyStory(
   const denied = await requireAdmin(userId);
   if (denied) return errorResponse(denied, 403);
   try {
-    return successResponse(await writeStory(await loadFamily()));
+    return successResponse(await writeStory((await loadJoined()).visible));
   } catch (err) {
     logger.error('Family story failed', {
       error: err instanceof Error ? err.message : String(err),

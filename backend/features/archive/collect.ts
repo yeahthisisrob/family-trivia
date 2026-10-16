@@ -2,6 +2,7 @@
  * Gather one person's memories from storage: trivia answers, family facts,
  * games, comments and Family Feud rounds. Read-only; nothing is changed.
  */
+import { ownerOf, type ReactionId, type ReactionRecord } from '@family-trivia/shared';
 import { getJson, listObjects } from '../../services/s3';
 
 interface HistoryEntry {
@@ -49,6 +50,11 @@ export interface PersonArchive {
     arcade: (ArcadeScore & { game: string })[];
   };
   comments: { on: string; text: string; at: string }[];
+  /** Reactions they gave, and the ones others gave to their answers and facts. */
+  reactions: {
+    given: { on: string; reaction: ReactionId; at: string }[];
+    received: { on: string; from: string; reaction: ReactionId; at: string }[];
+  };
   feud: { asTarget: FeudRound[]; guessed: FeudRound[] };
 }
 
@@ -61,10 +67,20 @@ const readAll = async <T>(keys: string[]): Promise<T[]> => {
 
 /** Shared reads (comments, arcade, feud) done once for everyone being exported. */
 export async function loadShared() {
-  const [commentFiles, arcadeKeys, feudRounds] = await Promise.all([
+  const [commentFiles, arcadeKeys, feudRounds, reactions] = await Promise.all([
     list('comments/').then((k) => readAll<CommentFile>(k)),
     list('arcade/scores/'),
     list('family-feud/rounds/').then((k) => readAll<FeudRound>(k)),
+    Promise.all(
+      (['fact', 'trivia'] as const).map(async (type) =>
+        Promise.all(
+          (await list(`reactions/${type}/`)).map(async (k) => ({
+            on: `${type} ${k.split('/').pop()?.replace('.json', '')}`,
+            record: (await getJson<ReactionRecord>(k)) ?? { byUser: {} },
+          })),
+        ),
+      ),
+    ).then((byType) => byType.flat()),
   ]);
   const arcade = (
     await Promise.all(
@@ -76,7 +92,7 @@ export async function loadShared() {
   ).flatMap(({ game, scores }) =>
     Array.isArray(scores) ? scores.map((s) => ({ ...s, game })) : [],
   );
-  return { commentFiles, arcade, feudRounds };
+  return { commentFiles, arcade, feudRounds, reactions };
 }
 
 export async function collectPerson(
@@ -104,6 +120,22 @@ export async function collectPerson(
           at: c.timestamp,
         })),
     ),
+    reactions: {
+      given: shared.reactions.flatMap(({ on, record }) => {
+        const r = record.byUser[id];
+        return r ? [{ on, reaction: r.reaction, at: r.at }] : [];
+      }),
+      received: shared.reactions
+        .filter(({ on }) => ownerOf(on.split(' ')[1] ?? '') === id)
+        .flatMap(({ on, record }) =>
+          Object.entries(record.byUser).map(([from, r]) => ({
+            on,
+            from,
+            reaction: r.reaction,
+            at: r.at,
+          })),
+        ),
+    },
     feud: {
       asTarget: shared.feudRounds.filter((r) => r.targetUserId === id),
       guessed: shared.feudRounds.filter((r) => r.guesses && id in r.guesses),

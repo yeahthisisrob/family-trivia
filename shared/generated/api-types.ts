@@ -1474,6 +1474,247 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/family": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The family — people, ties, households — and short-lived photo URLs */
+        get: operations["getFamily"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/family": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace the family (admins). The version it replaces is kept. */
+        put: operations["saveFamily"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/family/story": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The family's story for the top of the Family tab, and a few numbers */
+        get: operations["getFamilyStory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/family/story": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Write the family's story again from everyone's latest answers (admins) */
+        post: operations["writeFamilyStory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/family/words": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Someone's answers in their own words, newest first */
+        get: operations["getFamilyWords"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/graph": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The family as a graph — people with activity, ties, households, answered-alike pairs */
+        get: operations["getFamilyGraph"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reactions on a batch of answers or facts, as the viewer sees them */
+        get: operations["getReactions"];
+        /** Set the viewer's reaction; the same one again, or null, takes it back */
+        put: operations["putReaction"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/appearance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The family's chosen theme (null for the default) */
+        get: operations["getAppearance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/appearance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Choose the family's theme (admins) */
+        put: operations["saveAppearance"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/archive/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether the viewer may export, and the people and homes to choose from */
+        get: operations["getArchiveOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/archive/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Build a zip of the chosen people's answers, facts, games and comments */
+        post: operations["exportArchive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/archive/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Who may export the family archive (admins) */
+        get: operations["getArchivePermissions"];
+        /** Set who may export the family archive (admins) */
+        put: operations["saveArchivePermissions"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/features": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Which optional parts of the app are on */
+        get: operations["getFeatures"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every setting with where its value comes from, the AI models, tasks and spend (admins) */
+        get: operations["getAdminSettings"];
+        /** Save settings (admins); null clears a value back to its default */
+        put: operations["saveAdminSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1780,6 +2021,100 @@ export interface components {
             neverGone: number;
             totalPeople: number;
             recentRounds: Record<string, never>[];
+        };
+        /** @description The people model (shared/src/people.ts, docs/decisions/0009) */
+        Family: {
+            /** @enum {integer} */
+            version: 2;
+            name: string;
+            people: {
+                [key: string]: {
+                    [key: string]: unknown;
+                };
+            };
+            ties: {
+                [key: string]: unknown;
+            }[];
+            households: {
+                [key: string]: {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        FamilyResponse: {
+            family: components["schemas"]["Family"];
+            /** @description Photo key to a short-lived URL */
+            photoUrls: {
+                [key: string]: string;
+            };
+        };
+        FamilyStory: {
+            markdown: string | null;
+            generatedAt: string | null;
+            stats: {
+                people: number;
+                playing: number;
+                households: number;
+                answers: number;
+                since: string | null;
+            };
+        };
+        FamilyGraph: {
+            people: {
+                id: string;
+                name: string;
+                /** @enum {string} */
+                participation: "playing" | "paused" | "not-playing";
+                remembered: boolean;
+                died: string | null;
+                activity?: {
+                    facts?: number;
+                    trivia?: number;
+                    correct?: number;
+                    since?: string | null;
+                };
+            }[];
+            ties: {
+                [key: string]: unknown;
+            }[];
+            households: {
+                [key: string]: unknown;
+            }[];
+            likenesses: {
+                a: string;
+                b: string;
+                count: number;
+                strength: number;
+                examples: {
+                    question?: string;
+                    a?: string;
+                    b?: string;
+                }[];
+            }[];
+        };
+        /**
+         * @description shared/src/reactions.ts
+         * @enum {string}
+         */
+        ReactionId: "love" | "laugh" | "same" | "wow" | "hug";
+        ReactionSummary: {
+            /** @description Who reacted with what, newest first */
+            by: {
+                userId: string;
+                reaction: components["schemas"]["ReactionId"];
+            }[];
+            /** @enum {string|null} */
+            mine: "love" | "laugh" | "same" | "wow" | "hug" | null;
+        };
+        Appearance: {
+            themeId: string | null;
+        };
+        ExportPermissions: {
+            everyone: boolean;
+            /** @description Per-person overrides */
+            users: {
+                [key: string]: boolean;
+            };
         };
     };
     responses: never;
@@ -4746,6 +5081,499 @@ export interface operations {
                         }[];
                     };
                 };
+            };
+        };
+    };
+    getFamily: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The family */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyResponse"];
+                };
+            };
+        };
+    };
+    saveFamily: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    family: components["schemas"]["Family"];
+                };
+            };
+        };
+        responses: {
+            /** @description The saved family */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyResponse"];
+                };
+            };
+            /** @description The family has problems (listed in details) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getFamilyStory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The story (markdown is null until an admin writes it) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyStory"];
+                };
+            };
+        };
+    };
+    writeFamilyStory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The new story */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyStory"];
+                };
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The AI model could not write it right now */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getFamilyWords: {
+        parameters: {
+            query: {
+                personId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Up to 60 answers */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        personId: string;
+                        words: {
+                            question: string;
+                            answer: string;
+                            date: string | null;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    getFamilyGraph: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Graph data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyGraph"];
+                };
+            };
+        };
+    };
+    getReactions: {
+        parameters: {
+            query: {
+                contentType: "fact" | "trivia";
+                /** @description Comma-separated content ids ("{ownerId}_{timestamp}"), at most 200 */
+                ids: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Summary per id */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        reactions: {
+                            [key: string]: components["schemas"]["ReactionSummary"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    putReaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    contentType: "fact" | "trivia";
+                    contentId: string;
+                    /** @enum {string|null} */
+                    reaction: "love" | "laugh" | "same" | "wow" | "hug" | null;
+                };
+            };
+        };
+        responses: {
+            /** @description The item's reactions after the change */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        contentId: string;
+                        summary: components["schemas"]["ReactionSummary"];
+                    };
+                };
+            };
+            /** @description Unknown reaction or content */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getAppearance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Theme */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Appearance"];
+                };
+            };
+        };
+    };
+    saveAppearance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Appearance"];
+            };
+        };
+        responses: {
+            /** @description Saved theme */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Appearance"];
+                };
+            };
+            /** @description Unknown theme */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getArchiveOptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Options */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        canExport: boolean;
+                        people: {
+                            id: string;
+                            name: string;
+                            remembered: boolean;
+                        }[];
+                        households: {
+                            id: string;
+                            name: string;
+                            members: string[];
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    exportArchive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    people: string[] | "all";
+                };
+            };
+        };
+        responses: {
+            /** @description A short-lived download link */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        url: string;
+                        bytes: number;
+                        people: number;
+                    };
+                };
+            };
+            /** @description Nobody chosen */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Exporting is turned off for the viewer */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getArchivePermissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Permissions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportPermissions"];
+                };
+            };
+        };
+    };
+    saveArchivePermissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExportPermissions"];
+            };
+        };
+        responses: {
+            /** @description Saved permissions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportPermissions"];
+                };
+            };
+        };
+    };
+    getFeatures: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Feature name to on/off */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: boolean;
+                    };
+                };
+            };
+        };
+    };
+    getAdminSettings: {
+        parameters: {
+            query?: {
+                /** @description 1 re-checks which models work */
+                refreshModels?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The admin view (shape in frontend/src/entities/settings) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    saveAdminSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    values: {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description The admin view after saving */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description A value didn't fit its setting */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

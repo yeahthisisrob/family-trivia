@@ -70,6 +70,9 @@ beforeEach(() => {
       { id: 'c1', userId: 'grace', text: 'Love this, "dear"', timestamp: '2024-01-04T00:00:00Z' },
     ],
   });
+  seedRaw('reactions/fact/grace_2024-01-03T00:00:00Z.json', {
+    byUser: { alice: { reaction: 'hug', at: '2024-01-06T00:00:00Z' } },
+  });
   seedRaw('arcade/scores/tetris.json', [{ userId: 'grace', score: 900, date: '2024-01-05' }]);
 });
 
@@ -98,6 +101,14 @@ describe('family archive', () => {
     expect(read('people/grandma-grace/trivia-answers.csv')).toContain('Capital of France?');
     expect(read('people/grandma-grace/comments.md')).toContain('Love this');
     expect(JSON.parse(read('people/grandma-grace/games.json')).arcade[0].score).toBe(900);
+    expect(JSON.parse(read('people/grandma-grace/reactions.json')).received).toEqual([
+      {
+        on: 'fact grace_2024-01-03T00:00:00Z',
+        from: 'alice',
+        reaction: 'hug',
+        at: '2024-01-06T00:00:00Z',
+      },
+    ]);
     expect(read('README.md')).toContain('1 person');
     expect(names.some((n) => n.includes('/people/alice/'))).toBe(false);
   });
