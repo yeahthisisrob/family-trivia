@@ -15,4 +15,16 @@ export const night = {
   /** Someone the family remembers: a warm white star with a gold halo. */
   remembered: '#f6ead0',
   halo: '#e8c66a',
+  /** Territories on a map: soft, saturated pastels that glow on the sky. */
+  territories: [
+    '#7cc4ff',
+    '#ffb86b',
+    '#c3a6ff',
+    '#7be0b0',
+    '#ff8fb1',
+    '#f3e37a',
+    '#6fe3e3',
+    '#ff9d7a',
+    '#a7c7ff',
+  ],
 } as const;

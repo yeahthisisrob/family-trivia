@@ -14,7 +14,7 @@ import React, { useMemo, useState } from 'react';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
 import { useFeatures } from '../../entities/settings';
 import { ArchiveDialog } from '../../features/family-archive';
-import { FamilyGraph } from '../../features/family-graph';
+import { Connections } from '../../features/family-graph';
 import { type FamilyDoor, FamilyHome } from '../../features/family-home';
 import { SeasonLookBack } from '../../features/look-back';
 import FamilySplitView from './FamilySplitView';
@@ -60,10 +60,10 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, isAdmin, onViewProfile 
   doors.push({
     id: 'connections',
     title: 'How we’re connected',
-    caption: 'Ties, and who answers alike',
+    caption: 'What we talk about, and who is whose',
     icon: <HubIcon />,
     render: (graph, openPerson) => (
-      <FamilyGraph data={graph} meId={userId} height={640} onOpenProfile={openPerson} />
+      <Connections data={graph} meId={userId} height={640} onOpenProfile={openPerson} />
     ),
   });
   doors.push({
