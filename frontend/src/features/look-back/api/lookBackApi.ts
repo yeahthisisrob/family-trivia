@@ -26,9 +26,13 @@ export const lookBackApi = {
       { method: 'GET' },
       `season_review_${season ?? 'latest'}`,
     ),
-  /** The foreword and chapter openings: written once per tone, unless asked fresh. */
+  /** One step of the writing (the plan, then a chapter at a time); call while `left` > 0. */
   writeBook: (season: number, tone: BookTone, fresh = false) =>
-    post<{ writing: BookWriting | null }>('/seasons/book/writing', { season, tone, fresh }),
+    post<{ writing: BookWriting | null; left: number; chapters: number }>('/seasons/book/writing', {
+      season,
+      tone,
+      fresh,
+    }),
   /** The print-ready PDF: kept until the season's answers change, unless asked fresh. */
   makeBook: (season: number, tone: BookTone, fresh = false) =>
     post<SeasonBook>('/seasons/book', { season, tone, fresh }),

@@ -21,6 +21,7 @@ import {
   type BookTone,
   type BookVersion,
   type BookWriting,
+  chaptersLeft,
   isBookTone,
   isRemembered,
   type SeasonBook,
@@ -33,10 +34,10 @@ import { keepBook, keptVersions } from '../../services/press/keep';
 import { getSeasonsConfig } from '../../services/seasonService';
 import { type BookPerson, seasonBook } from './book';
 import { buildSeasonReview } from './review';
-import { readWriting, writeBook } from './writing';
+import { advanceWriting, readWriting } from './writing';
 
 /** Bump when the layout in book.ts changes, so a kept input says which layout it was set in. */
-export const LAYOUT = 2;
+export const LAYOUT = 3;
 
 const prefixOf = (season: number, tone: BookTone) => `books/season-${season}/${tone}`;
 const TONES: readonly BookTone[] = ['plain', 'warm', 'playful'];
@@ -79,13 +80,18 @@ async function gather(seasonNumber: number) {
   return { review, familyName: visible.name, people };
 }
 
+/**
+ * One step of writing the book (writing.ts): the plan first, then a chapter's
+ * opening per call. Call again while `left` is above zero.
+ */
 export async function makeBookWriting(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const { season, tone, fresh } = parse(event);
   if (!tone) return errorResponse('Choose how the book is written', 400);
-  if (tone === 'plain') return successResponse({ writing: null });
+  if (tone === 'plain') return successResponse({ writing: null, left: 0, chapters: 0 });
   if (!fresh) {
     const kept = await readWriting(season, tone);
-    if (kept) return successResponse({ writing: kept });
+    if (kept?.plan && chaptersLeft(kept) === 0)
+      return successResponse({ writing: kept, left: 0, chapters: kept.plan.length });
   }
   const found = await gather(season);
   if (!found) return errorResponse('Unknown season', 404);
@@ -95,9 +101,12 @@ export async function makeBookWriting(event: APIGatewayProxyEvent): Promise<APIG
   const remembered = Object.values(found.people)
     .filter((p) => p.remembered && found.review.people.some((r) => r.personId === p.id))
     .map((p) => ({ name: p.name }));
-  const writing = await writeBook(found.review, tone, found.familyName, nameOf, remembered);
-  logger.info('Season book written', { season, tone });
-  return successResponse({ writing });
+  const { writing, left } = await advanceWriting(
+    { review: found.review, tone, familyName: found.familyName, nameOf, remembered },
+    fresh,
+  );
+  logger.info('Season book writing', { season, tone, left });
+  return successResponse({ writing, left, chapters: writing.plan?.length ?? 0 });
 }
 
 export async function makeSeasonBook(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
@@ -109,7 +118,8 @@ export async function makeSeasonBook(event: APIGatewayProxyEvent): Promise<APIGa
   if (!review.book.length) return errorResponse('This season has no answers to print yet', 404);
 
   const writing: BookWriting | null = tone === 'plain' ? null : await readWriting(season, tone);
-  if (tone !== 'plain' && !writing) return errorResponse('The book isn’t written yet', 409);
+  if (tone !== 'plain' && chaptersLeft(writing) > 0)
+    return errorResponse('The book isn’t fully written yet', 409);
 
   const kept = await keepBook({
     prefix: prefixOf(season, tone),

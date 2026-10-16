@@ -46,6 +46,7 @@ export const BookDialog: React.FC<{
   const [step, setStep] = useState<Step>('choose');
   const [book, setBook] = useState<SeasonBook | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+  const [progress, setProgress] = useState('');
   const [versions, setVersions] = useState<BookVersion[]>([]);
 
   const loadVersions = useCallback(() => {
@@ -61,7 +62,13 @@ export const BookDialog: React.FC<{
     try {
       if (tone !== 'plain') {
         setStep('writing');
-        await lookBackApi.writeBook(season.number, tone, fresh);
+        setProgress('Reading the season and finding its chapters…');
+        // The plan first, then one chapter's opening per call, until none is left.
+        let r = await lookBackApi.writeBook(season.number, tone, fresh);
+        while (r.left > 0) {
+          setProgress(`Writing chapter ${r.chapters - r.left + 1} of ${r.chapters}…`);
+          r = await lookBackApi.writeBook(season.number, tone);
+        }
       }
       setStep('setting');
       setBook(await lookBackApi.makeBook(season.number, tone, fresh));
@@ -147,14 +154,12 @@ export const BookDialog: React.FC<{
         {busy && (
           <Stack spacing={1.5} sx={{ py: 3 }}>
             <Typography sx={{ fontWeight: 700 }}>
-              {step === 'writing'
-                ? 'Writing the foreword and each month’s opening…'
-                : 'Setting the pages…'}
+              {step === 'writing' ? progress : 'Setting the pages…'}
             </Typography>
             <LinearProgress />
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               {step === 'writing'
-                ? 'This happens once; the book keeps what’s written. It can take half a minute.'
+                ? 'This happens once, and each chapter is kept as it’s written. A minute or two.'
                 : 'A few seconds.'}
             </Typography>
           </Stack>

@@ -2,17 +2,21 @@ vi.mock('../services/s3', async () => (await import('./helpers/s3Mock')).s3MockM
 vi.mock('../services/media', () => ({
   downloadUrl: async (key: string) => `https://example.test/${key}`,
 }));
-const ai = vi.hoisted(() => ({ reply: '', calls: 0 }));
+const ai = vi.hoisted(() => ({ plan: '', intro: '', calls: 0, prompt: '' }));
 vi.mock('../services/bedrock/core/bedrockClient', () => ({
-  invokeBedrockPrompt: async () => {
+  invokeBedrockPrompt: async (prompt: string) => {
     ai.calls++;
+    ai.prompt = prompt;
     return {};
   },
 }));
 vi.mock('../services/bedrock/core/responseParser', () => ({
   collectResponseBody: async () => Buffer.from(''),
 }));
-vi.mock('../services/bedrock/core/textExtractor', () => ({ extractTextContent: () => ai.reply }));
+vi.mock('../services/bedrock/core/textExtractor', () => ({
+  // The plan asks for chapters; each chapter asks for its opening.
+  extractTextContent: () => (ai.prompt.includes('<chapters>') ? ai.plan : ai.intro),
+}));
 
 import type { FactAnswerEntry, Family, SeasonReview } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent } from 'aws-lambda';
@@ -57,10 +61,17 @@ beforeEach(() => {
   invalidateFactHistoryCache();
   invalidateSeasonsCache();
   ai.calls = 0;
-  ai.reply = JSON.stringify({
-    foreword: 'We kept coming back to the beach — and to pie.',
-    chapters: { '2024-01': 'January was about home.', '1999-01': 'Not a month in this book.' },
-  });
+  ai.plan = `<foreword>
+We kept coming back to the beach — and to pie.
+</foreword>
+<chapters>
+${JSON.stringify([
+  { title: 'Around the table', days: [1, 1, 99] },
+  { title: '', days: [0] },
+])}
+</chapters>`;
+  // Straight quotes in the prose: nothing to escape, nothing breaks.
+  ai.intro = '<intro>\nPie came up first, "always pie".\n\nThen the beach.\n</intro>';
   seedRaw('family/family.json', family);
   seedSeasons({
     currentSeasonNumber: null,
@@ -121,20 +132,43 @@ test('a book: a PDF with an even number of pages, longer with a foreword', async
   expect(written.pages).toBeGreaterThan(plain.pages);
 });
 
-test('the writing is asked for once per tone, kept, and cleaned', async () => {
-  const first = await post(makeBookWriting, { season: 1, tone: 'warm' });
-  expect(first.data.writing.foreword).toBe('We kept coming back to the beach, and to pie.');
-  expect(Object.keys(first.data.writing.chapters)).toEqual(['2024-01']);
+/** Every step of the writing, until no chapter is left. */
+async function writeAll(fresh = false) {
+  let r = await post(makeBookWriting, { season: 1, tone: 'warm', fresh });
+  while (r.data.left > 0) r = await post(makeBookWriting, { season: 1, tone: 'warm' });
+  return r;
+}
+
+test('written in steps: the plan, then each chapter’s opening, all kept and cleaned', async () => {
+  const planned = await post(makeBookWriting, { season: 1, tone: 'warm' });
+  expect(planned.data.writing.foreword).toBe('We kept coming back to the beach, and to pie.');
+  // A nameless chapter is dropped; its day joins its neighbour, and nothing is lost.
+  expect(planned.data.writing.plan).toEqual([
+    {
+      title: 'Around the table',
+      pages: ['2024-02-03|Comfort food?', '2024-01-02|Happy place?'],
+      intro: null,
+    },
+  ]);
+  expect(planned.data.left).toBe(1);
+  const done = await post(makeBookWriting, { season: 1, tone: 'warm' });
+  expect(done.data).toMatchObject({ left: 0, chapters: 1 });
+  expect(done.data.writing.plan[0].intro).toBe(
+    'Pie came up first, "always pie".\n\nThen the beach.',
+  );
+  // Once written, asking again costs nothing; fresh starts over.
   await post(makeBookWriting, { season: 1, tone: 'warm' });
-  expect(ai.calls).toBe(1);
-  await post(makeBookWriting, { season: 1, tone: 'warm', fresh: true });
   expect(ai.calls).toBe(2);
-  expect(getStored('books/season-1/warm.writing.json')).toBeTruthy();
+  await writeAll(true);
+  expect(ai.calls).toBe(4);
 });
 
 test('the book is made once and kept until something changes', async () => {
   expect((await post(makeSeasonBook, { season: 1, tone: 'warm' })).status).toBe(409);
   await post(makeBookWriting, { season: 1, tone: 'warm' });
+  // Planned but not every chapter written: still not a book.
+  expect((await post(makeSeasonBook, { season: 1, tone: 'warm' })).status).toBe(409);
+  await writeAll();
 
   const made = await post(makeSeasonBook, { season: 1, tone: 'warm' });
   expect(made.data).toMatchObject({ made: true, tone: 'warm' });
@@ -153,9 +187,9 @@ test('just our words needs no writing', async () => {
 });
 
 test('nothing is replaced: every book and every earlier writing is kept', async () => {
-  await post(makeBookWriting, { season: 1, tone: 'warm' });
+  await writeAll();
   await post(makeSeasonBook, { season: 1, tone: 'warm' });
-  await post(makeBookWriting, { season: 1, tone: 'warm', fresh: true });
+  await writeAll(true);
   await post(makeSeasonBook, { season: 1, tone: 'warm' });
   await post(makeSeasonBook, { season: 1, tone: 'plain' });
 
@@ -166,15 +200,15 @@ test('nothing is replaced: every book and every earlier writing is kept', async 
     const kept = getStored<{ input: { layout: number; review: unknown } }>(
       pdf.replace(/\.pdf$/, '.input.json'),
     );
-    expect(kept?.input.layout).toBe(2);
+    expect(kept?.input.layout).toBe(3);
     expect(kept?.input.review).toBeTruthy();
   }
-  // The writing that was replaced, and both AI calls word for word.
+  // The writing that was replaced, and every AI call word for word.
   const history = listStored('books/season-1/history/');
   expect(history.filter((k) => k.endsWith('.writing.json'))).toHaveLength(1);
-  expect(history.filter((k) => k.endsWith('.ai.json'))).toHaveLength(2);
+  expect(history.filter((k) => k.endsWith('.ai.json'))).toHaveLength(4);
   const call = getStored<{ prompt: string; response: string }>(
-    history.find((k) => k.endsWith('.ai.json')) ?? '',
+    history.find((k) => k.endsWith('-plan.ai.json')) ?? '',
   );
   expect(call?.prompt).toContain('Happy place?');
   expect(call?.response).toContain('foreword');

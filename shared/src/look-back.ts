@@ -69,7 +69,7 @@ export const BOOK_TONES: readonly { id: BookTone; label: string; help: string }[
   {
     id: 'warm',
     label: 'Warm',
-    help: 'A foreword, and a few lines opening each month, written from our answers.',
+    help: 'A foreword, and chapters by theme, each opening with the story of our answers.',
   },
   {
     id: 'playful',
@@ -81,14 +81,32 @@ export const BOOK_TONES: readonly { id: BookTone; label: string; help: string }[
 export const isBookTone = (v: unknown): v is BookTone =>
   typeof v === 'string' && BOOK_TONES.some((t) => t.id === v);
 
+/** A chapter of a written book: a theme the AI found, its days, and its opening. */
+export interface BookChapter {
+  title: string;
+  /** The days in it, as pageKey()s, in reading order. */
+  pages: string[];
+  /** A few paragraphs telling the chapter's story; null until written. */
+  intro: string | null;
+}
+
 /** What the AI wrote for a season's book: kept, so it's written once per tone. */
 export interface BookWriting {
   tone: BookTone;
   foreword: string;
-  /** A few lines opening each month (YYYY-MM). */
+  /** Earlier books: a few lines opening each month (YYYY-MM). */
   chapters: Record<string, string>;
+  /** The chapters by theme, each with its own opening. */
+  plan?: BookChapter[];
   writtenAt: string;
 }
+
+/** A day's page, as a chapter lists it. */
+export const pageKey = (p: Pick<BookPage, 'date' | 'question'>) => `${p.date}|${p.question}`;
+
+/** How many chapters still need their opening written. */
+export const chaptersLeft = (w: BookWriting | null | undefined): number =>
+  w?.plan ? w.plan.filter((c) => !c.intro).length : Number.POSITIVE_INFINITY;
 
 /** A finished book, ready to download. */
 export interface SeasonBook {
