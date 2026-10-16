@@ -6,6 +6,7 @@ import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
 import { logger } from '../services/logger';
 import { getJson } from '../services/s3';
+import { type UserConfigData as StoredUserConfig, toPublicUserConfig } from '../services/users';
 
 interface UserConfigData {
   version: string;
@@ -22,13 +23,13 @@ interface UserConfigData {
 export async function getUserConfig(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   try {
     // Get user config from S3
-    const userConfig = await getJson<UserConfigData>(S3_PATHS.USERS_CONFIG);
+    const userConfig = await getJson<StoredUserConfig>(S3_PATHS.USERS_CONFIG);
 
     if (!userConfig) {
       return errorResponse('User configuration not found', 404);
     }
 
-    return successResponse(userConfig);
+    return successResponse(toPublicUserConfig(userConfig));
   } catch (err: any) {
     logger.error('Error fetching user configuration:', err);
 

@@ -4,4805 +4,4749 @@
  */
 
 export interface paths {
-	"/app-init": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Critical init: config, hierarchy, season, activation */
-		get: operations["getAppInit"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/app-init-deferred": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Deferred init: timeline, catchup, games, feud */
-		get: operations["getAppInitDeferred"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/validate-passphrase": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Validate user passphrase */
-		post: operations["validatePassphrase"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/members": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get members for a group */
-		get: operations["getMembers"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/user-config": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get user configuration */
-		get: operations["getUserConfig"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/user-profile": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get user profile */
-		get: operations["getUserProfile"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/generate-question": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Generate a trivia question */
-		post: operations["generateQuestion"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/submit-answer": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Submit an answer to a trivia question */
-		post: operations["submitAnswer"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/question-status": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get question timing status */
-		get: operations["getQuestionStatus"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/can-answer-question": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Check if user can answer a question */
-		get: operations["canAnswerQuestion"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/catchup-status": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get catch-up status for a user */
-		get: operations["getCatchupStatus"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/question-gen/step1": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Step 1: Generate initial question */
-		post: operations["questionGenStep1"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/question-gen/step2": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Step 2: Check for duplicate question */
-		post: operations["questionGenStep2"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/question-gen/step3": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Step 3: Validate question */
-		post: operations["questionGenStep3"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/daily-fact": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get the daily fact question */
-		get: operations["getDailyFact"];
-		put?: never;
-		/** Get or generate daily fact question */
-		post: operations["postDailyFact"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/submit-daily-fact": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Submit an answer to a daily fact question */
-		post: operations["submitDailyFact"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/user-fact-history": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get user fact history */
-		get: operations["getUserFactHistory"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/submit-historical-fact": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Submit a historical fact answer */
-		post: operations["submitHistoricalFact"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/generate-question-options": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Generate question options for daily fact */
-		post: operations["generateQuestionOptions"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/recent-shared-questions": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get recent shared questions */
-		get: operations["getRecentSharedQuestions"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/daily-fact-summary": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get daily fact summary */
-		get: operations["getDailyFactSummary"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/categories": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get categories for a user */
-		get: operations["getCategories"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/create-custom-category": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Create a custom category */
-		post: operations["createCustomCategory"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/submit-custom-category": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Submit a custom category answer */
-		post: operations["submitCustomCategory"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/leaderboard": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get leaderboard data */
-		get: operations["getLeaderboard"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/consolidated-leaderboard": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get consolidated leaderboard across groups */
-		get: operations["getConsolidatedLeaderboard"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/end-of-season-status": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get end-of-season status */
-		get: operations["getEndOfSeasonStatus"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/family-hierarchy": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get family hierarchy */
-		get: operations["getFamilyHierarchy"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/group-description": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get group description(s) */
-		get: operations["getGroupDescription"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/update-group-description": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Update a group description */
-		post: operations["updateGroupDescription"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/suggest-group-description": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Get AI-suggested group description */
-		post: operations["suggestGroupDescription"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/member-summary": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get member summary */
-		get: operations["getMemberSummary"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/timeline-data": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get timeline data */
-		get: operations["getTimelineData"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/fact-comments": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get fact comments */
-		get: operations["getFactComments"];
-		put?: never;
-		/** Add a fact comment */
-		post: operations["addFactComment"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/trivia-comments": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get trivia comments */
-		get: operations["getTriviaComments"];
-		put?: never;
-		/** Add a trivia comment */
-		post: operations["addTriviaComment"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/casino-rush/start": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Start a Casino Rush session */
-		post: operations["startCasinoRush"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/casino-rush/answer": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Submit a Casino Rush answer */
-		post: operations["answerCasinoRush"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/casino-rush/status": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get Casino Rush status */
-		get: operations["getCasinoRushStatus"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/slot-machine/spin": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Spin the slot machine */
-		post: operations["slotMachineSpin"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/slot-machine/question": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Get question for slot machine result */
-		post: operations["slotMachineQuestion"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/slot-machine/answer": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Submit slot machine answer */
-		post: operations["slotMachineAnswer"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/slot-machine/status": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get slot machine status */
-		get: operations["getSlotMachineStatus"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/upcoming-birthdays": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get upcoming birthdays */
-		get: operations["getUpcomingBirthdays"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/celebrations": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get all celebrations */
-		get: operations["getCelebrations"];
-		put?: never;
-		/** Create a celebration */
-		post: operations["createCelebration"];
-		/** Delete a celebration */
-		delete: operations["deleteCelebration"];
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/photo-albums": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** List photo albums */
-		get: operations["getPhotoAlbums"];
-		/** Update a photo album (admin only) */
-		put: operations["updatePhotoAlbum"];
-		/** Add a photo album (admin only) */
-		post: operations["addPhotoAlbum"];
-		/** Delete a photo album (admin only) */
-		delete: operations["deletePhotoAlbum"];
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/admin/players": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get all players */
-		get: operations["getAdminPlayers"];
-		/** Update a player */
-		put: operations["updateAdminPlayer"];
-		/** Create a player */
-		post: operations["createAdminPlayer"];
-		/** Delete a player */
-		delete: operations["deleteAdminPlayer"];
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/admin/groups": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get all groups */
-		get: operations["getAdminGroups"];
-		/** Update a group */
-		put: operations["updateAdminGroup"];
-		/** Create a group */
-		post: operations["createAdminGroup"];
-		/** Delete a group */
-		delete: operations["deleteAdminGroup"];
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/admin/family-tree": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get family tree hierarchy */
-		get: operations["getAdminFamilyTree"];
-		/** Update family tree hierarchy */
-		put: operations["updateAdminFamilyTree"];
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/admin/seasons": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get all seasons */
-		get: operations["getAdminSeasons"];
-		/** Update a season */
-		put: operations["updateAdminSeason"];
-		/** Create a season */
-		post: operations["createAdminSeason"];
-		/** Delete a season */
-		delete: operations["deleteAdminSeason"];
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/auth/google": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Exchange a Google ID token for a JWT session token */
-		post: operations["authGoogle"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/notifications": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get the user's notification summary */
-		get: operations["getNotifications"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/notifications/mark-read": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Mark a notification as read */
-		post: operations["markNotificationRead"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/notifications/mark-all-read": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Mark all notifications for a user as read */
-		post: operations["markAllNotificationsRead"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/comments": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get the comment thread for a content item */
-		get: operations["getCommentsUnified"];
-		put?: never;
-		/** Add a new comment to a content item */
-		post: operations["addCommentUnified"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/comments/counts": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get comment counts + recent commenters for multiple content items */
-		get: operations["getCommentCountsUnified"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/fact-suggestions": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get common opening phrases for fact answer autocomplete */
-		get: operations["getFactSuggestions"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/answer-grid": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Trivia status grid: who answered which slot + correctness */
-		get: operations["getAnswerGrid"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/fact-grid": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Daily fact status matrix */
-		get: operations["getFactGrid"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/curling/status": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get current Curling game state for user */
-		get: operations["getCurlingStatus"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/curling/lock": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Lock in Curling multiplier + category */
-		post: operations["lockCurling"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/curling/answer": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Submit an answer to a Curling question */
-		post: operations["answerCurling"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/tetris/status": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get current Tetris game state for user */
-		get: operations["getTetrisStatus"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/tetris/lock": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Lock in Tetris game parameters */
-		post: operations["lockTetris"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/tetris/answer": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Submit a Tetris answer */
-		post: operations["answerTetris"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/slot-machine/arcade-spin": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Spin the slot machine in arcade (non-daily) mode */
-		post: operations["slotMachineArcadeSpin"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/slot-machine/balance": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get the user's arcade slot machine point balance */
-		get: operations["getSlotMachineBalance"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/arcade/submit-score": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Submit a high score for an arcade game */
-		post: operations["arcadeSubmitScore"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/crossword/generate": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Generate a crossword puzzle from family facts */
-		post: operations["generateCrossword"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/snake/questions": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Get questions for a Snake game session */
-		post: operations["getSnakeQuestions"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/family-feud/status": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Get current Family Feud round state */
-		get: operations["getFamilyFeudStatus"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/family-feud/start-round": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Start a new Family Feud round (target user only) */
-		post: operations["startFamilyFeudRound"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/family-feud/answer": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Target user submits their answer to the round question */
-		post: operations["answerFamilyFeud"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/family-feud/guess": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Submit a guess during an active Family Feud round */
-		post: operations["guessFamilyFeud"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/family-feud/pass": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Target user passes, moves to next in rotation */
-		post: operations["passFamilyFeud"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/admin/user-facts": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Admin — fetch a user's fact history */
-		get: operations["adminGetUserFacts"];
-		/** Admin — update a fact entry */
-		put: operations["adminUpdateUserFact"];
-		post?: never;
-		/** Admin — delete a fact entry */
-		delete: operations["adminDeleteUserFact"];
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/admin/user-trivia": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Admin — fetch a user's trivia answer history */
-		get: operations["adminGetUserTrivia"];
-		put?: never;
-		post?: never;
-		/** Admin — delete trivia entries */
-		delete: operations["adminDeleteUserTrivia"];
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/admin/game-sessions": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Admin — fetch game mode sessions */
-		get: operations["adminGetGameSessions"];
-		put?: never;
-		post?: never;
-		/** Admin — delete game mode sessions */
-		delete: operations["adminDeleteGameSessions"];
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/admin/daily-questions": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Admin — browse daily shared questions */
-		get: operations["adminGetDailyQuestions"];
-		put?: never;
-		post?: never;
-		/** Admin — delete a daily shared question */
-		delete: operations["adminDeleteDailyQuestion"];
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/admin/trivia-bank/stats": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Admin — trivia bank statistics */
-		get: operations["adminTriviaBankStats"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/admin/trivia-bank/browse": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Admin — browse trivia bank with filters */
-		get: operations["adminTriviaBankBrowse"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/admin/trivia-bank/question": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post?: never;
-		/** Admin — delete a trivia bank question */
-		delete: operations["adminDeleteTriviaBankQuestion"];
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/admin/trivia-bank/import": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Admin — bulk import trivia questions */
-		post: operations["adminTriviaBankImport"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/admin/family-feud": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Admin — inspect family feud state */
-		get: operations["adminGetFamilyFeud"];
-		put?: never;
-		post?: never;
-		/** Admin — reset or delete family feud round */
-		delete: operations["adminResetFamilyFeud"];
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/admin/system-info": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Admin — system + environment info */
-		get: operations["adminGetSystemInfo"];
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/daily-fact-categories": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Get categories for the daily fact first-person flow */
-		post: operations["getDailyFactCategories"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	"/daily-fact-options": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Generate question options for the first-person flow */
-		post: operations["getDailyFactOptions"];
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
+    "/app-init": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Critical init: config, hierarchy, season, activation */
+        get: operations["getAppInit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/app-init-deferred": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Deferred init: timeline, catchup, games, feud */
+        get: operations["getAppInitDeferred"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get members for a group */
+        get: operations["getMembers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get user configuration */
+        get: operations["getUserConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get user profile */
+        get: operations["getUserProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/generate-question": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate a trivia question */
+        post: operations["generateQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/submit-answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit an answer to a trivia question */
+        post: operations["submitAnswer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/question-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get question timing status */
+        get: operations["getQuestionStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/can-answer-question": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check if user can answer a question */
+        get: operations["canAnswerQuestion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/catchup-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get catch-up status for a user */
+        get: operations["getCatchupStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/question-gen/step1": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Step 1: Generate initial question */
+        post: operations["questionGenStep1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/question-gen/step2": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Step 2: Check for duplicate question */
+        post: operations["questionGenStep2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/question-gen/step3": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Step 3: Validate question */
+        post: operations["questionGenStep3"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/daily-fact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the daily fact question */
+        get: operations["getDailyFact"];
+        put?: never;
+        /** Get or generate daily fact question */
+        post: operations["postDailyFact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/submit-daily-fact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit an answer to a daily fact question */
+        post: operations["submitDailyFact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user-fact-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get user fact history */
+        get: operations["getUserFactHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/submit-historical-fact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit a historical fact answer */
+        post: operations["submitHistoricalFact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/generate-question-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate question options for daily fact */
+        post: operations["generateQuestionOptions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/recent-shared-questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get recent shared questions */
+        get: operations["getRecentSharedQuestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/daily-fact-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get daily fact summary */
+        get: operations["getDailyFactSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get categories for a user */
+        get: operations["getCategories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/create-custom-category": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a custom category */
+        post: operations["createCustomCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/submit-custom-category": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit a custom category answer */
+        post: operations["submitCustomCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/leaderboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get leaderboard data */
+        get: operations["getLeaderboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/consolidated-leaderboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get consolidated leaderboard across groups */
+        get: operations["getConsolidatedLeaderboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/end-of-season-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get end-of-season status */
+        get: operations["getEndOfSeasonStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/family-hierarchy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get family hierarchy */
+        get: operations["getFamilyHierarchy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group-description": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get group description(s) */
+        get: operations["getGroupDescription"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/update-group-description": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Update a group description */
+        post: operations["updateGroupDescription"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/suggest-group-description": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Get AI-suggested group description */
+        post: operations["suggestGroupDescription"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/member-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get member summary */
+        get: operations["getMemberSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/timeline-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get timeline data */
+        get: operations["getTimelineData"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fact-comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get fact comments */
+        get: operations["getFactComments"];
+        put?: never;
+        /** Add a fact comment */
+        post: operations["addFactComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trivia-comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get trivia comments */
+        get: operations["getTriviaComments"];
+        put?: never;
+        /** Add a trivia comment */
+        post: operations["addTriviaComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/casino-rush/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start a Casino Rush session */
+        post: operations["startCasinoRush"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/casino-rush/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit a Casino Rush answer */
+        post: operations["answerCasinoRush"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/casino-rush/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Casino Rush status */
+        get: operations["getCasinoRushStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/slot-machine/spin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Spin the slot machine */
+        post: operations["slotMachineSpin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/slot-machine/question": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Get question for slot machine result */
+        post: operations["slotMachineQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/slot-machine/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit slot machine answer */
+        post: operations["slotMachineAnswer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/slot-machine/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get slot machine status */
+        get: operations["getSlotMachineStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/upcoming-birthdays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get upcoming birthdays */
+        get: operations["getUpcomingBirthdays"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/celebrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get all celebrations */
+        get: operations["getCelebrations"];
+        put?: never;
+        /** Create a celebration */
+        post: operations["createCelebration"];
+        /** Delete a celebration */
+        delete: operations["deleteCelebration"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/photo-albums": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List photo albums */
+        get: operations["getPhotoAlbums"];
+        /** Update a photo album (admin only) */
+        put: operations["updatePhotoAlbum"];
+        /** Add a photo album (admin only) */
+        post: operations["addPhotoAlbum"];
+        /** Delete a photo album (admin only) */
+        delete: operations["deletePhotoAlbum"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/players": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get all players */
+        get: operations["getAdminPlayers"];
+        /** Update a player */
+        put: operations["updateAdminPlayer"];
+        /** Create a player */
+        post: operations["createAdminPlayer"];
+        /** Delete a player */
+        delete: operations["deleteAdminPlayer"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get all groups */
+        get: operations["getAdminGroups"];
+        /** Update a group */
+        put: operations["updateAdminGroup"];
+        /** Create a group */
+        post: operations["createAdminGroup"];
+        /** Delete a group */
+        delete: operations["deleteAdminGroup"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/family-tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get family tree hierarchy */
+        get: operations["getAdminFamilyTree"];
+        /** Update family tree hierarchy */
+        put: operations["updateAdminFamilyTree"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/seasons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get all seasons */
+        get: operations["getAdminSeasons"];
+        /** Update a season */
+        put: operations["updateAdminSeason"];
+        /** Create a season */
+        post: operations["createAdminSeason"];
+        /** Delete a season */
+        delete: operations["deleteAdminSeason"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exchange a Google ID token for a JWT session token */
+        post: operations["authGoogle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the user's notification summary */
+        get: operations["getNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/mark-read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark a notification as read */
+        post: operations["markNotificationRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/mark-all-read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark all notifications for a user as read */
+        post: operations["markAllNotificationsRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the comment thread for a content item */
+        get: operations["getCommentsUnified"];
+        put?: never;
+        /** Add a new comment to a content item */
+        post: operations["addCommentUnified"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/comments/counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get comment counts + recent commenters for multiple content items */
+        get: operations["getCommentCountsUnified"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fact-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get common opening phrases for fact answer autocomplete */
+        get: operations["getFactSuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/answer-grid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Trivia status grid: who answered which slot + correctness */
+        get: operations["getAnswerGrid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fact-grid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Daily fact status matrix */
+        get: operations["getFactGrid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/curling/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get current Curling game state for user */
+        get: operations["getCurlingStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/curling/lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Lock in Curling multiplier + category */
+        post: operations["lockCurling"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/curling/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit an answer to a Curling question */
+        post: operations["answerCurling"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tetris/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get current Tetris game state for user */
+        get: operations["getTetrisStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tetris/lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Lock in Tetris game parameters */
+        post: operations["lockTetris"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tetris/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit a Tetris answer */
+        post: operations["answerTetris"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/slot-machine/arcade-spin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Spin the slot machine in arcade (non-daily) mode */
+        post: operations["slotMachineArcadeSpin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/slot-machine/balance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the user's arcade slot machine point balance */
+        get: operations["getSlotMachineBalance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/arcade/submit-score": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit a high score for an arcade game */
+        post: operations["arcadeSubmitScore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/crossword/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate a crossword puzzle from family facts */
+        post: operations["generateCrossword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/snake/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Get questions for a Snake game session */
+        post: operations["getSnakeQuestions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/family-feud/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get current Family Feud round state */
+        get: operations["getFamilyFeudStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/family-feud/start-round": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start a new Family Feud round (target user only) */
+        post: operations["startFamilyFeudRound"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/family-feud/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Target user submits their answer to the round question */
+        post: operations["answerFamilyFeud"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/family-feud/guess": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit a guess during an active Family Feud round */
+        post: operations["guessFamilyFeud"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/family-feud/pass": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Target user passes, moves to next in rotation */
+        post: operations["passFamilyFeud"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/user-facts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin — fetch a user's fact history */
+        get: operations["adminGetUserFacts"];
+        /** Admin — update a fact entry */
+        put: operations["adminUpdateUserFact"];
+        post?: never;
+        /** Admin — delete a fact entry */
+        delete: operations["adminDeleteUserFact"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/user-trivia": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin — fetch a user's trivia answer history */
+        get: operations["adminGetUserTrivia"];
+        put?: never;
+        post?: never;
+        /** Admin — delete trivia entries */
+        delete: operations["adminDeleteUserTrivia"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/game-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin — fetch game mode sessions */
+        get: operations["adminGetGameSessions"];
+        put?: never;
+        post?: never;
+        /** Admin — delete game mode sessions */
+        delete: operations["adminDeleteGameSessions"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/daily-questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin — browse daily shared questions */
+        get: operations["adminGetDailyQuestions"];
+        put?: never;
+        post?: never;
+        /** Admin — delete a daily shared question */
+        delete: operations["adminDeleteDailyQuestion"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/trivia-bank/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin — trivia bank statistics */
+        get: operations["adminTriviaBankStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/trivia-bank/browse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin — browse trivia bank with filters */
+        get: operations["adminTriviaBankBrowse"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/trivia-bank/question": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Admin — delete a trivia bank question */
+        delete: operations["adminDeleteTriviaBankQuestion"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/trivia-bank/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Admin — bulk import trivia questions */
+        post: operations["adminTriviaBankImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/family-feud": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin — inspect family feud state */
+        get: operations["adminGetFamilyFeud"];
+        put?: never;
+        post?: never;
+        /** Admin — reset or delete family feud round */
+        delete: operations["adminResetFamilyFeud"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/system-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin — system + environment info */
+        get: operations["adminGetSystemInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/daily-fact-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Get categories for the daily fact first-person flow */
+        post: operations["getDailyFactCategories"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/daily-fact-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate question options for the first-person flow */
+        post: operations["getDailyFactOptions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-	schemas: {
-		/** @description Result of a play-eligibility check — single source of truth for "can this user play?" */
-		PlayEligibility: {
-			canPlay: boolean;
-			/**
-			 * @description Why the user cannot play (only present when canPlay is false)
-			 * @enum {string}
-			 */
-			reason?: "daily_limit_reached" | "no_catchup_available" | "end_of_season";
-			/**
-			 * Format: date-time
-			 * @description ISO timestamp of when the user can next play
-			 */
-			nextAvailableAt?: string | null;
-			/** @description Today's date in Eastern Time (YYYY-MM-DD) */
-			todayET: string;
-			/** @description Number of catch-up questions available */
-			catchupAvailable: number;
-			/**
-			 * Format: date-time
-			 * @description ISO timestamp of the user's most recent answer
-			 */
-			lastAnsweredAt?: string | null;
-		};
-		/** @enum {string} */
-		DifficultyLevel: "easy" | "normal" | "hard";
-		/** @enum {string} */
-		GenerateMode: "personal" | "history" | "group" | "category" | "custom";
-		Question: {
-			question: string;
-			choices: string[];
-			answer: string;
-			category?: string;
-			difficulty?: components["schemas"]["DifficultyLevel"];
-			pointMultiplier?: number;
-			mode?: string;
-			type?: string;
-			source?: string;
-			sourceUrl?: string;
-			externalId?: string;
-		};
-		ProgressMessage: {
-			/** @enum {string} */
-			type: "info" | "warning" | "success" | "checking";
-			message: string;
-			timestamp: number;
-			detail?: string;
-			duration?: number;
-		};
-		HistoryEntry: {
-			question: components["schemas"]["Question"];
-			selectedAnswer: string;
-			correct: boolean;
-			timestamp: string;
-			pointsEarned?: number;
-			streak?: number;
-			isCatchingUp?: boolean;
-			isCasinoRush?: boolean;
-			questionNumber?: number;
-			totalQuestions?: number;
-			reason?: string;
-			isCustomCategory?: boolean;
-		};
-		FactItem: {
-			id: string;
-			date: string;
-			question: string;
-			answer: string;
-			fact: string;
-			timestamp: string;
-			skipped?: boolean;
-		};
-		UserConfig: {
-			group: string;
-			color: string;
-			side?: string;
-			passphrase?: string;
-			isAdmin?: boolean;
-		};
-		Season: {
-			seasonNumber: number;
-			name: string;
-			/** @enum {string} */
-			status: "active" | "concluded" | "upcoming";
-			startDate: string;
-			endDate?: string | null;
-			message?: string | null;
-		};
-		EndOfSeasonStatus: {
-			isEndOfSeason?: boolean;
-			isBetweenSeasons?: boolean;
-			currentSeason?:
-				| components["schemas"]["Season"]
-				| (Record<string, never> | null);
-			lastSeason?:
-				| components["schemas"]["Season"]
-				| (Record<string, never> | null);
-			personalMessage?: string | null;
-			seasonEndDate?: string | null;
-			nextSeasonStart?: string | null;
-		};
-		SystemCategory: {
-			name: string;
-			description: string;
-		};
-		CustomCategory: {
-			id: string;
-			title: string;
-			description: string;
-			createdBy: string;
-			createdAt: string;
-			/** @enum {string} */
-			type: "custom";
-		};
-		LeaderboardEntry: {
-			userId: string;
-			score: number;
-			streak: number;
-			lastAnswer?: components["schemas"]["HistoryEntry"];
-			categoryScores?: Record<string, never>;
-			difficultyStats?: components["schemas"]["DifficultyStats"];
-			avgPointsPerQuestion?: number;
-			accuracy?: number;
-		};
-		DifficultyStats: {
-			easy?: number;
-			normal?: number;
-			hard?: number;
-			total?: number;
-		};
-		FactComment: {
-			id: string;
-			userId: string;
-			text: string;
-			timestamp: string;
-			parentId?: string;
-		};
-		TriviaComment: {
-			id: string;
-			userId: string;
-			text: string;
-			timestamp: string;
-			parentId?: string;
-		};
-		Birthday: {
-			userId: string;
-			name: string;
-			birthday: string;
-			month: number;
-			day: number;
-			daysUntil: number;
-			isToday: boolean;
-		};
-		Celebration: {
-			id: string;
-			/** @enum {string} */
-			type: "birthday" | "anniversary" | "holiday" | "other";
-			name: string;
-			date: string;
-			description?: string;
-			addedBy: string;
-			addedAt: string;
-			recurring: boolean;
-		};
-		PhotoAlbum: {
-			id: string;
-			name: string;
-			description?: string;
-			/** Format: uri */
-			url: string;
-			createdBy: string;
-			createdAt: string;
-			updatedAt?: string;
-		};
-		SlotMachineResult: {
-			multiplier: number;
-			category: string;
-			isPersonalQuestion: boolean;
-			targetUserName?: string;
-		};
-		CasinoRushSession: {
-			currentQuestion: Record<string, never>;
-			difficulty: components["schemas"]["DifficultyLevel"];
-			potentialPoints: number;
-			messages?: components["schemas"]["ProgressMessage"][];
-		};
-		MemberSummaryResponse: {
-			userId: string;
-			summary: string;
-			/** @enum {string} */
-			mode: "regular" | "roast";
-			lastUpdated: string;
-			basicQAs?: components["schemas"]["BasicQA"][];
-			insights?: components["schemas"]["MemberInsight"][];
-		};
-		BasicQA: {
-			question: string;
-			answer: string;
-		};
-		MemberInsight: {
-			text: string;
-			/** @enum {string} */
-			category:
-				| "preference"
-				| "personality"
-				| "fact"
-				| "activity"
-				| "relationship";
-		};
-		GroupDescription: {
-			groupId: string;
-			description: string;
-			updatedBy: string;
-			updatedAt: string;
-		};
-		DailyFactResponse: {
-			question: string;
-			/** @enum {string} */
-			questionType: "basic" | "shared";
-			questionIndex?: number;
-			basicQuestionsTotal?: number;
-			basicQuestionsCompleted?: number;
-		};
-		Comment: {
-			id: string;
-			userId: string;
-			text: string;
-			timestamp: string;
-			parentId?: string;
-		};
-		CommentThread: {
-			/** @enum {string} */
-			contentType: "fact" | "trivia";
-			contentId: string;
-			comments: components["schemas"]["Comment"][];
-			lastUpdated: string;
-		};
-		GameModeSessionStatus: {
-			hasActiveSession: boolean;
-			canPlay: boolean;
-			nextAvailable?: string | null;
-			/** @description Active session state — shape varies per mode */
-			session?: Record<string, never>;
-		};
-		GameModeLockRequest: {
-			userId: string;
-			multiplier: number;
-			category: string;
-			isCatchingUp?: boolean;
-			difficulty?: components["schemas"]["DifficultyLevel"];
-		};
-		GameModeLockResponse: {
-			question: components["schemas"]["Question"];
-			multiplier?: number;
-			potentialPoints?: number;
-		};
-		GameModeAnswerRequest: {
-			userId: string;
-			question: components["schemas"]["Question"];
-			selectedAnswer: string;
-			isCatchingUp?: boolean;
-		};
-		GameModeAnswerResponse: {
-			correct: boolean;
-			pointsEarned: number;
-			multiplier?: number;
-		};
-		FamilyFeudGuesser: {
-			userName: string;
-			submittedAt: string;
-		};
-		FamilyFeudGuess: {
-			userName: string;
-			guess: string;
-			correct: boolean;
-		};
-		FamilyFeudWinner: {
-			userId: string;
-			userName: string;
-			points: number;
-		};
-		FamilyFeudResults: {
-			winners: components["schemas"]["FamilyFeudWinner"][];
-			totalGuesses: number;
-			revealedAt: string;
-		};
-		FamilyFeudRoundInfo: {
-			roundId: string;
-			targetUserId: string;
-			targetUserName: string;
-			question: string;
-			/** @enum {string} */
-			status: "waiting_for_target" | "active" | "completed";
-			startedAt: string;
-			expiresAt: string;
-			guessCount: number;
-			guessers: components["schemas"]["FamilyFeudGuesser"][];
-			myGuess?: string | null;
-			choices?: string[] | null;
-			realAnswer?: string | null;
-			allGuesses?: components["schemas"]["FamilyFeudGuess"][] | null;
-			results?: components["schemas"]["FamilyFeudResults"];
-		};
-		FamilyFeudStatus: {
-			currentRound?: components["schemas"]["FamilyFeudRoundInfo"];
-			isMyTurn: boolean;
-			nextTargetUserId: string;
-			nextTargetUserName: string;
-			timesAsTarget: number;
-			neverGone: number;
-			totalPeople: number;
-			recentRounds: Record<string, never>[];
-		};
-	};
-	responses: never;
-	parameters: never;
-	requestBodies: never;
-	headers: never;
-	pathItems: never;
+    schemas: {
+        /** @description Result of a play-eligibility check — single source of truth for "can this user play?" */
+        PlayEligibility: {
+            canPlay: boolean;
+            /**
+             * @description Why the user cannot play (only present when canPlay is false)
+             * @enum {string}
+             */
+            reason?: "daily_limit_reached" | "no_catchup_available" | "end_of_season";
+            /**
+             * Format: date-time
+             * @description ISO timestamp of when the user can next play
+             */
+            nextAvailableAt?: string | null;
+            /** @description Today's date in Eastern Time (YYYY-MM-DD) */
+            todayET: string;
+            /** @description Number of catch-up questions available */
+            catchupAvailable: number;
+            /**
+             * Format: date-time
+             * @description ISO timestamp of the user's most recent answer
+             */
+            lastAnsweredAt?: string | null;
+        };
+        /** @enum {string} */
+        DifficultyLevel: "easy" | "normal" | "hard";
+        /** @enum {string} */
+        GenerateMode: "personal" | "history" | "group" | "category" | "custom";
+        Question: {
+            question: string;
+            choices: string[];
+            answer: string;
+            category?: string;
+            difficulty?: components["schemas"]["DifficultyLevel"];
+            pointMultiplier?: number;
+            mode?: string;
+            type?: string;
+            source?: string;
+            sourceUrl?: string;
+            externalId?: string;
+        };
+        ProgressMessage: {
+            /** @enum {string} */
+            type: "info" | "warning" | "success" | "checking";
+            message: string;
+            timestamp: number;
+            detail?: string;
+            duration?: number;
+        };
+        HistoryEntry: {
+            question: components["schemas"]["Question"];
+            selectedAnswer: string;
+            correct: boolean;
+            timestamp: string;
+            pointsEarned?: number;
+            streak?: number;
+            isCatchingUp?: boolean;
+            isCasinoRush?: boolean;
+            questionNumber?: number;
+            totalQuestions?: number;
+            reason?: string;
+            isCustomCategory?: boolean;
+        };
+        FactItem: {
+            id: string;
+            date: string;
+            question: string;
+            answer: string;
+            fact: string;
+            timestamp: string;
+            skipped?: boolean;
+        };
+        UserConfig: {
+            group: string;
+            color: string;
+            side?: string;
+            passphrase?: string;
+            isAdmin?: boolean;
+        };
+        Season: {
+            seasonNumber: number;
+            name: string;
+            /** @enum {string} */
+            status: "active" | "concluded" | "upcoming";
+            startDate: string;
+            endDate?: string | null;
+            message?: string | null;
+        };
+        EndOfSeasonStatus: {
+            isEndOfSeason?: boolean;
+            isBetweenSeasons?: boolean;
+            currentSeason?: components["schemas"]["Season"] | (Record<string, never> | null);
+            lastSeason?: components["schemas"]["Season"] | (Record<string, never> | null);
+            personalMessage?: string | null;
+            seasonEndDate?: string | null;
+            nextSeasonStart?: string | null;
+        };
+        SystemCategory: {
+            name: string;
+            description: string;
+        };
+        CustomCategory: {
+            id: string;
+            title: string;
+            description: string;
+            createdBy: string;
+            createdAt: string;
+            /** @enum {string} */
+            type: "custom";
+        };
+        LeaderboardEntry: {
+            userId: string;
+            score: number;
+            streak: number;
+            lastAnswer?: components["schemas"]["HistoryEntry"];
+            categoryScores?: Record<string, never>;
+            difficultyStats?: components["schemas"]["DifficultyStats"];
+            avgPointsPerQuestion?: number;
+            accuracy?: number;
+        };
+        DifficultyStats: {
+            easy?: number;
+            normal?: number;
+            hard?: number;
+            total?: number;
+        };
+        FactComment: {
+            id: string;
+            userId: string;
+            text: string;
+            timestamp: string;
+            parentId?: string;
+        };
+        TriviaComment: {
+            id: string;
+            userId: string;
+            text: string;
+            timestamp: string;
+            parentId?: string;
+        };
+        Birthday: {
+            userId: string;
+            name: string;
+            birthday: string;
+            month: number;
+            day: number;
+            daysUntil: number;
+            isToday: boolean;
+        };
+        Celebration: {
+            id: string;
+            /** @enum {string} */
+            type: "birthday" | "anniversary" | "holiday" | "other";
+            name: string;
+            date: string;
+            description?: string;
+            addedBy: string;
+            addedAt: string;
+            recurring: boolean;
+        };
+        PhotoAlbum: {
+            id: string;
+            name: string;
+            description?: string;
+            /** Format: uri */
+            url: string;
+            createdBy: string;
+            createdAt: string;
+            updatedAt?: string;
+        };
+        SlotMachineResult: {
+            multiplier: number;
+            category: string;
+            isPersonalQuestion: boolean;
+            targetUserName?: string;
+        };
+        CasinoRushSession: {
+            currentQuestion: Record<string, never>;
+            difficulty: components["schemas"]["DifficultyLevel"];
+            potentialPoints: number;
+            messages?: components["schemas"]["ProgressMessage"][];
+        };
+        MemberSummaryResponse: {
+            userId: string;
+            summary: string;
+            /** @enum {string} */
+            mode: "regular" | "roast";
+            lastUpdated: string;
+            basicQAs?: components["schemas"]["BasicQA"][];
+            insights?: components["schemas"]["MemberInsight"][];
+        };
+        BasicQA: {
+            question: string;
+            answer: string;
+        };
+        MemberInsight: {
+            text: string;
+            /** @enum {string} */
+            category: "preference" | "personality" | "fact" | "activity" | "relationship";
+        };
+        GroupDescription: {
+            groupId: string;
+            description: string;
+            updatedBy: string;
+            updatedAt: string;
+        };
+        DailyFactResponse: {
+            question: string;
+            /** @enum {string} */
+            questionType: "basic" | "shared";
+            questionIndex?: number;
+            basicQuestionsTotal?: number;
+            basicQuestionsCompleted?: number;
+        };
+        Comment: {
+            id: string;
+            userId: string;
+            text: string;
+            timestamp: string;
+            parentId?: string;
+        };
+        CommentThread: {
+            /** @enum {string} */
+            contentType: "fact" | "trivia";
+            contentId: string;
+            comments: components["schemas"]["Comment"][];
+            lastUpdated: string;
+        };
+        GameModeSessionStatus: {
+            hasActiveSession: boolean;
+            canPlay: boolean;
+            nextAvailable?: string | null;
+            /** @description Active session state — shape varies per mode */
+            session?: Record<string, never>;
+        };
+        GameModeLockRequest: {
+            userId: string;
+            multiplier: number;
+            category: string;
+            isCatchingUp?: boolean;
+            difficulty?: components["schemas"]["DifficultyLevel"];
+        };
+        GameModeLockResponse: {
+            question: components["schemas"]["Question"];
+            multiplier?: number;
+            potentialPoints?: number;
+        };
+        GameModeAnswerRequest: {
+            userId: string;
+            question: components["schemas"]["Question"];
+            selectedAnswer: string;
+            isCatchingUp?: boolean;
+        };
+        GameModeAnswerResponse: {
+            correct: boolean;
+            pointsEarned: number;
+            multiplier?: number;
+        };
+        FamilyFeudGuesser: {
+            userName: string;
+            submittedAt: string;
+        };
+        FamilyFeudGuess: {
+            userName: string;
+            guess: string;
+            correct: boolean;
+        };
+        FamilyFeudWinner: {
+            userId: string;
+            userName: string;
+            points: number;
+        };
+        FamilyFeudResults: {
+            winners: components["schemas"]["FamilyFeudWinner"][];
+            totalGuesses: number;
+            revealedAt: string;
+        };
+        FamilyFeudRoundInfo: {
+            roundId: string;
+            targetUserId: string;
+            targetUserName: string;
+            question: string;
+            /** @enum {string} */
+            status: "waiting_for_target" | "active" | "completed";
+            startedAt: string;
+            expiresAt: string;
+            guessCount: number;
+            guessers: components["schemas"]["FamilyFeudGuesser"][];
+            myGuess?: string | null;
+            choices?: string[] | null;
+            realAnswer?: string | null;
+            allGuesses?: components["schemas"]["FamilyFeudGuess"][] | null;
+            results?: components["schemas"]["FamilyFeudResults"];
+        };
+        FamilyFeudStatus: {
+            currentRound?: components["schemas"]["FamilyFeudRoundInfo"];
+            isMyTurn: boolean;
+            nextTargetUserId: string;
+            nextTargetUserName: string;
+            timesAsTarget: number;
+            neverGone: number;
+            totalPeople: number;
+            recentRounds: Record<string, never>[];
+        };
+    };
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-	getAppInit: {
-		parameters: {
-			query?: {
-				userId?: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Critical app data needed for first paint */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						isFirstRun?: boolean;
-						userConfig?: Record<string, never>;
-						hierarchy?: Record<string, never>;
-						seasonStatus?: Record<string, never>;
-						memberActivation?: Record<string, never>;
-						groupDescriptions?: Record<string, never>;
-						questionAvailability?: Record<string, never>;
-						categories?: Record<string, never>[];
-						userCategories?: Record<string, never>[];
-					};
-				};
-			};
-		};
-	};
-	getAppInitDeferred: {
-		parameters: {
-			query: {
-				userId: string;
-				side?: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Deferred data loaded after first paint */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						timelineData?: Record<string, never>;
-						timelinePagination?: Record<string, never>;
-						familySides?: Record<string, never>;
-						catchupStatus?: Record<string, never>;
-						gameStatuses?: Record<string, never>;
-						familyFeud?: Record<string, never>;
-					};
-				};
-			};
-		};
-	};
-	validatePassphrase: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					passphrase: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Validation result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	getMembers: {
-		parameters: {
-			query: {
-				groupId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description List of members */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						userId?: string;
-						activated?: boolean;
-					}[];
-				};
-			};
-		};
-	};
-	getUserConfig: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description User configuration data */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						version?: string;
-						lastUpdated?: string;
-						users?: {
-							[key: string]: components["schemas"]["UserConfig"];
-						};
-					};
-				};
-			};
-		};
-	};
-	getUserProfile: {
-		parameters: {
-			query: {
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description User profile object */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	generateQuestion: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					mode: components["schemas"]["GenerateMode"];
-					category?: string;
-					difficulty?: components["schemas"]["DifficultyLevel"];
-					customPrompt?: string;
-					isCatchingUp?: boolean;
-					withProgress?: boolean;
-				};
-			};
-		};
-		responses: {
-			/** @description Generated question with optional progress */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						question?: components["schemas"]["Question"];
-						messages?: components["schemas"]["ProgressMessage"][];
-						factCheckResult?: Record<string, never>;
-						retriesNeeded?: number;
-					};
-				};
-			};
-		};
-	};
-	submitAnswer: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					groupId?: string;
-					question: components["schemas"]["Question"];
-					selectedAnswer: string;
-					isCatchingUp?: boolean;
-					isCustomCategory?: boolean;
-				};
-			};
-		};
-		responses: {
-			/** @description Answer result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						correct?: boolean;
-						streak?: number;
-						pointsEarned?: number;
-						multiplier?: number;
-					};
-				};
-			};
-		};
-	};
-	getQuestionStatus: {
-		parameters: {
-			query: {
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Question status */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						lastQuestionAt?: string | null;
-						nextQuestionAt?: string;
-					};
-				};
-			};
-		};
-	};
-	canAnswerQuestion: {
-		parameters: {
-			query: {
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Answer eligibility */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						canAnswer?: boolean;
-						/** Format: date-time */
-						nextQuestionAt?: string;
-						todayET?: string;
-						/** Format: date-time */
-						lastQuestionAt?: string | null;
-						isEndOfSeason?: boolean;
-						/** @description Number of catch-up questions available */
-						catchupAvailable?: number;
-					};
-				};
-			};
-		};
-	};
-	getCatchupStatus: {
-		parameters: {
-			query: {
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Catch-up status */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						questionsBehind?: number;
-						userAnswerCount?: number;
-						maxUserAnswerCount?: number;
-					};
-				};
-			};
-		};
-	};
-	questionGenStep1: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					mode: components["schemas"]["GenerateMode"];
-					category?: string;
-					difficulty?: components["schemas"]["DifficultyLevel"];
-				};
-			};
-		};
-		responses: {
-			/** @description Generated question */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						question?: components["schemas"]["Question"];
-						messages?: components["schemas"]["ProgressMessage"][];
-					};
-				};
-			};
-		};
-	};
-	questionGenStep2: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": components["schemas"]["Question"];
-			};
-		};
-		responses: {
-			/** @description Duplicate check result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						isDuplicate?: boolean;
-						question?: components["schemas"]["Question"];
-					};
-				};
-			};
-		};
-	};
-	questionGenStep3: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": components["schemas"]["Question"];
-			};
-		};
-		responses: {
-			/** @description Validation result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						isValid?: boolean;
-						question?: components["schemas"]["Question"];
-						issues?: string[];
-					};
-				};
-			};
-		};
-	};
-	getDailyFact: {
-		parameters: {
-			query: {
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Daily fact question */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["DailyFactResponse"];
-				};
-			};
-		};
-	};
-	postDailyFact: {
-		parameters: {
-			query: {
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Daily fact question */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["DailyFactResponse"];
-				};
-			};
-		};
-	};
-	submitDailyFact: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					questionIndex?: number;
-					answer: string;
-					date?: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Submission result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-						saved?: boolean;
-					};
-				};
-			};
-		};
-	};
-	getUserFactHistory: {
-		parameters: {
-			query: {
-				userId: string;
-				includeGlobal?: boolean;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Fact history */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						facts?: components["schemas"]["FactItem"][];
-						basicQuestions?: string[];
-						basicQuestionsTotal?: number;
-						allSharedQuestions?: components["schemas"]["FactItem"][];
-					};
-				};
-			};
-		};
-	};
-	submitHistoricalFact: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					date: string;
-					answer: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Submission result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	generateQuestionOptions: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					theme?: string;
-					regenerate?: boolean;
-				};
-			};
-		};
-		responses: {
-			/** @description Generated options */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						options?: {
-							question?: string;
-							theme?: string;
-						}[];
-						weekSummaryContext?: string;
-					};
-				};
-			};
-		};
-	};
-	getRecentSharedQuestions: {
-		parameters: {
-			query?: {
-				limit?: number;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Recent shared questions */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						question?: string;
-						date?: string;
-					}[];
-				};
-			};
-		};
-	};
-	getDailyFactSummary: {
-		parameters: {
-			query?: {
-				weekStart?: string;
-				date?: string;
-				forceGenerate?: boolean;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Daily fact summary */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	getCategories: {
-		parameters: {
-			query: {
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Categories list */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						systemCategories?: components["schemas"]["SystemCategory"][];
-						customCategories?: components["schemas"]["CustomCategory"][];
-						lastCustomCategory?: components["schemas"]["CustomCategory"];
-					};
-				};
-			};
-		};
-	};
-	createCustomCategory: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					categoryName: string;
-					description?: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Created category */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-						category?: components["schemas"]["CustomCategory"];
-					};
-				};
-			};
-		};
-	};
-	submitCustomCategory: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					categoryId: string;
-					answer: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Submission result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	getLeaderboard: {
-		parameters: {
-			query?: {
-				groupId?: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Leaderboard data */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	getConsolidatedLeaderboard: {
-		parameters: {
-			query?: {
-				season?: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Consolidated leaderboard */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						users?: {
-							[key: string]: components["schemas"]["LeaderboardEntry"];
-						};
-						groups?: Record<string, never>;
-						userGroups?: Record<string, never>;
-						seasons?: components["schemas"]["Season"][];
-						selectedSeason?: string;
-						/** @description All-time category accuracy stats across all users */
-						globalCategoryStats?: {
-							[key: string]: {
-								/** @description Total answers in this category */
-								total: number;
-								/** @description Correct answers in this category */
-								correct: number;
-							};
-						};
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	getEndOfSeasonStatus: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description End of season status */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["EndOfSeasonStatus"];
-				};
-			};
-		};
-	};
-	getFamilyHierarchy: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Family hierarchy data */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						hierarchy?: Record<string, never>;
-						groupDescriptions?: {
-							[key: string]: string;
-						};
-						familySides?: {
-							[key: string]: string;
-						};
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	getGroupDescription: {
-		parameters: {
-			query?: {
-				groupId?: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Group description or all descriptions */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json":
-						| components["schemas"]["GroupDescription"]
-						| {
-								descriptions?: {
-									[key: string]: components["schemas"]["GroupDescription"];
-								};
-						  };
-				};
-			};
-		};
-	};
-	updateGroupDescription: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					groupId: string;
-					description: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Update result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-						groupId?: string;
-						description?: string;
-					};
-				};
-			};
-		};
-	};
-	suggestGroupDescription: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					groupId: string;
-					context?: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Suggested description */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						suggestion?: string;
-					};
-				};
-			};
-		};
-	};
-	getMemberSummary: {
-		parameters: {
-			query: {
-				userId: string;
-				mode?: "regular" | "roast";
-				forceGenerate?: boolean;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Member summary */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["MemberSummaryResponse"];
-				};
-			};
-		};
-	};
-	getTimelineData: {
-		parameters: {
-			query?: {
-				side?: string;
-				userId?: string;
-				limit?: number;
-				before?: string;
-				after?: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Timeline data */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	getFactComments: {
-		parameters: {
-			query?: {
-				factId?: string;
-				getAll?: boolean;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Comment threads */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	addFactComment: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					factId: string;
-					text: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Created comment */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						comment?: components["schemas"]["FactComment"];
-					};
-				};
-			};
-		};
-	};
-	getTriviaComments: {
-		parameters: {
-			query?: {
-				triviaId?: string;
-				getAll?: boolean;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Comment threads */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	addTriviaComment: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					triviaId: string;
-					text: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Created comment */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						comment?: components["schemas"]["TriviaComment"];
-					};
-				};
-			};
-		};
-	};
-	startCasinoRush: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					difficulty?: components["schemas"]["DifficultyLevel"];
-					withProgress?: boolean;
-				};
-			};
-		};
-		responses: {
-			/** @description Casino Rush session */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["CasinoRushSession"];
-				};
-			};
-		};
-	};
-	answerCasinoRush: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					questionNumber: number;
-					answer: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Casino Rush result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	getCasinoRushStatus: {
-		parameters: {
-			query: {
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Casino Rush status */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	slotMachineSpin: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Spin result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						result?: components["schemas"]["SlotMachineResult"];
-					};
-				};
-			};
-		};
-	};
-	slotMachineQuestion: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Question with multiplier */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						question?: components["schemas"]["Question"];
-						multiplier?: number;
-					};
-				};
-			};
-		};
-	};
-	slotMachineAnswer: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					answer: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Answer result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						correct?: boolean;
-						pointsEarned?: number;
-					};
-				};
-			};
-		};
-	};
-	getSlotMachineStatus: {
-		parameters: {
-			query: {
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Slot machine status */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	getUpcomingBirthdays: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Upcoming birthdays */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						birthdays?: components["schemas"]["Birthday"][];
-					};
-				};
-			};
-		};
-	};
-	getCelebrations: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Celebrations list */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						celebrations?: components["schemas"]["Celebration"][];
-						lastUpdated?: string;
-					};
-				};
-			};
-		};
-	};
-	createCelebration: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					/** @enum {string} */
-					type: "birthday" | "anniversary" | "holiday" | "other";
-					name: string;
-					date: string;
-					description?: string;
-					addedBy: string;
-					recurring?: boolean;
-					year?: number;
-				};
-			};
-		};
-		responses: {
-			/** @description Created celebration */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-						celebration?: components["schemas"]["Celebration"];
-					};
-				};
-			};
-		};
-	};
-	deleteCelebration: {
-		parameters: {
-			query: {
-				id: string;
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Deletion result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-						message?: string;
-					};
-				};
-			};
-		};
-	};
-	getPhotoAlbums: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Photo albums (newest first) */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						albums?: components["schemas"]["PhotoAlbum"][];
-					};
-				};
-			};
-		};
-	};
-	updatePhotoAlbum: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					id: string;
-					name?: string;
-					description?: string;
-					/** Format: uri */
-					url?: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Updated album */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						album?: components["schemas"]["PhotoAlbum"];
-					};
-				};
-			};
-		};
-	};
-	addPhotoAlbum: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					name: string;
-					description?: string;
-					/** Format: uri */
-					url: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Created album */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						album?: components["schemas"]["PhotoAlbum"];
-					};
-				};
-			};
-		};
-	};
-	deletePhotoAlbum: {
-		parameters: {
-			query: {
-				id: string;
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Deletion result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	getAdminPlayers: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Player list */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	updateAdminPlayer: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": Record<string, never>;
-			};
-		};
-		responses: {
-			/** @description Updated player */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	createAdminPlayer: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": Record<string, never>;
-			};
-		};
-		responses: {
-			/** @description Created player */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	deleteAdminPlayer: {
-		parameters: {
-			query: {
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Deletion result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	getAdminGroups: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Group list */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	updateAdminGroup: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": Record<string, never>;
-			};
-		};
-		responses: {
-			/** @description Updated group */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	createAdminGroup: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": Record<string, never>;
-			};
-		};
-		responses: {
-			/** @description Created group */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	deleteAdminGroup: {
-		parameters: {
-			query: {
-				groupId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Deletion result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	getAdminFamilyTree: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Hierarchy data */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	updateAdminFamilyTree: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": Record<string, never>;
-			};
-		};
-		responses: {
-			/** @description Update result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	getAdminSeasons: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Season list */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["Season"][];
-				};
-			};
-		};
-	};
-	updateAdminSeason: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": components["schemas"]["Season"];
-			};
-		};
-		responses: {
-			/** @description Updated season */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["Season"];
-				};
-			};
-		};
-	};
-	createAdminSeason: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": components["schemas"]["Season"];
-			};
-		};
-		responses: {
-			/** @description Created season */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["Season"];
-				};
-			};
-		};
-	};
-	deleteAdminSeason: {
-		parameters: {
-			query: {
-				seasonNumber: number;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Deletion result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	authGoogle: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					idToken: string;
-					/** @description Optional — used to link a Google account to an existing user on first login */
-					passphrase?: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Session token and user info */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						token?: string;
-						userId?: string;
-						linked?: boolean;
-					};
-				};
-			};
-		};
-	};
-	getNotifications: {
-		parameters: {
-			query: {
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Notifications bucket with unread count + recent items */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						unreadCount?: number;
-						items?: {
-							id?: string;
-							type?: string;
-							timestamp?: string;
-							read?: boolean;
-							contentType?: string;
-							contentId?: string;
-							message?: string;
-						}[];
-					};
-				};
-			};
-		};
-	};
-	markNotificationRead: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					notificationId: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Success */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	markAllNotificationsRead: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Success */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	getCommentsUnified: {
-		parameters: {
-			query: {
-				contentType: "fact" | "trivia";
-				contentId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description The comment thread */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["CommentThread"];
-				};
-			};
-		};
-	};
-	addCommentUnified: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					/** @enum {string} */
-					contentType: "fact" | "trivia";
-					contentId: string;
-					userId: string;
-					text: string;
-					parentId?: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Updated thread with the new comment */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["CommentThread"];
-				};
-			};
-		};
-	};
-	getCommentCountsUnified: {
-		parameters: {
-			query: {
-				contentType: "fact" | "trivia";
-				/** @description Comma-separated list of content IDs */
-				ids: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Counts map + recent commenters map */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						counts?: {
-							[key: string]: number;
-						};
-						/** @description Recent commenter userIds (up to 3) per content id */
-						commenters?: {
-							[key: string]: string[];
-						};
-					};
-				};
-			};
-		};
-	};
-	getFactSuggestions: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description List of common starter phrases extracted from family answers */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						starters?: string[];
-					};
-				};
-			};
-		};
-	};
-	getAnswerGrid: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Matrix keyed by userId with slot status */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						maxSlots?: number;
-						users?: {
-							userId?: string;
-							slots?: {
-								correct?: boolean;
-								isCatchingUp?: boolean;
-								isGameMode?: boolean;
-							}[];
-						}[];
-					};
-				};
-			};
-		};
-	};
-	getFactGrid: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Matrix of which days each user answered the daily fact */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						dates?: string[];
-						users?: {
-							userId?: string;
-							answered?: boolean[];
-						}[];
-					};
-				};
-			};
-		};
-	};
-	getCurlingStatus: {
-		parameters: {
-			query: {
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Curling game session state */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["GameModeSessionStatus"];
-				};
-			};
-		};
-	};
-	lockCurling: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": components["schemas"]["GameModeLockRequest"];
-			};
-		};
-		responses: {
-			/** @description Session with generated question */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["GameModeLockResponse"];
-				};
-			};
-		};
-	};
-	answerCurling: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": components["schemas"]["GameModeAnswerRequest"];
-			};
-		};
-		responses: {
-			/** @description Answer result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["GameModeAnswerResponse"];
-				};
-			};
-		};
-	};
-	getTetrisStatus: {
-		parameters: {
-			query: {
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Tetris game session state */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["GameModeSessionStatus"];
-				};
-			};
-		};
-	};
-	lockTetris: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": components["schemas"]["GameModeLockRequest"];
-			};
-		};
-		responses: {
-			/** @description Session with generated question */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["GameModeLockResponse"];
-				};
-			};
-		};
-	};
-	answerTetris: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": components["schemas"]["GameModeAnswerRequest"];
-			};
-		};
-		responses: {
-			/** @description Answer result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["GameModeAnswerResponse"];
-				};
-			};
-		};
-	};
-	slotMachineArcadeSpin: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					betPoints: number;
-				};
-			};
-		};
-		responses: {
-			/** @description Spin result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						outcome?: string;
-						pointsWon?: number;
-						newBalance?: number;
-					};
-				};
-			};
-		};
-	};
-	getSlotMachineBalance: {
-		parameters: {
-			query: {
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Current balance */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						balance?: number;
-					};
-				};
-			};
-		};
-	};
-	arcadeSubmitScore: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					gameId: string;
-					score: number;
-					metadata?: Record<string, never>;
-				};
-			};
-		};
-		responses: {
-			/** @description Updated high scores for the game */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						isHighScore?: boolean;
-						scores?: Record<string, never>[];
-					};
-				};
-			};
-		};
-	};
-	generateCrossword: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Crossword puzzle data */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						grid?: string[][];
-						clues?: {
-							number?: number;
-							/** @enum {string} */
-							direction?: "across" | "down";
-							clue?: string;
-							answer?: string;
-						}[];
-					};
-				};
-			};
-		};
-	};
-	getSnakeQuestions: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Questions for the Snake session */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						questions?: Record<string, never>[];
-					};
-				};
-			};
-		};
-	};
-	getFamilyFeudStatus: {
-		parameters: {
-			query: {
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Current round + rotation state */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": components["schemas"]["FamilyFeudStatus"];
-				};
-			};
-		};
-	};
-	startFamilyFeudRound: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Round started */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						round?: Record<string, never>;
-					};
-				};
-			};
-		};
-	};
-	answerFamilyFeud: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					answer: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Round activated for guessing */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						round?: Record<string, never>;
-					};
-				};
-			};
-		};
-	};
-	guessFamilyFeud: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					guess: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Updated guess count */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						guessCount?: number;
-					};
-				};
-			};
-		};
-	};
-	passFamilyFeud: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Pass accepted */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						passed?: boolean;
-						nextTargetUserName?: string;
-					};
-				};
-			};
-		};
-	};
-	adminGetUserFacts: {
-		parameters: {
-			query: {
-				adminUserId: string;
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description User fact history */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	adminUpdateUserFact: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					adminUserId: string;
-					userId: string;
-					date: string;
-					updates: Record<string, never>;
-				};
-			};
-		};
-		responses: {
-			/** @description Updated entry */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	adminDeleteUserFact: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					adminUserId: string;
-					userId: string;
-					date: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Deleted */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	adminGetUserTrivia: {
-		parameters: {
-			query: {
-				adminUserId: string;
-				userId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description User trivia history */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	adminDeleteUserTrivia: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					adminUserId: string;
-					userId: string;
-					timestamps?: string[];
-				};
-			};
-		};
-		responses: {
-			/** @description Deleted */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	adminGetGameSessions: {
-		parameters: {
-			query: {
-				adminUserId: string;
-				userId?: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Game sessions */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	adminDeleteGameSessions: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					adminUserId: string;
-					userId?: string;
-					mode?: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Deleted */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	adminGetDailyQuestions: {
-		parameters: {
-			query: {
-				adminUserId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description List of shared questions */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	adminDeleteDailyQuestion: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					adminUserId: string;
-					date: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Deleted */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	adminTriviaBankStats: {
-		parameters: {
-			query: {
-				adminUserId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Count by category/difficulty */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	adminTriviaBankBrowse: {
-		parameters: {
-			query: {
-				adminUserId: string;
-				category?: string;
-				difficulty?: string;
-				limit?: number;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Questions matching filters */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						questions?: Record<string, never>[];
-						total?: number;
-					};
-				};
-			};
-		};
-	};
-	adminDeleteTriviaBankQuestion: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					adminUserId: string;
-					questionId: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Deleted */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						success?: boolean;
-					};
-				};
-			};
-		};
-	};
-	adminTriviaBankImport: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					adminUserId: string;
-					questions: Record<string, never>[];
-				};
-			};
-		};
-		responses: {
-			/** @description Import result */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						imported?: number;
-						skipped?: number;
-					};
-				};
-			};
-		};
-	};
-	adminGetFamilyFeud: {
-		parameters: {
-			query: {
-				adminUserId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description Feud state for debugging */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	adminResetFamilyFeud: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					adminUserId: string;
-					/** @enum {string} */
-					action: "reset-current" | "delete-round" | "reset-rotation";
-					roundId?: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Action completed */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	adminGetSystemInfo: {
-		parameters: {
-			query: {
-				adminUserId: string;
-			};
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody?: never;
-		responses: {
-			/** @description System info (build, env, feature flags) */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": Record<string, never>;
-				};
-			};
-		};
-	};
-	getDailyFactCategories: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Category list */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						categories?: string[];
-					};
-				};
-			};
-		};
-	};
-	getDailyFactOptions: {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		requestBody: {
-			content: {
-				"application/json": {
-					userId: string;
-					theme?: string;
-				};
-			};
-		};
-		responses: {
-			/** @description Generated options */
-			200: {
-				headers: {
-					[name: string]: unknown;
-				};
-				content: {
-					"application/json": {
-						options?: {
-							id?: string;
-							question?: string;
-							theme?: string;
-						}[];
-					};
-				};
-			};
-		};
-	};
+    getAppInit: {
+        parameters: {
+            query?: {
+                userId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Critical app data needed for first paint */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        isFirstRun?: boolean;
+                        userConfig?: Record<string, never>;
+                        hierarchy?: Record<string, never>;
+                        seasonStatus?: Record<string, never>;
+                        memberActivation?: Record<string, never>;
+                        groupDescriptions?: Record<string, never>;
+                        questionAvailability?: Record<string, never>;
+                        categories?: Record<string, never>[];
+                        userCategories?: Record<string, never>[];
+                    };
+                };
+            };
+        };
+    };
+    getAppInitDeferred: {
+        parameters: {
+            query: {
+                userId: string;
+                side?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deferred data loaded after first paint */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        timelineData?: Record<string, never>;
+                        timelinePagination?: Record<string, never>;
+                        familySides?: Record<string, never>;
+                        catchupStatus?: Record<string, never>;
+                        gameStatuses?: Record<string, never>;
+                        familyFeud?: Record<string, never>;
+                    };
+                };
+            };
+        };
+    };
+    getMembers: {
+        parameters: {
+            query: {
+                groupId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of members */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        userId?: string;
+                        activated?: boolean;
+                    }[];
+                };
+            };
+        };
+    };
+    getUserConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User configuration data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        version?: string;
+                        lastUpdated?: string;
+                        users?: {
+                            [key: string]: components["schemas"]["UserConfig"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    getUserProfile: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User profile object */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    generateQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    mode: components["schemas"]["GenerateMode"];
+                    category?: string;
+                    difficulty?: components["schemas"]["DifficultyLevel"];
+                    customPrompt?: string;
+                    isCatchingUp?: boolean;
+                    withProgress?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Generated question with optional progress */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        question?: components["schemas"]["Question"];
+                        messages?: components["schemas"]["ProgressMessage"][];
+                        factCheckResult?: Record<string, never>;
+                        retriesNeeded?: number;
+                    };
+                };
+            };
+        };
+    };
+    submitAnswer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    groupId?: string;
+                    question: components["schemas"]["Question"];
+                    selectedAnswer: string;
+                    isCatchingUp?: boolean;
+                    isCustomCategory?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Answer result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        correct?: boolean;
+                        streak?: number;
+                        pointsEarned?: number;
+                        multiplier?: number;
+                    };
+                };
+            };
+        };
+    };
+    getQuestionStatus: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Question status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        lastQuestionAt?: string | null;
+                        nextQuestionAt?: string;
+                    };
+                };
+            };
+        };
+    };
+    canAnswerQuestion: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answer eligibility */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        canAnswer?: boolean;
+                        /** Format: date-time */
+                        nextQuestionAt?: string;
+                        todayET?: string;
+                        /** Format: date-time */
+                        lastQuestionAt?: string | null;
+                        isEndOfSeason?: boolean;
+                        /** @description Number of catch-up questions available */
+                        catchupAvailable?: number;
+                    };
+                };
+            };
+        };
+    };
+    getCatchupStatus: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Catch-up status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        questionsBehind?: number;
+                        userAnswerCount?: number;
+                        maxUserAnswerCount?: number;
+                    };
+                };
+            };
+        };
+    };
+    questionGenStep1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    mode: components["schemas"]["GenerateMode"];
+                    category?: string;
+                    difficulty?: components["schemas"]["DifficultyLevel"];
+                };
+            };
+        };
+        responses: {
+            /** @description Generated question */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        question?: components["schemas"]["Question"];
+                        messages?: components["schemas"]["ProgressMessage"][];
+                    };
+                };
+            };
+        };
+    };
+    questionGenStep2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Question"];
+            };
+        };
+        responses: {
+            /** @description Duplicate check result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        isDuplicate?: boolean;
+                        question?: components["schemas"]["Question"];
+                    };
+                };
+            };
+        };
+    };
+    questionGenStep3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Question"];
+            };
+        };
+        responses: {
+            /** @description Validation result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        isValid?: boolean;
+                        question?: components["schemas"]["Question"];
+                        issues?: string[];
+                    };
+                };
+            };
+        };
+    };
+    getDailyFact: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Daily fact question */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyFactResponse"];
+                };
+            };
+        };
+    };
+    postDailyFact: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Daily fact question */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyFactResponse"];
+                };
+            };
+        };
+    };
+    submitDailyFact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    questionIndex?: number;
+                    answer: string;
+                    date?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Submission result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                        saved?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    getUserFactHistory: {
+        parameters: {
+            query: {
+                userId: string;
+                includeGlobal?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Fact history */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        facts?: components["schemas"]["FactItem"][];
+                        basicQuestions?: string[];
+                        basicQuestionsTotal?: number;
+                        allSharedQuestions?: components["schemas"]["FactItem"][];
+                    };
+                };
+            };
+        };
+    };
+    submitHistoricalFact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    date: string;
+                    answer: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Submission result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    generateQuestionOptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    theme?: string;
+                    regenerate?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Generated options */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        options?: {
+                            question?: string;
+                            theme?: string;
+                        }[];
+                        weekSummaryContext?: string;
+                    };
+                };
+            };
+        };
+    };
+    getRecentSharedQuestions: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recent shared questions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        question?: string;
+                        date?: string;
+                    }[];
+                };
+            };
+        };
+    };
+    getDailyFactSummary: {
+        parameters: {
+            query?: {
+                weekStart?: string;
+                date?: string;
+                forceGenerate?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Daily fact summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    getCategories: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Categories list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        systemCategories?: components["schemas"]["SystemCategory"][];
+                        customCategories?: components["schemas"]["CustomCategory"][];
+                        lastCustomCategory?: components["schemas"]["CustomCategory"];
+                    };
+                };
+            };
+        };
+    };
+    createCustomCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    categoryName: string;
+                    description?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Created category */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                        category?: components["schemas"]["CustomCategory"];
+                    };
+                };
+            };
+        };
+    };
+    submitCustomCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    categoryId: string;
+                    answer: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Submission result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    getLeaderboard: {
+        parameters: {
+            query?: {
+                groupId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Leaderboard data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    getConsolidatedLeaderboard: {
+        parameters: {
+            query?: {
+                season?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Consolidated leaderboard */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        users?: {
+                            [key: string]: components["schemas"]["LeaderboardEntry"];
+                        };
+                        groups?: Record<string, never>;
+                        userGroups?: Record<string, never>;
+                        seasons?: components["schemas"]["Season"][];
+                        selectedSeason?: string;
+                        /** @description All-time category accuracy stats across all users */
+                        globalCategoryStats?: {
+                            [key: string]: {
+                                /** @description Total answers in this category */
+                                total: number;
+                                /** @description Correct answers in this category */
+                                correct: number;
+                            };
+                        };
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    getEndOfSeasonStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description End of season status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EndOfSeasonStatus"];
+                };
+            };
+        };
+    };
+    getFamilyHierarchy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Family hierarchy data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        hierarchy?: Record<string, never>;
+                        groupDescriptions?: {
+                            [key: string]: string;
+                        };
+                        familySides?: {
+                            [key: string]: string;
+                        };
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    getGroupDescription: {
+        parameters: {
+            query?: {
+                groupId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Group description or all descriptions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupDescription"] | {
+                        descriptions?: {
+                            [key: string]: components["schemas"]["GroupDescription"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    updateGroupDescription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    groupId: string;
+                    description: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Update result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                        groupId?: string;
+                        description?: string;
+                    };
+                };
+            };
+        };
+    };
+    suggestGroupDescription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    groupId: string;
+                    context?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Suggested description */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        suggestion?: string;
+                    };
+                };
+            };
+        };
+    };
+    getMemberSummary: {
+        parameters: {
+            query: {
+                userId: string;
+                mode?: "regular" | "roast";
+                forceGenerate?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Member summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberSummaryResponse"];
+                };
+            };
+        };
+    };
+    getTimelineData: {
+        parameters: {
+            query?: {
+                side?: string;
+                userId?: string;
+                limit?: number;
+                before?: string;
+                after?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Timeline data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    getFactComments: {
+        parameters: {
+            query?: {
+                factId?: string;
+                getAll?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Comment threads */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    addFactComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    factId: string;
+                    text: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Created comment */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        comment?: components["schemas"]["FactComment"];
+                    };
+                };
+            };
+        };
+    };
+    getTriviaComments: {
+        parameters: {
+            query?: {
+                triviaId?: string;
+                getAll?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Comment threads */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    addTriviaComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    triviaId: string;
+                    text: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Created comment */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        comment?: components["schemas"]["TriviaComment"];
+                    };
+                };
+            };
+        };
+    };
+    startCasinoRush: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    difficulty?: components["schemas"]["DifficultyLevel"];
+                    withProgress?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Casino Rush session */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CasinoRushSession"];
+                };
+            };
+        };
+    };
+    answerCasinoRush: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    questionNumber: number;
+                    answer: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Casino Rush result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    getCasinoRushStatus: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Casino Rush status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    slotMachineSpin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Spin result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        result?: components["schemas"]["SlotMachineResult"];
+                    };
+                };
+            };
+        };
+    };
+    slotMachineQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Question with multiplier */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        question?: components["schemas"]["Question"];
+                        multiplier?: number;
+                    };
+                };
+            };
+        };
+    };
+    slotMachineAnswer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    answer: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Answer result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        correct?: boolean;
+                        pointsEarned?: number;
+                    };
+                };
+            };
+        };
+    };
+    getSlotMachineStatus: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Slot machine status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    getUpcomingBirthdays: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Upcoming birthdays */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        birthdays?: components["schemas"]["Birthday"][];
+                    };
+                };
+            };
+        };
+    };
+    getCelebrations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Celebrations list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        celebrations?: components["schemas"]["Celebration"][];
+                        lastUpdated?: string;
+                    };
+                };
+            };
+        };
+    };
+    createCelebration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    type: "birthday" | "anniversary" | "holiday" | "other";
+                    name: string;
+                    date: string;
+                    description?: string;
+                    addedBy: string;
+                    recurring?: boolean;
+                    year?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Created celebration */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                        celebration?: components["schemas"]["Celebration"];
+                    };
+                };
+            };
+        };
+    };
+    deleteCelebration: {
+        parameters: {
+            query: {
+                id: string;
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deletion result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                        message?: string;
+                    };
+                };
+            };
+        };
+    };
+    getPhotoAlbums: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Photo albums (newest first) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        albums?: components["schemas"]["PhotoAlbum"][];
+                    };
+                };
+            };
+        };
+    };
+    updatePhotoAlbum: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    id: string;
+                    name?: string;
+                    description?: string;
+                    /** Format: uri */
+                    url?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Updated album */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        album?: components["schemas"]["PhotoAlbum"];
+                    };
+                };
+            };
+        };
+    };
+    addPhotoAlbum: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    name: string;
+                    description?: string;
+                    /** Format: uri */
+                    url: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Created album */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        album?: components["schemas"]["PhotoAlbum"];
+                    };
+                };
+            };
+        };
+    };
+    deletePhotoAlbum: {
+        parameters: {
+            query: {
+                id: string;
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deletion result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    getAdminPlayers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Player list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    updateAdminPlayer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Updated player */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    createAdminPlayer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Created player */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    deleteAdminPlayer: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deletion result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    getAdminGroups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Group list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    updateAdminGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Updated group */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    createAdminGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Created group */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    deleteAdminGroup: {
+        parameters: {
+            query: {
+                groupId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deletion result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    getAdminFamilyTree: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Hierarchy data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    updateAdminFamilyTree: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Update result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    getAdminSeasons: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Season list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Season"][];
+                };
+            };
+        };
+    };
+    updateAdminSeason: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Season"];
+            };
+        };
+        responses: {
+            /** @description Updated season */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Season"];
+                };
+            };
+        };
+    };
+    createAdminSeason: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Season"];
+            };
+        };
+        responses: {
+            /** @description Created season */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Season"];
+                };
+            };
+        };
+    };
+    deleteAdminSeason: {
+        parameters: {
+            query: {
+                seasonNumber: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deletion result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    authGoogle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    idToken: string;
+                    /** @description Optional — used to link a Google account to an existing user on first login */
+                    passphrase?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Session token and user info */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        token?: string;
+                        userId?: string;
+                        linked?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    getNotifications: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Notifications bucket with unread count + recent items */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        unreadCount?: number;
+                        items?: {
+                            id?: string;
+                            type?: string;
+                            timestamp?: string;
+                            read?: boolean;
+                            contentType?: string;
+                            contentId?: string;
+                            message?: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    markNotificationRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    notificationId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    markAllNotificationsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    getCommentsUnified: {
+        parameters: {
+            query: {
+                contentType: "fact" | "trivia";
+                contentId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The comment thread */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommentThread"];
+                };
+            };
+        };
+    };
+    addCommentUnified: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    contentType: "fact" | "trivia";
+                    contentId: string;
+                    userId: string;
+                    text: string;
+                    parentId?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Updated thread with the new comment */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommentThread"];
+                };
+            };
+        };
+    };
+    getCommentCountsUnified: {
+        parameters: {
+            query: {
+                contentType: "fact" | "trivia";
+                /** @description Comma-separated list of content IDs */
+                ids: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Counts map + recent commenters map */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        counts?: {
+                            [key: string]: number;
+                        };
+                        /** @description Recent commenter userIds (up to 3) per content id */
+                        commenters?: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    getFactSuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of common starter phrases extracted from family answers */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        starters?: string[];
+                    };
+                };
+            };
+        };
+    };
+    getAnswerGrid: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Matrix keyed by userId with slot status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        maxSlots?: number;
+                        users?: {
+                            userId?: string;
+                            slots?: {
+                                correct?: boolean;
+                                isCatchingUp?: boolean;
+                                isGameMode?: boolean;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    getFactGrid: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Matrix of which days each user answered the daily fact */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        dates?: string[];
+                        users?: {
+                            userId?: string;
+                            answered?: boolean[];
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    getCurlingStatus: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Curling game session state */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameModeSessionStatus"];
+                };
+            };
+        };
+    };
+    lockCurling: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GameModeLockRequest"];
+            };
+        };
+        responses: {
+            /** @description Session with generated question */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameModeLockResponse"];
+                };
+            };
+        };
+    };
+    answerCurling: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GameModeAnswerRequest"];
+            };
+        };
+        responses: {
+            /** @description Answer result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameModeAnswerResponse"];
+                };
+            };
+        };
+    };
+    getTetrisStatus: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tetris game session state */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameModeSessionStatus"];
+                };
+            };
+        };
+    };
+    lockTetris: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GameModeLockRequest"];
+            };
+        };
+        responses: {
+            /** @description Session with generated question */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameModeLockResponse"];
+                };
+            };
+        };
+    };
+    answerTetris: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GameModeAnswerRequest"];
+            };
+        };
+        responses: {
+            /** @description Answer result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameModeAnswerResponse"];
+                };
+            };
+        };
+    };
+    slotMachineArcadeSpin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    betPoints: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Spin result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        outcome?: string;
+                        pointsWon?: number;
+                        newBalance?: number;
+                    };
+                };
+            };
+        };
+    };
+    getSlotMachineBalance: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current balance */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        balance?: number;
+                    };
+                };
+            };
+        };
+    };
+    arcadeSubmitScore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    gameId: string;
+                    score: number;
+                    metadata?: Record<string, never>;
+                };
+            };
+        };
+        responses: {
+            /** @description Updated high scores for the game */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        isHighScore?: boolean;
+                        scores?: Record<string, never>[];
+                    };
+                };
+            };
+        };
+    };
+    generateCrossword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Crossword puzzle data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        grid?: string[][];
+                        clues?: {
+                            number?: number;
+                            /** @enum {string} */
+                            direction?: "across" | "down";
+                            clue?: string;
+                            answer?: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    getSnakeQuestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Questions for the Snake session */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        questions?: Record<string, never>[];
+                    };
+                };
+            };
+        };
+    };
+    getFamilyFeudStatus: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current round + rotation state */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyFeudStatus"];
+                };
+            };
+        };
+    };
+    startFamilyFeudRound: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Round started */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        round?: Record<string, never>;
+                    };
+                };
+            };
+        };
+    };
+    answerFamilyFeud: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    answer: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Round activated for guessing */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        round?: Record<string, never>;
+                    };
+                };
+            };
+        };
+    };
+    guessFamilyFeud: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    guess: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Updated guess count */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        guessCount?: number;
+                    };
+                };
+            };
+        };
+    };
+    passFamilyFeud: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Pass accepted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        passed?: boolean;
+                        nextTargetUserName?: string;
+                    };
+                };
+            };
+        };
+    };
+    adminGetUserFacts: {
+        parameters: {
+            query: {
+                adminUserId: string;
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User fact history */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    adminUpdateUserFact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    adminUserId: string;
+                    userId: string;
+                    date: string;
+                    updates: Record<string, never>;
+                };
+            };
+        };
+        responses: {
+            /** @description Updated entry */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    adminDeleteUserFact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    adminUserId: string;
+                    userId: string;
+                    date: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    adminGetUserTrivia: {
+        parameters: {
+            query: {
+                adminUserId: string;
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User trivia history */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    adminDeleteUserTrivia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    adminUserId: string;
+                    userId: string;
+                    timestamps?: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    adminGetGameSessions: {
+        parameters: {
+            query: {
+                adminUserId: string;
+                userId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Game sessions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    adminDeleteGameSessions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    adminUserId: string;
+                    userId?: string;
+                    mode?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    adminGetDailyQuestions: {
+        parameters: {
+            query: {
+                adminUserId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of shared questions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    adminDeleteDailyQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    adminUserId: string;
+                    date: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    adminTriviaBankStats: {
+        parameters: {
+            query: {
+                adminUserId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Count by category/difficulty */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    adminTriviaBankBrowse: {
+        parameters: {
+            query: {
+                adminUserId: string;
+                category?: string;
+                difficulty?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Questions matching filters */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        questions?: Record<string, never>[];
+                        total?: number;
+                    };
+                };
+            };
+        };
+    };
+    adminDeleteTriviaBankQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    adminUserId: string;
+                    questionId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    adminTriviaBankImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    adminUserId: string;
+                    questions: Record<string, never>[];
+                };
+            };
+        };
+        responses: {
+            /** @description Import result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        imported?: number;
+                        skipped?: number;
+                    };
+                };
+            };
+        };
+    };
+    adminGetFamilyFeud: {
+        parameters: {
+            query: {
+                adminUserId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Feud state for debugging */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    adminResetFamilyFeud: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    adminUserId: string;
+                    /** @enum {string} */
+                    action: "reset-current" | "delete-round" | "reset-rotation";
+                    roundId?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Action completed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    adminGetSystemInfo: {
+        parameters: {
+            query: {
+                adminUserId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description System info (build, env, feature flags) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    getDailyFactCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Category list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories?: string[];
+                    };
+                };
+            };
+        };
+    };
+    getDailyFactOptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    theme?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Generated options */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        options?: {
+                            id?: string;
+                            question?: string;
+                            theme?: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
 }

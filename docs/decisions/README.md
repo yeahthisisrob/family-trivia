@@ -17,3 +17,4 @@ when the decision is made, so the reason survives the people who made it.
 | [0004](0004-repo-layout.md) | `frontend/`, `backend/`, `infra/`, `shared/`; shared ships source | Accepted |
 | [0005](0005-local-dev-server.md) | Local API is the real handler on Node, not SAM | Accepted |
 | [0006](0006-privacy-by-default.md) | Privacy by default: no real family in the repo | Accepted |
+| [0007](0007-identity-from-the-token.md) | Identity comes from the token, never the request | Accepted |

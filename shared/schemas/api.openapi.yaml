@@ -95,36 +95,6 @@ paths:
   # Authentication
   # ──────────────────────────────────────────────
 
-  /validate-passphrase:
-    post:
-      summary: Validate user passphrase
-      operationId: validatePassphrase
-      tags: [Authentication]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [passphrase]
-              properties:
-                passphrase:
-                  type: string
-      responses:
-        "200":
-          description: Validation result
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-
-  # ──────────────────────────────────────────────
-  # Members & Config
-  # ──────────────────────────────────────────────
-
   /members:
     get:
       summary: Get members for a group
