@@ -4,7 +4,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import { Box, IconButton, Paper, type SxProps, type Theme, Typography } from '@mui/material';
+import { alpha, Box, IconButton, Paper, type SxProps, type Theme, Typography } from '@mui/material';
 import type React from 'react';
 
 interface FormFeedbackProps {
@@ -28,28 +28,28 @@ const FormFeedback: React.FC<FormFeedbackProps> = ({
       case 'error':
         return {
           color: 'error.main',
-          bgColor: 'rgba(244, 67, 54, 0.04)',
+          tone: 'error' as const,
           icon: <ErrorOutlineIcon />,
           title: 'Error',
         };
       case 'warning':
         return {
           color: 'warning.main',
-          bgColor: 'rgba(255, 152, 0, 0.04)',
+          tone: 'warning' as const,
           icon: <WarningAmberIcon />,
           title: 'Warning',
         };
       case 'success':
         return {
           color: 'success.main',
-          bgColor: 'rgba(76, 175, 80, 0.04)',
+          tone: 'success' as const,
           icon: <CheckCircleOutlineIcon />,
           title: 'Success',
         };
       default:
         return {
           color: 'info.main',
-          bgColor: 'rgba(2, 136, 209, 0.04)',
+          tone: 'info' as const,
           icon: <InfoOutlinedIcon />,
           title: 'Information',
         };
@@ -64,8 +64,9 @@ const FormFeedback: React.FC<FormFeedbackProps> = ({
       sx={{
         p: 1.5,
         borderRadius: 1.5,
-        borderLeft: `4px solid ${config.color}`,
-        backgroundColor: config.bgColor,
+        borderLeft: '4px solid',
+        borderLeftColor: config.color,
+        backgroundColor: (t) => alpha(t.palette[config.tone].main, 0.04),
         ...sx,
       }}
     >

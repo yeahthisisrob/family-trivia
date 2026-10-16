@@ -34,6 +34,7 @@ import {
   submitFamilyFeudGuess,
 } from '../../api/modules/familyFeud';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
+import { colors } from '../../shared/design-system';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
 
@@ -124,7 +125,7 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
           overflow: 'hidden',
           borderRadius: 3,
           border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
-          boxShadow: `0 2px 12px ${alpha('#000', 0.06)}`,
+          boxShadow: `0 2px 12px ${alpha(colors.scrim, 0.06)}`,
         }}
       >
         <Box
@@ -316,7 +317,7 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
                 fontSize: '0.8rem',
                 fontWeight: 700,
                 bgcolor: theme.palette.secondary.main,
-                color: '#fff',
+                color: colors.onColor,
               }}
             >
               {currentRound.targetUserName?.[0]?.toUpperCase()}
@@ -377,7 +378,7 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
             icon={<TimerIcon />}
             label={timeDisplay}
             sx={{
-              bgcolor: alpha('#fff', 0.2),
+              bgcolor: alpha(colors.onColor, 0.2),
               color: 'white',
               fontWeight: 'bold',
               fontSize: '0.75rem',
@@ -406,7 +407,7 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
                 fontSize: '0.9rem',
                 fontWeight: 700,
                 bgcolor: theme.palette.secondary.main,
-                color: '#fff',
+                color: colors.onColor,
                 boxShadow: `0 2px 8px ${alpha(theme.palette.secondary.main, 0.4)}`,
               }}
             >
@@ -548,7 +549,7 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
                               fontSize: '0.62rem',
                               fontWeight: 700,
                               bgcolor: theme.palette.success.main,
-                              color: '#fff',
+                              color: colors.onColor,
                             }}
                           />
                         )}
@@ -597,10 +598,10 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
                         ...(isMyPick
                           ? {
                               bgcolor: theme.palette.secondary.main,
-                              color: '#fff',
+                              color: colors.onColor,
                               '&.Mui-disabled': {
                                 bgcolor: theme.palette.secondary.main,
-                                color: '#fff',
+                                color: colors.onColor,
                                 opacity: 1,
                               },
                             }
@@ -624,12 +625,12 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
                             height: 24,
                             borderRadius: '50%',
                             fontSize: '0.8rem',
-                            border: `2px solid ${isMyPick ? '#fff' : theme.palette.secondary.main}`,
+                            border: `2px solid ${isMyPick ? colors.onColor : theme.palette.secondary.main}`,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             fontWeight: 'bold',
-                            color: isMyPick ? '#fff' : undefined,
+                            color: isMyPick ? colors.onColor : undefined,
                             ...(hasGuessed &&
                               !isMyPick && {
                                 borderColor: theme.palette.divider,
@@ -731,7 +732,7 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
                 fontSize: '0.75rem',
                 fontWeight: 700,
                 bgcolor: theme.palette.success.main,
-                color: '#fff',
+                color: colors.onColor,
               }}
             >
               {currentRound.targetUserName?.[0]?.toUpperCase()}
@@ -837,21 +838,25 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
               sx={{
                 p: 1.5,
                 borderRadius: 2,
-                background: `linear-gradient(135deg, ${alpha('#FFD700', 0.15)}, ${alpha('#FFD700', 0.05)})`,
-                border: `1px solid ${alpha('#FFD700', 0.3)}`,
+                background: `linear-gradient(135deg, ${alpha(colors.medal.gold, 0.15)}, ${alpha(colors.medal.gold, 0.05)})`,
+                border: `1px solid ${alpha(colors.medal.gold, 0.3)}`,
                 display: 'flex',
                 gap: 0.5,
                 flexWrap: 'wrap',
                 alignItems: 'center',
               }}
             >
-              <EmojiEventsIcon sx={{ color: 'goldenrod', fontSize: 20 }} />
+              <EmojiEventsIcon sx={{ color: colors.accent.amber, fontSize: 20 }} />
               {currentRound.results.winners.map((w) => (
                 <Chip
                   key={w.userId}
                   label={`${w.userName} +${w.points}pts`}
                   size="small"
-                  sx={{ bgcolor: 'gold', color: '#333', fontWeight: 700 }}
+                  sx={{
+                    bgcolor: colors.medal.gold,
+                    color: theme.palette.getContrastText(colors.medal.gold),
+                    fontWeight: 700,
+                  }}
                 />
               ))}
             </Box>
@@ -988,8 +993,8 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
                         height: 20,
                         fontSize: '0.55rem',
                         fontWeight: 700,
-                        bgcolor: alpha('#FFD700', 0.15),
-                        color: 'goldenrod',
+                        bgcolor: alpha(colors.medal.gold, 0.15),
+                        color: colors.accent.amber,
                       }}
                     />
                   ))}

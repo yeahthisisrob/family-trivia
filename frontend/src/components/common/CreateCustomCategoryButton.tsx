@@ -79,7 +79,8 @@ const CreateCustomCategoryButton: React.FC<CreateCustomCategoryButtonProps> = ({
           textAlign: 'center',
           marginBottom: 3,
           padding: 1,
-          borderBottom: '1px solid rgba(0,0,0,0.1)',
+          borderBottom: 1,
+          borderColor: 'divider',
         }}
         onClick={(e) => {
           // Stop propagation to prevent any event bubbling

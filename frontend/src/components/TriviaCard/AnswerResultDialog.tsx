@@ -3,11 +3,12 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import StarsIcon from '@mui/icons-material/Stars';
-import { Box, Button, Chip, Dialog, Divider, Paper, Typography } from '@mui/material';
+import { alpha, Box, Button, Chip, Dialog, Divider, Paper, Typography } from '@mui/material';
 import type React from 'react';
 
 import type { Question } from '../../api/modules/trivia';
 import appStrings from '../../constants/strings';
+import { colors } from '../../shared/design-system';
 import { getUserColor, getUserInitials } from '../../utils';
 import CommentsThread from '../common/CommentsThread';
 
@@ -68,8 +69,8 @@ const AnswerResultDialog: React.FC<AnswerResultDialogProps> = ({
         sx={{
           p: { xs: 1.5, sm: 2.5 },
           textAlign: 'center',
-          backgroundColor: isCorrect ? '#4caf50' : '#e74c3c',
-          color: 'white',
+          backgroundColor: isCorrect ? colors.result.correct : colors.result.incorrect,
+          color: colors.onColor,
         }}
       >
         {isCorrect ? (
@@ -116,15 +117,15 @@ const AnswerResultDialog: React.FC<AnswerResultDialogProps> = ({
                   const isUserChoice = choice === selected;
                   const isCorrectChoice = choice === question.answer;
 
-                  let bgColor = '#f8f9fa';
-                  let borderColor = '#e9ecef';
+                  let bgColor: string = 'action.hover';
+                  let borderColor: string = 'divider';
 
                   if (isUserChoice && !isCorrect) {
-                    bgColor = 'rgba(231, 76, 60, 0.1)';
-                    borderColor = '#e74c3c';
+                    bgColor = alpha(colors.result.incorrect, 0.1);
+                    borderColor = colors.result.incorrect;
                   } else if (isCorrectChoice) {
-                    bgColor = 'rgba(76, 175, 80, 0.1)';
-                    borderColor = '#4caf50';
+                    bgColor = alpha(colors.result.correct, 0.1);
+                    borderColor = colors.result.correct;
                   }
 
                   return (
@@ -133,7 +134,8 @@ const AnswerResultDialog: React.FC<AnswerResultDialogProps> = ({
                       elevation={isUserChoice || isCorrectChoice ? 1 : 0}
                       sx={{
                         p: { xs: 1.25, sm: 1.5 },
-                        border: `2px solid ${borderColor}`,
+                        border: '2px solid',
+                        borderColor,
                         borderRadius: 2,
                         backgroundColor: bgColor,
                         position: 'relative',
@@ -165,14 +167,16 @@ const AnswerResultDialog: React.FC<AnswerResultDialogProps> = ({
                             position: 'absolute',
                             top: -12,
                             left: 10,
-                            backgroundColor: isCorrect ? '#4caf50' : '#e74c3c',
-                            color: 'white',
+                            backgroundColor: isCorrect
+                              ? colors.result.correct
+                              : colors.result.incorrect,
+                            color: colors.onColor,
                             px: 1,
                             py: 0.25,
                             borderRadius: 1,
                             fontSize: '0.6rem',
                             fontWeight: 'bold',
-                            boxShadow: '0px 1px 3px rgba(0,0,0,0.2)',
+                            boxShadow: `0px 1px 3px ${alpha(colors.scrim, 0.2)}`,
                           }}
                         >
                           YOUR PICK
@@ -185,14 +189,14 @@ const AnswerResultDialog: React.FC<AnswerResultDialogProps> = ({
                             position: 'absolute',
                             top: -12,
                             left: 10,
-                            backgroundColor: '#4caf50',
-                            color: 'white',
+                            backgroundColor: colors.result.correct,
+                            color: colors.onColor,
                             px: 1,
                             py: 0.25,
                             borderRadius: 1,
                             fontSize: '0.6rem',
                             fontWeight: 'bold',
-                            boxShadow: '0px 1px 3px rgba(0,0,0,0.2)',
+                            boxShadow: `0px 1px 3px ${alpha(colors.scrim, 0.2)}`,
                           }}
                         >
                           CORRECT ANSWER
@@ -257,7 +261,8 @@ const AnswerResultDialog: React.FC<AnswerResultDialogProps> = ({
           justifyContent: 'center',
           flexDirection: { xs: 'column', sm: 'row' },
           p: 2,
-          borderTop: '1px solid rgba(0,0,0,0.08)',
+          borderTop: 1,
+          borderColor: 'divider',
           bgcolor: 'background.paper',
         }}
       >
