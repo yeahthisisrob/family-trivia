@@ -3,6 +3,8 @@
  * paragraphs, a handful of numbers, and everyone's face. It shows; it
  * doesn't ask anything of the reader.
  */
+
+import type { FamilyKnowledge } from '@family-trivia/shared';
 import { Box, ButtonBase, Card, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
 import type React from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -24,10 +26,20 @@ export const FamilyHero: React.FC<{
   story: FamilyStory | null;
   people: PersonView[];
   photos: Record<string, string | undefined>;
+  /** Counted numbers from the family's index: words, busiest day, longest answer. */
+  numbers?: FamilyKnowledge['stats'];
+  nameOf: (id: string) => string;
   onOpen: (id: string) => void;
-}> = ({ familyName, story, people, photos, onOpen }) => {
+}> = ({ familyName, story, people, photos, numbers, nameOf, onOpen }) => {
   const stats = story?.stats;
   const since = stats?.since?.slice(0, 4);
+  // About 300 words to a printed page.
+  const pages = numbers ? Math.max(1, Math.round(numbers.words / 300)) : 0;
+  const highlights = [
+    numbers?.busiestDay && `We answer most on ${numbers.busiestDay}s`,
+    numbers?.longestAnswer &&
+      `${nameOf(numbers.longestAnswer.personId)}'s longest answer ran ${numbers.longestAnswer.words} words`,
+  ].filter(Boolean);
   return (
     <Card sx={{ p: { xs: 2.25, sm: 3 } }}>
       <Typography
@@ -71,8 +83,19 @@ export const FamilyHero: React.FC<{
           <Stat value={stats.people} label="people" />
           <Stat value={stats.households} label={stats.households === 1 ? 'home' : 'homes'} />
           <Stat value={stats.answers.toLocaleString()} label="answers shared" />
+          {numbers && numbers.words > 0 && (
+            <Stat
+              value={numbers.words.toLocaleString()}
+              label={`words, about ${pages} ${pages === 1 ? 'page' : 'pages'}`}
+            />
+          )}
           {since && <Stat value={since} label="together here since" />}
         </Stack>
+      )}
+      {highlights.length > 0 && (
+        <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1.25 }}>
+          {highlights.join(' · ')}
+        </Typography>
       )}
 
       {people.length > 0 && (

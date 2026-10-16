@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 import { exampleFamily } from '../../../test/fixtures/exampleFamily';
-import { ByTheNumbers } from './ByTheNumbers';
 import { KNOWLEDGE } from './familyHomeMocks';
 import { WhatWeShare } from './WhatWeShare';
 
@@ -17,7 +16,3 @@ export default meta;
 type Story = StoryObj<typeof WhatWeShare>;
 
 export const Themes: Story = {};
-
-export const Numbers: StoryObj<typeof ByTheNumbers> = {
-  render: () => <ByTheNumbers stats={KNOWLEDGE.stats} nameOf={nameOf} />,
-};

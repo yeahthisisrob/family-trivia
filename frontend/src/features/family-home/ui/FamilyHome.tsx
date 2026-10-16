@@ -23,7 +23,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { type GraphData, graphApi, useFamily } from '../../../entities/family';
 import { type FamilyStory, familyHomeApi } from '../api/familyHomeApi';
 import { peopleFor, rememberedOf, sortForMe, spotlightOf } from '../model/people';
-import { ByTheNumbers } from './ByTheNumbers';
 import { FamilyHero } from './FamilyHero';
 import { InMemory } from './InMemory';
 import { PeopleSection } from './PeopleSection';
@@ -91,6 +90,8 @@ export const FamilyHome: React.FC<{
         story={story}
         people={people}
         photos={photos}
+        numbers={knowledge?.stats}
+        nameOf={nameOf}
         onOpen={open}
       />
 
@@ -145,11 +146,10 @@ export const FamilyHome: React.FC<{
         <WhatWeShare themes={knowledge.themes} nameOf={nameOf} photos={photos} onOpen={open} />
       )}
 
-      <PeopleSection people={people} meId={meId} photos={photos} onOpen={open} />
-
+      {/* Remembered people before the long list of everyone, not under it. */}
       <InMemory people={remembered} photos={photos} onOpen={open} />
 
-      {knowledge && <ByTheNumbers stats={knowledge.stats} nameOf={nameOf} />}
+      <PeopleSection people={people} meId={meId} photos={photos} onOpen={open} />
 
       {footer}
 
