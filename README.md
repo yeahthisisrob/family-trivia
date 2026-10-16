@@ -85,31 +85,26 @@ CloudFront (CDN)
 ## Prerequisites
 
 - **AWS account** with Bedrock access (Claude models enabled in `us-east-1`)
-- **Node.js 18+** and npm
+- **[mise](https://mise.jdx.dev)**, which installs the pinned Node, pnpm and just for you
 - **Google Cloud Console** project with an OAuth 2.0 client ID
-- **Custom domain** (optional) with an ACM certificate in `us-east-1`
+- **Custom domain** with an ACM certificate in `us-east-1`
 
 ## Quick start
 
 ```bash
-# 1. Clone and install
+# 1. Clone and install (toolchain, dependencies, git hooks)
 git clone https://github.com/yeahthisisrob/family-trivia.git
 cd family-trivia
-npm install
+just install
 
-# 2. Configure
-cp cdk/cdk.context.example.json cdk/cdk.config.json
+# 2. Configure (see Configuration below)
+cp infra/cdk.context.example.json infra/cdk.config.json
 cp frontend/public/config.example.json frontend/public/config.local.json
-# Edit both — see Configuration below
 
-# 3. Build shared types + frontend
-cd shared && npm run build && cd ..
-cd frontend && npm run build && cd ..
+# 3. Deploy (runs every check, builds, then deploys)
+just deploy
 
-# 4. Deploy infrastructure
-cd cdk && npx cdk deploy
-
-# 5. Bootstrap the first admin (one-time, see "Bootstrap your admin" below).
+# 4. Bootstrap the first admin (one-time, see "Bootstrap your admin" below).
 #    Then open the CloudFront URL CDK printed and sign in with Google
 #    + your passphrase. The first-run wizard walks you through creating
 #    your family, adding members, and starting a season.
@@ -150,7 +145,7 @@ Passphrases are **one-time identification, not ongoing auth** — they exist so 
 
 ## Configuration
 
-`cdk/cdk.config.json` (gitignored — copy from `cdk.context.example.json`):
+`infra/cdk.config.json` (gitignored; copy from `cdk.context.example.json`):
 
 | Key | Description |
 |-----|-------------|
@@ -165,36 +160,38 @@ Passphrases are **one-time identification, not ongoing auth** — they exist so 
 ## Development
 
 ```bash
-# Frontend dev server
-cd frontend && npm run dev
-
-# Storybook (component playground with MSW API mocks)
-cd frontend && npm run storybook
-
-# Type-check + lint
-cd frontend && npm run lint -- --fix && npm run typecheck
-
-# Lambda tests
-cd cdk/lambda && npm test
+just dev          # API on :3001 + web app on :3000 (needs backend/.env.local)
+just storybook    # component playground with MSW API mocks
+just check        # what CI runs: lint, privacy, dead code, typecheck, tests
+just fix          # apply Biome's safe fixes
+just contract     # after editing the OpenAPI schema
 ```
 
-> A `justfile` is included with shortcuts for the common loops (`just dev`, `just check`, `just test`, `just deploy`, `just storybook`, …). Install [just](https://github.com/casey/just) if you'd like to use them; the raw `npm` commands above always work too.
+`just dev` runs the real Lambda handler on Node against a bucket you choose:
+copy `backend/.env.example` to `backend/.env.local` and point it at a dev
+bucket, never the one your family plays on.
 
 ## Project structure
 
 ```
-cdk/                    AWS CDK infrastructure
-  lib/                  Stack definition
-  lambda/               Backend code
-    routes/             API handlers
-    services/           Business logic
-frontend/               React app
-  src/components/       UI components
-  src/api/              API client
-  src/contexts/         State management
-  .storybook/           Storybook + MSW mocks
-shared/                 Shared TypeScript types
+frontend/               React app (Vite, MUI, Storybook)
+backend/                The API: one Lambda
+  routes/               API handlers
+  services/             Business logic
+infra/                  AWS CDK stack
+shared/                 Types and the OpenAPI contract
+docs/decisions/         Why things are the way they are
+scripts/                Leak guard, screenshots
 ```
+
+## Privacy
+
+Family Trivia runs on a family's own names, places and memories, and keeps
+them in that family's own AWS account. The repo never contains a real family:
+the git hooks and CI run a [leak guard](scripts/leak-guard.mjs) that stops
+names, emails, phone numbers and account ids from being committed. Put your
+own family's names in `.leakguard` (gitignored). See
+[docs/decisions/0006](docs/decisions/0006-privacy-by-default.md).
 
 ## Contributing
 
