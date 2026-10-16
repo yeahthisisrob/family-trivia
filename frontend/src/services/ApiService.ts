@@ -217,6 +217,21 @@ export class ApiService {
 
         if (!response.ok) {
           logger.error(`API error response (${response.status}): ${text}`);
+          // Keep the server's own words ({ error, details }) so screens can show them.
+          let envelope: { error?: string; details?: string; errorType?: string } | null = null;
+          try {
+            envelope = JSON.parse(text);
+          } catch {
+            /* not JSON */
+          }
+          if (envelope?.error) {
+            throw new ApiError(
+              envelope.error,
+              response.status,
+              envelope.details,
+              envelope.errorType,
+            );
+          }
           throw new Error(`API responded with status ${response.status}: ${response.statusText}`);
         }
 
@@ -258,6 +273,9 @@ export class ApiService {
           }
         }
       } catch (error) {
+        // A clear answer from the server (bad input, not allowed) isn't a broken
+        // response: pass it on as-is and don't block later requests.
+        if (error instanceof ApiError) throw error;
         logger.error(`Failed to process response from ${endpoint}:`, error);
 
         // Don't mark non-critical endpoints as fatal
@@ -297,6 +315,10 @@ export class ApiService {
 
       return data;
     } catch (error: unknown) {
+      // The server answered clearly (4xx with a message): not a failure to
+      // circuit-break on.
+      if (error instanceof ApiError && error.statusCode < 500) throw error;
+
       // Special handling for comment endpoints
       const isCommentEndpoint = endpoint.startsWith('/fact-comments');
 
