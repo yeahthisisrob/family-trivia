@@ -2959,6 +2959,28 @@ paths:
         "503":
           description: The AI model could not write it right now
 
+  /seasons/review:
+    get:
+      summary: Look back on a season, the family's answers gathered to read together
+      operationId: getSeasonReview
+      tags: [Seasons]
+      parameters:
+        - name: season
+          in: query
+          required: false
+          description: Season number; the latest that has started when left out
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The season's numbers, the questions most of us answered, what we loved, everyone's season and the book
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeasonReview"
+        "404":
+          description: No such season, or none has started
+
   /family/person-story:
     get:
       summary: Someone's story, everything they told the family and what it loved most
@@ -3921,6 +3943,99 @@ components:
           type: string
         parentId:
           type: string
+
+    SaidBy:
+      type: object
+      required: [personId, answer]
+      properties:
+        personId:
+          type: string
+        answer:
+          type: string
+
+    BookPage:
+      type: object
+      required: [date, question, answers]
+      properties:
+        date:
+          type: string
+        question:
+          type: string
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/SaidBy"
+
+    SeasonReview:
+      type: object
+      required: [season, seasons, numbers, together, loved, people, book]
+      properties:
+        season:
+          type: object
+          required: [number, name, startDate, endDate]
+          properties:
+            number:
+              type: integer
+            name:
+              type: string
+            startDate:
+              type: string
+            endDate:
+              type: string
+              nullable: true
+        seasons:
+          type: array
+          items:
+            type: object
+            required: [number, name]
+            properties:
+              number:
+                type: integer
+              name:
+                type: string
+        numbers:
+          type: object
+          required: [people, answers, words, trivia, comments, reactions, days]
+          properties:
+            people: { type: integer }
+            answers: { type: integer }
+            words: { type: integer }
+            trivia: { type: integer }
+            comments: { type: integer }
+            reactions: { type: integer }
+            days: { type: integer }
+        together:
+          type: array
+          items:
+            $ref: "#/components/schemas/BookPage"
+        loved:
+          type: array
+          items:
+            type: object
+            required: [id, personId, question, answer, reactions, comments]
+            properties:
+              id: { type: string }
+              personId: { type: string }
+              question: { type: string }
+              answer: { type: string }
+              reactions: { type: integer }
+              comments: { type: integer }
+        people:
+          type: array
+          items:
+            type: object
+            required: [personId, answers, words, trivia, right, points]
+            properties:
+              personId: { type: string }
+              answers: { type: integer }
+              words: { type: integer }
+              trivia: { type: integer }
+              right: { type: integer }
+              points: { type: integer }
+        book:
+          type: array
+          items:
+            $ref: "#/components/schemas/BookPage"
 
     PersonStory:
       type: object

@@ -35,6 +35,11 @@ the family's own words, shown once.
   and the arcade away with `no_trivia_this_season`, and the Trivia tab opens
   on the results with a line saying why.
 
+- Every season can be looked back on (Family › Look back,
+  `GET /seasons/review`): its numbers, the questions most of the family
+  answered side by side, what was loved, everyone's season, and every day's
+  question with everyone's answers, which saves as a book.
+
 ## Consequences
 The season is the one switch for what the app asks: general trivia, family
 trivia, both, or none.
