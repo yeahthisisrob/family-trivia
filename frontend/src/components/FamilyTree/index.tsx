@@ -1,8 +1,10 @@
 // File: src/components/FamilyTree/index.tsx
-import { Box, Fade } from '@mui/material';
+import DownloadIcon from '@mui/icons-material/Download';
+import { Box, Button, Fade } from '@mui/material';
 import type React from 'react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
+import { ArchiveDialog } from '../../features/family-archive';
 import { FamilyGraphSection } from '../../features/family-graph';
 import { LoadingDots } from '../ui/feedback';
 import FamilySplitView from './FamilySplitView';
@@ -15,6 +17,7 @@ interface FamilyTreeProps {
 }
 
 const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, onViewProfile }) => {
+  const [archiveOpen, setArchiveOpen] = useState(false);
   // Use data already loaded by FamilyDataContext (from /app-init) — no extra API calls
   const {
     hierarchyData: hierarchy,
@@ -70,6 +73,13 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, onViewProfile }) => {
           currentUserId={userId}
           onMemberClick={onViewProfile}
         />
+
+        <Box sx={{ mt: 3, textAlign: 'center' }}>
+          <Button startIcon={<DownloadIcon />} onClick={() => setArchiveOpen(true)}>
+            Download the family archive
+          </Button>
+        </Box>
+        {archiveOpen && <ArchiveDialog onClose={() => setArchiveOpen(false)} />}
       </Box>
     </Fade>
   );
