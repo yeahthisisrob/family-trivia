@@ -11,6 +11,8 @@ export const S3_PATHS = {
 
   // Family Structure
   FAMILY_HIERARCHY: 'family/hierarchy.json',
+  /** Version 2 family: people, ties, households (shared/src/people.ts). */
+  FAMILY: 'family/family.json',
 
   // Trivia & Answers
   ANSWER_HISTORY: (userId: string) => `answers/history/${userId}.json`,

@@ -6,6 +6,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ListIcon from '@mui/icons-material/List';
+import LocalFireDepartmentOutlinedIcon from '@mui/icons-material/LocalFireDepartmentOutlined';
 import StarIcon from '@mui/icons-material/Star';
 import {
   Box,
@@ -73,8 +74,16 @@ const BirthdayCard: React.FC<{ birthday: Birthday; isToday?: boolean }> = ({
     other: <StarIcon sx={{ fontSize: 14 }} />,
     birthday: <CakeIcon sx={{ fontSize: 14 }} />,
   };
-  const color = typeColor[birthday.type || 'birthday'];
-  const icon = typeIcon[birthday.type || 'birthday'];
+  // A remembered person's birthday is a quiet day: a candle, not a party.
+  const remembered = !!birthday.remembered;
+  const color = remembered
+    ? theme.palette.text.secondary
+    : (typeColor[birthday.type || 'birthday'] ?? theme.palette.primary.main);
+  const icon = remembered ? (
+    <LocalFireDepartmentOutlinedIcon sx={{ fontSize: 14 }} />
+  ) : (
+    typeIcon[birthday.type || 'birthday']
+  );
   const bAny = birthday as any;
 
   return (
@@ -93,8 +102,15 @@ const BirthdayCard: React.FC<{ birthday: Birthday; isToday?: boolean }> = ({
         },
       }}
     >
-      {isToday && (
+      {isToday && !remembered && (
         <CelebrationIcon sx={{ fontSize: 22, color, mb: 0.5, display: 'block', mx: 'auto' }} />
+      )}
+      {remembered && (
+        <Typography
+          sx={{ fontSize: '0.55rem', letterSpacing: '0.08em', color, textTransform: 'uppercase' }}
+        >
+          Remembering
+        </Typography>
       )}
       <Typography
         sx={{
@@ -124,7 +140,7 @@ const BirthdayCard: React.FC<{ birthday: Birthday; isToday?: boolean }> = ({
       )}
       <Chip
         icon={icon}
-        label={daysText(birthday.daysUntil)}
+        label={remembered && birthday.daysUntil === 0 ? 'Today' : daysText(birthday.daysUntil)}
         size="small"
         sx={{
           height: 18,
@@ -189,7 +205,8 @@ const UpcomingDates: React.FC = () => {
       setHasMore(upcoming.length > limit);
       setBirthdays(upcoming.slice(0, limit));
       setTodaysBirthdays(response.todaysBirthdays);
-      if (response.todaysBirthdays.length > 0) {
+      // No confetti when the only day today is for remembering someone.
+      if (response.todaysBirthdays.some((b) => !b.remembered)) {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       }

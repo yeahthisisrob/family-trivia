@@ -65,12 +65,15 @@ const FEUD_ROUNDS_DIR = 'family-feud/rounds/';
 // ---------------------------------------------------------------------------
 
 /**
- * Get or initialize the rotation state.
- * Takes all user IDs from hierarchy so we have a consistent order.
+ * Get or initialize the rotation state. `allUserIds` is who is playing now:
+ * new players join the rotation, and anyone who stepped back or is
+ * remembered leaves it (their past rounds stay in roundHistory).
  */
 export async function getRotation(allUserIds: string[]): Promise<FamilyFeudRotation> {
   const existing = await getJson<FamilyFeudRotation>(FEUD_ROTATION);
   if (existing && existing.allUserIds.length > 0) {
+    const playingNow = new Set(allUserIds);
+    existing.allUserIds = existing.allUserIds.filter((uid) => playingNow.has(uid));
     // Sync new users into rotation (if family grew)
     const existingSet = new Set(existing.allUserIds);
     for (const uid of allUserIds) {
