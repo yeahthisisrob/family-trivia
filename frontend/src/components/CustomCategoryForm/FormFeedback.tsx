@@ -1,7 +1,7 @@
 // File: src/components/CustomCategoryForm/FormFeedback.tsx
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlined';
 import CloseIcon from '@mui/icons-material/Close';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { Box, IconButton, Paper, type SxProps, type Theme, Typography } from '@mui/material';
@@ -82,7 +82,12 @@ const FormFeedback: React.FC<FormFeedbackProps> = ({
         </Box>
 
         <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {message}
           </Typography>
         </Box>

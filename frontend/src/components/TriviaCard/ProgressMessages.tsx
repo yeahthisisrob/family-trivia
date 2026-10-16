@@ -102,7 +102,11 @@ const ProgressMessages: React.FC<ProgressMessagesProps> = ({ messages, isGenerat
               }}
             >
               <Box sx={{ mr: 1.5, fontSize: '1.2rem' }}>{getMessageIcon(msg.type)}</Box>
-              <Box flex={1}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}
+              >
                 <Typography
                   variant="body1"
                   sx={{

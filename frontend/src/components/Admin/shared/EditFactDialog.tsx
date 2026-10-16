@@ -126,7 +126,9 @@ const EditFactDialog: React.FC<EditFactDialogProps> = ({ open, fact, onClose, on
             maxRows={4}
             size="small"
             fullWidth
-            InputProps={{ sx: { fontSize: '0.85rem' } }}
+            slotProps={{
+              input: { sx: { fontSize: '0.85rem' } },
+            }}
           />
           <TextField
             label="Answer"
@@ -137,8 +139,10 @@ const EditFactDialog: React.FC<EditFactDialogProps> = ({ open, fact, onClose, on
             maxRows={4}
             size="small"
             fullWidth
-            InputProps={{ sx: { fontSize: '0.85rem' } }}
             helperText={fact.skipped ? 'This entry is marked as skipped' : undefined}
+            slotProps={{
+              input: { sx: { fontSize: '0.85rem' } },
+            }}
           />
           <Box sx={{ display: 'flex', gap: 1.5 }}>
             <FormControl size="small" fullWidth>
@@ -160,7 +164,9 @@ const EditFactDialog: React.FC<EditFactDialogProps> = ({ open, fact, onClose, on
                 value={questionIndex}
                 onChange={(e) => setQuestionIndex(e.target.value)}
                 sx={{ width: 100 }}
-                inputProps={{ min: 0 }}
+                slotProps={{
+                  htmlInput: { min: 0 },
+                }}
               />
             )}
           </Box>
@@ -172,7 +178,9 @@ const EditFactDialog: React.FC<EditFactDialogProps> = ({ open, fact, onClose, on
             fullWidth
             error={!!dateError}
             helperText={dateError || 'Original question date — affects catchup dedup'}
-            InputProps={{ sx: { fontFamily: 'monospace', fontSize: '0.85rem' } }}
+            slotProps={{
+              input: { sx: { fontFamily: 'monospace', fontSize: '0.85rem' } },
+            }}
           />
           {typeChanged && (
             <Alert severity="warning" sx={{ fontSize: '0.78rem' }}>

@@ -249,7 +249,14 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
                 {currentRound.question}
               </Typography>
             </Box>
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+                display: 'block',
+              }}
+            >
               Be honest! Your family will try to guess your answer.
             </Typography>
             {message && (
@@ -315,7 +322,12 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
               {currentRound.targetUserName?.[0]?.toUpperCase()}
             </Avatar>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 Waiting for <strong>{currentRound.targetUserName}</strong> to answer...
               </Typography>
             </Box>
@@ -430,7 +442,13 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
             <Box sx={{ mb: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
                 <HowToVoteIcon sx={{ fontSize: 16, color: theme.palette.text.secondary }} />
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'text.secondary',
+                    fontWeight: 600,
+                  }}
+                >
                   {guessers.length} guessed so far
                 </Typography>
               </Box>
@@ -460,7 +478,13 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
             <>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                 <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: 20 }} />
-                <Typography variant="body2" color="success.main" sx={{ fontWeight: 600 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'success.main',
+                    fontWeight: 600,
+                  }}
+                >
                   Locked in! Here&rsquo;s what everyone is seeing:
                 </Typography>
               </Box>
@@ -534,7 +558,12 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
                 </Box>
               ) : (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     Generating choices
                   </Typography>
                   <LoadingDots size={4} inline />
@@ -632,8 +661,12 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
               {hasGuessed && (
                 <Typography
                   variant="caption"
-                  color="text.secondary"
-                  sx={{ mt: 1, display: 'block', textAlign: 'center' }}
+                  sx={{
+                    color: 'text.secondary',
+                    mt: 1,
+                    display: 'block',
+                    textAlign: 'center',
+                  }}
                 >
                   Your guess is locked in — waiting for results!
                 </Typography>
@@ -641,7 +674,12 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
             </>
           ) : (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 Generating choices
               </Typography>
               <LoadingDots size={4} inline />
@@ -735,8 +773,12 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
             <Box sx={{ mb: 2 }}>
               <Typography
                 variant="caption"
-                color="text.secondary"
-                sx={{ fontWeight: 600, mb: 1, display: 'block' }}
+                sx={{
+                  color: 'text.secondary',
+                  fontWeight: 600,
+                  mb: 1,
+                  display: 'block',
+                }}
               >
                 How everyone guessed:
               </Typography>
@@ -814,7 +856,14 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
               ))}
             </Box>
           ) : (
-            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 1 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+                textAlign: 'center',
+                py: 1,
+              }}
+            >
               No one got it right this time!
             </Typography>
           )}

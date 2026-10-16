@@ -281,7 +281,9 @@ const SeasonsTab: React.FC = () => {
             onChange={(e) => setForm({ ...form, startDate: e.target.value })}
             fullWidth
             size="small"
-            InputLabelProps={{ shrink: true }}
+            slotProps={{
+              inputLabel: { shrink: true },
+            }}
           />
           <TextField
             label="End Date"
@@ -290,7 +292,9 @@ const SeasonsTab: React.FC = () => {
             onChange={(e) => setForm({ ...form, endDate: e.target.value })}
             fullWidth
             size="small"
-            InputLabelProps={{ shrink: true }}
+            slotProps={{
+              inputLabel: { shrink: true },
+            }}
           />
           <FormControl fullWidth size="small">
             <InputLabel>Status</InputLabel>

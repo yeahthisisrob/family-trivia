@@ -1,20 +1,25 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
 import type { Preview } from '@storybook/react-vite';
-import { initialize, mswLoader } from 'msw-storybook-addon';
+import { setupWorker } from 'msw/browser';
+import { mswLoader } from 'msw-storybook-addon/csf3';
 import { MemoryRouter } from 'react-router-dom';
 import { apiService } from '../src/services/ApiService';
 import { theme } from '../src/shared/design-system';
 import { allHandlers } from './mocks/handlers';
 import { MockAppProviders } from './mocks/providers';
 
-// Start MSW once via the addon. The addon installs a loader that swaps in
-// per-story `parameters.msw.handlers` on top of these defaults — without
-// `mswLoader` below, those per-story handlers are silently ignored.
-initialize({ onUnhandledRequest: 'bypass' }, allHandlers);
+// MSW starts once with the shared handlers as its baseline. The loader puts a
+// story's `parameters.msw.handlers` on top and resets to the baseline after
+// each story, so overrides never leak into the next one.
+async function startWorker() {
+  const worker = setupWorker(...allHandlers);
+  await worker.start({ quiet: true, onUnhandledRequest: 'bypass' });
+  return worker;
+}
 
 const preview: Preview = {
-  loaders: [mswLoader],
+  loaders: [mswLoader(startWorker)],
   // Reset ephemeral state before every story so one story can't bleed
   // into the next:
   //   - apiService cache (cached `daily_fact_alice_today` etc.)

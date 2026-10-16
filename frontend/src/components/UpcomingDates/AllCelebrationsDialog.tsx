@@ -138,7 +138,9 @@ const AllCelebrationsDialog: React.FC<AllCelebrationsDialogProps> = ({
       onClose={onClose}
       maxWidth="xs"
       fullWidth
-      PaperProps={{ sx: { borderRadius: 3, overflow: 'hidden', maxHeight: '80vh' } }}
+      slotProps={{
+        paper: { sx: { borderRadius: 3, overflow: 'hidden', maxHeight: '80vh' } },
+      }}
     >
       {/* Header */}
       <Box
@@ -229,8 +231,12 @@ const AllCelebrationsDialog: React.FC<AllCelebrationsDialogProps> = ({
           </Alert>
         ) : filtered.length === 0 ? (
           <Typography
-            color="text.secondary"
-            sx={{ textAlign: 'center', py: 4, fontSize: '0.85rem' }}
+            sx={{
+              color: 'text.secondary',
+              textAlign: 'center',
+              py: 4,
+              fontSize: '0.85rem',
+            }}
           >
             No celebrations found
           </Typography>

@@ -73,8 +73,8 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
         {message && (
           <Typography
             variant="body2"
-            color="text.secondary"
             sx={{
+              color: 'text.secondary',
               fontWeight: 500,
               letterSpacing: '0.02em',
               animation: `${fadeUp} 0.6s ease-out both`,

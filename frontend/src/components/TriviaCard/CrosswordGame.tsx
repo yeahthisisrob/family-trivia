@@ -132,7 +132,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
   const rootRef = useRef<HTMLDivElement>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   // Timer — counts up while playing
   useEffect(() => {

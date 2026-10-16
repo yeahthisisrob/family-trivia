@@ -123,8 +123,8 @@ const FactTimeline: React.FC<FactTimelineProps> = ({
               <Divider sx={{ flex: 1 }} />
               <Typography
                 variant="body2"
-                color="text.secondary"
                 sx={{
+                  color: 'text.secondary',
                   px: 2,
                   fontWeight: 500,
                   backgroundColor: 'background.paper',
@@ -207,7 +207,12 @@ const FactTimeline: React.FC<FactTimelineProps> = ({
         ))
       ) : (
         <Box sx={{ textAlign: 'center', p: 3 }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             No facts found for the selected family side
           </Typography>
         </Box>

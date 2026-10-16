@@ -151,7 +151,13 @@ const TimelineBoardOptimized: React.FC<TimelineBoardOptimizedProps> = ({
       <Box sx={{ px: 1.5, pb: 2 }}>
         {timelineError && (
           <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography color="text.secondary" sx={{ mb: 1, fontSize: '0.85rem' }}>
+            <Typography
+              sx={{
+                color: 'text.secondary',
+                mb: 1,
+                fontSize: '0.85rem',
+              }}
+            >
               Timeline failed to load
             </Typography>
             <Button variant="outlined" size="small" onClick={() => refreshTimeline(true)}>

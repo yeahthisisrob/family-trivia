@@ -137,8 +137,8 @@ const CommentsTimeline: React.FC<CommentsTimelineProps> = ({
               <Divider sx={{ flex: 1 }} />
               <Typography
                 variant="body2"
-                color="text.secondary"
                 sx={{
+                  color: 'text.secondary',
                   px: 2,
                   fontWeight: 500,
                   backgroundColor: 'background.paper',
@@ -240,7 +240,12 @@ const CommentsTimeline: React.FC<CommentsTimelineProps> = ({
         ))
       ) : (
         <Box sx={{ textAlign: 'center', p: 3 }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             No items with comments found
           </Typography>
         </Box>

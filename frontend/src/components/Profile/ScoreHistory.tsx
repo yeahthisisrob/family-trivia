@@ -109,10 +109,12 @@ export default function ScoreHistory({
       onClose={onClose}
       maxWidth="md"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 2,
-          maxHeight: '90vh',
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 2,
+            maxHeight: '90vh',
+          },
         },
       }}
     >

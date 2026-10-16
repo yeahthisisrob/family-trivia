@@ -110,7 +110,13 @@ const GroupsTab: React.FC = () => {
         {(admin.groups || []).map((g) => {
           const sideData = g.side ? admin.sides[g.side] : null;
           return (
-            <Grid item xs={12} sm={6} key={g.groupId}>
+            <Grid
+              key={g.groupId}
+              size={{
+                xs: 12,
+                sm: 6,
+              }}
+            >
               <Card variant="outlined">
                 <CardContent sx={{ pb: '12px !important' }}>
                   <Box
@@ -118,7 +124,12 @@ const GroupsTab: React.FC = () => {
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <GroupIcon fontSize="small" sx={{ color: sideData?.color || 'grey.500' }} />
-                      <Typography variant="subtitle2" fontWeight="bold">
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
+                      >
                         {g.name}
                       </Typography>
                     </Box>
@@ -139,8 +150,11 @@ const GroupsTab: React.FC = () => {
                   {g.description && (
                     <Typography
                       variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: 0.5, fontStyle: 'italic' }}
+                      sx={{
+                        color: 'text.secondary',
+                        mt: 0.5,
+                        fontStyle: 'italic',
+                      }}
                     >
                       {g.description}
                     </Typography>
@@ -175,8 +189,11 @@ const GroupsTab: React.FC = () => {
                   {(!g.members || g.members.length === 0) && (
                     <Typography
                       variant="caption"
-                      color="text.secondary"
-                      sx={{ mt: 0.5, display: 'block' }}
+                      sx={{
+                        color: 'text.secondary',
+                        mt: 0.5,
+                        display: 'block',
+                      }}
                     >
                       No members assigned
                     </Typography>
@@ -240,7 +257,13 @@ const GroupsTab: React.FC = () => {
           {/* Members in this group */}
           {editMode && (
             <Box sx={{ mt: 2 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.secondary',
+                  fontWeight: 600,
+                }}
+              >
                 Members in this group
               </Typography>
               <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
@@ -256,7 +279,12 @@ const GroupsTab: React.FC = () => {
                     />
                   ))}
                 {(admin.players || []).filter((p) => p.group === form.groupId).length === 0 && (
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     None
                   </Typography>
                 )}
@@ -293,8 +321,11 @@ const GroupsTab: React.FC = () => {
                 </Box>
                 <Typography
                   variant="caption"
-                  color="text.secondary"
-                  sx={{ mt: 0.5, display: 'block' }}
+                  sx={{
+                    color: 'text.secondary',
+                    mt: 0.5,
+                    display: 'block',
+                  }}
                 >
                   Tap a player to assign them to this group
                 </Typography>

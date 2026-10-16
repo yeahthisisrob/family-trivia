@@ -539,7 +539,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
   }, [syncSnapshot]);
 
   // Stable game loop function stored in a ref
-  const gameLoopRef = useRef<(now: number) => void>();
+  const gameLoopRef = useRef<(now: number) => void | undefined>(undefined);
   useEffect(() => {
     gameLoopRef.current = (now: number) => {
       if (gameStateRef.current !== 'playing') return;

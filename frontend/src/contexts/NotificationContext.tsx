@@ -39,7 +39,7 @@ interface NotificationProviderProps {
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ userId, children }) => {
   const [summary, setSummary] = useState<NotificationSummary>({ unreadCount: 0, items: [] });
   const [loading, setLoading] = useState(false);
-  const pollRef = useRef<ReturnType<typeof setInterval>>();
+  const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   const fetchNotifications = useCallback(async () => {
     if (!userId) return;

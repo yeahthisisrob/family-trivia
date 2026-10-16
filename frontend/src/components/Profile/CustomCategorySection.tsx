@@ -64,7 +64,13 @@ const CustomCategorySection: React.FC<CustomCategorySectionProps> = ({
                   mb: 0.5,
                 }}
               >
-                <Typography variant="subtitle1" fontWeight="bold" color="secondary">
+                <Typography
+                  variant="subtitle1"
+                  color="secondary"
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
+                >
                   {customCategory.title}
                 </Typography>
                 <Chip
@@ -75,14 +81,18 @@ const CustomCategorySection: React.FC<CustomCategorySectionProps> = ({
                 />
               </Box>
 
-              <Typography variant="caption" color="text.secondary">
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {appStrings.customCategoryCreated(formatDate(customCategory.createdAt))}
               </Typography>
             </Box>
 
             <Typography
               variant="body2"
-              paragraph
               sx={{
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -90,6 +100,7 @@ const CustomCategorySection: React.FC<CustomCategorySectionProps> = ({
                 WebkitLineClamp: 4,
                 WebkitBoxOrient: 'vertical',
                 maxWidth: '100%',
+                marginBottom: '16px',
               }}
             >
               {customCategory.description}
@@ -97,7 +108,12 @@ const CustomCategorySection: React.FC<CustomCategorySectionProps> = ({
 
             <Divider sx={{ my: 2 }} />
 
-            <Typography variant="body2" color="text.secondary">
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {appStrings.customCategoryWeeklyLimit}
             </Typography>
 
@@ -114,7 +130,12 @@ const CustomCategorySection: React.FC<CustomCategorySectionProps> = ({
           </>
         ) : (
           <Box sx={{ textAlign: 'center', py: 2 }}>
-            <Typography variant="body1" paragraph>
+            <Typography
+              variant="body1"
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               {isCurrentUser
                 ? appStrings.noCustomCategoryYet.self
                 : appStrings.noCustomCategoryYet.other}

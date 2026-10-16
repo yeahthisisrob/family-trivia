@@ -177,7 +177,7 @@ export const RoastMode: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     // Click the roast toggle
-    const toggle = canvas.getByRole('checkbox');
+    const toggle = canvas.getByRole('switch');
     await userEvent.click(toggle);
     await expect(canvas.getByText(/spreadsheets tracking/)).toBeInTheDocument();
   },

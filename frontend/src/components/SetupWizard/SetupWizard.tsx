@@ -272,7 +272,9 @@ const FamilySidesStep: React.FC<FamilySidesStepProps> = ({
               onChange={(e) => updateSide(i as 0 | 1, 'color', e.target.value)}
               size="small"
               sx={{ width: 80 }}
-              InputProps={{ sx: { height: 40 } }}
+              slotProps={{
+                input: { sx: { height: 40 } },
+              }}
             />
           </Box>
         </Box>
@@ -518,7 +520,9 @@ const MembersStep: React.FC<MembersStepProps> = ({
           onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
           size="small"
           sx={{ width: 80 }}
-          InputProps={{ sx: { height: 40 } }}
+          slotProps={{
+            input: { sx: { height: 40 } },
+          }}
         />
       </Box>
       <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -671,7 +675,9 @@ const SeasonStep: React.FC<SeasonStepProps> = ({
         onChange={(e) => setStartDate(e.target.value)}
         size="small"
         sx={{ width: 180 }}
-        InputLabelProps={{ shrink: true }}
+        slotProps={{
+          inputLabel: { shrink: true },
+        }}
       />
     </Box>
 

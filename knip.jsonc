@@ -25,8 +25,9 @@
   },
   // infra: cdk.json runs the app with tsx and NodejsFunction bundles with
   // esbuild; root: the justfile runs concurrently. knip reads neither.
-  "ignoreDependencies": ["tsx", "esbuild", "concurrently"],
+  // Installed by mise, not npm.
   "ignoreBinaries": ["just"],
+  "ignoreDependencies": ["tsx", "esbuild", "concurrently"],
   // DEBT (128 exports, types): exported but never imported. Most go away as
   // routes and services move into slices; fix them as you touch a file.
   "rules": { "exports": "warn", "types": "warn", "duplicates": "warn", "enumMembers": "warn" }

@@ -176,9 +176,11 @@ const EnhancedLeaderboard: React.FC<LeaderboardProps> = ({
             borderColor: 'divider',
             bgcolor: theme.palette.primary.main,
           }}
-          TabIndicatorProps={{
-            style: {
-              backgroundColor: theme.palette.common.white,
+          slotProps={{
+            indicator: {
+              style: {
+                backgroundColor: theme.palette.common.white,
+              },
             },
           }}
         >

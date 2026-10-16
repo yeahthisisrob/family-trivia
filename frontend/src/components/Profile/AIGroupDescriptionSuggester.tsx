@@ -103,10 +103,12 @@ const AIGroupDescriptionSuggester: React.FC<AIGroupDescriptionSuggesterProps> = 
       onClose={loading ? undefined : onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 2,
-          overflow: 'hidden',
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 2,
+            overflow: 'hidden',
+          },
         },
       }}
     >
@@ -135,13 +137,24 @@ const AIGroupDescriptionSuggester: React.FC<AIGroupDescriptionSuggesterProps> = 
         {loading ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 6 }}>
             <LoadingDots mt={0} />
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
+            <Typography
+              variant="body1"
+              sx={{
+                color: 'text.secondary',
+                mt: 2,
+              }}
+            >
               Generating a creative description for your group...
             </Typography>
           </Box>
         ) : error ? (
           <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography color="error" paragraph>
+            <Typography
+              color="error"
+              sx={{
+                marginBottom: '16px',
+              }}
+            >
               {error}
             </Typography>
             <Button variant="contained" onClick={generateSuggestion} startIcon={<MagicIcon />}>
@@ -151,7 +164,13 @@ const AIGroupDescriptionSuggester: React.FC<AIGroupDescriptionSuggesterProps> = 
         ) : suggestion ? (
           <>
             <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              <Typography
+                variant="subtitle2"
+                gutterBottom
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 Current Description:
               </Typography>
               <Paper
@@ -231,7 +250,14 @@ const AIGroupDescriptionSuggester: React.FC<AIGroupDescriptionSuggesterProps> = 
               </Paper>
             </Box>
 
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+                display: 'block',
+                mt: 2,
+              }}
+            >
               This suggestion is based on your group info, members, and activity in the game. You
               can accept it as-is or generate new suggestions.
             </Typography>

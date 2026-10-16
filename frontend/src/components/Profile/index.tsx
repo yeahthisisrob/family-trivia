@@ -449,8 +449,8 @@ const Profile: React.FC<ProfileProps> = ({
             >
               <Typography
                 variant="subtitle2"
-                color="text.secondary"
                 sx={{
+                  color: 'text.secondary',
                   textTransform: 'uppercase',
                   letterSpacing: 0.5,
                   fontWeight: 'bold',

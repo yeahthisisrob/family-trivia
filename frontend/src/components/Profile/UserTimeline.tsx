@@ -166,7 +166,12 @@ const UserTimeline: React.FC<UserTimelineProps> = ({ userId, onUserClick, refres
           />
         ) : (
           <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography variant="body1" color="text.secondary">
+            <Typography
+              variant="body1"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               No facts to display
             </Typography>
           </Box>
@@ -186,7 +191,12 @@ const UserTimeline: React.FC<UserTimelineProps> = ({ userId, onUserClick, refres
           />
         ) : (
           <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography variant="body1" color="text.secondary">
+            <Typography
+              variant="body1"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               No trivia history to display
             </Typography>
           </Box>
@@ -205,7 +215,12 @@ const UserTimeline: React.FC<UserTimelineProps> = ({ userId, onUserClick, refres
           />
         ) : (
           <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography variant="body1" color="text.secondary">
+            <Typography
+              variant="body1"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               No comments to display
             </Typography>
           </Box>

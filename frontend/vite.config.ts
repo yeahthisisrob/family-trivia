@@ -35,13 +35,22 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          mui: ['@mui/material', '@mui/icons-material'],
-          router: ['react-router-dom'],
+        // Vite 8 (Rolldown) takes a function. Vendor code splits into react,
+        // mui and the rest; app code stays in one chunk so the chunk graph is
+        // one-directional (an init cycle between chunks renders a blank page).
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (/[\\/]node_modules[\\/](\.pnpm[\\/])?(@mui|@emotion)/.test(id)) return 'mui';
+          if (
+            /[\\/]node_modules[\\/](\.pnpm[\\/])?(react|react-dom|scheduler|react-router)[@\\/]/.test(
+              id,
+            )
+          )
+            return 'react';
+          return 'vendor';
         },
       },
     },
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 1500,
   },
 });

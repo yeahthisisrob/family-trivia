@@ -1,0 +1,16 @@
+{
+  "name": "@family-trivia/openapi-codegen",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Validates the OpenAPI contract and generates shared/generated/api-types.ts",
+  "license": "MIT",
+  "scripts": {
+    "contract": "redocly lint ../../shared/schemas/api.openapi.yaml --config ../../shared/redocly.yaml && openapi-typescript ../../shared/schemas/api.openapi.yaml -o ../../shared/generated/api-types.ts && biome format --write ../../shared/generated"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "@redocly/cli": "^2.62.1",
+    "openapi-typescript": "^7.13.0",
+    "typescript": "5.9.3"
+  }
+}

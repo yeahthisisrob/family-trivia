@@ -78,7 +78,14 @@ export const ErrorScreen: React.FC<ErrorScreenProps> = ({
             {title}
           </Typography>
 
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
+          <Typography
+            variant="body1"
+            sx={{
+              color: 'text.secondary',
+              mb: 3,
+              textAlign: 'center',
+            }}
+          >
             {message}
           </Typography>
 

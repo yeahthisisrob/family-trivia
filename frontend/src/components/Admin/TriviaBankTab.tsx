@@ -488,7 +488,14 @@ const TriviaBankTab: React.FC = () => {
         <DialogTitle>Delete Question</DialogTitle>
         <DialogContent>
           <Typography variant="body2">Delete this question from the bank?</Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+              mt: 1,
+              display: 'block',
+            }}
+          >
             {confirmDelete?.substring(0, 100)}...
           </Typography>
         </DialogContent>

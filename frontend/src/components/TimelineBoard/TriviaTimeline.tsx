@@ -393,8 +393,8 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
               <Divider sx={{ flex: 1 }} />
               <Typography
                 variant="body2"
-                color="text.secondary"
                 sx={{
+                  color: 'text.secondary',
                   px: 2,
                   fontWeight: 500,
                   backgroundColor: 'background.paper',
@@ -473,7 +473,12 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
         ))
       ) : (
         <Box sx={{ textAlign: 'center', p: 3 }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             No trivia history found for the selected family side
           </Typography>
         </Box>

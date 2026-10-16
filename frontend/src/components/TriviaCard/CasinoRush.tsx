@@ -361,7 +361,12 @@ export const CasinoRush: React.FC<CasinoRushProps> = ({
             <Typography variant="h6" gutterBottom>
               Casino Rush on Cooldown
             </Typography>
-            <Typography color="text.secondary" paragraph>
+            <Typography
+              sx={{
+                color: 'text.secondary',
+                marginBottom: '16px',
+              }}
+            >
               You can play Casino Rush again{' '}
               {nextAvailable ? (
                 <>
@@ -610,7 +615,12 @@ export const CasinoRush: React.FC<CasinoRushProps> = ({
           </Box>
 
           <Box sx={{ mt: 3, textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Potential winnings: {session.potentialPoints} points
             </Typography>
           </Box>
@@ -637,7 +647,13 @@ export const CasinoRush: React.FC<CasinoRushProps> = ({
             {result.gameOver && result.complete ? (
               <>
                 <CasinoIcon sx={{ fontSize: 80, color: theme.palette.success.main, mb: 2 }} />
-                <Typography variant="h4" gutterBottom color="success.main">
+                <Typography
+                  variant="h4"
+                  gutterBottom
+                  sx={{
+                    color: 'success.main',
+                  }}
+                >
                   JACKPOT!
                 </Typography>
                 <Typography variant="h6" gutterBottom>
@@ -658,7 +674,12 @@ export const CasinoRush: React.FC<CasinoRushProps> = ({
                       : 'Game over!'}
                 </Typography>
                 {result.correctAnswer && (
-                  <Typography variant="body1" color="text.secondary">
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     Correct answer: {result.correctAnswer}
                   </Typography>
                 )}
@@ -695,7 +716,12 @@ export const CasinoRush: React.FC<CasinoRushProps> = ({
                     animation: `${fadeIn} 0.3s ease-out`,
                   }}
                 >
-                  <Typography variant="h6" color="text.secondary">
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     Next Question
                   </Typography>
                   <MoveToNextIcon sx={{ color: theme.palette.warning.main }} />
@@ -703,7 +729,13 @@ export const CasinoRush: React.FC<CasinoRushProps> = ({
               </Box>
             ) : (
               <Box sx={{ animation: `${fadeIn} 0.5s ease-out` }}>
-                <Typography variant="h5" color="success.main" gutterBottom>
+                <Typography
+                  variant="h5"
+                  gutterBottom
+                  sx={{
+                    color: 'success.main',
+                  }}
+                >
                   Correct!
                 </Typography>
                 <Box

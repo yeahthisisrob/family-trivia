@@ -89,7 +89,13 @@ const FamilyTreeTab: React.FC = () => {
       )}
 
       {/* Root Partners */}
-      <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+      <Typography
+        variant="subtitle1"
+        gutterBottom
+        sx={{
+          fontWeight: 'bold',
+        }}
+      >
         Root Partners
       </Typography>
       <Card variant="outlined" sx={{ mb: 3 }}>
@@ -121,7 +127,12 @@ const FamilyTreeTab: React.FC = () => {
 
       {/* Sides Configuration */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-        <Typography variant="subtitle1" fontWeight="bold">
+        <Typography
+          variant="subtitle1"
+          sx={{
+            fontWeight: 'bold',
+          }}
+        >
           Family Sides
         </Typography>
         <Button size="small" onClick={addSide}>
@@ -156,14 +167,26 @@ const FamilyTreeTab: React.FC = () => {
 
             <Divider sx={{ my: 1 }} />
 
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+                mb: 0.5,
+              }}
+            >
               Groups assigned to this side:
             </Typography>
             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
               {sideData.groups.length > 0 ? (
                 sideData.groups.map((gId) => <Chip key={gId} label={gId} size="small" />)
               ) : (
-                <Typography variant="body2" color="text.secondary" fontStyle="italic">
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'text.secondary',
+                    fontStyle: 'italic',
+                  }}
+                >
                   No groups assigned. Assign groups in the Groups tab.
                 </Typography>
               )}

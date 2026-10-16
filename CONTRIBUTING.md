@@ -6,6 +6,12 @@ for keeping families connected as they age and change. Start with
 [docs/decisions/0001](docs/decisions/0001-why-this-exists.md): it's the
 question every change answers to.
 
+## How we write code
+
+Read [0008](docs/decisions/0008-engineering-principles.md): Clean Code, DRY,
+Feature-Sliced Design in the frontend, Vertical Slice Architecture in the
+backend, and the OpenAPI contract first.
+
 ## Setup
 
 ```bash

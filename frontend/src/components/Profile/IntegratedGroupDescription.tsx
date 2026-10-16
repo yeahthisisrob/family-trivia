@@ -179,7 +179,12 @@ const IntegratedGroupDescription: React.FC<IntegratedGroupDescriptionProps> = ({
   if (!description) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography color="text.secondary" variant="body2">
+        <Typography
+          variant="body2"
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           No group description available.
         </Typography>
       </Box>
@@ -225,8 +230,8 @@ const IntegratedGroupDescription: React.FC<IntegratedGroupDescriptionProps> = ({
 
             <Typography
               variant="caption"
-              color="text.secondary"
               sx={{
+                color: 'text.secondary',
                 display: 'block',
                 mt: 2,
                 opacity: 0.8,
@@ -281,7 +286,6 @@ const IntegratedGroupDescription: React.FC<IntegratedGroupDescriptionProps> = ({
               onChange={(e) => setEditedDescription(e.target.value.slice(0, 120))}
               placeholder="Describe your group in 120 characters or less"
               variant="outlined"
-              inputProps={{ maxLength: 120 }}
               sx={{
                 mb: 2,
                 '& .MuiOutlinedInput-root': {
@@ -290,6 +294,9 @@ const IntegratedGroupDescription: React.FC<IntegratedGroupDescriptionProps> = ({
                     boxShadow: '0 0 0 3px rgba(0,0,0,0.05)',
                   },
                 },
+              }}
+              slotProps={{
+                htmlInput: { maxLength: 120 },
               }}
             />
 
@@ -302,7 +309,12 @@ const IntegratedGroupDescription: React.FC<IntegratedGroupDescriptionProps> = ({
                 gap: 1,
               }}
             >
-              <Typography variant="caption" color="text.secondary">
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {editedDescription.length}/120 characters
                 <Box component="span" sx={{ mx: 1, opacity: 0.5 }}>
                   •

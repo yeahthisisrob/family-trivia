@@ -141,12 +141,6 @@ const FactAnswerInput: React.FC<FactAnswerInputProps> = ({
           </Box>
         );
       }}
-      ListboxProps={{
-        sx: {
-          maxHeight: 240,
-          '& .MuiAutocomplete-option': { borderBottom: '1px solid', borderColor: 'divider' },
-        },
-      }}
       renderInput={(params) => (
         <TextField
           {...params}
@@ -157,13 +151,24 @@ const FactAnswerInput: React.FC<FactAnswerInputProps> = ({
           autoFocus={autoFocus}
           disabled={disabled}
           onKeyDown={handleKeyDown}
-          InputProps={{
-            ...params.InputProps,
-            sx: { fontSize: '1.05rem', borderRadius: 2 },
+          slotProps={{
+            ...params.slotProps,
+            input: {
+              ...params.slotProps.input,
+              sx: { fontSize: '1.05rem', borderRadius: 2 },
+            },
           }}
         />
       )}
       sx={{ width: '100%' }}
+      slotProps={{
+        listbox: {
+          sx: {
+            maxHeight: 240,
+            '& .MuiAutocomplete-option': { borderBottom: '1px solid', borderColor: 'divider' },
+          },
+        },
+      }}
     />
   );
 };

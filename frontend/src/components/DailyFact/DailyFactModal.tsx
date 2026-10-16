@@ -106,9 +106,11 @@ const DailyFactModal: React.FC<DailyFactModalProps> = ({
       onClose={handleClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        elevation: 8,
-        sx: { borderRadius: 3, overflow: 'hidden' },
+      slotProps={{
+        paper: {
+          elevation: 8,
+          sx: { borderRadius: 3, overflow: 'hidden' },
+        },
       }}
     >
       <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}>
