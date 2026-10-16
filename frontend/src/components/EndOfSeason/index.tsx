@@ -49,8 +49,12 @@ export const EndOfSeason: React.FC<EndOfSeasonProps> = ({
       onClose={onDismiss}
       fullWidth
       maxWidth="sm"
-      TransitionComponent={Fade}
-      TransitionProps={{ timeout: 400 }}
+      slots={{
+        transition: Fade,
+      }}
+      slotProps={{
+        transition: { timeout: 400 },
+      }}
     >
       <DialogContent sx={{ p: 0 }}>
         <Container maxWidth="md">
@@ -148,7 +152,13 @@ export const EndOfSeason: React.FC<EndOfSeasonProps> = ({
                       sx={{ ml: 2 }}
                     />
                   </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                      mb: 2,
+                    }}
+                  >
                     You can still answer missed trivia questions from {seasonLabel.toLowerCase()}.
                   </Typography>
                   <Button
@@ -174,7 +184,13 @@ export const EndOfSeason: React.FC<EndOfSeasonProps> = ({
                       sx={{ ml: 2 }}
                     />
                   </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                      mb: 2,
+                    }}
+                  >
                     You can still submit missed daily facts from {seasonLabel.toLowerCase()}.
                   </Typography>
                   <Button
@@ -195,7 +211,12 @@ export const EndOfSeason: React.FC<EndOfSeasonProps> = ({
             <Typography variant="h6" sx={{ mb: 2 }}>
               {seasonLabel} Highlights
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Check the leaderboard and your profile for your season statistics!
             </Typography>
           </Paper>

@@ -48,18 +48,20 @@ const AnswerResultDialog: React.FC<AnswerResultDialogProps> = ({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 3,
-          overflow: 'hidden',
-          maxHeight: { xs: '95vh', sm: '80vh' },
-          display: 'flex',
-          flexDirection: 'column',
-          margin: { xs: '10px', sm: 'auto' },
-          width: { xs: 'calc(100% - 20px)', sm: '600px' },
+      scroll="paper"
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 3,
+            overflow: 'hidden',
+            maxHeight: { xs: '95vh', sm: '80vh' },
+            display: 'flex',
+            flexDirection: 'column',
+            margin: { xs: '10px', sm: 'auto' },
+            width: { xs: 'calc(100% - 20px)', sm: '600px' },
+          },
         },
       }}
-      scroll="paper"
     >
       {/* Header */}
       <Box
@@ -77,8 +79,10 @@ const AnswerResultDialog: React.FC<AnswerResultDialogProps> = ({
         )}
         <Typography
           variant="h6"
-          sx={{ fontSize: { xs: '1.1rem', sm: '1.4rem' } }}
-          fontWeight="bold"
+          sx={{
+            fontWeight: 'bold',
+            fontSize: { xs: '1.1rem', sm: '1.4rem' },
+          }}
         >
           {isCorrect ? appStrings.resultDialog.correct : appStrings.resultDialog.incorrect}
         </Typography>
@@ -100,7 +104,14 @@ const AnswerResultDialog: React.FC<AnswerResultDialogProps> = ({
 
             {/* Answer choices */}
             {question.choices?.length > 0 && (
-              <Box display="flex" flexDirection="column" gap={0.75} sx={{ mb: 2 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 0.75,
+                  mb: 2,
+                }}
+              >
                 {question.choices.map((choice) => {
                   const isUserChoice = choice === selected;
                   const isCorrectChoice = choice === question.answer;

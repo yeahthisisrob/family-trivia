@@ -1,6 +1,6 @@
 // File: src/components/TimelineBoard/selectors/ContentTypeSelector.tsx
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlined';
 import QuizIcon from '@mui/icons-material/Quiz';
 import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';

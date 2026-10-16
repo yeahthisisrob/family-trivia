@@ -1,10 +1,11 @@
-/// <reference types="vitest" />
-
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { playwright } from '@vitest/browser-playwright';
+// From vitest/config, not vite: since Vite 8 the `test` key is not part of
+// Vite's own config type.
+import { defineConfig } from 'vitest/config';
 
 const dirname =
   typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
@@ -45,7 +46,7 @@ export default defineConfig({
           browser: {
             enabled: true,
             headless: true,
-            provider: 'playwright',
+            provider: playwright(),
             instances: [
               {
                 browser: 'chromium',

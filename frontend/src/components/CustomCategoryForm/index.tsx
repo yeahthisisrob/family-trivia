@@ -199,7 +199,12 @@ const CustomCategoryForm: React.FC<CustomCategoryFormProps> = ({ open, onClose, 
             >
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <StarsIcon color="secondary" sx={{ mr: 1 }} />
-                <Typography variant="h6" color="secondary.main">
+                <Typography
+                  variant="h6"
+                  sx={{
+                    color: 'secondary.main',
+                  }}
+                >
                   {generatedCategory.title}
                 </Typography>
                 <Chip
@@ -210,7 +215,12 @@ const CustomCategoryForm: React.FC<CustomCategoryFormProps> = ({ open, onClose, 
                 />
               </Box>
 
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {generatedCategory.description}
               </Typography>
             </Box>

@@ -187,13 +187,26 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
               : `Season ${endOfSeasonStatus.lastSeason?.seasonNumber || ''} Has Ended`}
           </Typography>
           {endOfSeasonStatus.lastSeason && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+                mt: 0.5,
+              }}
+            >
               {endOfSeasonStatus.lastSeason.message ||
                 'Thanks for playing! A new season will begin soon.'}
             </Typography>
           )}
           {endOfSeasonStatus.nextSeasonStart && (
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+                mt: 0.5,
+                display: 'block',
+              }}
+            >
               Next season starts: {new Date(endOfSeasonStatus.nextSeasonStart).toLocaleDateString()}
             </Typography>
           )}
@@ -204,7 +217,12 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
         <TriviaTab userId={user} groupId={myGroup} onAnswerResult={handleAnswerSubmit} />
       ) : (
         <Box sx={{ textAlign: 'center', py: 4 }}>
-          <Typography variant="body1" color="text.secondary">
+          <Typography
+            variant="body1"
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Trivia questions will be available when a new season starts.
           </Typography>
           <Typography

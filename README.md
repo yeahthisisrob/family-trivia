@@ -180,7 +180,7 @@ backend/                The API: one Lambda
   services/             Business logic
 infra/                  AWS CDK stack
 shared/                 Types and the OpenAPI contract
-docs/decisions/         Why things are the way they are
+docs/decisions/         Why things are the way they are (start with 0001 and 0008)
 scripts/                Leak guard, screenshots
 ```
 

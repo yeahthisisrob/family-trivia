@@ -14,6 +14,13 @@ as they age and change.
 - **Families change.** Never assume one fixed couple, two sides, or that
   everyone is active and alive. Use the people model, not raw user lists.
 
+## How the code is written (0008)
+Clean Code (Robert C. Martin), DRY (one source of truth per fact), FSD in
+`frontend/src` (app → pages → widgets → features → entities → shared),
+VSA in `backend/` (`features/<slice>/`, no cross-slice imports),
+OpenAPI-first (`shared/schemas/api.openapi.yaml`, then `just contract`).
+Every component gets a story; a bug fix starts with a failing test.
+
 ## Toolchain (0002)
 mise pins node/pnpm/just/lefthook/gitleaks. Use `just`, never npm.
 

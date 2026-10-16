@@ -1,5 +1,5 @@
 // File: src/components/common/CommentsThread.tsx
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
 import {
@@ -234,24 +234,6 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
                 onSubmit();
               }
             }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    size="small"
-                    disabled={!text.trim() || submitting}
-                    onClick={onSubmit}
-                    sx={{ color: theme.palette.primary.main, p: 0.5 }}
-                  >
-                    {submitting ? (
-                      <LoadingDots size={3} inline />
-                    ) : (
-                      <SendIcon sx={{ fontSize: 16 }} />
-                    )}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: 3,
@@ -260,6 +242,26 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
                 bgcolor: alpha(theme.palette.action.hover, 0.04),
                 '& fieldset': { borderColor: alpha(theme.palette.divider, 0.12) },
                 '&:hover fieldset': { borderColor: alpha(theme.palette.primary.main, 0.3) },
+              },
+            }}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      disabled={!text.trim() || submitting}
+                      onClick={onSubmit}
+                      sx={{ color: theme.palette.primary.main, p: 0.5 }}
+                    >
+                      {submitting ? (
+                        <LoadingDots size={3} inline />
+                      ) : (
+                        <SendIcon sx={{ fontSize: 16 }} />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
               },
             }}
           />

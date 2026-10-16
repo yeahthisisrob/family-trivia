@@ -135,7 +135,9 @@ const AddCelebrationDialog: React.FC<AddCelebrationDialogProps> = ({
         onClose={onClose}
         maxWidth="xs"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3, overflow: 'hidden' } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3, overflow: 'hidden' } },
+        }}
       >
         {/* Header */}
         <Box

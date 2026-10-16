@@ -12,12 +12,6 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "contract": "redocly lint schemas/api.openapi.yaml --config redocly.yaml && openapi-typescript schemas/api.openapi.yaml -o generated/api-types.ts && biome format --write generated"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "2.5.15",
-    "@redocly/cli": "^2.25.1",
-    "openapi-typescript": "^7.13.0",
-    "typescript": "~5.9.3"
+    "contract": "pnpm --filter @family-trivia/openapi-codegen run contract"
   }
 }

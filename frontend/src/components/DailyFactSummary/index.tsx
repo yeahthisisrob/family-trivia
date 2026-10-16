@@ -606,8 +606,12 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
           ) : error ? (
             <Typography
               variant="body2"
-              color="text.secondary"
-              sx={{ textAlign: 'center', py: 2, fontSize: '0.8rem' }}
+              sx={{
+                color: 'text.secondary',
+                textAlign: 'center',
+                py: 2,
+                fontSize: '0.8rem',
+              }}
             >
               {error}
             </Typography>
@@ -768,10 +772,12 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
         onClose={() => setQuestionsDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            maxHeight: '80vh',
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 2,
+              maxHeight: '80vh',
+            },
           },
         }}
       >
@@ -854,8 +860,8 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
                       </Box>
                       <Typography
                         variant="body2"
-                        color="text.secondary"
                         sx={{
+                          color: 'text.secondary',
                           lineHeight: 1.6,
                           width: '100%',
                         }}

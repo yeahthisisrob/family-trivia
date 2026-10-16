@@ -21,9 +21,8 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Paths */
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["./src/*"],
       "@family-trivia/shared": ["../shared/src/index.ts"],
       "@family-trivia/shared/*": ["../shared/src/*"]
     }

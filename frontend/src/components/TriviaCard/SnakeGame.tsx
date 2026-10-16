@@ -361,7 +361,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
     syncSnapshotRef.current = syncSnapshot;
   }, [syncSnapshot]);
 
-  const gameLoopRef = useRef<(now: number) => void>();
+  const gameLoopRef = useRef<(now: number) => void | undefined>(undefined);
   useEffect(() => {
     gameLoopRef.current = (now: number) => {
       if (gameStateRef.current !== 'playing') return;

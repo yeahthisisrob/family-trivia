@@ -2,7 +2,7 @@
 // Single notification row — unread dot, avatar, message, time-ago.
 
 import type { NotificationItem as NotificationItemType } from '@family-trivia/shared';
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlined';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import PeopleIcon from '@mui/icons-material/People';
 import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded';

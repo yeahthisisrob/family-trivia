@@ -1,5 +1,5 @@
 // File: src/components/Leaderboard/LeaderboardError.tsx
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { Box, Button, Paper, Typography } from '@mui/material';
 import type React from 'react';
@@ -40,7 +40,14 @@ const LeaderboardError: React.FC<LeaderboardErrorProps> = ({ message, onRetry })
           Unable to Load Leaderboard
         </Typography>
 
-        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mb: 2 }}>
+        <Typography
+          variant="body2"
+          sx={{
+            color: 'text.secondary',
+            maxWidth: 400,
+            mb: 2,
+          }}
+        >
           {message}
         </Typography>
 

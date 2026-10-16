@@ -290,7 +290,12 @@ const PersonalQuestionsHistory: React.FC<PersonalQuestionsHistoryProps> = ({ use
             <Typography variant="h5" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
               Personal Questions Journey
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               View and answer all your past personal questions
             </Typography>
           </Box>
@@ -346,7 +351,12 @@ const PersonalQuestionsHistory: React.FC<PersonalQuestionsHistoryProps> = ({ use
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         {questions.length === 0 ? (
           <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: 'grey.50' }}>
-            <Typography variant="body1" color="text.secondary">
+            <Typography
+              variant="body1"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               No questions found in this category
             </Typography>
           </Paper>
@@ -478,7 +488,13 @@ const PersonalQuestionsHistory: React.FC<PersonalQuestionsHistoryProps> = ({ use
                       <Box>
                         {item.answered && item.answer && (
                           <Box sx={{ mb: 2 }}>
-                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            <Typography
+                              variant="subtitle2"
+                              gutterBottom
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               Your Answer:
                             </Typography>
                             <Paper
@@ -506,9 +522,13 @@ const PersonalQuestionsHistory: React.FC<PersonalQuestionsHistoryProps> = ({ use
                           <Box sx={{ mb: 2 }}>
                             <Typography
                               variant="subtitle2"
-                              color="text.secondary"
                               gutterBottom
-                              sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                              sx={{
+                                color: 'text.secondary',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 0.5,
+                              }}
                             >
                               <LightbulbIcon sx={{ fontSize: 16 }} />
                               Fun Fact:

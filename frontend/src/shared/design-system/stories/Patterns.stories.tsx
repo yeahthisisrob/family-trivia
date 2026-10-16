@@ -46,7 +46,13 @@ export const Buttons: Story = {
   render: () => (
     <Stack spacing={0} sx={{ maxWidth: 600 }}>
       <Section title="Primary action" desc="Submit answer, Save, Start game">
-        <Stack direction="row" spacing={1} flexWrap="wrap">
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            flexWrap: 'wrap',
+          }}
+        >
           <Button variant="contained" color="primary" startIcon={<SaveIcon />}>
             Save
           </Button>
@@ -57,7 +63,13 @@ export const Buttons: Story = {
       </Section>
 
       <Section title="Destructive" desc="Delete, Reset, Remove">
-        <Stack direction="row" spacing={1} flexWrap="wrap">
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            flexWrap: 'wrap',
+          }}
+        >
           <Button variant="contained" color="error" size="small" startIcon={<DeleteIcon />}>
             Delete
           </Button>
@@ -68,7 +80,13 @@ export const Buttons: Story = {
       </Section>
 
       <Section title="Secondary / ghost" desc="Cancel, Close, Back">
-        <Stack direction="row" spacing={1} flexWrap="wrap">
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            flexWrap: 'wrap',
+          }}
+        >
           <Button variant="outlined" size="small">
             Cancel
           </Button>
@@ -109,7 +127,13 @@ export const Chips: Story = {
   render: () => (
     <Stack spacing={0} sx={{ maxWidth: 600 }}>
       <Section title="Status" desc="Display a state — result, type, category">
-        <Stack direction="row" spacing={0.75} flexWrap="wrap">
+        <Stack
+          direction="row"
+          spacing={0.75}
+          sx={{
+            flexWrap: 'wrap',
+          }}
+        >
           <Chip
             label="Correct"
             color="success"

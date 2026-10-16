@@ -488,7 +488,13 @@ const MemberSpotlight: React.FC<MemberSpotlightProps> = ({
                         borderBottom: `1px solid ${alpha(accentColor, 0.08)}`,
                       }}
                     >
-                      <Typography variant="caption" fontWeight={700} color="text.secondary">
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 700,
+                          color: 'text.secondary',
+                        }}
+                      >
                         {group.name}
                       </Typography>
                     </Box>
@@ -522,11 +528,15 @@ const MemberSpotlight: React.FC<MemberSpotlightProps> = ({
                           </ListItemIcon>
                           <ListItemText
                             primary={p.name}
-                            primaryTypographyProps={{
-                              variant: 'body2',
-                              fontWeight: selected ? 700 : 400,
-                              color: selected ? accentColor : 'text.primary',
-                              fontSize: '0.8rem',
+                            slotProps={{
+                              primary: {
+                                variant: 'body2',
+                                sx: {
+                                  fontWeight: selected ? 700 : 400,
+                                  color: selected ? accentColor : 'text.primary',
+                                  fontSize: '0.8rem',
+                                },
+                              },
                             }}
                           />
                         </MenuItem>
@@ -578,7 +588,13 @@ const MemberSpotlight: React.FC<MemberSpotlightProps> = ({
             </Box>
           ) : summaryData.error ? (
             <Box sx={{ textAlign: 'center', py: 2 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                  fontSize: '0.8rem',
+                }}
+              >
                 Spotlight coming soon for {member.name}
               </Typography>
               <Typography

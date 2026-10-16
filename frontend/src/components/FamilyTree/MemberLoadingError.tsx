@@ -1,5 +1,5 @@
 // File: components/FamilyTree/MemberLoadingError.tsx
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { Box, Button, Typography } from '@mui/material';
 import type React from 'react';
@@ -33,7 +33,14 @@ const MemberLoadingError: React.FC<MemberLoadingErrorProps> = ({ message, onRetr
         Unable to Load Members
       </Typography>
 
-      <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 400, mb: 2 }}>
+      <Typography
+        variant="body1"
+        sx={{
+          color: 'text.secondary',
+          maxWidth: 400,
+          mb: 2,
+        }}
+      >
         {message}
       </Typography>
 

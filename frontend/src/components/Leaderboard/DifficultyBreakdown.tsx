@@ -26,7 +26,12 @@ const DifficultyBreakdown: React.FC<DifficultyBreakdownProps> = ({ stats }) => {
   // If there's nothing to show, bail early
   if (!stats.total) {
     return (
-      <Typography variant="body2" color="text.secondary">
+      <Typography
+        variant="body2"
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         No difficulty data yet.
       </Typography>
     );

@@ -120,7 +120,13 @@ const PlayersTab: React.FC = () => {
       ) : (
         <Grid container spacing={1}>
           {(admin.players || []).map((p) => (
-            <Grid item xs={12} sm={6} key={p.userId}>
+            <Grid
+              key={p.userId}
+              size={{
+                xs: 12,
+                sm: 6,
+              }}
+            >
               <AdminCard
                 title={p.userId}
                 badge={

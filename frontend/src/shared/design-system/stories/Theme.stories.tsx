@@ -44,9 +44,11 @@ const Swatch = ({ color, label }: { color: string; label: string }) => (
     </Typography>
     <Typography
       variant="caption"
-      display="block"
-      color="text.secondary"
-      sx={{ fontSize: '0.6rem' }}
+      sx={{
+        display: 'block',
+        color: 'text.secondary',
+        fontSize: '0.6rem',
+      }}
     >
       {color}
     </Typography>
@@ -72,7 +74,14 @@ export const Colors: Story = {
       </Typography>
 
       <Section title="Brand">
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+        <Stack
+          direction="row"
+          spacing={1}
+          useFlexGap
+          sx={{
+            flexWrap: 'wrap',
+          }}
+        >
           <Swatch color={colors.brand.primary} label="primary" />
           <Swatch color={colors.brand.primaryLight} label="primaryLight" />
           <Swatch color={colors.brand.primaryDark} label="primaryDark" />
@@ -113,7 +122,14 @@ export const Colors: Story = {
       </Section>
 
       <Section title="User Avatars">
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+        <Stack
+          direction="row"
+          spacing={1}
+          useFlexGap
+          sx={{
+            flexWrap: 'wrap',
+          }}
+        >
           {colors.user.map((c, i) => (
             <Avatar key={i} sx={{ bgcolor: c, width: 40, height: 40, fontSize: '0.75rem' }}>
               U{i + 1}
@@ -123,7 +139,14 @@ export const Colors: Story = {
       </Section>
 
       <Section title="Surfaces">
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+        <Stack
+          direction="row"
+          spacing={1}
+          useFlexGap
+          sx={{
+            flexWrap: 'wrap',
+          }}
+        >
           <Swatch color={colors.surface.default} label="default" />
           <Swatch color={colors.surface.card} label="card" />
           <Swatch color={colors.surface.header} label="header" />
@@ -164,7 +187,14 @@ export const TypographyScale: Story = {
         <Typography variant="h5" sx={{ fontWeight: 700, mb: 3 }}>
           Typography Scale (Mobile-First)
         </Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ mb: 3, display: 'block' }}>
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+            mb: 3,
+            display: 'block',
+          }}
+        >
           Optimized for 375px viewport (iPhone SE)
         </Typography>
 
@@ -176,8 +206,10 @@ export const TypographyScale: Story = {
                 <Box sx={{ minWidth: 80 }}>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
-                    sx={{ fontFamily: 'monospace' }}
+                    sx={{
+                      color: 'text.secondary',
+                      fontFamily: 'monospace',
+                    }}
                   >
                     {name}
                   </Typography>
@@ -187,7 +219,13 @@ export const TypographyScale: Story = {
                     The quick brown fox jumps over the lazy dog
                   </Typography>
                 </Box>
-                <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'text.secondary',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
                   {token.fontSize} / {token.fontWeight}
                 </Typography>
               </Box>
@@ -224,7 +262,12 @@ export const SpacingAndTouchTargets: Story = {
                   opacity: 0.6,
                 }}
               />
-              <Typography variant="caption" color="text.secondary">
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {spacing[name]}px
               </Typography>
             </Box>
@@ -233,10 +276,24 @@ export const SpacingAndTouchTargets: Story = {
       </Section>
 
       <Section title="Touch Targets (48px minimum)">
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography
+          variant="body2"
+          sx={{
+            color: 'text.secondary',
+            mb: 2,
+          }}
+        >
           All interactive elements enforce a {spacing.touchTarget}px minimum tap area for mobile.
         </Typography>
-        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
+        <Stack
+          direction="row"
+          spacing={2}
+          useFlexGap
+          sx={{
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
           <Button variant="contained" size="large">
             Button
           </Button>
@@ -275,14 +332,26 @@ export const SpacingAndTouchTargets: Story = {
               48px
             </Typography>
           </Box>
-          <Typography variant="caption" color="text.secondary">
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Minimum touch target
           </Typography>
         </Box>
       </Section>
 
       <Section title="Shadows">
-        <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+        <Stack
+          direction="row"
+          spacing={2}
+          useFlexGap
+          sx={{
+            flexWrap: 'wrap',
+          }}
+        >
           {Object.entries(shadows).map(([name, value]) => (
             <Box
               key={name}
@@ -306,7 +375,14 @@ export const SpacingAndTouchTargets: Story = {
       </Section>
 
       <Section title="Border Radius">
-        <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+        <Stack
+          direction="row"
+          spacing={2}
+          useFlexGap
+          sx={{
+            flexWrap: 'wrap',
+          }}
+        >
           {Object.entries(radii).map(([name, value]) => (
             <Box key={name} sx={{ textAlign: 'center' }}>
               <Box
@@ -322,7 +398,13 @@ export const SpacingAndTouchTargets: Story = {
               <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
                 {name}
               </Typography>
-              <Typography variant="caption" display="block" color="text.secondary">
+              <Typography
+                variant="caption"
+                sx={{
+                  display: 'block',
+                  color: 'text.secondary',
+                }}
+              >
                 {value}px
               </Typography>
             </Box>
