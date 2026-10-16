@@ -14,6 +14,6 @@ jobs:
     steps:
       # Reads conventional commits on main, keeps a release PR with the
       # CHANGELOG up to date, and tags + publishes a GitHub Release on merge.
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

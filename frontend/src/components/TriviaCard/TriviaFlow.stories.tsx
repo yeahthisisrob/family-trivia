@@ -114,7 +114,7 @@ export const CatchingUp: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText(/3 remaining/)).toBeInTheDocument();
+    await expect(await canvas.findByText(/3 questions remaining/)).toBeInTheDocument();
   },
 };
 
