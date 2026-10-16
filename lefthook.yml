@@ -10,7 +10,7 @@ pre-commit:
   jobs:
     - name: format-and-lint
       glob: '*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,css}'
-      run: mise exec -- pnpm exec biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      run: mise exec -- pnpm exec biome check --write --diagnostic-level=error --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
       stage_fixed: true
 
     - name: secrets
