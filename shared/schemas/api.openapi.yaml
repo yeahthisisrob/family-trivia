@@ -3699,6 +3699,10 @@ components:
         message:
           type: string
           nullable: true
+        trivia:
+          type: string
+          enum: [general, family, mixed]
+          description: What the trivia is about this season; general when unset
 
     EndOfSeasonStatus:
       type: object

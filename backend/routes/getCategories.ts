@@ -9,6 +9,7 @@ import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
 import { logger } from '../services/logger';
 import { getJson } from '../services/s3';
+import { seasonCategories } from '../services/seasonService';
 
 export async function getCategories(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   // Get userId from query string
@@ -21,7 +22,9 @@ export async function getCategories(event: APIGatewayProxyEvent): Promise<APIGat
   try {
     // 1. Get system categories
     const systemCategoriesPath = S3_PATHS.CATEGORIES;
-    const systemCategories = (await getJson<SystemCategory[]>(systemCategoriesPath)) || [];
+    const systemCategories = await seasonCategories(
+      (await getJson<SystemCategory[]>(systemCategoriesPath)) || [],
+    );
 
     // 2. Get user's custom categories
     const userCategoriesPath = S3_PATHS.USER_CATEGORIES(userId);

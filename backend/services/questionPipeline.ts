@@ -1,4 +1,6 @@
+import { isFamilyCategory } from '@family-trivia/shared';
 import { modelFor } from './bedrock/core/models';
+import { familyQuestion } from './familyTrivia';
 // File: lambda/services/questionPipeline.ts
 // Purpose: Multi-model question generation pipeline.
 // Generates candidates from trivia bank + Sonnet + Haiku in parallel,
@@ -32,7 +34,7 @@ interface PipelineOptions {
 
 interface PipelineResult {
   question: Question;
-  source: 'trivia-bank' | 'sonnet' | 'haiku' | 'judge-enhanced';
+  source: 'trivia-bank' | 'sonnet' | 'haiku' | 'judge-enhanced' | 'family';
   bedrockCalls: number;
   factChecked: boolean;
 }
@@ -296,6 +298,21 @@ export async function generateBestQuestion(options: PipelineOptions): Promise<Pi
 
   // Load history for dedup (cached per invocation)
   const history = (await getAllQuestionsFlat()) as Question[];
+
+  // Our Family: questions from the family's own answers and ties, checked
+  // against them rather than against world knowledge (services/familyTrivia).
+  if (isFamilyCategory(category)) {
+    const family = await familyQuestion(userId, difficulty, history);
+    if (family)
+      return {
+        question: family.question,
+        source: 'family',
+        bedrockCalls: family.calls,
+        factChecked: true,
+      };
+    logger.info('Not enough family answers yet for an Our Family question; asking a general one');
+    return generateBestQuestion({ ...options, mode: 'random', category: undefined });
+  }
 
   // Build prompt
   const parts = [...extraPromptParts];

@@ -13,6 +13,33 @@ export interface SeasonNote {
   image?: string;
 }
 
+/**
+ * What a season's trivia is about: general knowledge, the family itself
+ * (questions written from the family's own answers), or both.
+ */
+export type SeasonTrivia = 'general' | 'family' | 'mixed';
+
+export const SEASON_TRIVIA: readonly { id: SeasonTrivia; label: string; help: string }[] = [
+  {
+    id: 'general',
+    label: 'General trivia',
+    help: 'Questions from the categories, about the world.',
+  },
+  {
+    id: 'family',
+    label: 'Our family',
+    help: 'Every question is about us, written from our own answers.',
+  },
+  { id: 'mixed', label: 'Both', help: 'The categories, plus Our Family as one of them.' },
+];
+
+export const isSeasonTrivia = (v: unknown): v is SeasonTrivia =>
+  typeof v === 'string' && SEASON_TRIVIA.some((t) => t.id === v);
+
+/** Seasons from before this setting play general trivia. */
+export const seasonTriviaOf = (s: Pick<Season, 'trivia'> | null | undefined): SeasonTrivia =>
+  s?.trivia ?? 'general';
+
 export interface Season {
   seasonNumber: number;
   name: string;
@@ -24,6 +51,8 @@ export interface Season {
   /** Legacy plain-text end message; `notes.end` replaces it. */
   message: string | null;
   notes?: { start?: SeasonNote; end?: SeasonNote };
+  /** What the trivia is about this season; general when unset. */
+  trivia?: SeasonTrivia;
 }
 
 export interface SeasonsConfig {
