@@ -9,6 +9,7 @@ const SUBJECT = { userId: 'subject' } as const;
 // Admin endpoints
 import { appearanceRoutes } from './features/appearance/routes';
 import { archiveRoutes } from './features/archive/routes';
+import { backupsRoutes } from './features/backups/routes';
 import { familyRoutes } from './features/family/routes';
 import { fillInRoutes } from './features/fill-in/routes';
 import { graphRoutes } from './features/graph/routes';
@@ -156,6 +157,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...settingsRoutes,
   ...reactionsRoutes,
   ...fillInRoutes,
+  ...backupsRoutes,
 
   // ── Public (no auth) ─────────────────────────────────────────
   'POST /auth/google': authGoogle,

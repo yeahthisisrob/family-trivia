@@ -11,7 +11,7 @@ export type SettingValue = boolean | string | null;
 
 export interface SettingDefinition {
   key: string;
-  section: 'features' | 'ai';
+  section: 'features' | 'ai' | 'backups';
   type: SettingType;
   label: string;
   help: string;
@@ -49,6 +49,14 @@ export const SETTINGS: readonly SettingDefinition[] = [
     label: 'Arcade',
     help: 'Casino games and arcade high scores.',
     default: true,
+  },
+  {
+    key: 'backups.automatic',
+    section: 'backups',
+    type: 'boolean',
+    label: 'Automatic nightly backups',
+    help: 'A full copy of the family’s answers, facts, photos and games every night. Daily copies are kept 35 days; one a month is kept for good.',
+    default: false,
   },
   // One model per AI task; empty means the task's built-in default.
   ...AI_TASKS.map(

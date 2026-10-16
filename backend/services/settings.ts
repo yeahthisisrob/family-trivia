@@ -9,7 +9,7 @@ import {
   settingDefinition,
   settingProblem,
 } from '@family-trivia/shared';
-import { getJson, putJson } from '../../services/s3';
+import { getJson, putJson } from './s3';
 
 const KEY = 'config/settings.json';
 type Stored = Record<string, SettingValue>;

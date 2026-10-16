@@ -1733,6 +1733,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/backups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The last backup, the copies kept, and whether nightly backups are on (admins) */
+        get: operations["getBackups"];
+        put?: never;
+        /** Make a full, checked copy of the family's data now (admins) */
+        post: operations["makeBackup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2162,6 +2180,30 @@ export interface components {
                 /** @enum {string} */
                 depth: "shorter" | "similar" | "fuller";
             };
+        };
+        BackupRun: {
+            at: string;
+            ok: boolean;
+            /** @enum {string} */
+            trigger: "manual" | "automatic";
+            by?: string;
+            prefix?: string;
+            objects?: number;
+            bytes?: number;
+            /** @description Set when this run also made the month's kept copy */
+            monthly?: string;
+            error?: string;
+        };
+        BackupsView: {
+            last: components["schemas"]["BackupRun"] | null;
+            lastOk: components["schemas"]["BackupRun"] | null;
+            snapshots: {
+                daily: string[];
+                monthly: string[];
+            };
+            automatic: boolean;
+            /** @description False when the deployment has no backups bucket */
+            configured: boolean;
         };
     };
     responses: never;
@@ -5682,6 +5724,67 @@ export interface operations {
             };
             /** @description Not one of the family's questions */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getBackups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backup status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupsView"];
+                };
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    makeBackup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The copy that was made */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupRun"];
+                };
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The copy did not finish (the reason is in the error) */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

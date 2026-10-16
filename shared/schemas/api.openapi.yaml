@@ -3452,6 +3452,40 @@ paths:
         "404":
           description: Not one of the family's questions
 
+  # ──────────────────────────────────────────────
+  # Backups (backend/features/backups) — docs/decisions/0014
+  # ──────────────────────────────────────────────
+
+  /admin/backups:
+    get:
+      summary: The last backup, the copies kept, and whether nightly backups are on (admins)
+      operationId: getBackups
+      tags: [Admin]
+      responses:
+        "200":
+          description: Backup status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackupsView"
+        "403":
+          description: Not an admin
+    post:
+      summary: Make a full, checked copy of the family's data now (admins)
+      operationId: makeBackup
+      tags: [Admin]
+      responses:
+        "200":
+          description: The copy that was made
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackupRun"
+        "403":
+          description: Not an admin
+        "503":
+          description: The copy did not finish (the reason is in the error)
+
 components:
   schemas:
     # ──────────────────────────────────────────────
@@ -4359,3 +4393,60 @@ components:
             depth:
               type: string
               enum: [shorter, similar, fuller]
+
+    BackupRun:
+      type: object
+      required: [at, ok, trigger]
+      properties:
+        at:
+          type: string
+        ok:
+          type: boolean
+        trigger:
+          type: string
+          enum: [manual, automatic]
+        by:
+          type: string
+        prefix:
+          type: string
+        objects:
+          type: integer
+        bytes:
+          type: integer
+        monthly:
+          type: string
+          description: Set when this run also made the month's kept copy
+        error:
+          type: string
+
+    BackupsView:
+      type: object
+      required: [last, lastOk, snapshots, automatic, configured]
+      properties:
+        last:
+          type: object
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/BackupRun"
+        lastOk:
+          type: object
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/BackupRun"
+        snapshots:
+          type: object
+          required: [daily, monthly]
+          properties:
+            daily:
+              type: array
+              items:
+                type: string
+            monthly:
+              type: array
+              items:
+                type: string
+        automatic:
+          type: boolean
+        configured:
+          type: boolean
+          description: False when the deployment has no backups bucket

@@ -35,6 +35,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { type AdminSettings, settingsApi } from '../../../entities/settings';
 import { ApiError } from '../../../services/ApiService';
+import { BackupsPanel } from './BackupsPanel';
 import { AppearanceSection, ArchiveSection } from './OtherSections';
 
 const SECTIONS = [
@@ -42,6 +43,7 @@ const SECTIONS = [
   { id: 'ai', label: 'AI and cost' },
   { id: 'appearance', label: 'Appearance' },
   { id: 'archive', label: 'Archive' },
+  { id: 'backups', label: 'Backups' },
 ] as const;
 type SectionId = (typeof SECTIONS)[number]['id'];
 
@@ -143,10 +145,10 @@ export const SettingsPage: React.FC = () => {
         <Typography sx={{ color: 'text.secondary' }}>Loading settings…</Typography>
       )}
 
-      {data && section === 'features' && (
+      {data && (section === 'features' || section === 'backups') && (
         <Stack spacing={1.5}>
           {data.settings
-            .filter((s) => s.section === 'features')
+            .filter((s) => s.section === section)
             .map((s) => (
               <Paper key={s.key} variant="outlined" sx={{ p: 2 }}>
                 <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
@@ -175,6 +177,11 @@ export const SettingsPage: React.FC = () => {
       )}
       {section === 'appearance' && <AppearanceSection />}
       {section === 'archive' && <ArchiveSection />}
+      {section === 'backups' && (
+        <Box sx={{ mt: 1.5 }}>
+          <BackupsPanel />
+        </Box>
+      )}
 
       {dirty && (
         <Paper
