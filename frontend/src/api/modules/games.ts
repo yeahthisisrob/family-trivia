@@ -1,28 +1,28 @@
 // Module: games
 // Casino Rush and Slot Machine game modes
 
+import type {
+  CasinoRushResult,
+  CasinoRushSession,
+  CasinoRushStatus,
+  SlotMachineAnswerResult,
+  SlotMachineQuestion,
+  SlotMachineResult,
+  SlotMachineStatus,
+} from '@family-trivia/shared';
 import { apiService } from '../../services/ApiService';
 import { createLogger } from '../../utils/logger';
 
-import type {
-  CasinoRushSession,
-  CasinoRushResult,
-  CasinoRushStatus,
-  SlotMachineResult,
-  SlotMachineQuestion,
-  SlotMachineStatus,
-  SlotMachineAnswerResult,
-} from '@family-trivia/shared';
-
 // Casino Rush type exports
-export type { CasinoRushSession, CasinoRushResult, CasinoRushStatus } from '@family-trivia/shared';
-
 // Slot Machine type exports
 export type {
-  SlotMachineResult,
-  SlotMachineQuestion,
-  SlotMachineStatus,
+  CasinoRushResult,
+  CasinoRushSession,
+  CasinoRushStatus,
   SlotMachineAnswerResult,
+  SlotMachineQuestion,
+  SlotMachineResult,
+  SlotMachineStatus,
 } from '@family-trivia/shared';
 
 // =============================================================================
@@ -50,9 +50,7 @@ export async function startCasinoRush(
   );
 
   if (!result?.session?.currentQuestion) {
-    throw new Error(
-      'Failed to start Casino Rush - Invalid server response',
-    );
+    throw new Error('Failed to start Casino Rush - Invalid server response');
   }
 
   return result.session;
@@ -116,16 +114,16 @@ const slotLogger = createLogger('SlotMachineAPI');
 /**
  * Spin the slot machine to get a category and multiplier
  */
-export async function spinSlotMachine(userId: string, isCatchingUp = false): Promise<SlotMachineResult> {
+export async function spinSlotMachine(
+  userId: string,
+  isCatchingUp = false,
+): Promise<SlotMachineResult> {
   slotLogger.info('Spinning slot machine', { userId, isCatchingUp });
 
-  const result = await apiService.request<{ result: SlotMachineResult }>(
-    '/slot-machine/spin',
-    {
-      method: 'POST',
-      body: JSON.stringify({ userId, isCatchingUp }),
-    },
-  );
+  const result = await apiService.request<{ result: SlotMachineResult }>('/slot-machine/spin', {
+    method: 'POST',
+    body: JSON.stringify({ userId, isCatchingUp }),
+  });
 
   slotLogger.info('Spin result', {
     multiplier: result.result.multiplier,
@@ -172,13 +170,10 @@ export async function submitSlotMachineAnswer(
 ): Promise<SlotMachineAnswerResult> {
   slotLogger.info('Submitting slot machine answer', { userId });
 
-  const result = await apiService.request<SlotMachineAnswerResult>(
-    '/slot-machine/answer',
-    {
-      method: 'POST',
-      body: JSON.stringify({ userId, answer, groupId }),
-    },
-  );
+  const result = await apiService.request<SlotMachineAnswerResult>('/slot-machine/answer', {
+    method: 'POST',
+    body: JSON.stringify({ userId, answer, groupId }),
+  });
 
   slotLogger.info('Slot machine answer result', {
     correct: result.correct,
@@ -226,7 +221,6 @@ export async function getSlotMachineStatus(
     };
   }
 }
-
 
 // =============================================================================
 // Slot Machine — Arcade mode
@@ -291,12 +285,17 @@ export async function getCurlingStatus(userId: string): Promise<CurlingStatus | 
     const result = await apiService.request<CurlingStatus>(
       `/curling/status?userId=${encodeURIComponent(userId)}`,
       { method: 'GET' },
-      undefined, true, 10000,
+      undefined,
+      true,
+      10000,
     );
     return result;
   } catch (error) {
     curlingLogger.error('Error fetching curling status:', error);
-    return { canPlay: false, nextAvailable: new Date(Date.now() + 24*60*60*1000).toISOString() };
+    return {
+      canPlay: false,
+      nextAvailable: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    };
   }
 }
 
@@ -309,12 +308,18 @@ export async function lockCurling(
 ): Promise<CurlingLockResult> {
   curlingLogger.info('Locking curling throw', { userId, multiplier, isCatchingUp, precisionScore });
   // Server generates a question via Bedrock — needs a long timeout (45s)
-  const result = await apiService.request<CurlingLockResult>('/curling/lock', {
-    method: 'POST',
-    body: JSON.stringify({ userId, multiplier, isCatchingUp, precisionScore }),
-  }, undefined, true, 45000);
+  const result = await apiService.request<CurlingLockResult>(
+    '/curling/lock',
+    {
+      method: 'POST',
+      body: JSON.stringify({ userId, multiplier, isCatchingUp, precisionScore }),
+    },
+    undefined,
+    true,
+    45000,
+  );
   // ApiService swallows errors and returns {} — validate the shape ourselves.
-  if (!result || !result.question || !Array.isArray(result.question.choices)) {
+  if (!result?.question || !Array.isArray(result.question.choices)) {
     curlingLogger.error('Curling lock returned empty/invalid response', { result });
     throw new Error('Could not start curling — you may have already played today');
   }
@@ -379,11 +384,16 @@ export async function getTetrisStatus(userId: string): Promise<TetrisStatus | nu
     return await apiService.request<TetrisStatus>(
       `/tetris/status?userId=${encodeURIComponent(userId)}`,
       { method: 'GET' },
-      undefined, true, 10000,
+      undefined,
+      true,
+      10000,
     );
   } catch (error) {
     tetrisLogger.error('Error fetching tetris status:', error);
-    return { canPlay: false, nextAvailable: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() };
+    return {
+      canPlay: false,
+      nextAvailable: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    };
   }
 }
 
@@ -395,11 +405,17 @@ export async function lockTetris(
   isCatchingUp = false,
 ): Promise<TetrisLockResult> {
   tetrisLogger.info('Locking tetris score', { userId, score, multiplier, isCatchingUp });
-  const result = await apiService.request<TetrisLockResult>('/tetris/lock', {
-    method: 'POST',
-    body: JSON.stringify({ userId, score, multiplier, isCatchingUp }),
-  }, undefined, true, 45000);
-  if (!result || !result.question || !Array.isArray(result.question.choices)) {
+  const result = await apiService.request<TetrisLockResult>(
+    '/tetris/lock',
+    {
+      method: 'POST',
+      body: JSON.stringify({ userId, score, multiplier, isCatchingUp }),
+    },
+    undefined,
+    true,
+    45000,
+  );
+  if (!result?.question || !Array.isArray(result.question.choices)) {
     tetrisLogger.error('Tetris lock returned empty/invalid response', { result });
     throw new Error('Could not start tetris — you may have already played today');
   }

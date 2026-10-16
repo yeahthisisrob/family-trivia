@@ -1,12 +1,23 @@
 {
   "name": "@family-trivia/shared",
-  "version": "1.0.0",
-  "description": "Shared types for family trivia frontend and backend",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "watch": "tsc --watch"
+  "version": "0.1.0",
+  "private": true,
+  "description": "Types and the OpenAPI contract shared by the web app and the API",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./generated": "./generated/index.ts"
   },
-  "license": "MIT"
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "contract": "redocly lint schemas/api.openapi.yaml --config redocly.yaml && openapi-typescript schemas/api.openapi.yaml -o generated/api-types.ts && biome format --write generated"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "@redocly/cli": "^2.25.1",
+    "openapi-typescript": "^7.13.0",
+    "typescript": "~5.9.3"
+  }
 }

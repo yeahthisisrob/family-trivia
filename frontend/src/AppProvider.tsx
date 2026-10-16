@@ -2,7 +2,8 @@
 // Top-level provider — gates data contexts behind auth so no API calls
 // fire until the user has a JWT from Google OAuth.
 
-import React, { useState, useEffect, useCallback } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import App from './App';
 import { LoginScreen } from './components/AppShell';
@@ -13,7 +14,7 @@ import { TriviaProvider } from './contexts/TriviaContext';
 import { UserStatusProvider } from './contexts/UserStatusContext';
 import { apiService } from './services/ApiService';
 import { loadSession, saveSession } from './session';
-import { LogLevel, createLogger } from './utils/logger';
+import { createLogger, LogLevel } from './utils/logger';
 
 const logger = createLogger('AppProvider');
 
@@ -25,11 +26,13 @@ const AppProvider: React.FC = () => {
 
   // Load Google Client ID from config.json (deployed by CDK stack)
   useEffect(() => {
-    loadConfig().then(cfg => {
-      setGoogleClientId(cfg.REACT_APP_GOOGLE_CLIENT_ID || '');
-    }).catch(() => {
-      logger.error('Failed to load config for Google Client ID');
-    });
+    loadConfig()
+      .then((cfg) => {
+        setGoogleClientId(cfg.REACT_APP_GOOGLE_CLIENT_ID || '');
+      })
+      .catch(() => {
+        logger.error('Failed to load config for Google Client ID');
+      });
   }, []);
 
   useEffect(() => {
@@ -66,12 +69,7 @@ const AppProvider: React.FC = () => {
     if (!googleClientId) {
       return null; // Brief flash while config.json loads
     }
-    return (
-      <LoginScreen
-        googleClientId={googleClientId}
-        onActivate={handleLoginActivate}
-      />
-    );
+    return <LoginScreen googleClientId={googleClientId} onActivate={handleLoginActivate} />;
   }
 
   // ── Post-auth: mount all providers + the app. ──

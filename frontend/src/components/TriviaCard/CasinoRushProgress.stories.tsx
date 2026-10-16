@@ -1,7 +1,7 @@
-import CasinoRushProgress from './CasinoRushProgress';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import type { ProgressMessage } from '../../api/modules/trivia';
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import CasinoRushProgress from './CasinoRushProgress';
 
 const now = Date.now();
 const sampleMessages: ProgressMessage[] = [

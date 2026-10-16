@@ -1,6 +1,5 @@
-import TodayResult from './TodayResult';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import TodayResult from './TodayResult';
 
 const sampleQuestion = {
   question: 'Which planet has the most moons in our solar system?',

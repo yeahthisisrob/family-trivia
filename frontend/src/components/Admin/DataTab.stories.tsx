@@ -1,9 +1,7 @@
-import { http, HttpResponse } from 'msw';
-
-import DataTab from './DataTab';
-import { AdminStoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { HttpResponse, http } from 'msw';
+import { AdminStoryProviders } from '../../test/storyContexts';
+import DataTab from './DataTab';
 
 const API = '/api';
 
@@ -20,11 +18,13 @@ const meta: Meta<typeof DataTab> = {
       ],
     },
   },
-  decorators: [(Story, ctx) => (
-    <AdminStoryProviders admin={ctx.parameters.admin}>
-      <Story />
-    </AdminStoryProviders>
-  )],
+  decorators: [
+    (Story, ctx) => (
+      <AdminStoryProviders admin={ctx.parameters.admin}>
+        <Story />
+      </AdminStoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof DataTab>;
@@ -32,9 +32,7 @@ type Story = StoryObj<typeof DataTab>;
 export const Default: Story = {
   parameters: {
     admin: {
-      players: [
-        { userId: 'alice', name: 'Alice', groupId: 'parents', isAdmin: false },
-      ],
+      players: [{ userId: 'alice', name: 'Alice', groupId: 'parents', isAdmin: false }],
     },
   },
 };

@@ -1,5 +1,6 @@
 import { Box, Typography } from '@mui/material';
-import React, { useState, useEffect, useMemo } from 'react';
+import type React from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useTimeline } from '../../contexts/TimelineContext';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
@@ -8,7 +9,9 @@ import { getUserColor, getUserInitials } from '../../utils';
 import { createLogger } from '../../utils/logger';
 import CommentsTimeline from '../TimelineBoard/CommentsTimeline';
 import FactTimeline from '../TimelineBoard/FactTimeline';
-import ContentTypeSelector, { ContentType } from '../TimelineBoard/selectors/ContentTypeSelector';
+import ContentTypeSelector, {
+  type ContentType,
+} from '../TimelineBoard/selectors/ContentTypeSelector';
 import TriviaTimeline from '../TimelineBoard/TriviaTimeline';
 import { LoadingDots } from '../ui/feedback';
 
@@ -72,15 +75,18 @@ const UserTimeline: React.FC<UserTimelineProps> = ({ userId, onUserClick, refres
         }));
 
       const triviaWithComments = filteredTimelineData.trivia
-        .filter((trivia) => (commentCounts.get(`trivia:${trivia.userId}_${trivia.timestamp}`) ?? 0) > 0)
+        .filter(
+          (trivia) => (commentCounts.get(`trivia:${trivia.userId}_${trivia.timestamp}`) ?? 0) > 0,
+        )
         .map((trivia) => ({
           ...trivia,
           type: 'trivia' as const,
           commentCount: commentCounts.get(`trivia:${trivia.userId}_${trivia.timestamp}`) ?? 0,
         }));
 
-      const mergedItems = [...factsWithComments, ...triviaWithComments]
-        .sort((a, b) => b.commentCount - a.commentCount);
+      const mergedItems = [...factsWithComments, ...triviaWithComments].sort(
+        (a, b) => b.commentCount - a.commentCount,
+      );
 
       return {
         facts: [],
@@ -149,67 +155,61 @@ const UserTimeline: React.FC<UserTimelineProps> = ({ userId, onUserClick, refres
       {isLoading && <LoadingDots mt={4} />}
 
       {/* Facts Timeline */}
-      {!isLoading && contentType === 'funFacts' && (
-        <>
-          {filteredTimelineData.facts.length > 0 ? (
-            <FactTimeline
-              facts={filteredTimelineData.facts}
-              onUserClick={onUserClick}
-              currentUserId={userId}
-              selectedSide="all"
-            />
-          ) : (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="body1" color="text.secondary">
-                No facts to display
-              </Typography>
-            </Box>
-          )}
-        </>
-      )}
+      {!isLoading &&
+        contentType === 'funFacts' &&
+        (filteredTimelineData.facts.length > 0 ? (
+          <FactTimeline
+            facts={filteredTimelineData.facts}
+            onUserClick={onUserClick}
+            currentUserId={userId}
+            selectedSide="all"
+          />
+        ) : (
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="body1" color="text.secondary">
+              No facts to display
+            </Typography>
+          </Box>
+        ))}
 
       {/* Trivia Timeline */}
-      {!isLoading && contentType === 'triviaHistory' && (
-        <>
-          {filteredTimelineData.trivia.length > 0 ? (
-            <TriviaTimeline
-              refreshKey={refreshKey}
-              onUserClick={onUserClick}
-              currentUserId={userId}
-              selectedSide="all"
-              setIsLoading={setIsLoading}
-              timelineData={filteredTimelineData}
-            />
-          ) : (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="body1" color="text.secondary">
-                No trivia history to display
-              </Typography>
-            </Box>
-          )}
-        </>
-      )}
+      {!isLoading &&
+        contentType === 'triviaHistory' &&
+        (filteredTimelineData.trivia.length > 0 ? (
+          <TriviaTimeline
+            refreshKey={refreshKey}
+            onUserClick={onUserClick}
+            currentUserId={userId}
+            selectedSide="all"
+            setIsLoading={setIsLoading}
+            timelineData={filteredTimelineData}
+          />
+        ) : (
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="body1" color="text.secondary">
+              No trivia history to display
+            </Typography>
+          </Box>
+        ))}
 
       {/* Comments Timeline */}
-      {!isLoading && contentType === 'comments' && (
-        <>
-          {filteredData.merged.length > 0 ? (
-            <CommentsTimeline
-              mergedItems={filteredData.merged}
-              onUserClick={onUserClick}
-              currentUserId={userId}
-              getUserColor={getUserColor}
-              getUserInitials={getUserInitials}
-            />
-          ) : (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="body1" color="text.secondary">
-                No comments to display
-              </Typography>
-            </Box>
-          )}
-        </>
-      )}
+      {!isLoading &&
+        contentType === 'comments' &&
+        (filteredData.merged.length > 0 ? (
+          <CommentsTimeline
+            mergedItems={filteredData.merged}
+            onUserClick={onUserClick}
+            currentUserId={userId}
+            getUserColor={getUserColor}
+            getUserInitials={getUserInitials}
+          />
+        ) : (
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="body1" color="text.secondary">
+              No comments to display
+            </Typography>
+          </Box>
+        ))}
 
       {/* Infinite scroll sentinel (disabled for user view) */}
       {!isLoading && hasMore && contentType !== 'comments' && (

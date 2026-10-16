@@ -11,12 +11,13 @@
  * After answering, call refreshUserStatus() to re-fetch from backend.
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import type React from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import * as api from '../api';
-import { useFamilyData } from './FamilyDataContext';
 import { cacheService } from '../services/CacheService';
 import { createLogger } from '../utils/logger';
+import { useFamilyData } from './FamilyDataContext';
 
 const logger = createLogger('UserStatusContext');
 
@@ -79,13 +80,16 @@ export const UserStatusProvider: React.FC<{
 
   // Backend-fetched overrides (set after refreshUserStatus or fallback)
   const [fetchedAvailability, setFetchedAvailability] = useState<{
-    canAnswer: boolean; todayET: string;
+    canAnswer: boolean;
+    todayET: string;
   } | null>(null);
   const [fetchedCatchup, setFetchedCatchup] = useState<CatchupStatus | null>(null);
 
   // Session state (in-memory, local to this page load)
   const [todayResult, setTodayResult] = useState<{
-    correct: boolean; streak: number; pointsEarned?: number;
+    correct: boolean;
+    streak: number;
+    pointsEarned?: number;
   } | null>(null);
   const [lastQuestion, setLastQuestion] = useState<Question | null>(null);
   const [lastAnswer, setLastAnswer] = useState<string | null>(null);
@@ -95,12 +99,15 @@ export const UserStatusProvider: React.FC<{
   // ── Derived state (no effects, no refs, no timing issues) ──────
 
   // Availability: fetched override > init data > defaults
-  const availability = useMemo(() =>
-    fetchedAvailability ?? (
-      appInitComplete && initQuestionAvailability
-        ? { canAnswer: initQuestionAvailability.canAnswer, todayET: initQuestionAvailability.todayET }
-        : null
-    ),
+  const availability = useMemo(
+    () =>
+      fetchedAvailability ??
+      (appInitComplete && initQuestionAvailability
+        ? {
+            canAnswer: initQuestionAvailability.canAnswer,
+            todayET: initQuestionAvailability.todayET,
+          }
+        : null),
     [fetchedAvailability, appInitComplete, initQuestionAvailability],
   );
 
@@ -175,9 +182,10 @@ export const UserStatusProvider: React.FC<{
 
       // Background refresh catchup from backend
       if (userId) {
-        api.getCatchupStatus(userId)
-          .then(status => setFetchedCatchup(status))
-          .catch(err => logger.error('Error refreshing catchup after answer:', err));
+        api
+          .getCatchupStatus(userId)
+          .then((status) => setFetchedCatchup(status))
+          .catch((err) => logger.error('Error refreshing catchup after answer:', err));
       }
     },
     [userId],
@@ -191,9 +199,12 @@ export const UserStatusProvider: React.FC<{
 
     // Re-fetch from backend
     if (userId && authValid) {
-      api.canAnswerQuestion(userId)
-        .then(avail => setFetchedAvailability({ canAnswer: avail.canAnswer, todayET: avail.todayET }))
-        .catch(err => logger.error('Error refreshing after clear:', err));
+      api
+        .canAnswerQuestion(userId)
+        .then((avail) =>
+          setFetchedAvailability({ canAnswer: avail.canAnswer, todayET: avail.todayET }),
+        )
+        .catch((err) => logger.error('Error refreshing after clear:', err));
     }
   }, [userId, authValid]);
 
@@ -207,26 +218,39 @@ export const UserStatusProvider: React.FC<{
 
   // ── Context value ──────────────────────────────────────────────
 
-  const value = useMemo<UserStatusContextType>(() => ({
-    loading,
-    hasAnsweredToday,
-    canAnswerQuestion,
-    catchupStatus,
-    todayET,
-    todayResult,
-    lastQuestion,
-    lastAnswer,
-    loadingCatchup: loading,
-    refreshUserStatus,
-    clearTodayResult,
-    updateCatchupStatus,
-    setAnswerResult,
-    shouldShowQuestionStatus,
-  }), [
-    loading, hasAnsweredToday, canAnswerQuestion, catchupStatus, todayET,
-    todayResult, lastQuestion, lastAnswer,
-    refreshUserStatus, clearTodayResult, updateCatchupStatus, setAnswerResult, shouldShowQuestionStatus,
-  ]);
+  const value = useMemo<UserStatusContextType>(
+    () => ({
+      loading,
+      hasAnsweredToday,
+      canAnswerQuestion,
+      catchupStatus,
+      todayET,
+      todayResult,
+      lastQuestion,
+      lastAnswer,
+      loadingCatchup: loading,
+      refreshUserStatus,
+      clearTodayResult,
+      updateCatchupStatus,
+      setAnswerResult,
+      shouldShowQuestionStatus,
+    }),
+    [
+      loading,
+      hasAnsweredToday,
+      canAnswerQuestion,
+      catchupStatus,
+      todayET,
+      todayResult,
+      lastQuestion,
+      lastAnswer,
+      refreshUserStatus,
+      clearTodayResult,
+      updateCatchupStatus,
+      setAnswerResult,
+      shouldShowQuestionStatus,
+    ],
+  );
 
   return <UserStatusContext.Provider value={value}>{children}</UserStatusContext.Provider>;
 };

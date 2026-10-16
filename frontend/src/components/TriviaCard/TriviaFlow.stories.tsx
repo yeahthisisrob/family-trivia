@@ -1,10 +1,7 @@
-import React from 'react';
-import { expect, within } from 'storybook/test';
-
-import TriviaFlow from './TriviaFlow';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, within } from 'storybook/test';
+import { StoryProviders } from '../../test/storyContexts';
+import TriviaFlow from './TriviaFlow';
 
 // Mock last-answered question for done state
 const mockHistory = {
@@ -191,7 +188,8 @@ export const GenerationFlow: Story = {
     userStatus: { hasAnsweredToday: false, canAnswerQuestion: true },
     docs: {
       description: {
-        story: 'Select a category and difficulty to see the 3-step pipeline with real progress messages. ' +
+        story:
+          'Select a category and difficulty to see the 3-step pipeline with real progress messages. ' +
           'MSW intercepts API calls and returns mock data with realistic delays.',
       },
     },

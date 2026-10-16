@@ -1,17 +1,18 @@
-import PlayersTab from './PlayersTab';
-import { AdminStoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { AdminStoryProviders } from '../../test/storyContexts';
+import PlayersTab from './PlayersTab';
 
 const meta: Meta<typeof PlayersTab> = {
   title: 'Admin/PlayersTab',
   component: PlayersTab,
   parameters: { layout: 'padded' },
-  decorators: [(Story, ctx) => (
-    <AdminStoryProviders admin={ctx.parameters.admin}>
-      <Story />
-    </AdminStoryProviders>
-  )],
+  decorators: [
+    (Story, ctx) => (
+      <AdminStoryProviders admin={ctx.parameters.admin}>
+        <Story />
+      </AdminStoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof PlayersTab>;

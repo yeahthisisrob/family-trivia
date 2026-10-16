@@ -1,9 +1,7 @@
-import { fn } from 'storybook/test';
-
-import TriviaTimeline from './TriviaTimeline';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import { StoryProviders } from '../../test/storyContexts';
+import TriviaTimeline from './TriviaTimeline';
 
 const meta: Meta<typeof TriviaTimeline> = {
   title: 'TimelineBoard/TriviaTimeline',
@@ -14,7 +12,13 @@ const meta: Meta<typeof TriviaTimeline> = {
     onUserClick: fn(),
     selectedSide: 'all',
   },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof TriviaTimeline>;

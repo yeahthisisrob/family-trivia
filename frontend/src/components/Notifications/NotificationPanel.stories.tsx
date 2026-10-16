@@ -1,10 +1,8 @@
-import { Box, Button } from '@mui/material';
-import React, { useRef } from 'react';
-
-import NotificationPanel from './NotificationPanel';
-
 import type { NotificationItem } from '@family-trivia/shared';
+import { Box, Button } from '@mui/material';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import React, { useRef } from 'react';
+import NotificationPanel from './NotificationPanel';
 
 const mockItems: NotificationItem[] = [
   {
@@ -58,7 +56,9 @@ const PanelWrapper: React.FC<{ items: NotificationItem[] }> = ({ items }) => {
   const [open, setOpen] = React.useState(true);
   return (
     <Box>
-      <Button ref={ref} onClick={() => setOpen(true)}>Open Panel</Button>
+      <Button ref={ref} onClick={() => setOpen(true)}>
+        Open Panel
+      </Button>
       <NotificationPanel
         anchorEl={ref.current}
         open={open}
@@ -92,5 +92,5 @@ export const WithLeaderChange: Story = {
 };
 
 export const AllRead: Story = {
-  render: () => <PanelWrapper items={mockItems.map(i => ({ ...i, read: true }))} />,
+  render: () => <PanelWrapper items={mockItems.map((i) => ({ ...i, read: true }))} />,
 };

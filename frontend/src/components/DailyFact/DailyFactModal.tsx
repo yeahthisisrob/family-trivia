@@ -7,23 +7,31 @@
  */
 
 import CloseIcon from '@mui/icons-material/Close';
-import { Dialog, IconButton, Box } from '@mui/material';
-import React, { useState, useEffect, useCallback } from 'react';
-
-import DailyFactCard from './DailyFactCard';
+import { Box, Dialog, IconButton } from '@mui/material';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { shouldShowDailyFact } from '../../api/modules/facts';
 import { createLogger } from '../../utils/logger';
+import DailyFactCard from './DailyFactCard';
 
 const logger = createLogger('DailyFactModal');
 
 const DISMISS_KEY = 'dailyFactModalDismissed';
 
 function isDismissed(): boolean {
-  try { return window.sessionStorage.getItem(DISMISS_KEY) === '1'; } catch { return false; }
+  try {
+    return window.sessionStorage.getItem(DISMISS_KEY) === '1';
+  } catch {
+    return false;
+  }
 }
 
 function markDismissed(): void {
-  try { window.sessionStorage.setItem(DISMISS_KEY, '1'); } catch { /* ok */ }
+  try {
+    window.sessionStorage.setItem(DISMISS_KEY, '1');
+  } catch {
+    /* ok */
+  }
 }
 
 interface DailyFactModalProps {
@@ -33,7 +41,11 @@ interface DailyFactModalProps {
   onDismissed: () => void;
 }
 
-const DailyFactModal: React.FC<DailyFactModalProps> = ({ userId, onFactSubmitted, onDismissed }) => {
+const DailyFactModal: React.FC<DailyFactModalProps> = ({
+  userId,
+  onFactSubmitted,
+  onDismissed,
+}) => {
   const alreadyDismissed = isDismissed();
   const [open, setOpen] = useState(false);
   const [checked, setChecked] = useState(alreadyDismissed);
@@ -68,7 +80,10 @@ const DailyFactModal: React.FC<DailyFactModalProps> = ({ userId, onFactSubmitted
       }
     }, 800);
 
-    return () => { cancelled = true; clearTimeout(timer); };
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [userId, onDismissed]);
 
   const handleClose = useCallback(() => {

@@ -2,12 +2,9 @@
 // Useful for checking card-to-card rhythm, spacing, and the color accent flow.
 
 import { Box, Stack, Typography } from '@mui/material';
-import React from 'react';
-
-import HistoryCard from './HistoryCard';
-import { StubTimelineProvider } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { StubTimelineProvider } from '../../test/storyContexts';
+import HistoryCard from './HistoryCard';
 
 const meta: Meta = {
   title: 'Trivia/Flow/CarouselPreview',
@@ -23,7 +20,9 @@ const meta: Meta = {
   decorators: [
     (Story) => (
       <StubTimelineProvider>
-        <div style={{ maxWidth: 400 }}><Story /></div>
+        <div style={{ maxWidth: 400 }}>
+          <Story />
+        </div>
       </StubTimelineProvider>
     ),
   ],

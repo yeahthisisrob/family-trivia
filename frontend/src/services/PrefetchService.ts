@@ -1,5 +1,5 @@
-import { apiService } from './ApiService';
 import { createLogger } from '../utils/logger';
+import { apiService } from './ApiService';
 
 const logger = createLogger('PrefetchService');
 

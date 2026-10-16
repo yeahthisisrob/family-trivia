@@ -1,9 +1,7 @@
-import { fn } from 'storybook/test';
-
-import PlayerCard from './PlayerCard';
-
-import type { LeaderboardEntry } from './utils';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import PlayerCard from './PlayerCard';
+import type { LeaderboardEntry } from './utils';
 
 const alice: LeaderboardEntry = {
   userId: 'alice',

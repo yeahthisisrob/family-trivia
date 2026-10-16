@@ -1,9 +1,7 @@
-import { fn } from 'storybook/test';
-
-import FactTimelineCard from './FactTimelineCard';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import { StoryProviders } from '../../test/storyContexts';
+import FactTimelineCard from './FactTimelineCard';
 
 const entry = {
   userId: 'alice',
@@ -21,7 +19,13 @@ const meta: Meta<typeof FactTimelineCard> = {
   component: FactTimelineCard,
   parameters: { layout: 'padded' },
   args: { entry, onUserClick: fn() },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof FactTimelineCard>;

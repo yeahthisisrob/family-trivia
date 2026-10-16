@@ -1,13 +1,13 @@
 // components/Leaderboard/GroupRankings.tsx
-import { Box, Typography, Divider } from '@mui/material';
+import { Box, Divider, Typography } from '@mui/material';
 import { motion } from 'framer-motion';
-import React, { useMemo } from 'react';
-
-import GroupCard from './GroupCard';
-import Podium from './Podium';
-import { LeaderboardEntry, GroupScore, calculateAdjustedGroupAverage } from './utils';
+import type React from 'react';
+import { useMemo } from 'react';
 import { getUserGroup } from '../../utils';
 import { createLogger } from '../../utils/logger';
+import GroupCard from './GroupCard';
+import Podium from './Podium';
+import { calculateAdjustedGroupAverage, type GroupScore, type LeaderboardEntry } from './utils';
 
 const logger = createLogger('GroupRankings');
 
@@ -37,7 +37,7 @@ const GroupRankings: React.FC<GroupRankingsProps> = ({
 
     // Filter out invalid/incomplete group data
     const validGroups = groups.filter(
-      (g) => g && g.groupId && typeof g.memberCount === 'number' && g.memberCount > 0,
+      (g) => g?.groupId && typeof g.memberCount === 'number' && g.memberCount > 0,
     );
 
     logger.debug('Processing groups', {

@@ -1,23 +1,22 @@
 // Module: init
 // Consolidated app initialization API — split into critical + deferred.
 
-import { apiService } from '../../services/ApiService';
-import { cacheService } from '../../services/CacheService';
-
-import type { FamilyFeudResults } from './familyFeud';
 import type {
-  UserConfigResponse,
-  FamilyHierarchy,
+  CatchupStatus,
+  CustomCategory,
   EndOfSeasonStatus,
+  FamilyHierarchy,
   FamilySideConfig,
   MemberStatus,
   PaginationInfo,
-  CatchupStatus,
   SystemCategory,
-  CustomCategory,
   TimelineFactEntry,
   TimelineTriviaEntry,
+  UserConfigResponse,
 } from '@family-trivia/shared';
+import { apiService } from '../../services/ApiService';
+import { cacheService } from '../../services/CacheService';
+import type { FamilyFeudResults } from './familyFeud';
 
 export interface GroupDescriptionData {
   description: string;
@@ -103,26 +102,33 @@ export async function getAppInit(userId?: string): Promise<AppInitResponse> {
   const query = params.toString();
   const url = `/app-init${query ? `?${query}` : ''}`;
 
-  return apiService.request<AppInitResponse>(url, {
-    method: 'GET',
-    headers: { 'Cache-Control': 'no-cache' },
-  },
-  undefined,
-  true,
-  15000, // Faster timeout — critical path is lighter now
+  return apiService.request<AppInitResponse>(
+    url,
+    {
+      method: 'GET',
+      headers: { 'Cache-Control': 'no-cache' },
+    },
+    undefined,
+    true,
+    15000, // Faster timeout — critical path is lighter now
   );
 }
 
-export async function getAppInitDeferred(userId: string, side = 'all'): Promise<AppInitDeferredResponse> {
+export async function getAppInitDeferred(
+  userId: string,
+  side = 'all',
+): Promise<AppInitDeferredResponse> {
   const params = new URLSearchParams({ userId });
   if (side !== 'all') params.append('side', side);
 
-  return apiService.request<AppInitDeferredResponse>(`/app-init-deferred?${params}`, {
-    method: 'GET',
-    headers: { 'Cache-Control': 'no-cache' },
-  },
-  undefined,
-  true,
-  30000,
+  return apiService.request<AppInitDeferredResponse>(
+    `/app-init-deferred?${params}`,
+    {
+      method: 'GET',
+      headers: { 'Cache-Control': 'no-cache' },
+    },
+    undefined,
+    true,
+    30000,
   );
 }

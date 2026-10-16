@@ -3,30 +3,22 @@ import BoltIcon from '@mui/icons-material/Bolt';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import GroupIcon from '@mui/icons-material/Group';
-import {
-  Card,
-  Box,
-  Typography,
-  Avatar,
-  useTheme,
-  IconButton,
-  Collapse,
-} from '@mui/material';
+import { Avatar, Box, Card, Collapse, IconButton, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React, { useState, useMemo } from 'react';
-
-import CategoryChip from './CategoryChip';
-import DifficultyBreakdown, { DifficultyStats } from './DifficultyBreakdown';
-import {
-  LeaderboardEntry,
-  GroupScore,
-  PointBreakdown,
-  calculateCategoryScores,
-  getCategoryData,
-  calculateAdjustedGroupAverage,
-} from './utils';
+import type React from 'react';
+import { useMemo, useState } from 'react';
 import { colors as dsColors } from '../../shared/design-system/tokens/colors';
 import { getUserColor, getUserInitials } from '../../utils';
+import CategoryChip from './CategoryChip';
+import DifficultyBreakdown, { type DifficultyStats } from './DifficultyBreakdown';
+import {
+  calculateAdjustedGroupAverage,
+  calculateCategoryScores,
+  type GroupScore,
+  getCategoryData,
+  type LeaderboardEntry,
+  type PointBreakdown,
+} from './utils';
 
 interface GroupCardProps {
   group: GroupScore;
@@ -59,7 +51,13 @@ const GroupCard: React.FC<GroupCardProps> = ({
   );
 
   const rankColor =
-    rank === 1 ? dsColors.medal.gold : rank === 2 ? dsColors.medal.silver : rank === 3 ? dsColors.medal.bronze : undefined;
+    rank === 1
+      ? dsColors.medal.gold
+      : rank === 2
+        ? dsColors.medal.silver
+        : rank === 3
+          ? dsColors.medal.bronze
+          : undefined;
 
   const aggregatedStats = useMemo(() => {
     if (group.difficultyStats) return group.difficultyStats as DifficultyStats;
@@ -94,60 +92,92 @@ const GroupCard: React.FC<GroupCardProps> = ({
         },
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', p: { xs: 1.25, sm: 1.5 }, gap: { xs: 1.25, sm: 1.5 } }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          p: { xs: 1.25, sm: 1.5 },
+          gap: { xs: 1.25, sm: 1.5 },
+        }}
+      >
         {/* Rank */}
-        <Typography sx={{
-          fontWeight: 800,
-          fontSize: rank <= 3 ? '1.1rem' : '0.85rem',
-          minWidth: 24,
-          textAlign: 'center',
-          color: rankColor || theme.palette.text.disabled,
-          ...(rank <= 3 && rankColor && {
-            textShadow: `0 1px 3px ${alpha(rankColor, 0.4)}`,
-          }),
-        }}>
+        <Typography
+          sx={{
+            fontWeight: 800,
+            fontSize: rank <= 3 ? '1.1rem' : '0.85rem',
+            minWidth: 24,
+            textAlign: 'center',
+            color: rankColor || theme.palette.text.disabled,
+            ...(rank <= 3 &&
+              rankColor && {
+                textShadow: `0 1px 3px ${alpha(rankColor, 0.4)}`,
+              }),
+          }}
+        >
           {rank}
         </Typography>
 
         {/* Group avatar */}
-        <Avatar sx={{
-          width: { xs: 42, sm: 48 },
-          height: { xs: 42, sm: 48 },
-          bgcolor: theme.palette.primary.main,
-          ...(rank <= 3 && rankColor && {
-            border: `2px solid ${rankColor}`,
-            boxShadow: `0 2px 8px ${alpha(rankColor, 0.3)}`,
-          }),
-        }}>
+        <Avatar
+          sx={{
+            width: { xs: 42, sm: 48 },
+            height: { xs: 42, sm: 48 },
+            bgcolor: theme.palette.primary.main,
+            ...(rank <= 3 &&
+              rankColor && {
+                border: `2px solid ${rankColor}`,
+                boxShadow: `0 2px 8px ${alpha(rankColor, 0.3)}`,
+              }),
+          }}
+        >
           <GroupIcon sx={{ fontSize: { xs: 22, sm: 26 } }} />
         </Avatar>
 
         {/* Name + stats */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 700, fontSize: { xs: '0.9rem', sm: '0.95rem' }, lineHeight: 1.2 }} noWrap>
+          <Typography
+            sx={{ fontWeight: 700, fontSize: { xs: '0.9rem', sm: '0.95rem' }, lineHeight: 1.2 }}
+            noWrap
+          >
             {group.groupId}
           </Typography>
 
           {groupDesc && (
-            <Typography sx={{
-              fontSize: '0.65rem', color: theme.palette.text.secondary,
-              lineHeight: 1.3, mt: 0.15,
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>
+            <Typography
+              sx={{
+                fontSize: '0.65rem',
+                color: theme.palette.text.secondary,
+                lineHeight: 1.3,
+                mt: 0.15,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               {groupDesc.description}
             </Typography>
           )}
 
           {/* Score + members + accuracy */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25 }}>
-            <Typography sx={{
-              fontWeight: 800,
-              fontSize: { xs: '1rem', sm: '1.15rem' },
-              color: theme.palette.primary.main,
-              lineHeight: 1,
-            }}>
+            <Typography
+              sx={{
+                fontWeight: 800,
+                fontSize: { xs: '1rem', sm: '1.15rem' },
+                color: theme.palette.primary.main,
+                lineHeight: 1,
+              }}
+            >
               {adjustedAverage.toFixed(1)}
-              <Typography component="span" sx={{ fontSize: '0.55rem', fontWeight: 600, ml: 0.3, color: theme.palette.text.secondary }}>
+              <Typography
+                component="span"
+                sx={{
+                  fontSize: '0.55rem',
+                  fontWeight: 600,
+                  ml: 0.3,
+                  color: theme.palette.text.secondary,
+                }}
+              >
                 avg
               </Typography>
             </Typography>
@@ -157,12 +187,18 @@ const GroupCard: React.FC<GroupCardProps> = ({
             </Typography>
 
             {group.accuracy !== undefined && (
-              <Typography sx={{
-                fontWeight: 600, fontSize: '0.7rem',
-                color: group.accuracy >= 70 ? theme.palette.success.main
-                  : group.accuracy >= 50 ? theme.palette.warning.main
-                  : theme.palette.error.main,
-              }}>
+              <Typography
+                sx={{
+                  fontWeight: 600,
+                  fontSize: '0.7rem',
+                  color:
+                    group.accuracy >= 70
+                      ? theme.palette.success.main
+                      : group.accuracy >= 50
+                        ? theme.palette.warning.main
+                        : theme.palette.error.main,
+                }}
+              >
                 {group.accuracy}%
               </Typography>
             )}
@@ -170,7 +206,12 @@ const GroupCard: React.FC<GroupCardProps> = ({
 
           {/* Aggregated point breakdown */}
           {(() => {
-            const agg: PointBreakdown = { regularPoints: 0, gameModePoints: 0, arcadeBonusPoints: 0, familyFeudPoints: 0 };
+            const agg: PointBreakdown = {
+              regularPoints: 0,
+              gameModePoints: 0,
+              arcadeBonusPoints: 0,
+              familyFeudPoints: 0,
+            };
             for (const p of groupPlayers) {
               if (p.pointBreakdown) {
                 agg.regularPoints += p.pointBreakdown.regularPoints;
@@ -179,24 +220,39 @@ const GroupCard: React.FC<GroupCardProps> = ({
                 agg.familyFeudPoints += p.pointBreakdown.familyFeudPoints;
               }
             }
-            const total = agg.regularPoints + agg.gameModePoints + agg.arcadeBonusPoints + agg.familyFeudPoints;
+            const total =
+              agg.regularPoints + agg.gameModePoints + agg.arcadeBonusPoints + agg.familyFeudPoints;
             if (total <= 0) return null;
             const segs = [
               { key: 'r', label: 'Trivia', color: '#1976d2', value: agg.regularPoints },
               { key: 'g', label: 'Games', color: '#7b1fa2', value: agg.gameModePoints },
               { key: 'a', label: 'Arcade', color: '#f57c00', value: agg.arcadeBonusPoints },
               { key: 'f', label: 'Feud', color: '#388e3c', value: agg.familyFeudPoints },
-            ].filter(s => s.value > 0);
+            ].filter((s) => s.value > 0);
             return (
               <Box sx={{ mt: 0.5 }}>
-                <Box sx={{ display: 'flex', height: 4, borderRadius: 2, overflow: 'hidden', bgcolor: alpha(theme.palette.divider, 0.08) }}>
-                  {segs.map(s => (
-                    <Box key={s.key} sx={{ width: `${(s.value / total) * 100}%`, bgcolor: s.color, minWidth: 2 }} />
+                <Box
+                  sx={{
+                    display: 'flex',
+                    height: 4,
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    bgcolor: alpha(theme.palette.divider, 0.08),
+                  }}
+                >
+                  {segs.map((s) => (
+                    <Box
+                      key={s.key}
+                      sx={{ width: `${(s.value / total) * 100}%`, bgcolor: s.color, minWidth: 2 }}
+                    />
                   ))}
                 </Box>
                 <Box sx={{ display: 'flex', gap: 0.4, mt: 0.3, flexWrap: 'wrap' }}>
-                  {segs.map(s => (
-                    <Typography key={s.key} sx={{ fontSize: '0.5rem', fontWeight: 700, color: s.color }}>
+                  {segs.map((s) => (
+                    <Typography
+                      key={s.key}
+                      sx={{ fontSize: '0.5rem', fontWeight: 700, color: s.color }}
+                    >
                       {s.label} {s.value % 1 === 0 ? s.value : s.value.toFixed(1)}
                     </Typography>
                   ))}
@@ -212,13 +268,23 @@ const GroupCard: React.FC<GroupCardProps> = ({
           size="small"
           sx={{ color: theme.palette.text.disabled, p: 0.5 }}
         >
-          {expanded ? <ExpandLessIcon sx={{ fontSize: 18 }} /> : <ExpandMoreIcon sx={{ fontSize: 18 }} />}
+          {expanded ? (
+            <ExpandLessIcon sx={{ fontSize: 18 }} />
+          ) : (
+            <ExpandMoreIcon sx={{ fontSize: 18 }} />
+          )}
         </IconButton>
       </Box>
 
       {/* Expanded */}
       <Collapse in={expanded}>
-        <Box sx={{ px: { xs: 1.5, sm: 2 }, pb: 1.5, borderTop: `1px solid ${alpha(theme.palette.divider, 0.06)}` }}>
+        <Box
+          sx={{
+            px: { xs: 1.5, sm: 2 },
+            pb: 1.5,
+            borderTop: `1px solid ${alpha(theme.palette.divider, 0.06)}`,
+          }}
+        >
           {/* Difficulty */}
           {aggregatedStats.total > 0 && (
             <Box sx={{ mt: 1.5 }}>
@@ -229,7 +295,14 @@ const GroupCard: React.FC<GroupCardProps> = ({
           {/* Categories */}
           {categories.length > 0 && (
             <Box sx={{ mt: 1.5 }}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', mb: 0.5, color: theme.palette.text.secondary }}>
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  fontSize: '0.7rem',
+                  mb: 0.5,
+                  color: theme.palette.text.secondary,
+                }}
+              >
                 Categories
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -242,56 +315,93 @@ const GroupCard: React.FC<GroupCardProps> = ({
 
           {/* Members */}
           <Box sx={{ mt: 1.5 }}>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.7rem', mb: 0.75, color: theme.palette.text.secondary }}>
+            <Typography
+              sx={{
+                fontWeight: 700,
+                fontSize: '0.7rem',
+                mb: 0.75,
+                color: theme.palette.text.secondary,
+              }}
+            >
               Members
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              {[...groupPlayers].sort((a, b) => b.score - a.score).map((p) => (
-                <Box
-                  key={p.userId}
-                  onClick={() => onViewProfile?.(p.userId)}
-                  sx={{
-                    display: 'flex', alignItems: 'center', gap: 1,
-                    p: 0.75, borderRadius: 2,
-                    cursor: onViewProfile ? 'pointer' : 'default',
-                    transition: 'background 0.1s',
-                    '&:hover': onViewProfile ? { bgcolor: alpha(theme.palette.primary.main, 0.04) } : {},
-                  }}
-                >
-                  <Avatar sx={{
-                    width: 30, height: 30, fontSize: '0.7rem', fontWeight: 700,
-                    bgcolor: getUserColor(p.userId),
-                  }}>
-                    {getUserInitials(p.userId)}
-                  </Avatar>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', flex: 1 }} noWrap>
-                    {p.userId}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: theme.palette.primary.main }}>
-                      {typeof p.score === 'number' ? p.score.toFixed(1) : p.score}
+              {[...groupPlayers]
+                .sort((a, b) => b.score - a.score)
+                .map((p) => (
+                  <Box
+                    key={p.userId}
+                    onClick={() => onViewProfile?.(p.userId)}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      p: 0.75,
+                      borderRadius: 2,
+                      cursor: onViewProfile ? 'pointer' : 'default',
+                      transition: 'background 0.1s',
+                      '&:hover': onViewProfile
+                        ? { bgcolor: alpha(theme.palette.primary.main, 0.04) }
+                        : {},
+                    }}
+                  >
+                    <Avatar
+                      sx={{
+                        width: 30,
+                        height: 30,
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        bgcolor: getUserColor(p.userId),
+                      }}
+                    >
+                      {getUserInitials(p.userId)}
+                    </Avatar>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', flex: 1 }} noWrap>
+                      {p.userId}
                     </Typography>
-                    {p.streak > 0 && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.15 }}>
-                        <BoltIcon sx={{ fontSize: 12, color: theme.palette.warning.main }} />
-                        <Typography sx={{ fontSize: '0.6rem', fontWeight: 700, color: theme.palette.warning.dark }}>
-                          {p.streak}
-                        </Typography>
-                      </Box>
-                    )}
-                    {p.accuracy !== undefined && (
-                      <Typography sx={{
-                        fontSize: '0.6rem', fontWeight: 600,
-                        color: p.accuracy >= 70 ? theme.palette.success.main
-                          : p.accuracy >= 50 ? theme.palette.warning.main
-                          : theme.palette.error.main,
-                      }}>
-                        {p.accuracy}%
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }}>
+                      <Typography
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: '0.75rem',
+                          color: theme.palette.primary.main,
+                        }}
+                      >
+                        {typeof p.score === 'number' ? p.score.toFixed(1) : p.score}
                       </Typography>
-                    )}
+                      {p.streak > 0 && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.15 }}>
+                          <BoltIcon sx={{ fontSize: 12, color: theme.palette.warning.main }} />
+                          <Typography
+                            sx={{
+                              fontSize: '0.6rem',
+                              fontWeight: 700,
+                              color: theme.palette.warning.dark,
+                            }}
+                          >
+                            {p.streak}
+                          </Typography>
+                        </Box>
+                      )}
+                      {p.accuracy !== undefined && (
+                        <Typography
+                          sx={{
+                            fontSize: '0.6rem',
+                            fontWeight: 600,
+                            color:
+                              p.accuracy >= 70
+                                ? theme.palette.success.main
+                                : p.accuracy >= 50
+                                  ? theme.palette.warning.main
+                                  : theme.palette.error.main,
+                          }}
+                        >
+                          {p.accuracy}%
+                        </Typography>
+                      )}
+                    </Box>
                   </Box>
-                </Box>
-              ))}
+                ))}
             </Box>
           </Box>
         </Box>

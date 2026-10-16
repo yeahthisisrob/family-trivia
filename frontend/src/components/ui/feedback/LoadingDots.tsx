@@ -1,6 +1,6 @@
 import { keyframes } from '@emotion/react';
 import { Box, useTheme } from '@mui/material';
-import React from 'react';
+import type React from 'react';
 
 const wave = keyframes`
   0%, 60%, 100% {
@@ -79,11 +79,7 @@ const LoadingDots: React.FC<LoadingDotsProps> = ({
 
   if (inline || !center) return dots;
 
-  return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mt }}>
-      {dots}
-    </Box>
-  );
+  return <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mt }}>{dots}</Box>;
 };
 
 export default LoadingDots;

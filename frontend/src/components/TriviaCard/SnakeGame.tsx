@@ -4,11 +4,9 @@
 // Wrong letter = shrink. Complete words for points. Food for bonus growth.
 
 import CloseIcon from '@mui/icons-material/Close';
-import {
-  Box, Button, IconButton, Typography,
-  alpha, keyframes,
-} from '@mui/material';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { alpha, Box, Button, IconButton, keyframes, Typography } from '@mui/material';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { submitArcadeScore } from '../../api/modules/arcade';
 import { apiService } from '../../services/ApiService';
@@ -16,10 +14,9 @@ import { colors } from '../../shared/design-system/tokens/colors';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../utils/logger';
+import type { GamePadButton } from '../common/GamePad';
 import GamePad from '../common/GamePad';
 import { LoadingDots } from '../ui/feedback';
-
-import type { GamePadButton } from '../common/GamePad';
 
 const logger = createLogger('SnakeGame');
 
@@ -59,19 +56,28 @@ const OPPOSITE: Record<Direction, Direction> = {
 };
 
 // ── Types ─────────────────────────────────────────────────────────
-interface Coord { row: number; col: number; }
+interface Coord {
+  row: number;
+  col: number;
+}
 
 interface LetterCell {
   row: number;
   col: number;
   letter: string;
   isTarget: boolean; // is this the next letter to collect?
-  isDecoy: boolean;  // random decoy letter
+  isDecoy: boolean; // random decoy letter
 }
 
-interface FoodCell { row: number; col: number; }
+interface FoodCell {
+  row: number;
+  col: number;
+}
 
-interface Question { clue: string; answer: string; }
+interface Question {
+  clue: string;
+  answer: string;
+}
 
 /** Snapshot of game state for rendering. */
 interface RenderSnapshot {
@@ -203,14 +209,18 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   // Keep gameStateRef in sync
-  useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
 
   // ── Lock page scroll ──────────────────────────────────────────
   useEffect(() => {
     if (gameState === 'loading' || gameState === 'idle') return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prevOverflow; };
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
   }, [gameState]);
 
   // ── Load questions ────────────────────────────────────────────
@@ -218,10 +228,10 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
     let cancelled = false;
     (async () => {
       try {
-        const data = await apiService.request<{ questions: Question[] }>(
-          '/snake/questions',
-          { method: 'POST', body: JSON.stringify({ userId }) },
-        );
+        const data = await apiService.request<{ questions: Question[] }>('/snake/questions', {
+          method: 'POST',
+          body: JSON.stringify({ userId }),
+        });
         if (cancelled) return;
         questionsRef.current = data.questions;
         setGameState('idle');
@@ -231,7 +241,9 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
         setGameState('idle');
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [userId]);
 
   // ── Scatter letters for the current word ──────────────────────
@@ -291,10 +303,10 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
     const qi = currentWordIndexRef.current;
     const q = questionsRef.current[qi];
     setSnapshot({
-      snake: snakeRef.current.map(c => ({ ...c })),
+      snake: snakeRef.current.map((c) => ({ ...c })),
       direction: directionRef.current,
-      letters: lettersRef.current.map(l => ({ ...l })),
-      food: foodRef.current.map(f => ({ ...f })),
+      letters: lettersRef.current.map((l) => ({ ...l })),
+      food: foodRef.current.map((f) => ({ ...f })),
       score: scoreRef.current,
       currentClue: q?.clue ?? '',
       currentAnswer: q?.answer ?? '',
@@ -329,17 +341,25 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
 
   // Store in ref for game loop access
   const handleGameOverRef = useRef(handleGameOver);
-  useEffect(() => { handleGameOverRef.current = handleGameOver; }, [handleGameOver]);
+  useEffect(() => {
+    handleGameOverRef.current = handleGameOver;
+  }, [handleGameOver]);
 
   // ── Game loop ─────────────────────────────────────────────────
   const scatterLettersRef = useRef(scatterLetters);
-  useEffect(() => { scatterLettersRef.current = scatterLetters; }, [scatterLetters]);
+  useEffect(() => {
+    scatterLettersRef.current = scatterLetters;
+  }, [scatterLetters]);
 
   const ensureFoodRef = useRef(ensureFood);
-  useEffect(() => { ensureFoodRef.current = ensureFood; }, [ensureFood]);
+  useEffect(() => {
+    ensureFoodRef.current = ensureFood;
+  }, [ensureFood]);
 
   const syncSnapshotRef = useRef(syncSnapshot);
-  useEffect(() => { syncSnapshotRef.current = syncSnapshot; }, [syncSnapshot]);
+  useEffect(() => {
+    syncSnapshotRef.current = syncSnapshot;
+  }, [syncSnapshot]);
 
   const gameLoopRef = useRef<(now: number) => void>();
   useEffect(() => {
@@ -382,7 +402,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
 
       // Check letter collision
       const letterIdx = lettersRef.current.findIndex(
-        l => l.row === newHead.row && l.col === newHead.col,
+        (l) => l.row === newHead.row && l.col === newHead.col,
       );
       if (letterIdx !== -1) {
         const hitLetter = lettersRef.current[letterIdx];
@@ -403,10 +423,10 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
           if (nextExpected) {
             // Find the first non-decoy letter matching the next expected
             const nextTarget = lettersRef.current.find(
-              l => !l.isDecoy && l.letter === nextExpected && !l.isTarget,
+              (l) => !l.isDecoy && l.letter === nextExpected && !l.isTarget,
             );
             // Mark all as non-target first, then mark the correct one
-            lettersRef.current = lettersRef.current.map(l => ({
+            lettersRef.current = lettersRef.current.map((l) => ({
               ...l,
               isTarget: false,
             }));
@@ -492,7 +512,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
 
       // Check food collision
       const foodIdx = foodRef.current.findIndex(
-        f => f.row === newHead.row && f.col === newHead.col,
+        (f) => f.row === newHead.row && f.col === newHead.col,
       );
       if (foodIdx !== -1) {
         scoreRef.current += POINTS_FOOD;
@@ -526,7 +546,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
       return;
     }
 
-    snakeRef.current = [...INITIAL_SNAKE.map(c => ({ ...c }))];
+    snakeRef.current = [...INITIAL_SNAKE.map((c) => ({ ...c }))];
     directionRef.current = 'right';
     inputBufferRef.current = [];
     scoreRef.current = 0;
@@ -562,9 +582,10 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
   // and blocks the next real turn — the most likely cause of "I pressed
   // a button and nothing happened").
   const queueDirection = useCallback((newDir: Direction) => {
-    const lastDir = inputBufferRef.current.length > 0
-      ? inputBufferRef.current[inputBufferRef.current.length - 1]
-      : directionRef.current;
+    const lastDir =
+      inputBufferRef.current.length > 0
+        ? inputBufferRef.current[inputBufferRef.current.length - 1]
+        : directionRef.current;
     if (newDir === OPPOSITE[lastDir]) return;
     if (newDir === lastDir) return;
     if (inputBufferRef.current.length < 2) {
@@ -581,11 +602,20 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
 
       let newDir: Direction | null = null;
       switch (e.key) {
-        case 'ArrowUp': newDir = 'up'; break;
-        case 'ArrowDown': newDir = 'down'; break;
-        case 'ArrowLeft': newDir = 'left'; break;
-        case 'ArrowRight': newDir = 'right'; break;
-        default: return;
+        case 'ArrowUp':
+          newDir = 'up';
+          break;
+        case 'ArrowDown':
+          newDir = 'down';
+          break;
+        case 'ArrowLeft':
+          newDir = 'left';
+          break;
+        case 'ArrowRight':
+          newDir = 'right';
+          break;
+        default:
+          return;
       }
 
       e.preventDefault();
@@ -599,11 +629,21 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
   // Controls: d-pad buttons (rendered below grid) + arrow keys (useEffect above)
 
   // ── Render helpers ────────────────────────────────────────────
-  const { snake, letters, food, score, currentClue, currentAnswer, collectedCount, wordsCompleted, totalWords } = snapshot;
+  const {
+    snake,
+    letters,
+    food,
+    score,
+    currentClue,
+    currentAnswer,
+    collectedCount,
+    wordsCompleted,
+    totalWords,
+  } = snapshot;
 
   const snakeSet = new Set(snake.map(coordKey));
   const headKey2 = snake.length > 0 ? coordKey(snake[0]) : '';
-  const letterMap = new Map(letters.map(l => [coordKey(l), l]));
+  const letterMap = new Map(letters.map((l) => [coordKey(l), l]));
   const foodSet = new Set(food.map(coordKey));
 
   // Letter progress display
@@ -738,59 +778,100 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
       >
         {/* Snake body (not head) */}
         {snapshot.snake.slice(1).map((c, i) => (
-          <div key={`s${i}`} style={{
-            position: 'absolute',
-            left: c.col * CELL_SIZE, top: c.row * CELL_SIZE,
-            width: CELL_SIZE, height: CELL_SIZE,
-            backgroundColor: '#4caf50', borderRadius: 2,
-          }} />
+          <div
+            key={`s${i}`}
+            style={{
+              position: 'absolute',
+              left: c.col * CELL_SIZE,
+              top: c.row * CELL_SIZE,
+              width: CELL_SIZE,
+              height: CELL_SIZE,
+              backgroundColor: '#4caf50',
+              borderRadius: 2,
+            }}
+          />
         ))}
 
         {/* Head */}
-        {snapshot.snake[0] && (() => {
-          const h = snapshot.snake[0];
-          const d = snapshot.direction;
-          return (
-            <div key="head" style={{
-              position: 'absolute',
-              left: h.col * CELL_SIZE, top: h.row * CELL_SIZE,
-              width: CELL_SIZE, height: CELL_SIZE,
-              backgroundColor: '#2e7d32', borderRadius: 3,
-            }}>
-              <div style={{
-                position: 'absolute', width: 3, height: 3, borderRadius: '50%',
-                backgroundColor: '#fff', top: 3,
-                left: d === 'left' ? 2 : d === 'right' ? undefined : 3,
-                right: d === 'right' ? 2 : undefined,
-              }} />
-              <div style={{
-                position: 'absolute', width: 3, height: 3, borderRadius: '50%',
-                backgroundColor: '#fff', bottom: 3,
-                left: d === 'left' ? 2 : d === 'right' ? undefined : 3,
-                right: d === 'right' ? 2 : undefined,
-              }} />
-            </div>
-          );
-        })()}
+        {snapshot.snake[0] &&
+          (() => {
+            const h = snapshot.snake[0];
+            const d = snapshot.direction;
+            return (
+              <div
+                key="head"
+                style={{
+                  position: 'absolute',
+                  left: h.col * CELL_SIZE,
+                  top: h.row * CELL_SIZE,
+                  width: CELL_SIZE,
+                  height: CELL_SIZE,
+                  backgroundColor: '#2e7d32',
+                  borderRadius: 3,
+                }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    width: 3,
+                    height: 3,
+                    borderRadius: '50%',
+                    backgroundColor: '#fff',
+                    top: 3,
+                    left: d === 'left' ? 2 : d === 'right' ? undefined : 3,
+                    right: d === 'right' ? 2 : undefined,
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    width: 3,
+                    height: 3,
+                    borderRadius: '50%',
+                    backgroundColor: '#fff',
+                    bottom: 3,
+                    left: d === 'left' ? 2 : d === 'right' ? undefined : 3,
+                    right: d === 'right' ? 2 : undefined,
+                  }}
+                />
+              </div>
+            );
+          })()}
 
         {/* Letters (target / decoy / neutral) */}
         {snapshot.letters.map((lc, i) => {
           const isTarget = lc.isTarget;
-          const bg = isTarget ? 'rgba(255,235,59,0.9)'
-            : lc.isDecoy ? 'rgba(244,67,54,0.3)' : 'rgba(158,158,158,0.3)';
+          const bg = isTarget
+            ? 'rgba(255,235,59,0.9)'
+            : lc.isDecoy
+              ? 'rgba(244,67,54,0.3)'
+              : 'rgba(158,158,158,0.3)';
           return (
-            <div key={`l${i}`} style={{
-              position: 'absolute',
-              left: lc.col * CELL_SIZE, top: lc.row * CELL_SIZE,
-              width: CELL_SIZE, height: CELL_SIZE,
-              backgroundColor: bg, borderRadius: 2,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              animation: isTarget ? `${pulse} 1s ease-in-out infinite` : undefined,
-            }}>
-              <span style={{
-                fontSize: CELL_SIZE - 4, fontWeight: 800, fontFamily: 'monospace',
-                lineHeight: 1, color: isTarget ? '#000' : lc.isDecoy ? '#f44336' : '#ccc',
-              }}>
+            <div
+              key={`l${i}`}
+              style={{
+                position: 'absolute',
+                left: lc.col * CELL_SIZE,
+                top: lc.row * CELL_SIZE,
+                width: CELL_SIZE,
+                height: CELL_SIZE,
+                backgroundColor: bg,
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                animation: isTarget ? `${pulse} 1s ease-in-out infinite` : undefined,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: CELL_SIZE - 4,
+                  fontWeight: 800,
+                  fontFamily: 'monospace',
+                  lineHeight: 1,
+                  color: isTarget ? '#000' : lc.isDecoy ? '#f44336' : '#ccc',
+                }}
+              >
                 {lc.letter}
               </span>
             </div>
@@ -803,13 +884,21 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
           if (snakeSet.has(key)) return null;
           if (letterMap.has(key)) return null;
           return (
-            <div key={`f${i}`} style={{
-              position: 'absolute',
-              left: f.col * CELL_SIZE, top: f.row * CELL_SIZE,
-              width: CELL_SIZE, height: CELL_SIZE,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: CELL_SIZE - 3, lineHeight: 1,
-            }}>
+            <div
+              key={`f${i}`}
+              style={{
+                position: 'absolute',
+                left: f.col * CELL_SIZE,
+                top: f.row * CELL_SIZE,
+                width: CELL_SIZE,
+                height: CELL_SIZE,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: CELL_SIZE - 3,
+                lineHeight: 1,
+              }}
+            >
               🍎
             </div>
           );
@@ -882,7 +971,14 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
           >
             {errorMsg ? (
               <>
-                <Typography sx={{ color: colors.result.incorrect, fontSize: '0.85rem', textAlign: 'center', px: 2 }}>
+                <Typography
+                  sx={{
+                    color: colors.result.incorrect,
+                    fontSize: '0.85rem',
+                    textAlign: 'center',
+                    px: 2,
+                  }}
+                >
                   {errorMsg}
                 </Typography>
                 <Button
@@ -1041,12 +1137,14 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
           <GamePad
             layout="dpad"
             accentColor="#1b5e20"
-            buttons={[
-              { id: 'up', label: '▲', onPress: () => queueDirection('up') },
-              { id: 'left', label: '◄', onPress: () => queueDirection('left') },
-              { id: 'right', label: '►', onPress: () => queueDirection('right') },
-              { id: 'down', label: '▼', onPress: () => queueDirection('down') },
-            ] satisfies GamePadButton[]}
+            buttons={
+              [
+                { id: 'up', label: '▲', onPress: () => queueDirection('up') },
+                { id: 'left', label: '◄', onPress: () => queueDirection('left') },
+                { id: 'right', label: '►', onPress: () => queueDirection('right') },
+                { id: 'down', label: '▼', onPress: () => queueDirection('down') },
+              ] satisfies GamePadButton[]
+            }
           />
         </Box>
       )}

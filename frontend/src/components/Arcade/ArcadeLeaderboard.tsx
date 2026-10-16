@@ -1,17 +1,15 @@
 // File: src/components/Arcade/ArcadeLeaderboard.tsx
 // Reusable high score list — shows rank, avatar, name, score, date, mode badge.
 
+import type { HighScoreEntry } from '@family-trivia/shared';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import StarIcon from '@mui/icons-material/Star';
 import { Avatar, Box, Chip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { formatDistance } from 'date-fns';
-import React from 'react';
-
+import type React from 'react';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { getUserColor, getUserInitials } from '../../utils';
-
-import type { HighScoreEntry } from '@family-trivia/shared';
 
 interface Props {
   scores: HighScoreEntry[];
@@ -75,48 +73,60 @@ const ArcadeLeaderboard: React.FC<Props> = ({
               {rank <= 3 ? (
                 <EmojiEventsIcon sx={{ fontSize: 18, color: MEDAL_COLORS[rank - 1] }} />
               ) : (
-                <Typography sx={{
-                  fontSize: '0.7rem', fontWeight: 600,
-                  color: theme.palette.text.disabled,
-                }}>
+                <Typography
+                  sx={{
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
+                    color: theme.palette.text.disabled,
+                  }}
+                >
                   {rank}
                 </Typography>
               )}
             </Box>
 
             {/* Avatar */}
-            <Avatar sx={{
-              width: 26, height: 26, fontSize: '0.55rem', fontWeight: 700,
-              bgcolor: getUserColor(entry.userId),
-            }}>
+            <Avatar
+              sx={{
+                width: 26,
+                height: 26,
+                fontSize: '0.55rem',
+                fontWeight: 700,
+                bgcolor: getUserColor(entry.userId),
+              }}
+            >
               {getUserInitials(entry.userId)}
             </Avatar>
 
             {/* Name + mode */}
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Typography sx={{
-                  fontSize: '0.75rem',
-                  fontWeight: isCurrentUser ? 700 : 500,
-                  color: theme.palette.text.primary,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}>
+                <Typography
+                  sx={{
+                    fontSize: '0.75rem',
+                    fontWeight: isCurrentUser ? 700 : 500,
+                    color: theme.palette.text.primary,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
                   {entry.userId}
                 </Typography>
-                {isNewRecord && (
-                  <StarIcon sx={{ fontSize: 14, color: colors.medal.gold }} />
-                )}
+                {isNewRecord && <StarIcon sx={{ fontSize: 14, color: colors.medal.gold }} />}
               </Box>
-              <Typography sx={{
-                fontSize: '0.58rem',
-                color: theme.palette.text.disabled,
-              }}>
+              <Typography
+                sx={{
+                  fontSize: '0.58rem',
+                  color: theme.palette.text.disabled,
+                }}
+              >
                 {(() => {
                   try {
                     return formatDistance(new Date(entry.date), new Date(), { addSuffix: true });
-                  } catch { return ''; }
+                  } catch {
+                    return '';
+                  }
                 })()}
                 {' · '}
                 {entry.mode === 'arcade' ? 'Arcade' : 'Trivia'}
@@ -131,12 +141,9 @@ const ArcadeLeaderboard: React.FC<Props> = ({
                 height: 22,
                 fontWeight: 700,
                 fontSize: '0.7rem',
-                bgcolor: rank === 1
-                  ? alpha(colors.medal.gold, 0.15)
-                  : alpha(theme.palette.divider, 0.08),
-                color: rank === 1
-                  ? '#B8860B'
-                  : theme.palette.text.primary,
+                bgcolor:
+                  rank === 1 ? alpha(colors.medal.gold, 0.15) : alpha(theme.palette.divider, 0.08),
+                color: rank === 1 ? '#B8860B' : theme.palette.text.primary,
               }}
             />
           </Box>

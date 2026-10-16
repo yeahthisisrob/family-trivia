@@ -1,19 +1,27 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-
+import type {
+  CatchupStatus,
+  CustomCategory,
+  EndOfSeasonStatus,
+  FamilySideConfig,
+  PaginationInfo,
+  SystemCategory,
+  TimelineFactEntry,
+  TimelineTriviaEntry,
+} from '@family-trivia/shared';
+import type React from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import * as api from '../api';
-import { FamilyHierarchy as ApiFamilyHierarchy } from '../api/modules/family';
-import { getAppInit, getAppInitDeferred, AppInitResponse } from '../api/modules/init';
-import { UserConfigResponse } from '../api/modules/user';
+import type { FamilyHierarchy as ApiFamilyHierarchy } from '../api/modules/family';
+import type {
+  FamilyFeudInitData,
+  GameModeStatus,
+  InitQuestionAvailability,
+} from '../api/modules/init';
+import { type AppInitResponse, getAppInit, getAppInitDeferred } from '../api/modules/init';
+import type { UserConfigResponse } from '../api/modules/user';
 import { cacheService } from '../services/CacheService';
 import { colors } from '../shared/design-system/tokens/colors';
 import { createLogger } from '../utils/logger';
-
-import type { InitQuestionAvailability, GameModeStatus, FamilyFeudInitData } from '../api/modules/init';
-import type {
-  EndOfSeasonStatus, PaginationInfo, CatchupStatus,
-  TimelineFactEntry, TimelineTriviaEntry, FamilySideConfig,
-  SystemCategory, CustomCategory,
-} from '@family-trivia/shared';
 
 // Types
 interface FamilyMember {
@@ -56,7 +64,12 @@ interface FamilyDataContextType {
   initQuestionAvailability: InitQuestionAvailability | null;
   initCategories: SystemCategory[] | null;
   initUserCategories: CustomCategory[] | null;
-  initGameStatuses: { casinoRush: GameModeStatus; slotMachine: GameModeStatus; curling?: { canPlay: boolean; nextAvailable: string | null }; tetris?: { canPlay: boolean; nextAvailable: string | null } } | null;
+  initGameStatuses: {
+    casinoRush: GameModeStatus;
+    slotMachine: GameModeStatus;
+    curling?: { canPlay: boolean; nextAvailable: string | null };
+    tetris?: { canPlay: boolean; nextAvailable: string | null };
+  } | null;
   initFamilyFeud: FamilyFeudInitData | null;
 
   // Methods
@@ -104,7 +117,10 @@ function buildMembers(
 }
 
 // Provider component
-export const FamilyDataProvider: React.FC<{ children: React.ReactNode; userId?: string | null }> = ({ children, userId: userIdProp }) => {
+export const FamilyDataProvider: React.FC<{
+  children: React.ReactNode;
+  userId?: string | null;
+}> = ({ children, userId: userIdProp }) => {
   // State
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [appInitLoading, setAppInitLoading] = useState(true);
@@ -118,10 +134,15 @@ export const FamilyDataProvider: React.FC<{ children: React.ReactNode; userId?: 
   // Init data for other contexts
   const [initTimelineData, setInitTimelineData] = useState<InitTimelineData | null>(null);
   const [initCatchupStatus, setInitCatchupStatus] = useState<CatchupStatus | null>(null);
-  const [initQuestionAvailability, setInitInitQuestionAvailability] = useState<InitQuestionAvailability | null>(null);
+  const [initQuestionAvailability, setInitInitQuestionAvailability] =
+    useState<InitQuestionAvailability | null>(null);
   const [initCategories, setInitCategories] = useState<SystemCategory[] | null>(null);
   const [initUserCategories, setInitUserCategories] = useState<CustomCategory[] | null>(null);
-  const [initGameStatuses, setInitGameStatuses] = useState<{ casinoRush: GameModeStatus; slotMachine: GameModeStatus; curling?: { canPlay: boolean; nextAvailable: string | null } } | null>(null);
+  const [initGameStatuses, setInitGameStatuses] = useState<{
+    casinoRush: GameModeStatus;
+    slotMachine: GameModeStatus;
+    curling?: { canPlay: boolean; nextAvailable: string | null };
+  } | null>(null);
   const [initFamilyFeud, setInitFamilyFeud] = useState<FamilyFeudInitData | null>(null);
 
   // Refs for tracking loading state
@@ -161,138 +182,141 @@ export const FamilyDataProvider: React.FC<{ children: React.ReactNode; userId?: 
   }, []);
 
   // Load critical data via /app-init
-  const loadAllMembers = useCallback(async (forceRefresh = false) => {
-    // Skip if already loading and not forcing refresh
-    if (loadingRef.current && !forceRefresh) {
-      logger.debug('Member load already in progress, skipping duplicate call');
-      return;
-    }
-
-    // Limit retry attempts
-    if (attemptsRef.current >= 2 && !forceRefresh) {
-      setAppInitLoading(false);
-      return;
-    }
-
-    loadingRef.current = true;
-    setAppInitLoading(true);
-
-    try {
-      setLoadError(null);
-
-      if (forceRefresh) api.clearApiCache();
-      attemptsRef.current++;
-
-      // CRITICAL init — fast, blocks first paint
-      const initData: AppInitResponse = await getAppInit(userIdProp || undefined);
-
-      // --- Season status ---
-      if (initData.seasonStatus) {
-        setSeasonStatus(initData.seasonStatus);
-        logger.info('Season status loaded', {
-          isEndOfSeason: initData.seasonStatus.isEndOfSeason,
-          isBetweenSeasons: initData.seasonStatus.isBetweenSeasons,
-        });
-      }
-      // --- First run detection ---
-      if (initData.isFirstRun) {
-        setIsFirstRun(true);
-      }
-
-      // --- User config ---
-      const userConfig = initData.userConfig || null;
-      if (userConfig) {
-        logger.info('User configuration loaded successfully');
-        // Store in cache for useApp.ts to read myGroup/isAdmin
-        cacheService.set('user-config', userConfig);
-      }
-
-      // --- Hierarchy ---
-      let hierarchy: ApiFamilyHierarchy | null = null;
-      if (initData.hierarchy?.hierarchy) {
-        const rawHierarchy = initData.hierarchy.hierarchy;
-        if ('version' in rawHierarchy && 'family' in rawHierarchy) {
-          hierarchy = rawHierarchy as ApiFamilyHierarchy;
-        }
-      }
-
-      if (!hierarchy) {
-        logger.warn('No hierarchy data in app-init response');
-        setLoadError('No family members found. Please try refreshing the page.');
+  const loadAllMembers = useCallback(
+    async (forceRefresh = false) => {
+      // Skip if already loading and not forcing refresh
+      if (loadingRef.current && !forceRefresh) {
+        logger.debug('Member load already in progress, skipping duplicate call');
         return;
       }
 
-      setHierarchyData(hierarchy);
-      cacheService.set('family_hierarchy', hierarchy);
-
-      const familyData = hierarchy.family as unknown as { sides?: Record<string, unknown> };
-      if (familyData.sides) {
-        logger.info('Family sides loaded:', Object.keys(familyData.sides));
-      }
-
-      // --- Build members ---
-      const familyMembers = buildMembers(hierarchy, userConfig);
-
-      if (familyMembers.length === 0) {
-        logger.warn('No family data found in hierarchy response');
-        setLoadError('No family members found. Please try refreshing the page.');
+      // Limit retry attempts
+      if (attemptsRef.current >= 2 && !forceRefresh) {
+        setAppInitLoading(false);
         return;
       }
 
-      logger.info(`Found ${familyMembers.length} members from hierarchy data`);
+      loadingRef.current = true;
+      setAppInitLoading(true);
 
-      // --- Apply activation status ---
-      const memberStatusMap = new Map<string, boolean>();
-      if (initData.memberActivation) {
-        Object.values(initData.memberActivation).forEach((statuses) => {
-          statuses.forEach((status) => {
-            memberStatusMap.set(status.userId, status.activated);
+      try {
+        setLoadError(null);
+
+        if (forceRefresh) api.clearApiCache();
+        attemptsRef.current++;
+
+        // CRITICAL init — fast, blocks first paint
+        const initData: AppInitResponse = await getAppInit(userIdProp || undefined);
+
+        // --- Season status ---
+        if (initData.seasonStatus) {
+          setSeasonStatus(initData.seasonStatus);
+          logger.info('Season status loaded', {
+            isEndOfSeason: initData.seasonStatus.isEndOfSeason,
+            isBetweenSeasons: initData.seasonStatus.isBetweenSeasons,
           });
-        });
-      }
+        }
+        // --- First run detection ---
+        if (initData.isFirstRun) {
+          setIsFirstRun(true);
+        }
 
-      const membersWithActivation = familyMembers.map((member) => ({
-        ...member,
-        activated: memberStatusMap.get(member.userId) ?? false,
-      }));
+        // --- User config ---
+        const userConfig = initData.userConfig || null;
+        if (userConfig) {
+          logger.info('User configuration loaded successfully');
+          // Store in cache for useApp.ts to read myGroup/isAdmin
+          cacheService.set('user-config', userConfig);
+        }
 
-      setMembers(membersWithActivation);
+        // --- Hierarchy ---
+        let hierarchy: ApiFamilyHierarchy | null = null;
+        if (initData.hierarchy?.hierarchy) {
+          const rawHierarchy = initData.hierarchy.hierarchy;
+          if ('version' in rawHierarchy && 'family' in rawHierarchy) {
+            hierarchy = rawHierarchy as ApiFamilyHierarchy;
+          }
+        }
 
-      // --- Critical init data ---
-      if (initData.questionAvailability) {
-        setInitInitQuestionAvailability(initData.questionAvailability);
-      }
-      if (initData.categories) {
-        setInitCategories(initData.categories);
-      }
-      if (initData.userCategories) {
-        setInitUserCategories(initData.userCategories);
-      }
+        if (!hierarchy) {
+          logger.warn('No hierarchy data in app-init response');
+          setLoadError('No family members found. Please try refreshing the page.');
+          return;
+        }
 
-      // --- Group descriptions ---
-      if (initData.groupDescriptions && Object.keys(initData.groupDescriptions).length > 0) {
-        setGroupDescriptions(initData.groupDescriptions);
-        logger.info('Group descriptions loaded from app-init');
-      }
+        setHierarchyData(hierarchy);
+        cacheService.set('family_hierarchy', hierarchy);
 
-      // Mark critical init as complete — app can render now
-      setAppInitComplete(true);
-      attemptsRef.current = 0;
+        const familyData = hierarchy.family as unknown as { sides?: Record<string, unknown> };
+        if (familyData.sides) {
+          logger.info('Family sides loaded:', Object.keys(familyData.sides));
+        }
 
-      // --- Fire deferred load in background (timeline, catchup, games, feud) ---
-      if (userIdProp) {
-        loadDeferredData(userIdProp);
+        // --- Build members ---
+        const familyMembers = buildMembers(hierarchy, userConfig);
+
+        if (familyMembers.length === 0) {
+          logger.warn('No family data found in hierarchy response');
+          setLoadError('No family members found. Please try refreshing the page.');
+          return;
+        }
+
+        logger.info(`Found ${familyMembers.length} members from hierarchy data`);
+
+        // --- Apply activation status ---
+        const memberStatusMap = new Map<string, boolean>();
+        if (initData.memberActivation) {
+          Object.values(initData.memberActivation).forEach((statuses) => {
+            statuses.forEach((status) => {
+              memberStatusMap.set(status.userId, status.activated);
+            });
+          });
+        }
+
+        const membersWithActivation = familyMembers.map((member) => ({
+          ...member,
+          activated: memberStatusMap.get(member.userId) ?? false,
+        }));
+
+        setMembers(membersWithActivation);
+
+        // --- Critical init data ---
+        if (initData.questionAvailability) {
+          setInitInitQuestionAvailability(initData.questionAvailability);
+        }
+        if (initData.categories) {
+          setInitCategories(initData.categories);
+        }
+        if (initData.userCategories) {
+          setInitUserCategories(initData.userCategories);
+        }
+
+        // --- Group descriptions ---
+        if (initData.groupDescriptions && Object.keys(initData.groupDescriptions).length > 0) {
+          setGroupDescriptions(initData.groupDescriptions);
+          logger.info('Group descriptions loaded from app-init');
+        }
+
+        // Mark critical init as complete — app can render now
+        setAppInitComplete(true);
+        attemptsRef.current = 0;
+
+        // --- Fire deferred load in background (timeline, catchup, games, feud) ---
+        if (userIdProp) {
+          loadDeferredData(userIdProp);
+        }
+      } catch (error) {
+        logger.error('Error loading app init data:', error);
+        setLoadError(
+          'An error occurred while loading family members. Please try refreshing the page.',
+        );
+      } finally {
+        setAppInitLoading(false);
+        loadingRef.current = false;
       }
-    } catch (error) {
-      logger.error('Error loading app init data:', error);
-      setLoadError(
-        'An error occurred while loading family members. Please try refreshing the page.',
-      );
-    } finally {
-      setAppInitLoading(false);
-      loadingRef.current = false;
-    }
-  }, [userIdProp, loadDeferredData]);
+    },
+    [userIdProp, loadDeferredData],
+  );
 
   // Load group descriptions (non-blocking, called after members are ready)
   const loadGroupDescriptionsFromGroups = useCallback(async (groups: string[]) => {

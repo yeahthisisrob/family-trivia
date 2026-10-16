@@ -3,9 +3,9 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import GroupsIcon from '@mui/icons-material/Groups';
 import { Avatar, Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React from 'react';
+import type React from 'react';
 
-import { FamilyHierarchy } from '../../api';
+import type { FamilyHierarchy } from '../../api';
 import { shadows } from '../../shared/design-system/tokens/shadows';
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -28,7 +28,12 @@ function sc(color: string): SideColor {
 }
 
 function initials(name: string): string {
-  return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
+  return name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 }
 
 // ── Connector: root → sides branch ───────────────────────────────────
@@ -49,7 +54,8 @@ const TBranch: React.FC<{ colors: string[] }> = ({ colors }) => {
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Box
           sx={{
-            width: '100%', height: 2,
+            width: '100%',
+            height: 2,
             background: `linear-gradient(to right, transparent 0%, ${alpha(left, 0.3)} 50%, ${alpha(left, 0.3)} 100%)`,
             borderRadius: 1,
           }}
@@ -59,7 +65,8 @@ const TBranch: React.FC<{ colors: string[] }> = ({ colors }) => {
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Box
           sx={{
-            width: '100%', height: 2,
+            width: '100%',
+            height: 2,
             background: `linear-gradient(to left, transparent 0%, ${alpha(right, 0.3)} 50%, ${alpha(right, 0.3)} 100%)`,
             borderRadius: 1,
           }}
@@ -125,7 +132,9 @@ const PersonBadge: React.FC<{
       {name}
     </Typography>
     {isCurrentUser && (
-      <Typography sx={{ fontSize: '0.5rem', color: color.main, fontWeight: 700, ml: 'auto', opacity: 0.6 }}>
+      <Typography
+        sx={{ fontSize: '0.5rem', color: color.main, fontWeight: 700, ml: 'auto', opacity: 0.6 }}
+      >
         YOU
       </Typography>
     )}
@@ -188,7 +197,17 @@ const GroupCard: React.FC<{
   currentUserId: string;
   onMemberClick: (id: string) => void;
   compact?: boolean;
-}> = ({ group, description, color, couples, singles, people, currentUserId, onMemberClick, compact }) => (
+}> = ({
+  group,
+  description,
+  color,
+  couples,
+  singles,
+  people,
+  currentUserId,
+  onMemberClick,
+  compact,
+}) => (
   <Box
     sx={{
       borderRadius: `${10}px`,
@@ -211,7 +230,14 @@ const GroupCard: React.FC<{
       }}
     >
       <GroupsIcon sx={{ color: color.main, fontSize: 14 }} />
-      <Typography sx={{ fontWeight: 600, color: color.main, fontSize: compact ? '0.68rem' : '0.73rem', flex: 1 }}>
+      <Typography
+        sx={{
+          fontWeight: 600,
+          color: color.main,
+          fontSize: compact ? '0.68rem' : '0.73rem',
+          flex: 1,
+        }}
+      >
         {group.name}
       </Typography>
     </Box>
@@ -219,7 +245,14 @@ const GroupCard: React.FC<{
     {/* Description */}
     {description && (
       <Box sx={{ px: 1, pt: 0.5 }}>
-        <Typography sx={{ fontSize: '0.62rem', color: 'text.secondary', fontStyle: 'italic', lineHeight: 1.35 }}>
+        <Typography
+          sx={{
+            fontSize: '0.62rem',
+            color: 'text.secondary',
+            fontStyle: 'italic',
+            lineHeight: 1.35,
+          }}
+        >
           &ldquo;{description}&rdquo;
         </Typography>
       </Box>
@@ -264,7 +297,16 @@ const RootNode: React.FC<{
   currentUserId: string;
   onMemberClick: (id: string) => void;
   color: SideColor;
-}> = ({ couples, singles, people, description, groupName, currentUserId, onMemberClick, color }) => (
+}> = ({
+  couples,
+  singles,
+  people,
+  description,
+  groupName,
+  currentUserId,
+  onMemberClick,
+  color,
+}) => (
   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
     <Box
       sx={{
@@ -291,7 +333,9 @@ const RootNode: React.FC<{
           {groupName}
         </Typography>
         {description && (
-          <Typography sx={{ fontSize: '0.6rem', color: 'text.secondary', fontStyle: 'italic', mt: 0.25 }}>
+          <Typography
+            sx={{ fontSize: '0.6rem', color: 'text.secondary', fontStyle: 'italic', mt: 0.25 }}
+          >
             {description}
           </Typography>
         )}
@@ -374,8 +418,7 @@ const FamilySplitView: React.FC<FamilySplitViewProps> = ({
     relationships.some(
       (r) =>
         r.type === 'partners' &&
-        ((r.partner1 === id1 && r.partner2 === id2) ||
-          (r.partner1 === id2 && r.partner2 === id1)),
+        ((r.partner1 === id1 && r.partner2 === id2) || (r.partner1 === id2 && r.partner2 === id1)),
     );
 
   const getGroupMembers = (groupId: string) => {
@@ -451,7 +494,16 @@ const FamilySplitView: React.FC<FamilySplitViewProps> = ({
             const sideName = sideData?.name || `${sideId}'s Side`;
 
             return (
-              <Box key={sideId} sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Box
+                key={sideId}
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                }}
+              >
                 {/* Side label pill */}
                 <Box
                   sx={{
@@ -465,7 +517,14 @@ const FamilySplitView: React.FC<FamilySplitViewProps> = ({
                     mb: 1,
                   }}
                 >
-                  <Typography sx={{ fontWeight: 700, color: sideColor, fontSize: '0.68rem', letterSpacing: 0.3 }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      color: sideColor,
+                      fontSize: '0.68rem',
+                      letterSpacing: 0.3,
+                    }}
+                  >
                     {sideName}
                   </Typography>
                 </Box>

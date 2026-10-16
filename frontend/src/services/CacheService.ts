@@ -27,6 +27,11 @@ export class CacheService {
   private endpointCircuitBreakers: Record<string, number> = {}; // Tracks timestamps when endpoints are circuit broken
   private cacheTTL: number;
 
+  /** Keys currently cached, optionally only those starting with a prefix. */
+  keys(prefix = ''): string[] {
+    return Object.keys(this.cache).filter((k) => k.startsWith(prefix));
+  }
+
   constructor(cacheTTL = 60000) {
     // Default 1 minute TTL
     this.cacheTTL = cacheTTL;
@@ -155,7 +160,7 @@ export class CacheService {
       if (baseEndpoint === '/group-description' && endpoint.includes('groupId=')) {
         // Extract the groupId
         const match = endpoint.match(/groupId=([^&]+)/);
-        if (match && match[1]) {
+        if (match?.[1]) {
           // Only block this request if we have a specific fatal error for this group
           const specificErrorKey = `${endpoint}_`;
           if (!this.hasFatalError(specificErrorKey)) {

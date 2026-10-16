@@ -1,16 +1,15 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import * as api from '../api';
-import { useAppReady } from './useAppReady';
-import { EndOfSeasonStatus } from '../api/modules/celebrations';
+import type { EndOfSeasonStatus } from '../api/modules/celebrations';
 import { useFamilyData } from '../contexts/FamilyDataContext';
 import { useUserStatus } from '../contexts/UserStatusContext';
 import { cacheService } from '../services/CacheService';
 import { prefetchService } from '../services/PrefetchService';
-import { loadSession, saveSession, clearSession } from '../session';
+import { clearSession, loadSession, saveSession } from '../session';
 import { createLogger } from '../utils/logger';
-
+import { useAppReady } from './useAppReady';
 
 const logger = createLogger('App');
 
@@ -40,7 +39,8 @@ export function useApp({ onUserChange, onAuthChange }: UseAppOptions) {
   const isDebug = import.meta.env.VITE_DEBUG_MODE === 'true';
 
   // Check if debug-prompt URL parameter is set (read once at init time)
-  const debugPromptFromUrl = isDebug && new URLSearchParams(window.location.search).get('debug-prompt') === 'true';
+  const debugPromptFromUrl =
+    isDebug && new URLSearchParams(window.location.search).get('debug-prompt') === 'true';
 
   // Derive profileUser from URL
   const profileUserFromUrl = useMemo(() => {
@@ -73,7 +73,6 @@ export function useApp({ onUserChange, onAuthChange }: UseAppOptions) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [debugPromptFromUrl]);
-
 
   // Handle user activation — called after Google auth or legacy passphrase
   const handleActivate = useCallback(
@@ -136,15 +135,20 @@ export function useApp({ onUserChange, onAuthChange }: UseAppOptions) {
 
       // Refresh catch-up status in the background (don't block the dialog)
       if (selectedUser) {
-        api.getCatchupStatus(selectedUser).then(updatedStatus => {
-          if (updatedStatus.questionsBehind <= 0) {
-            userStatus.updateCatchupStatus({
-              questionsBehind: 0,
-              userAnswerCount: updatedStatus.userAnswerCount,
-              maxQuestionsAvailable: updatedStatus.maxQuestionsAvailable,
-            });
-          }
-        }).catch(() => { /* non-critical */ });
+        api
+          .getCatchupStatus(selectedUser)
+          .then((updatedStatus) => {
+            if (updatedStatus.questionsBehind <= 0) {
+              userStatus.updateCatchupStatus({
+                questionsBehind: 0,
+                userAnswerCount: updatedStatus.userAnswerCount,
+                maxQuestionsAvailable: updatedStatus.maxQuestionsAvailable,
+              });
+            }
+          })
+          .catch(() => {
+            /* non-critical */
+          });
       }
     },
     [userStatus, selectedUser],
@@ -157,28 +161,40 @@ export function useApp({ onUserChange, onAuthChange }: UseAppOptions) {
   }, [userStatus]);
 
   // Navigate to a route path
-  const navigateTo = useCallback((path: string) => {
-    navigate(path);
-  }, [navigate]);
+  const navigateTo = useCallback(
+    (path: string) => {
+      navigate(path);
+    },
+    [navigate],
+  );
 
   // Navigate to profile
-  const navigateToProfile = useCallback((uid: string) => {
-    navigate(`/profile/${encodeURIComponent(uid)}`);
-  }, [navigate]);
+  const navigateToProfile = useCallback(
+    (uid: string) => {
+      navigate(`/profile/${encodeURIComponent(uid)}`);
+    },
+    [navigate],
+  );
 
   // Setter shims for backward compatibility
-  const setProfileUser = useCallback((uid: string | null) => {
-    if (uid) {
-      navigate(`/profile/${encodeURIComponent(uid)}`);
-    } else {
-      // Go back to whatever tab was active before profile
-      navigate(-1);
-    }
-  }, [navigate]);
+  const setProfileUser = useCallback(
+    (uid: string | null) => {
+      if (uid) {
+        navigate(`/profile/${encodeURIComponent(uid)}`);
+      } else {
+        // Go back to whatever tab was active before profile
+        navigate(-1);
+      }
+    },
+    [navigate],
+  );
 
-  const setTab = useCallback((path: string) => {
-    navigate(path);
-  }, [navigate]);
+  const setTab = useCallback(
+    (path: string) => {
+      navigate(path);
+    },
+    [navigate],
+  );
 
   // Get group and admin status from user config
   interface CachedUserConfig {

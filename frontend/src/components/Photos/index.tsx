@@ -29,14 +29,15 @@ import {
   Typography,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
-  getPhotoAlbums,
   addPhotoAlbum,
-  updatePhotoAlbum,
   deletePhotoAlbum,
+  getPhotoAlbums,
   type PhotoAlbum,
+  updatePhotoAlbum,
 } from '../../api/modules/photoAlbums';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
 import { colors } from '../../shared/design-system/tokens/colors';
@@ -104,7 +105,9 @@ const PhotosPage: React.FC<PhotosPageProps> = ({ userId, isAdmin = false }) => {
 
   const memberNameById = useMemo(() => {
     const map: Record<string, string> = {};
-    members.forEach(m => { map[m.userId] = m.name; });
+    members.forEach((m) => {
+      map[m.userId] = m.name;
+    });
     return map;
   }, [members]);
 
@@ -119,12 +122,14 @@ const PhotosPage: React.FC<PhotosPageProps> = ({ userId, isAdmin = false }) => {
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const filteredAlbums = useMemo(() => {
     if (!albums) return null;
     if (side === 'all') return albums;
-    return albums.filter(a => shouldIncludeInFamilySide(a.createdBy, side));
+    return albums.filter((a) => shouldIncludeInFamilySide(a.createdBy, side));
   }, [albums, side]);
 
   const openAdd = () => {
@@ -190,15 +195,24 @@ const PhotosPage: React.FC<PhotosPageProps> = ({ userId, isAdmin = false }) => {
 
   return (
     <Box>
-      <Box sx={{
-        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-        mb: 1.5, gap: 2,
-      }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          mb: 1.5,
+          gap: 2,
+        }}
+      >
         <Box>
-          <Typography sx={{
-            fontWeight: 800, fontSize: '1.4rem',
-            color: colors.text.primary, mb: 0.5,
-          }}>
+          <Typography
+            sx={{
+              fontWeight: 800,
+              fontSize: '1.4rem',
+              color: colors.text.primary,
+              mb: 0.5,
+            }}
+          >
             Family Photos
           </Typography>
           <Typography sx={{ fontSize: '0.85rem', color: colors.text.secondary }}>
@@ -210,7 +224,8 @@ const PhotosPage: React.FC<PhotosPageProps> = ({ userId, isAdmin = false }) => {
           onClick={openAdd}
           startIcon={<AddIcon />}
           sx={{
-            textTransform: 'none', fontWeight: 700,
+            textTransform: 'none',
+            fontWeight: 700,
             borderRadius: `${radii.md}px`,
             bgcolor: colors.brand.primary,
             '&:hover': { bgcolor: colors.brand.primaryDark },
@@ -224,11 +239,15 @@ const PhotosPage: React.FC<PhotosPageProps> = ({ userId, isAdmin = false }) => {
       <FamilySideSelector value={side} onChange={setSide} />
 
       {error && (
-        <Box sx={{
-          mb: 2, p: 1.5, borderRadius: `${radii.md}px`,
-          bgcolor: colors.result.incorrectBg,
-          border: `1px solid ${alpha(colors.result.incorrect, 0.25)}`,
-        }}>
+        <Box
+          sx={{
+            mb: 2,
+            p: 1.5,
+            borderRadius: `${radii.md}px`,
+            bgcolor: colors.result.incorrectBg,
+            border: `1px solid ${alpha(colors.result.incorrect, 0.25)}`,
+          }}
+        >
           <Typography sx={{ fontSize: '0.85rem', color: colors.result.incorrect }}>
             {error}
           </Typography>
@@ -237,26 +256,43 @@ const PhotosPage: React.FC<PhotosPageProps> = ({ userId, isAdmin = false }) => {
 
       {albums === null && !error && (
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-          {[0, 1, 2, 3].map(i => (
-            <Skeleton key={i} variant="rounded" height={200}
-              sx={{ borderRadius: `${radii.lg}px` }} />
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton
+              key={i}
+              variant="rounded"
+              height={200}
+              sx={{ borderRadius: `${radii.lg}px` }}
+            />
           ))}
         </Box>
       )}
 
       {filteredAlbums && filteredAlbums.length === 0 && !error && (
-        <Box sx={{
-          textAlign: 'center', py: 6, px: 2,
-          borderRadius: `${radii.lg}px`,
-          bgcolor: colors.surface.subtle,
-          border: `1px dashed ${colors.border.light}`,
-        }}>
-          <PhotoLibraryRoundedIcon sx={{
-            fontSize: 48, color: colors.text.disabled, mb: 1,
-          }} />
-          <Typography sx={{
-            fontSize: '0.95rem', fontWeight: 700, color: colors.text.primary, mb: 0.5,
-          }}>
+        <Box
+          sx={{
+            textAlign: 'center',
+            py: 6,
+            px: 2,
+            borderRadius: `${radii.lg}px`,
+            bgcolor: colors.surface.subtle,
+            border: `1px dashed ${colors.border.light}`,
+          }}
+        >
+          <PhotoLibraryRoundedIcon
+            sx={{
+              fontSize: 48,
+              color: colors.text.disabled,
+              mb: 1,
+            }}
+          />
+          <Typography
+            sx={{
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              color: colors.text.primary,
+              mb: 0.5,
+            }}
+          >
             {albums && albums.length === 0 ? 'No albums yet' : 'No albums on this side'}
           </Typography>
           <Typography sx={{ fontSize: '0.8rem', color: colors.text.secondary }}>
@@ -268,12 +304,14 @@ const PhotosPage: React.FC<PhotosPageProps> = ({ userId, isAdmin = false }) => {
       )}
 
       {filteredAlbums && filteredAlbums.length > 0 && (
-        <Box sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-          gap: 2,
-        }}>
-          {filteredAlbums.map(album => (
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+            gap: 2,
+          }}
+        >
+          {filteredAlbums.map((album) => (
             <AlbumCard
               key={album.id}
               album={album}
@@ -291,43 +329,55 @@ const PhotosPage: React.FC<PhotosPageProps> = ({ userId, isAdmin = false }) => {
         <DialogTitle sx={{ fontSize: '1rem', fontWeight: 700 }}>
           {editId ? 'Edit album' : 'Share an album'}
         </DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: '8px !important' }}>
+        <DialogContent
+          sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: '8px !important' }}
+        >
           <TextField
             label="Album name"
             value={form.name}
-            onChange={e => setForm({ ...form, name: e.target.value })}
-            fullWidth size="small" autoFocus
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            fullWidth
+            size="small"
+            autoFocus
             placeholder="Summer 2025"
           />
           <TextField
             label="Description (optional)"
             value={form.description}
-            onChange={e => setForm({ ...form, description: e.target.value })}
-            fullWidth size="small"
-            multiline minRows={2}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            fullWidth
+            size="small"
+            multiline
+            minRows={2}
             placeholder="What's in this album?"
           />
           <TextField
             label="Shared album link"
             value={form.url}
-            onChange={e => setForm({ ...form, url: e.target.value })}
-            fullWidth size="small"
+            onChange={(e) => setForm({ ...form, url: e.target.value })}
+            fullWidth
+            size="small"
             placeholder="https://photos.app.goo.gl/..."
             error={!isUrlValid}
-            helperText={isUrlValid
-              ? 'In Google Photos: open the album → Share → Create link → paste here.'
-              : 'Must start with http(s)://'}
+            helperText={
+              isUrlValid
+                ? 'In Google Photos: open the album → Share → Create link → paste here.'
+                : 'Must start with http(s)://'
+            }
           />
         </DialogContent>
         <DialogActions sx={{ px: 2, pb: 2 }}>
-          <Button onClick={() => setDialogOpen(false)} size="small" disabled={saving}>Cancel</Button>
+          <Button onClick={() => setDialogOpen(false)} size="small" disabled={saving}>
+            Cancel
+          </Button>
           <Button
             variant="contained"
             onClick={() => void handleSave()}
             size="small"
             disabled={!canSave}
             sx={{
-              textTransform: 'none', fontWeight: 700,
+              textTransform: 'none',
+              fontWeight: 700,
               bgcolor: colors.brand.primary,
               '&:hover': { bgcolor: colors.brand.primaryDark },
             }}
@@ -358,7 +408,12 @@ interface AlbumCardProps {
 }
 
 const AlbumCard: React.FC<AlbumCardProps> = ({
-  album, creatorName, canManage, currentUserId, onEdit, onDelete,
+  album,
+  creatorName,
+  canManage,
+  currentUserId,
+  onEdit,
+  onDelete,
 }) => {
   const gradient = gradientFor(album.id);
 
@@ -367,87 +422,144 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
   };
 
   // Stop the card click from firing when the user taps an inline icon button.
-  const stop = (e: React.MouseEvent) => { e.stopPropagation(); e.preventDefault(); };
+  const stop = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
 
   return (
-    <Card sx={{
-      borderRadius: `${radii.lg}px`,
-      overflow: 'hidden',
-      boxShadow: `0 4px 16px ${alpha('#000', 0.08)}`,
-      border: `1px solid ${colors.border.light}`,
-      transition: 'transform 0.15s, box-shadow 0.15s',
-      '&:hover': {
-        transform: 'translateY(-2px)',
-        boxShadow: `0 8px 24px ${alpha('#000', 0.12)}`,
-      },
-    }}>
+    <Card
+      sx={{
+        borderRadius: `${radii.lg}px`,
+        overflow: 'hidden',
+        boxShadow: `0 4px 16px ${alpha('#000', 0.08)}`,
+        border: `1px solid ${colors.border.light}`,
+        transition: 'transform 0.15s, box-shadow 0.15s',
+        '&:hover': {
+          transform: 'translateY(-2px)',
+          boxShadow: `0 8px 24px ${alpha('#000', 0.12)}`,
+        },
+      }}
+    >
       <CardActionArea onClick={handleOpen} sx={{ display: 'block' }}>
-        <Box sx={{
-          height: 110,
-          background: gradient,
-          position: 'relative',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <PhotoLibraryRoundedIcon sx={{
-            fontSize: 56, color: alpha('#fff', 0.92),
-            filter: `drop-shadow(0 2px 6px ${alpha('#000', 0.25)})`,
-          }} />
-          <Box sx={{
-            position: 'absolute', top: 8, right: 8,
-            width: 26, height: 26, borderRadius: '50%',
-            bgcolor: alpha('#000', 0.25),
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
+        <Box
+          sx={{
+            height: 110,
+            background: gradient,
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <PhotoLibraryRoundedIcon
+            sx={{
+              fontSize: 56,
+              color: alpha('#fff', 0.92),
+              filter: `drop-shadow(0 2px 6px ${alpha('#000', 0.25)})`,
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              width: 26,
+              height: 26,
+              borderRadius: '50%',
+              bgcolor: alpha('#000', 0.25),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
             <OpenInNewIcon sx={{ fontSize: 14, color: '#fff' }} />
           </Box>
         </Box>
 
         <Box sx={{ p: 1.75 }}>
-          <Typography sx={{
-            fontWeight: 700, fontSize: '1rem',
-            color: colors.text.primary, mb: 0.25,
-            lineHeight: 1.3,
-            display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}>
+          <Typography
+            sx={{
+              fontWeight: 700,
+              fontSize: '1rem',
+              color: colors.text.primary,
+              mb: 0.25,
+              lineHeight: 1.3,
+              display: '-webkit-box',
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
             {album.name}
           </Typography>
           {album.description && (
-            <Typography sx={{
-              fontSize: '0.78rem', color: colors.text.secondary,
-              lineHeight: 1.4, mb: 0.75,
-              display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}>
+            <Typography
+              sx={{
+                fontSize: '0.78rem',
+                color: colors.text.secondary,
+                lineHeight: 1.4,
+                mb: 0.75,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
               {album.description}
             </Typography>
           )}
-          <Box sx={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            gap: 1, mt: album.description ? 0 : 0.5,
-          }}>
-            <Typography sx={{
-              fontSize: '0.68rem', color: colors.text.disabled,
-              lineHeight: 1.3,
-            }}>
-              Added by <Box component="span" sx={{ fontWeight: 700, color: colors.text.secondary }}>{creatorName}</Box>
-              {' '}· {timeAgo(album.createdAt)}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1,
+              mt: album.description ? 0 : 0.5,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: '0.68rem',
+                color: colors.text.disabled,
+                lineHeight: 1.3,
+              }}
+            >
+              Added by{' '}
+              <Box component="span" sx={{ fontWeight: 700, color: colors.text.secondary }}>
+                {creatorName}
+              </Box>{' '}
+              · {timeAgo(album.createdAt)}
             </Typography>
             {canManage && (
               <Box sx={{ display: 'flex', gap: 0.25, flexShrink: 0 }} onClick={stop}>
                 <IconButton
                   size="small"
-                  onClick={(e) => { stop(e); onEdit(); }}
+                  onClick={(e) => {
+                    stop(e);
+                    onEdit();
+                  }}
                   aria-label="Edit album"
-                  sx={{ p: 0.5, color: colors.text.disabled, '&:hover': { color: colors.brand.primary } }}
+                  sx={{
+                    p: 0.5,
+                    color: colors.text.disabled,
+                    '&:hover': { color: colors.brand.primary },
+                  }}
                 >
                   <EditOutlinedIcon sx={{ fontSize: 16 }} />
                 </IconButton>
                 <IconButton
                   size="small"
-                  onClick={(e) => { stop(e); onDelete(); }}
+                  onClick={(e) => {
+                    stop(e);
+                    onDelete();
+                  }}
                   aria-label="Delete album"
-                  sx={{ p: 0.5, color: colors.text.disabled, '&:hover': { color: colors.result.incorrect } }}
+                  sx={{
+                    p: 0.5,
+                    color: colors.text.disabled,
+                    '&:hover': { color: colors.result.incorrect },
+                  }}
                 >
                   <DeleteOutlineIcon sx={{ fontSize: 16 }} />
                 </IconButton>

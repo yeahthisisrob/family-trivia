@@ -1,11 +1,9 @@
-import { http, HttpResponse } from 'msw';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { HttpResponse, http } from 'msw';
 import { fn } from 'storybook/test';
-
-import CasinoLobby from './CasinoLobby';
 import { NotificationProvider } from '../../contexts/NotificationContext';
 import { StoryProviders } from '../../test/storyContexts';
-
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import CasinoLobby from './CasinoLobby';
 
 const API = '/api';
 
@@ -14,24 +12,22 @@ const meta: Meta<typeof CasinoLobby> = {
   component: CasinoLobby,
   parameters: { layout: 'centered' },
   args: { userId: 'alice', onClose: fn() },
-  decorators: [(Story) => (
-    <StoryProviders>
-      <NotificationProvider userId="alice">
-        <Story />
-      </NotificationProvider>
-    </StoryProviders>
-  )],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <NotificationProvider userId="alice">
+          <Story />
+        </NotificationProvider>
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof CasinoLobby>;
 
 const casinoHandlers = [
-  http.get(`${API}/casino/balance`, () =>
-    HttpResponse.json({ balance: 42, floor: 35 }),
-  ),
-  http.post(`${API}/casino/balance`, () =>
-    HttpResponse.json({ balance: 42, floor: 35 }),
-  ),
+  http.get(`${API}/casino/balance`, () => HttpResponse.json({ balance: 42, floor: 35 })),
+  http.post(`${API}/casino/balance`, () => HttpResponse.json({ balance: 42, floor: 35 })),
   http.get(`${API}/arcade/leaderboard`, () =>
     HttpResponse.json({
       scores: [
@@ -41,9 +37,7 @@ const casinoHandlers = [
       ],
     }),
   ),
-  http.get(`${API}/notifications`, () =>
-    HttpResponse.json({ unreadCount: 0, items: [] }),
-  ),
+  http.get(`${API}/notifications`, () => HttpResponse.json({ unreadCount: 0, items: [] })),
 ];
 
 export const Default: Story = {
@@ -54,9 +48,7 @@ export const HighBalance: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get(`${API}/casino/balance`, () =>
-          HttpResponse.json({ balance: 128, floor: 35 }),
-        ),
+        http.get(`${API}/casino/balance`, () => HttpResponse.json({ balance: 128, floor: 35 })),
         ...casinoHandlers.slice(1),
       ],
     },

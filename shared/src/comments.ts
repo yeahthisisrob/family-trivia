@@ -47,4 +47,3 @@ export interface AddCommentResponse {
 export interface CommentCounts {
   [contentId: string]: number;
 }
-

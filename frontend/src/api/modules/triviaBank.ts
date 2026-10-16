@@ -49,8 +49,11 @@ export async function browseQuestions(
   limit = 20,
 ): Promise<{ questions: BankQuestion[]; total: number }> {
   const params = new URLSearchParams({
-    adminUserId, category, difficulty,
-    offset: String(offset), limit: String(limit),
+    adminUserId,
+    category,
+    difficulty,
+    offset: String(offset),
+    limit: String(limit),
   });
   return apiService.request<{ questions: BankQuestion[]; total: number }>(
     `/admin/trivia-bank/browse?${params}`,
@@ -77,8 +80,14 @@ export async function importQuestions(
   difficulty: string,
   count?: number,
 ): Promise<ImportResult> {
-  return apiService.request<ImportResult>('/admin/trivia-bank/import', {
-    method: 'POST',
-    body: JSON.stringify({ adminUserId, source, category, difficulty, count }),
-  }, undefined, false, 120000); // 2 min timeout for imports
+  return apiService.request<ImportResult>(
+    '/admin/trivia-bank/import',
+    {
+      method: 'POST',
+      body: JSON.stringify({ adminUserId, source, category, difficulty, count }),
+    },
+    undefined,
+    false,
+    120000,
+  ); // 2 min timeout for imports
 }

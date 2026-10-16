@@ -1,10 +1,8 @@
 import { Typography } from '@mui/material';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import React from 'react';
 import { expect, userEvent, within } from 'storybook/test';
-
 import ErrorBoundary from './ErrorBoundary';
-
-import type { Meta, StoryObj } from '@storybook/react-vite';
 
 // Functional wrapper so Storybook can infer props cleanly (React class
 // component types collide with the addon's own React types).
@@ -26,7 +24,11 @@ const meta: Meta<typeof ErrorBoundaryWrapper> = {
     },
   },
   decorators: [
-    (Story) => <div style={{ maxWidth: 480 }}><Story /></div>,
+    (Story) => (
+      <div style={{ maxWidth: 480 }}>
+        <Story />
+      </div>
+    ),
   ],
 };
 export default meta;
@@ -40,7 +42,7 @@ const BoomOnClick: React.FC = () => {
   const [crashed, setCrashed] = React.useState(false);
   if (crashed) throw new Error('User-triggered crash');
   return (
-    <button onClick={() => setCrashed(true)} data-testid="crash-btn">
+    <button type="button" onClick={() => setCrashed(true)} data-testid="crash-btn">
       Click to crash
     </button>
   );

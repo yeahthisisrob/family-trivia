@@ -1,9 +1,6 @@
-import React from 'react';
-import { expect, within } from 'storybook/test';
-
-import AnswerGridView, { AnswerGridData, GridCell } from './AnswerGridView';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, within } from 'storybook/test';
+import AnswerGridView, { type AnswerGridData, type GridCell } from './AnswerGridView';
 
 const meta: Meta<typeof AnswerGridView> = {
   title: 'Trivia/Cards/AnswerGridView',
@@ -13,7 +10,7 @@ const meta: Meta<typeof AnswerGridView> = {
     docs: {
       description: {
         component:
-          'Answer grid showing per-player question history across seasons. Cells are color-coded (green/red for correct/wrong), with amber outline for game-mode entries (Casino Rush, Slot Machine). Current-season cells are numbered above; today\'s column is highlighted in primary green.',
+          "Answer grid showing per-player question history across seasons. Cells are color-coded (green/red for correct/wrong), with amber outline for game-mode entries (Casino Rush, Slot Machine). Current-season cells are numbered above; today's column is highlighted in primary green.",
       },
     },
   },
@@ -26,7 +23,7 @@ const cell = (result: boolean | null, isGameMode = false): GridCell => ({ result
 
 const gapCells = (n: number): GridCell[] => Array.from({ length: n }, () => cell(null));
 const rightCells = (results: (boolean | 'game')[]): GridCell[] =>
-  results.map(r => r === 'game' ? cell(true, true) : cell(r));
+  results.map((r) => (r === 'game' ? cell(true, true) : cell(r)));
 
 function buildGrid(opts: {
   sStart: number;
@@ -34,11 +31,11 @@ function buildGrid(opts: {
   seasonLabel?: string;
 }): AnswerGridData {
   const { sStart, rows, seasonLabel = 'Season 1' } = opts;
-  const maxLen = Math.max(...rows.map(r => r.sessionResults.length));
+  const maxLen = Math.max(...rows.map((r) => r.sessionResults.length));
   const total = sStart + maxLen;
   const todayColumn = total - 1;
 
-  const gridRows = rows.map(r => {
+  const gridRows = rows.map((r) => {
     const activeCells: GridCell[] = [];
     // right-align: gaps on left to equalize lengths
     const gap = maxLen - r.sessionResults.length;
@@ -54,7 +51,7 @@ function buildGrid(opts: {
       userId: r.userId,
       cells,
       streak: 0,
-      answered: activeCells.filter(c => c.result !== null).length,
+      answered: activeCells.filter((c) => c.result !== null).length,
       seasonGaps: r.seasonGaps ?? 0,
     };
   });
@@ -62,9 +59,13 @@ function buildGrid(opts: {
   return {
     rows: gridRows,
     totalColumns: total,
-    seasonMarkers: sStart > 0
-      ? [{ column: 0, label: 'S0' }, { column: sStart, label: seasonLabel }]
-      : [{ column: 0, label: seasonLabel }],
+    seasonMarkers:
+      sStart > 0
+        ? [
+            { column: 0, label: 'S0' },
+            { column: sStart, label: seasonLabel },
+          ]
+        : [{ column: 0, label: seasonLabel }],
     seasonStartCol: sStart,
     todayColumn,
   };
@@ -76,9 +77,15 @@ export const Default: Story = {
     grid: buildGrid({
       sStart: 0,
       rows: [
-        { userId: 'alice', sessionResults: [true, true, false, true, true, true, 'game', true, null] },
-        { userId: 'bob',   sessionResults: [true, false, true, true, false, true, true, true, null] },
-        { userId: 'carol', sessionResults: [true, true, true, 'game', true, false, true, false, null] },
+        {
+          userId: 'alice',
+          sessionResults: [true, true, false, true, true, true, 'game', true, null],
+        },
+        { userId: 'bob', sessionResults: [true, false, true, true, false, true, true, true, null] },
+        {
+          userId: 'carol',
+          sessionResults: [true, true, true, 'game', true, false, true, false, null],
+        },
       ],
     }),
   },
@@ -98,13 +105,21 @@ export const WithCatchupGaps: Story = {
     grid: buildGrid({
       sStart: 0,
       rows: [
-        { userId: 'alice', sessionResults: [null, null, null, true, true, false, true, 'game', null], seasonGaps: 3 },
-        { userId: 'bob',   sessionResults: [true, true, true, true, true, true, true, true, null] },
+        {
+          userId: 'alice',
+          sessionResults: [null, null, null, true, true, false, true, 'game', null],
+          seasonGaps: 3,
+        },
+        { userId: 'bob', sessionResults: [true, true, true, true, true, true, true, true, null] },
       ],
     }),
   },
   parameters: {
-    docs: { description: { story: 'User has catch-up gaps — pulsing gray cells on the left of the active season.' } },
+    docs: {
+      description: {
+        story: 'User has catch-up gaps — pulsing gray cells on the left of the active season.',
+      },
+    },
   },
 };
 
@@ -115,12 +130,16 @@ export const GameModeHeavy: Story = {
       sStart: 0,
       rows: [
         { userId: 'alice', sessionResults: ['game', true, 'game', true, 'game', true, null] },
-        { userId: 'bob',   sessionResults: [true, 'game', true, 'game', true, 'game', null] },
+        { userId: 'bob', sessionResults: [true, 'game', true, 'game', true, 'game', null] },
       ],
     }),
   },
   parameters: {
-    docs: { description: { story: 'Shows the amber outline treatment on game-mode cells (Casino Rush / Slot Machine).' } },
+    docs: {
+      description: {
+        story: 'Shows the amber outline treatment on game-mode cells (Casino Rush / Slot Machine).',
+      },
+    },
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -135,13 +154,17 @@ export const MultipleSeasons: Story = {
       sStart: 8,
       rows: [
         { userId: 'alice', sessionResults: [true, true, true, false, 'game', true, null] },
-        { userId: 'bob',   sessionResults: [true, true, true, true, true, true, null] },
+        { userId: 'bob', sessionResults: [true, true, true, true, true, true, null] },
       ],
       seasonLabel: 'Season 2',
     }),
   },
   parameters: {
-    docs: { description: { story: 'Past season cells on the left (left-aligned), current season on the right.' } },
+    docs: {
+      description: {
+        story: 'Past season cells on the left (left-aligned), current season on the right.',
+      },
+    },
   },
 };
 
@@ -152,7 +175,7 @@ export const ShortSeason: Story = {
       sStart: 0,
       rows: [
         { userId: 'alice', sessionResults: [true, 'game', null] },
-        { userId: 'bob',   sessionResults: [true, true, null] },
+        { userId: 'bob', sessionResults: [true, true, null] },
       ],
     }),
   },
@@ -165,12 +188,12 @@ export const TodayHighlighted: Story = {
       sStart: 0,
       rows: [
         { userId: 'alice', sessionResults: [true, true, true, true, true, true, true, true, true] },
-        { userId: 'bob',   sessionResults: [true, true, true, true, true, true, true, true, true] },
+        { userId: 'bob', sessionResults: [true, true, true, true, true, true, true, true, true] },
       ],
     }),
   },
   parameters: {
-    docs: { description: { story: 'Today\'s column number is highlighted in primary green.' } },
+    docs: { description: { story: "Today's column number is highlighted in primary green." } },
   },
 };
 
@@ -180,9 +203,7 @@ export const NoLegend: Story = {
     showLegend: false,
     grid: buildGrid({
       sStart: 0,
-      rows: [
-        { userId: 'alice', sessionResults: [true, true, false, 'game', null] },
-      ],
+      rows: [{ userId: 'alice', sessionResults: [true, true, false, 'game', null] }],
     }),
   },
 };

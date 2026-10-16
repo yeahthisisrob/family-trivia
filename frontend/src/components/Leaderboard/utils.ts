@@ -113,7 +113,7 @@ export const calculateCategoryScores = (history: QuestionHistory[]): Record<stri
 
       if (isCustomCat) {
         // All custom categories go to a single aggregate entry
-        map['Custom'] = (map['Custom'] || 0) + pts;
+        map.Custom = (map.Custom || 0) + pts;
       } else {
         // Standard category - track normally
         map[category] = (map[category] || 0) + pts;
@@ -194,7 +194,7 @@ export const getTopCategory = (scores?: Record<string, number>): string | null =
 
   // If we found any custom categories, add the aggregate entry
   if (customScore > 0) {
-    mergedScores['Custom'] = customScore;
+    mergedScores.Custom = customScore;
   }
 
   // Now find the top category from the merged scores
@@ -238,7 +238,7 @@ export const getCategoryData = (
 
   // If we found any custom categories, add the aggregate entry
   if (customScore > 0) {
-    mergedScores['Custom'] = customScore;
+    mergedScores.Custom = customScore;
   }
 
   // Convert to array

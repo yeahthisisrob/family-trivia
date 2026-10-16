@@ -1,10 +1,7 @@
-import React from 'react';
-import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
-
-import CommentsThread from './CommentsThread';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
+import { StoryProviders } from '../../test/storyContexts';
+import CommentsThread from './CommentsThread';
 
 const getUserColor = (userId: string) => {
   const colors = ['#FF5722', '#4CAF50', '#2196F3', '#9C27B0', '#FFC107'];
@@ -13,8 +10,7 @@ const getUserColor = (userId: string) => {
   return colors[Math.abs(h) % colors.length];
 };
 
-const getUserInitials = (userId: string) =>
-  userId.slice(0, 2).toUpperCase();
+const getUserInitials = (userId: string) => userId.slice(0, 2).toUpperCase();
 
 const meta: Meta<typeof CommentsThread> = {
   title: 'Common/CommentsThread',
@@ -68,9 +64,24 @@ export const WithComments: Story = {
     timeline: {
       triviaComments: {
         'alice_2026-04-05T12:00:00Z': [
-          { id: 'c1', userId: 'bob', text: 'Nice one!', timestamp: new Date(Date.now() - 3600_000).toISOString() },
-          { id: 'c2', userId: 'carol', text: 'I got this wrong', timestamp: new Date(Date.now() - 1800_000).toISOString() },
-          { id: 'c3', userId: 'alice', text: 'Thanks!', timestamp: new Date(Date.now() - 600_000).toISOString() },
+          {
+            id: 'c1',
+            userId: 'bob',
+            text: 'Nice one!',
+            timestamp: new Date(Date.now() - 3600_000).toISOString(),
+          },
+          {
+            id: 'c2',
+            userId: 'carol',
+            text: 'I got this wrong',
+            timestamp: new Date(Date.now() - 1800_000).toISOString(),
+          },
+          {
+            id: 'c3',
+            userId: 'alice',
+            text: 'Thanks!',
+            timestamp: new Date(Date.now() - 600_000).toISOString(),
+          },
         ],
       },
     },
@@ -86,9 +97,26 @@ export const WithReplies: Story = {
     timeline: {
       triviaComments: {
         'bob_2026-04-05T14:00:00Z': [
-          { id: 'c1', userId: 'alice', text: 'Tricky question.', timestamp: new Date(Date.now() - 7200_000).toISOString() },
-          { id: 'c2', userId: 'bob', text: 'Right? Took me forever.', timestamp: new Date(Date.now() - 3600_000).toISOString(), parentId: 'c1' },
-          { id: 'c3', userId: 'carol', text: 'I had no idea either', timestamp: new Date(Date.now() - 1800_000).toISOString(), parentId: 'c1' },
+          {
+            id: 'c1',
+            userId: 'alice',
+            text: 'Tricky question.',
+            timestamp: new Date(Date.now() - 7200_000).toISOString(),
+          },
+          {
+            id: 'c2',
+            userId: 'bob',
+            text: 'Right? Took me forever.',
+            timestamp: new Date(Date.now() - 3600_000).toISOString(),
+            parentId: 'c1',
+          },
+          {
+            id: 'c3',
+            userId: 'carol',
+            text: 'I had no idea either',
+            timestamp: new Date(Date.now() - 1800_000).toISOString(),
+            parentId: 'c1',
+          },
         ],
       },
     },

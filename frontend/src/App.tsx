@@ -13,7 +13,7 @@ import TriviaTab from './components/TriviaCard';
 import UpcomingDates from './components/UpcomingDates';
 import { LeaderboardProvider } from './contexts/LeaderboardContext';
 import { NotificationProvider } from './contexts/NotificationContext';
-import { useApp, ROUTES } from './hooks/useApp';
+import { ROUTES, useApp } from './hooks/useApp';
 import { createLogger } from './utils/logger';
 
 // Lazy-loaded: these chunks are deferred until the route is first visited
@@ -41,11 +41,18 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
   // "Skip for now" on the inline card hides it for the rest of the session.
   const INLINE_DISMISS_KEY = 'dailyFactInlineDismissed';
   const [factInlineDismissed, setFactInlineDismissed] = React.useState(() => {
-    try { return window.sessionStorage.getItem(INLINE_DISMISS_KEY) === '1'; }
-    catch { return false; }
+    try {
+      return window.sessionStorage.getItem(INLINE_DISMISS_KEY) === '1';
+    } catch {
+      return false;
+    }
   });
   const dismissInlineFact = React.useCallback(() => {
-    try { window.sessionStorage.setItem(INLINE_DISMISS_KEY, '1'); } catch { /* ok */ }
+    try {
+      window.sessionStorage.setItem(INLINE_DISMISS_KEY, '1');
+    } catch {
+      /* ok */
+    }
     setFactInlineDismissed(true);
   }, []);
 
@@ -181,7 +188,8 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
           </Typography>
           {endOfSeasonStatus.lastSeason && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {endOfSeasonStatus.lastSeason.message || 'Thanks for playing! A new season will begin soon.'}
+              {endOfSeasonStatus.lastSeason.message ||
+                'Thanks for playing! A new season will begin soon.'}
             </Typography>
           )}
           {endOfSeasonStatus.nextSeasonStart && (
@@ -193,11 +201,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
       )}
 
       {isSeasonActive ? (
-        <TriviaTab
-          userId={user}
-          groupId={myGroup}
-          onAnswerResult={handleAnswerSubmit}
-        />
+        <TriviaTab userId={user} groupId={myGroup} onAnswerResult={handleAnswerSubmit} />
       ) : (
         <Box sx={{ textAlign: 'center', py: 4 }}>
           <Typography variant="body1" color="text.secondary">
@@ -218,11 +222,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
 
   const LeaderboardPage = (
     <Box>
-      <Leaderboard
-        userId={user}
-        groupId={myGroup}
-        onViewProfile={navigateToProfile}
-      />
+      <Leaderboard userId={user} groupId={myGroup} onViewProfile={navigateToProfile} />
     </Box>
   );
 
@@ -240,148 +240,141 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
 
   return (
     <NotificationProvider userId={user}>
-    <LeaderboardProvider>
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <AppHeader
-        selectedUser={user}
-        onLogout={handleLogout}
-        currentPath={currentPath}
-        onNavigate={navigateTo}
-        isAdmin={isAdmin}
-        loading={!isAppReady}
-        onAvatarClick={() => setProfileUser(user)}
-        onNotificationClick={(item) => {
-          // Route to the tab that owns the content being discussed.
-          // album_added notifications are also 'album' contentType.
-          if (item.contentType === 'album') {
-            navigateTo(ROUTES.PHOTOS);
-            return;
-          }
-          if (item.contentType === 'arcade') {
-            navigateTo(ROUTES.ARCADE);
-            return;
-          }
-          if (item.contentType && item.contentId) {
-            setHighlightContentId(`${item.contentType}:${item.contentId}`);
-            navigateTo(ROUTES.HOME);
-          }
-        }}
-      />
-      {isAppReady ? (
-      <Box sx={{ flex: 1, p: 2, bgcolor: 'grey.50' }}>
-        <Container maxWidth="sm">
-          {/* Profile route — shown as overlay when URL matches */}
-          {profileUser && user && (
-            <React.Suspense fallback={null}>
-              <Profile
-                userId={profileUser}
-                isCurrentUser={profileUser === user}
-                onBackToLeaderboard={() => setProfileUser(null)}
-              />
-            </React.Suspense>
-          )}
-
-          {/* Regular page content — hidden when profile is open */}
-          {!profileUser && (
-            <>
-              {/* Home Tab */}
-              <Box sx={{ display: currentPath === ROUTES.HOME ? 'block' : 'none' }}>
-                {HomePage}
-              </Box>
-
-              {/* Trivia Tab — kept mounted to preserve TriviaCard state */}
-              <Box sx={{ display: currentPath === ROUTES.PLAY ? 'block' : 'none' }}>
-                {TriviaPage}
-              </Box>
-
-              {/* Leaderboard Tab — lazy-mounted on first visit, kept mounted after */}
-              {(currentPath === ROUTES.LEADERBOARD || leaderboardMounted) && (
-                <Box sx={{ display: currentPath === ROUTES.LEADERBOARD ? 'block' : 'none' }}>
-                  <React.Suspense fallback={null}>
-                    {LeaderboardPage}
-                  </React.Suspense>
-                </Box>
-              )}
-
-              {/* Family Tree Tab — lazy-mounted on first visit, kept mounted after */}
-              {(currentPath === ROUTES.FAMILY || familyMounted) && (
-                <Box sx={{ display: currentPath === ROUTES.FAMILY ? 'block' : 'none' }}>
-                  <React.Suspense fallback={null}>
-                    {FamilyPage}
-                  </React.Suspense>
-                </Box>
-              )}
-
-              {/* Photos Tab — lazy-mounted on first visit, kept mounted after */}
-              {(currentPath === ROUTES.PHOTOS || photosMounted) && (
-                <Box sx={{ display: currentPath === ROUTES.PHOTOS ? 'block' : 'none' }}>
-                  <React.Suspense fallback={null}>
-                    <PhotosPage userId={user} isAdmin={isAdmin} />
-                  </React.Suspense>
-                </Box>
-              )}
-
-              {/* Arcade Tab — lazy-mounted on first visit, kept mounted after */}
-              {(currentPath === ROUTES.ARCADE || arcadeMounted) && (
-                <Box sx={{ display: currentPath === ROUTES.ARCADE ? 'block' : 'none' }}>
-                  <React.Suspense fallback={null}>
-                    {ArcadePageContent}
-                  </React.Suspense>
-                </Box>
-              )}
-
-              {/* Admin — uses nested Routes for sub-tabs */}
-              {currentPath.startsWith(ROUTES.ADMIN) && isAdmin && (
-                <React.Suspense fallback={null}>
-                  <AdminPage userId={user} />
-                </React.Suspense>
-              )}
-            </>
-          )}
-        </Container>
-
-
-        {/* Debug mode indicator */}
-        {debugMode && (
-          <Box
-            onClick={() => {
-              if (authValid && user && !endOfSeasonStatus?.isEndOfSeason) {
-                logger.info('DEBUG: Switching to home tab for fact prompt');
-                setTab(ROUTES.HOME);
+      <LeaderboardProvider>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+          <AppHeader
+            selectedUser={user}
+            onLogout={handleLogout}
+            currentPath={currentPath}
+            onNavigate={navigateTo}
+            isAdmin={isAdmin}
+            loading={!isAppReady}
+            onAvatarClick={() => setProfileUser(user)}
+            onNotificationClick={(item) => {
+              // Route to the tab that owns the content being discussed.
+              // album_added notifications are also 'album' contentType.
+              if (item.contentType === 'album') {
+                navigateTo(ROUTES.PHOTOS);
+                return;
+              }
+              if (item.contentType === 'arcade') {
+                navigateTo(ROUTES.ARCADE);
+                return;
+              }
+              if (item.contentType && item.contentId) {
+                setHighlightContentId(`${item.contentType}:${item.contentId}`);
+                navigateTo(ROUTES.HOME);
               }
             }}
-            sx={{
-              position: 'fixed',
-              bottom: 16,
-              right: 16,
-              bgcolor: 'warning.main',
-              color: 'white',
-              px: 2,
-              py: 1,
-              borderRadius: 2,
-              boxShadow: 3,
-              zIndex: 9999,
-              fontSize: '0.875rem',
-              fontWeight: 'bold',
-              cursor: authValid && user ? 'pointer' : 'not-allowed',
-              opacity: authValid && user ? 1 : 0.7,
-              transition: 'all 0.2s',
-              '&:hover':
-                authValid && user
-                  ? {
-                      bgcolor: 'warning.dark',
-                      transform: 'scale(1.05)',
+          />
+          {isAppReady ? (
+            <Box sx={{ flex: 1, p: 2, bgcolor: 'grey.50' }}>
+              <Container maxWidth="sm">
+                {/* Profile route — shown as overlay when URL matches */}
+                {profileUser && user && (
+                  <React.Suspense fallback={null}>
+                    <Profile
+                      userId={profileUser}
+                      isCurrentUser={profileUser === user}
+                      onBackToLeaderboard={() => setProfileUser(null)}
+                    />
+                  </React.Suspense>
+                )}
+
+                {/* Regular page content — hidden when profile is open */}
+                {!profileUser && (
+                  <>
+                    {/* Home Tab */}
+                    <Box sx={{ display: currentPath === ROUTES.HOME ? 'block' : 'none' }}>
+                      {HomePage}
+                    </Box>
+
+                    {/* Trivia Tab — kept mounted to preserve TriviaCard state */}
+                    <Box sx={{ display: currentPath === ROUTES.PLAY ? 'block' : 'none' }}>
+                      {TriviaPage}
+                    </Box>
+
+                    {/* Leaderboard Tab — lazy-mounted on first visit, kept mounted after */}
+                    {(currentPath === ROUTES.LEADERBOARD || leaderboardMounted) && (
+                      <Box sx={{ display: currentPath === ROUTES.LEADERBOARD ? 'block' : 'none' }}>
+                        <React.Suspense fallback={null}>{LeaderboardPage}</React.Suspense>
+                      </Box>
+                    )}
+
+                    {/* Family Tree Tab — lazy-mounted on first visit, kept mounted after */}
+                    {(currentPath === ROUTES.FAMILY || familyMounted) && (
+                      <Box sx={{ display: currentPath === ROUTES.FAMILY ? 'block' : 'none' }}>
+                        <React.Suspense fallback={null}>{FamilyPage}</React.Suspense>
+                      </Box>
+                    )}
+
+                    {/* Photos Tab — lazy-mounted on first visit, kept mounted after */}
+                    {(currentPath === ROUTES.PHOTOS || photosMounted) && (
+                      <Box sx={{ display: currentPath === ROUTES.PHOTOS ? 'block' : 'none' }}>
+                        <React.Suspense fallback={null}>
+                          <PhotosPage userId={user} isAdmin={isAdmin} />
+                        </React.Suspense>
+                      </Box>
+                    )}
+
+                    {/* Arcade Tab — lazy-mounted on first visit, kept mounted after */}
+                    {(currentPath === ROUTES.ARCADE || arcadeMounted) && (
+                      <Box sx={{ display: currentPath === ROUTES.ARCADE ? 'block' : 'none' }}>
+                        <React.Suspense fallback={null}>{ArcadePageContent}</React.Suspense>
+                      </Box>
+                    )}
+
+                    {/* Admin — uses nested Routes for sub-tabs */}
+                    {currentPath.startsWith(ROUTES.ADMIN) && isAdmin && (
+                      <React.Suspense fallback={null}>
+                        <AdminPage userId={user} />
+                      </React.Suspense>
+                    )}
+                  </>
+                )}
+              </Container>
+
+              {/* Debug mode indicator */}
+              {debugMode && (
+                <Box
+                  onClick={() => {
+                    if (authValid && user && !endOfSeasonStatus?.isEndOfSeason) {
+                      logger.info('DEBUG: Switching to home tab for fact prompt');
+                      setTab(ROUTES.HOME);
                     }
-                  : {},
-            }}
-          >
-            DEBUG MODE {authValid && user ? '(Click for Daily Fact)' : '(Login first)'}
-          </Box>
-        )}
-      </Box>
-      ) : null}
-    </Box>
-    </LeaderboardProvider>
+                  }}
+                  sx={{
+                    position: 'fixed',
+                    bottom: 16,
+                    right: 16,
+                    bgcolor: 'warning.main',
+                    color: 'white',
+                    px: 2,
+                    py: 1,
+                    borderRadius: 2,
+                    boxShadow: 3,
+                    zIndex: 9999,
+                    fontSize: '0.875rem',
+                    fontWeight: 'bold',
+                    cursor: authValid && user ? 'pointer' : 'not-allowed',
+                    opacity: authValid && user ? 1 : 0.7,
+                    transition: 'all 0.2s',
+                    '&:hover':
+                      authValid && user
+                        ? {
+                            bgcolor: 'warning.dark',
+                            transform: 'scale(1.05)',
+                          }
+                        : {},
+                  }}
+                >
+                  DEBUG MODE {authValid && user ? '(Click for Daily Fact)' : '(Login first)'}
+                </Box>
+              )}
+            </Box>
+          ) : null}
+        </Box>
+      </LeaderboardProvider>
     </NotificationProvider>
   );
 };

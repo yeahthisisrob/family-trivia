@@ -1,10 +1,7 @@
 import { Typography } from '@mui/material';
-import React from 'react';
-import { expect, fn, screen, userEvent, waitFor } from 'storybook/test';
-
-import ConfirmDialog from './ConfirmDialog';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn, screen, userEvent, waitFor } from 'storybook/test';
+import ConfirmDialog from './ConfirmDialog';
 
 const meta: Meta<typeof ConfirmDialog> = {
   title: 'Admin/ConfirmDialog',
@@ -30,7 +27,8 @@ type Story = StoryObj<typeof ConfirmDialog>;
 export const Default: Story = {
   args: {
     title: 'Delete User',
-    message: 'Are you sure you want to delete alice? This removes their profile, answers, and facts.',
+    message:
+      'Are you sure you want to delete alice? This removes their profile, answers, and facts.',
   },
   play: async () => {
     await expect(screen.getByText('Delete User')).toBeInTheDocument();

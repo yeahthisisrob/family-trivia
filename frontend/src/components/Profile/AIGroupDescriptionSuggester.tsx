@@ -17,9 +17,10 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import React, { useState, useCallback, useEffect } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-import { GroupDescriptionSuggestion, suggestGroupDescription } from '../../api';
+import { type GroupDescriptionSuggestion, suggestGroupDescription } from '../../api';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
 

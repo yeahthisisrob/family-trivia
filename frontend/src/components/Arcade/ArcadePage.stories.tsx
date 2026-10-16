@@ -1,9 +1,7 @@
-import React from 'react';
-
-import ArcadePage from './ArcadePage';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import React from 'react';
+import { StoryProviders } from '../../test/storyContexts';
+import ArcadePage from './ArcadePage';
 
 // Mock fetch for arcade endpoints
 const installMockFetch = () => {
@@ -19,22 +17,30 @@ const installMockFetch = () => {
         { userId: 'carol', score: 600, date: '2026-04-02T12:00:00Z', mode: 'trivia' },
         { userId: 'frank', score: 450, date: '2026-04-01T18:00:00Z', mode: 'arcade' },
       ];
-      return new Response(JSON.stringify({
-        ok: true,
-        data: { game: url.includes('tetris') ? 'tetris' : 'curling', scores },
-      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          data: { game: url.includes('tetris') ? 'tetris' : 'curling', scores },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
     }
 
     if (url.includes('/arcade/submit-score')) {
-      return new Response(JSON.stringify({
-        ok: true,
-        data: { isNewHighScore: true, rank: 2, previousBest: 800, highScores: [] },
-      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          data: { isNewHighScore: true, rank: 2, previousBest: 800, highScores: [] },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
     }
 
     return realFetch(input, init);
   };
-  return () => { window.fetch = realFetch; };
+  return () => {
+    window.fetch = realFetch;
+  };
 };
 
 const meta: Meta<typeof ArcadePage> = {
@@ -44,7 +50,8 @@ const meta: Meta<typeof ArcadePage> = {
     layout: 'padded',
     docs: {
       description: {
-        component: 'Arcade tab — game selector with high score leaderboards. ' +
+        component:
+          'Arcade tab — game selector with high score leaderboards. ' +
           'Play Tetris or Curling unlimited, compete for high scores.',
       },
     },
@@ -74,7 +81,8 @@ export const Interactive: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Click "Play" on either game to launch it in arcade mode (unlimited, no trivia question).',
+        story:
+          'Click "Play" on either game to launch it in arcade mode (unlimited, no trivia question).',
       },
     },
   },

@@ -1,2 +1,2 @@
-export { colors, typography, spacing, shadows, radii } from './tokens';
 export { theme } from './theme';
+export { colors, radii, shadows, spacing, typography } from './tokens';

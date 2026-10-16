@@ -10,32 +10,30 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import {
-  Box,
-  Card,
-  Collapse,
-  Paper,
-  Typography,
-  IconButton,
-  useTheme,
   alpha,
-  Fade,
-  Skeleton,
-  Chip,
-  Menu,
-  MenuItem,
+  Box,
   Button,
-  LinearProgress,
+  Card,
+  Chip,
   Dialog,
   DialogContent,
   DialogTitle,
+  Fade,
+  IconButton,
+  LinearProgress,
   List,
   ListItem,
+  Menu,
+  MenuItem,
+  Skeleton,
+  Typography,
+  useTheme,
 } from '@mui/material';
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
-  getDailyFactSummary,
   type DailyFactSummary as DailyFactSummaryType,
+  getDailyFactSummary,
 } from '../../api/modules/timeline';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
 import { createLogger } from '../../utils/logger';
@@ -201,7 +199,7 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
         logger.info(`${isWeekly ? 'Weekly' : 'Daily'} fact summary loaded`, {
           date,
           totalResponses: summary.totalResponses,
-          summary: summary.summary.substring(0, 100) + '...',
+          summary: `${summary.summary.substring(0, 100)}...`,
           factType: summary.factType,
           totalQuestions: summary.totalQuestions,
           uniqueParticipants: summary.uniqueParticipants,
@@ -246,6 +244,7 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
       onDateChange(currentDate);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    return undefined;
   }, [currentDate, isWeeklyView]);
 
   // Navigation functions
@@ -411,9 +410,7 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
     }> = [];
     memberNames.forEach(({ userId, name, familySide }) => {
       const regex = new RegExp(`\\b${name}\\b`, 'g');
-      let match;
-
-      while ((match = regex.exec(summaryData.summary)) !== null) {
+      for (const match of summaryData.summary.matchAll(regex)) {
         matches.push({
           start: match.index,
           end: match.index + name.length,
@@ -483,26 +480,38 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
           overflow: 'hidden',
           border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
           boxShadow: `0 2px 12px ${alpha('#000', 0.06)}`,
-
         }}
       >
         {/* Header — matches timeline/celebrations design */}
-        <Box sx={{
-          px: 2, py: 1.25,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          background: `linear-gradient(135deg, ${alpha(theme.palette.secondary.main, 0.08)}, ${alpha(theme.palette.secondary.dark, 0.04)})`,
-          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-        }}>
+        <Box
+          sx={{
+            px: 2,
+            py: 1.25,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: `linear-gradient(135deg, ${alpha(theme.palette.secondary.main, 0.08)}, ${alpha(theme.palette.secondary.dark, 0.04)})`,
+            borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <AutoAwesomeIcon sx={{ fontSize: 20, color: theme.palette.secondary.main }} />
             <Typography sx={{ fontWeight: 700, fontSize: '0.95rem' }}>
               {isWeeklyView ? 'Weekly' : 'Daily'} Summary
             </Typography>
           </Box>
-          <IconButton size="small"
-            onClick={(e) => { e.stopPropagation(); handleRefresh(); }}
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRefresh();
+            }}
             disabled={loading || refreshCooldown}
-            sx={{ color: theme.palette.text.secondary, '&:hover': { color: theme.palette.secondary.main } }}>
+            sx={{
+              color: theme.palette.text.secondary,
+              '&:hover': { color: theme.palette.secondary.main },
+            }}
+          >
             {loading ? <LoadingDots size={4} inline /> : <RefreshIcon sx={{ fontSize: 18 }} />}
           </IconButton>
         </Box>
@@ -510,37 +519,79 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
         {/* Always-visible content — no expand/collapse */}
         <Box sx={{ px: 2, pb: 2, pt: 1 }}>
           {/* Date nav — compact inline */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1.5 }}>
-            <IconButton size="small" onClick={() => navigateDate('prev')}
-              sx={{ p: 0.5, color: theme.palette.text.secondary }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1,
+              mb: 1.5,
+            }}
+          >
+            <IconButton
+              size="small"
+              onClick={() => navigateDate('prev')}
+              sx={{ p: 0.5, color: theme.palette.text.secondary }}
+            >
               <ChevronLeftIcon sx={{ fontSize: 20 }} />
             </IconButton>
 
-            <Button size="small" onClick={handleDateMenuClick}
+            <Button
+              size="small"
+              onClick={handleDateMenuClick}
               startIcon={<CalendarTodayIcon sx={{ fontSize: 14 }} />}
               endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 14 }} />}
-              sx={{ fontSize: '0.75rem', textTransform: 'none', color: theme.palette.text.secondary, minWidth: 0 }}>
+              sx={{
+                fontSize: '0.75rem',
+                textTransform: 'none',
+                color: theme.palette.text.secondary,
+                minWidth: 0,
+              }}
+            >
               {formatDisplayDate(currentDate)}
             </Button>
 
-            <Menu id="date-select-menu" anchorEl={dateMenuAnchor} open={openDateMenu}
+            <Menu
+              id="date-select-menu"
+              anchorEl={dateMenuAnchor}
+              open={openDateMenu}
               onClose={handleDateMenuClose}
-              slotProps={{ paper: { elevation: 3, sx: { maxHeight: 400, width: 250 } } }}>
+              slotProps={{ paper: { elevation: 3, sx: { maxHeight: 400, width: 250 } } }}
+            >
               {getAvailableDates().map((date) => (
-                <MenuItem key={date.value} onClick={() => handleDateSelect(date.value)}
-                  selected={date.value === currentDate}>
+                <MenuItem
+                  key={date.value}
+                  onClick={() => handleDateSelect(date.value)}
+                  selected={date.value === currentDate}
+                >
                   <Typography variant="body2">
                     {date.label}
-                    {date.isYesterday && <Chip label="Yesterday" size="small" sx={{ ml: 1, height: 18, fontSize: '0.6rem' }} />}
-                    {date.isThisWeek && <Chip label="This Week" size="small" color="primary" sx={{ ml: 1, height: 18, fontSize: '0.6rem' }} />}
+                    {date.isYesterday && (
+                      <Chip
+                        label="Yesterday"
+                        size="small"
+                        sx={{ ml: 1, height: 18, fontSize: '0.6rem' }}
+                      />
+                    )}
+                    {date.isThisWeek && (
+                      <Chip
+                        label="This Week"
+                        size="small"
+                        color="primary"
+                        sx={{ ml: 1, height: 18, fontSize: '0.6rem' }}
+                      />
+                    )}
                   </Typography>
                 </MenuItem>
               ))}
             </Menu>
 
-            <IconButton size="small" onClick={() => navigateDate('next')}
+            <IconButton
+              size="small"
+              onClick={() => navigateDate('next')}
               disabled={currentDate === yesterdayDate}
-              sx={{ p: 0.5, color: theme.palette.text.secondary }}>
+              sx={{ p: 0.5, color: theme.palette.text.secondary }}
+            >
               <ChevronRightIcon sx={{ fontSize: 20 }} />
             </IconButton>
           </Box>
@@ -553,7 +604,11 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
               <Skeleton variant="text" width="85%" height={20} />
             </Box>
           ) : error ? (
-            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2, fontSize: '0.8rem' }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ textAlign: 'center', py: 2, fontSize: '0.8rem' }}
+            >
               {error}
             </Typography>
           ) : summaryData ? (
@@ -561,53 +616,106 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
               <Box>
                 {/* AI Summary — scrollable with fade hint */}
                 <Box sx={{ position: 'relative', mb: 1.5 }}>
-                  <Box sx={{
-                    maxHeight: 180, overflowY: 'auto', pr: 0.5,
-                    scrollbarWidth: 'thin',
-                    '&::-webkit-scrollbar': { width: 4 },
-                    '&::-webkit-scrollbar-thumb': { bgcolor: alpha(theme.palette.text.secondary, 0.2), borderRadius: 2 },
-                  }}>
-                    <Typography sx={{
-                      fontSize: '0.82rem', lineHeight: 1.65, color: theme.palette.text.primary,
-                    }}>
+                  <Box
+                    sx={{
+                      maxHeight: 180,
+                      overflowY: 'auto',
+                      pr: 0.5,
+                      scrollbarWidth: 'thin',
+                      '&::-webkit-scrollbar': { width: 4 },
+                      '&::-webkit-scrollbar-thumb': {
+                        bgcolor: alpha(theme.palette.text.secondary, 0.2),
+                        borderRadius: 2,
+                      },
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: '0.82rem',
+                        lineHeight: 1.65,
+                        color: theme.palette.text.primary,
+                      }}
+                    >
                       {renderSummaryWithLinks}
                     </Typography>
                   </Box>
                   {/* Bottom fade — visual hint that content is scrollable */}
-                  <Box sx={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0, height: 28,
-                    background: `linear-gradient(transparent, ${theme.palette.background.paper})`,
-                    pointerEvents: 'none',
-                  }} />
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: 28,
+                      background: `linear-gradient(transparent, ${theme.palette.background.paper})`,
+                      pointerEvents: 'none',
+                    }}
+                  />
                 </Box>
 
                 {/* Compact stats row */}
-                <Box sx={{
-                  display: 'flex', flexWrap: 'wrap', gap: 0.75, alignItems: 'center',
-                  pt: 1, borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                }}>
-                  <Chip icon={<GroupsIcon />} label={`${summaryData.totalResponses} responses`} size="small"
-                    sx={{ height: 22, fontSize: '0.65rem', bgcolor: alpha(theme.palette.primary.main, 0.08),
-                      '& .MuiChip-icon': { fontSize: 14, color: theme.palette.primary.main } }} />
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 0.75,
+                    alignItems: 'center',
+                    pt: 1,
+                    borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                  }}
+                >
+                  <Chip
+                    icon={<GroupsIcon />}
+                    label={`${summaryData.totalResponses} responses`}
+                    size="small"
+                    sx={{
+                      height: 22,
+                      fontSize: '0.65rem',
+                      bgcolor: alpha(theme.palette.primary.main, 0.08),
+                      '& .MuiChip-icon': { fontSize: 14, color: theme.palette.primary.main },
+                    }}
+                  />
 
                   {isWeeklyView && summaryData.totalQuestions && (
-                    <Chip icon={<QuestionAnswerIcon />}
-                      label={`${summaryData.totalQuestions} Qs`} size="small"
+                    <Chip
+                      icon={<QuestionAnswerIcon />}
+                      label={`${summaryData.totalQuestions} Qs`}
+                      size="small"
                       onClick={() => setQuestionsDialogOpen(true)}
-                      sx={{ height: 22, fontSize: '0.65rem', cursor: 'pointer',
+                      sx={{
+                        height: 22,
+                        fontSize: '0.65rem',
+                        cursor: 'pointer',
                         bgcolor: alpha(theme.palette.secondary.main, 0.08),
                         '& .MuiChip-icon': { fontSize: 14, color: theme.palette.secondary.main },
-                        '&:hover': { bgcolor: alpha(theme.palette.secondary.main, 0.15) } }} />
+                        '&:hover': { bgcolor: alpha(theme.palette.secondary.main, 0.15) },
+                      }}
+                    />
                   )}
 
                   {/* Participation bar */}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 'auto' }}>
-                    <LinearProgress variant="determinate" value={getParticipationPercentage()}
-                      sx={{ width: 50, height: 4, borderRadius: 2,
+                    <LinearProgress
+                      variant="determinate"
+                      value={getParticipationPercentage()}
+                      sx={{
+                        width: 50,
+                        height: 4,
+                        borderRadius: 2,
                         bgcolor: alpha(theme.palette.primary.main, 0.1),
-                        '& .MuiLinearProgress-bar': { borderRadius: 2,
-                          background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})` } }} />
-                    <Typography sx={{ fontSize: '0.6rem', fontWeight: 700, color: theme.palette.text.secondary }}>
+                        '& .MuiLinearProgress-bar': {
+                          borderRadius: 2,
+                          background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                        },
+                      }}
+                    />
+                    <Typography
+                      sx={{
+                        fontSize: '0.6rem',
+                        fontWeight: 700,
+                        color: theme.palette.text.secondary,
+                      }}
+                    >
                       {getParticipationPercentage()}%
                     </Typography>
                   </Box>
@@ -616,14 +724,32 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
                   {summaryData.totalResponses > 0 && (
                     <>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
-                        <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: getSideColor('sideA') }} />
-                        <Typography sx={{ fontSize: '0.6rem', color: theme.palette.text.secondary }}>
+                        <Box
+                          sx={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: '50%',
+                            bgcolor: getSideColor('sideA'),
+                          }}
+                        />
+                        <Typography
+                          sx={{ fontSize: '0.6rem', color: theme.palette.text.secondary }}
+                        >
                           {summaryData.sideAResponses}
                         </Typography>
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
-                        <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: getSideColor('sideB') }} />
-                        <Typography sx={{ fontSize: '0.6rem', color: theme.palette.text.secondary }}>
+                        <Box
+                          sx={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: '50%',
+                            bgcolor: getSideColor('sideB'),
+                          }}
+                        />
+                        <Typography
+                          sx={{ fontSize: '0.6rem', color: theme.palette.text.secondary }}
+                        >
                           {summaryData.sideBResponses}
                         </Typography>
                       </Box>
@@ -679,7 +805,7 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
               Object.entries(summaryData.dailyBreakdown)
                 .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
                 .map(([date, breakdown], index) => {
-                  const dateObj = new Date(date + 'T12:00:00');
+                  const dateObj = new Date(`${date}T12:00:00`);
                   const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
                   const formattedDate = dateObj.toLocaleDateString('en-US', {
                     month: 'short',

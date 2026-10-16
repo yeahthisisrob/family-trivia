@@ -1,15 +1,14 @@
 // File: src/components/Notifications/NotificationBell.tsx
 // Bell icon with unread badge — opens NotificationPanel on click.
 
+import type { NotificationItem } from '@family-trivia/shared';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import { Badge, IconButton } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React, { useCallback, useState } from 'react';
-
-import NotificationPanel from './NotificationPanel';
+import type React from 'react';
+import { useCallback, useState } from 'react';
 import { useNotifications } from '../../contexts/NotificationContext';
-
-import type { NotificationItem } from '@family-trivia/shared';
+import NotificationPanel from './NotificationPanel';
 
 interface Props {
   /** Called when a comment notification is clicked — navigate to that thread */
@@ -28,14 +27,17 @@ const NotificationBell: React.FC<Props> = ({ onNotificationClick }) => {
     setAnchorEl(null);
   }, []);
 
-  const handleItemClick = useCallback((item: NotificationItem) => {
-    // Mark this thread as read
-    if (item.contentType && item.contentId) {
-      markRead(item.contentType, item.contentId);
-    }
-    handleClose();
-    onNotificationClick?.(item);
-  }, [markRead, handleClose, onNotificationClick]);
+  const handleItemClick = useCallback(
+    (item: NotificationItem) => {
+      // Mark this thread as read
+      if (item.contentType && item.contentId) {
+        markRead(item.contentType, item.contentId);
+      }
+      handleClose();
+      onNotificationClick?.(item);
+    },
+    [markRead, handleClose, onNotificationClick],
+  );
 
   const handleMarkAllRead = useCallback(() => {
     markAllRead();

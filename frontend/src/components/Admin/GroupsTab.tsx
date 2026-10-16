@@ -22,7 +22,8 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 
 import { useAdmin } from '../../contexts/AdminContext';
 
@@ -145,7 +146,15 @@ const GroupsTab: React.FC = () => {
                     </Typography>
                   )}
 
-                  <Box sx={{ mt: 1, display: 'flex', gap: 0.5, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      mt: 1,
+                      display: 'flex',
+                      gap: 0.5,
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                    }}
+                  >
                     {sideData && (
                       <Chip
                         label={sideData.name}
@@ -164,7 +173,11 @@ const GroupsTab: React.FC = () => {
                     </Box>
                   )}
                   {(!g.members || g.members.length === 0) && (
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ mt: 0.5, display: 'block' }}
+                    >
                       No members assigned
                     </Typography>
                   )}
@@ -234,10 +247,18 @@ const GroupsTab: React.FC = () => {
                 {admin.players
                   .filter((p) => p.group === form.groupId)
                   .map((p) => (
-                    <Chip key={p.userId} label={p.userId} size="small" color="primary" variant="outlined" />
+                    <Chip
+                      key={p.userId}
+                      label={p.userId}
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                    />
                   ))}
                 {(admin.players || []).filter((p) => p.group === form.groupId).length === 0 && (
-                  <Typography variant="caption" color="text.secondary">None</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    None
+                  </Typography>
                 )}
               </Box>
             </Box>
@@ -246,7 +267,9 @@ const GroupsTab: React.FC = () => {
           {/* Unassigned players */}
           {(() => {
             const assignedGroups = new Set((admin.groups || []).map((g) => g.groupId));
-            const unassigned = (admin.players || []).filter((p) => !p.group || !assignedGroups.has(p.group));
+            const unassigned = (admin.players || []).filter(
+              (p) => !p.group || !assignedGroups.has(p.group),
+            );
             if (unassigned.length === 0) return null;
             return (
               <Box sx={{ mt: 2 }}>
@@ -268,7 +291,11 @@ const GroupsTab: React.FC = () => {
                     />
                   ))}
                 </Box>
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 0.5, display: 'block' }}
+                >
                   Tap a player to assign them to this group
                 </Typography>
               </Box>

@@ -8,21 +8,15 @@ const logger = createLogger('GameAI');
 
 const AI_TIMEOUT_MS = 4000;
 
-async function fetchMove<TState, TMove>(
-  game: string,
-  state: TState,
-): Promise<TMove | null> {
+async function fetchMove<TState, TMove>(game: string, state: TState): Promise<TMove | null> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
-    const res = await apiService.request<{ move: TMove | null }>(
-      '/game-ai/move',
-      {
-        method: 'POST',
-        body: JSON.stringify({ game, state }),
-        signal: controller.signal,
-      },
-    );
+    const res = await apiService.request<{ move: TMove | null }>('/game-ai/move', {
+      method: 'POST',
+      body: JSON.stringify({ game, state }),
+      signal: controller.signal,
+    });
     clearTimeout(timeout);
     return res.move;
   } catch (err) {
@@ -61,6 +55,8 @@ export interface BlackjackDealerTaunt {
   taunt: string;
 }
 
-export async function getBlackjackTaunt(state: BlackjackDealerState): Promise<BlackjackDealerTaunt | null> {
+export async function getBlackjackTaunt(
+  state: BlackjackDealerState,
+): Promise<BlackjackDealerTaunt | null> {
   return fetchMove<BlackjackDealerState, BlackjackDealerTaunt>('blackjack', state);
 }

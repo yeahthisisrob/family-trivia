@@ -1,8 +1,6 @@
-import { fn } from 'storybook/test';
-
-import MemberLoadingError from './MemberLoadingError';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import MemberLoadingError from './MemberLoadingError';
 
 const meta: Meta<typeof MemberLoadingError> = {
   title: 'FamilyTree/MemberLoadingError',
@@ -20,6 +18,7 @@ export const Default: Story = {};
 
 export const LongMessage: Story = {
   args: {
-    message: 'We were unable to load family members because the server is currently unreachable. This may be a temporary issue.',
+    message:
+      'We were unable to load family members because the server is currently unreachable. This may be a temporary issue.',
   },
 };

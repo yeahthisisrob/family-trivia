@@ -1,6 +1,5 @@
-import DifficultyBreakdown from './DifficultyBreakdown';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import DifficultyBreakdown from './DifficultyBreakdown';
 
 const meta: Meta<typeof DifficultyBreakdown> = {
   title: 'Leaderboard/DifficultyBreakdown',

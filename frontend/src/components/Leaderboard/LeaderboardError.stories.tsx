@@ -1,8 +1,6 @@
-import { fn } from 'storybook/test';
-
-import LeaderboardError from './LeaderboardError';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import LeaderboardError from './LeaderboardError';
 
 const meta: Meta<typeof LeaderboardError> = {
   title: 'Leaderboard/LeaderboardError',

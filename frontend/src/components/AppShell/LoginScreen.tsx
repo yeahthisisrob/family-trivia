@@ -5,15 +5,12 @@
 //   2. If not linked → "Enter your passphrase" → passphrase identifies
 //      the user, links the Google account, done forever.
 
-import GoogleIcon from '@mui/icons-material/Google';
-import {
-  Alert, Box, Button, Card, TextField, Typography,
-  alpha, useTheme,
-} from '@mui/material';
+import { Alert, alpha, Box, Button, Card, TextField, Typography, useTheme } from '@mui/material';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
-import React, { useCallback, useState } from 'react';
+import type React from 'react';
+import { useCallback, useState } from 'react';
 
-import { loginWithGoogle, linkGoogleAccount } from '../../api/modules/auth';
+import { linkGoogleAccount, loginWithGoogle } from '../../api/modules/auth';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../utils/logger';
@@ -37,27 +34,33 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate })
   const [error, setError] = useState<string | null>(null);
 
   // Step 1: User taps "Sign in with Google"
-  const handleGoogleSuccess = useCallback(async (credentialResponse: { credential?: string }) => {
-    const idToken = credentialResponse.credential;
-    if (!idToken) { setError('Google sign-in failed'); return; }
-
-    setState('loading');
-    setError(null);
-
-    try {
-      const result = await loginWithGoogle(idToken);
-      onActivate(result.userId, true, result.token);
-    } catch (err: any) {
-      if (err?.errorType === 'NOT_LINKED') {
-        setPendingGoogleToken(idToken);
-        setState('linking');
-        setError(null);
-      } else {
-        setError(err?.message || 'Sign-in failed. Please try again.');
-        setState('idle');
+  const handleGoogleSuccess = useCallback(
+    async (credentialResponse: { credential?: string }) => {
+      const idToken = credentialResponse.credential;
+      if (!idToken) {
+        setError('Google sign-in failed');
+        return;
       }
-    }
-  }, [onActivate]);
+
+      setState('loading');
+      setError(null);
+
+      try {
+        const result = await loginWithGoogle(idToken);
+        onActivate(result.userId, true, result.token);
+      } catch (err: any) {
+        if (err?.errorType === 'NOT_LINKED') {
+          setPendingGoogleToken(idToken);
+          setState('linking');
+          setError(null);
+        } else {
+          setError(err?.message || 'Sign-in failed. Please try again.');
+          setState('idle');
+        }
+      }
+    },
+    [onActivate],
+  );
 
   // Step 2: Enter passphrase → backend resolves who you are → links
   const handleLink = useCallback(async () => {
@@ -74,7 +77,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate })
       if (err?.errorType === 'INVALID_PASSPHRASE') {
         setError('Wrong passphrase. Try again.');
       } else if (err?.errorType === 'USER_ALREADY_LINKED') {
-        setError('This family member is already linked to another Google account. Contact the administrator for help.');
+        setError(
+          'This family member is already linked to another Google account. Contact the administrator for help.',
+        );
       } else {
         setError(err?.message || 'Linking failed. Please try again.');
       }
@@ -86,20 +91,30 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate })
 
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
-      <Box sx={{
-        minHeight: '100vh',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        background: `linear-gradient(160deg, ${alpha(colors.brand.primary, 0.06)} 0%, ${alpha(colors.brand.secondary, 0.04)} 100%)`,
-        p: 2,
-      }}>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: `linear-gradient(160deg, ${alpha(colors.brand.primary, 0.06)} 0%, ${alpha(colors.brand.secondary, 0.04)} 100%)`,
+          p: 2,
+        }}
+      >
         <Box sx={{ width: '100%', maxWidth: 360 }}>
           {/* Logo */}
           <Box sx={{ textAlign: 'center', mb: 4 }}>
-            <Typography sx={{
-              fontSize: '2rem', fontWeight: 900, letterSpacing: -0.5,
-              background: `linear-gradient(135deg, ${colors.brand.primary}, ${colors.brand.secondary})`,
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            }}>
+            <Typography
+              sx={{
+                fontSize: '2rem',
+                fontWeight: 900,
+                letterSpacing: -0.5,
+                background: `linear-gradient(135deg, ${colors.brand.primary}, ${colors.brand.secondary})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
               Family Trivia
             </Typography>
             <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mt: 0.5 }}>
@@ -110,17 +125,24 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate })
           </Box>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: `${radii.md}px` }} onClose={() => setError(null)}>
+            <Alert
+              severity="error"
+              sx={{ mb: 2, borderRadius: `${radii.md}px` }}
+              onClose={() => setError(null)}
+            >
               {error}
             </Alert>
           )}
 
           {/* ── Idle: Google sign-in ── */}
           {state === 'idle' && (
-            <Card sx={{
-              borderRadius: 3, overflow: 'hidden',
-              boxShadow: `0 4px 20px ${alpha('#000', 0.08)}`,
-            }}>
+            <Card
+              sx={{
+                borderRadius: 3,
+                overflow: 'hidden',
+                boxShadow: `0 4px 20px ${alpha('#000', 0.08)}`,
+              }}
+            >
               <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
@@ -131,7 +153,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate })
                   shape="rectangular"
                   theme="outline"
                 />
-                <Typography sx={{ fontSize: '0.68rem', color: 'text.disabled', mt: 2, textAlign: 'center' }}>
+                <Typography
+                  sx={{ fontSize: '0.68rem', color: 'text.disabled', mt: 2, textAlign: 'center' }}
+                >
                   First time? You'll enter your passphrase after signing in with Google.
                 </Typography>
               </Box>
@@ -151,7 +175,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate })
           {/* ── Linking: passphrase only ── */}
           {state === 'linking' && (
             <Card sx={{ borderRadius: 3, p: 2.5 }}>
-              <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary', mb: 2, textAlign: 'center' }}>
+              <Typography
+                sx={{ fontSize: '0.82rem', color: 'text.secondary', mb: 2, textAlign: 'center' }}
+              >
                 Enter your personal passphrase to link this Google account
               </Typography>
               <TextField
@@ -160,8 +186,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate })
                 type="password"
                 placeholder="Your passphrase"
                 value={passphrase}
-                onChange={e => setPassphrase(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleLink()}
+                onChange={(e) => setPassphrase(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLink()}
                 disabled={isLoading}
                 autoFocus
                 sx={{ mb: 2 }}
@@ -172,8 +198,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate })
                 disabled={!passphrase.trim() || isLoading}
                 onClick={handleLink}
                 sx={{
-                  py: 1.25, borderRadius: `${radii.md}px`,
-                  fontWeight: 700, fontSize: '0.85rem',
+                  py: 1.25,
+                  borderRadius: `${radii.md}px`,
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
                   textTransform: 'none',
                 }}
               >
@@ -181,8 +209,19 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate })
               </Button>
               <Button
                 size="small"
-                onClick={() => { setState('idle'); setError(null); setPendingGoogleToken(null); setPassphrase(''); }}
-                sx={{ mt: 1.5, display: 'block', mx: 'auto', fontSize: '0.7rem', color: 'text.disabled' }}
+                onClick={() => {
+                  setState('idle');
+                  setError(null);
+                  setPendingGoogleToken(null);
+                  setPassphrase('');
+                }}
+                sx={{
+                  mt: 1.5,
+                  display: 'block',
+                  mx: 'auto',
+                  fontSize: '0.7rem',
+                  color: 'text.disabled',
+                }}
               >
                 Back
               </Button>

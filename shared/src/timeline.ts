@@ -1,6 +1,6 @@
-import { FactItem } from './profile';
-import { HistoryEntry } from './history';
-import { FamilySideConfig } from './family';
+import type { FamilySideConfig } from './family';
+import type { HistoryEntry } from './history';
+import type { FactItem } from './profile';
 
 /** Pagination info for timeline */
 export interface PaginationInfo {
@@ -33,17 +33,23 @@ export interface TimelineData {
   familySides: Record<string, FamilySideConfig>;
   hierarchyData?: {
     family: {
-      people: Record<string, {
-        name: string;
-        groupId: string;
-        familySide?: string;
-        [key: string]: unknown;
-      }>;
-      groups: Record<string, {
-        name: string;
-        description?: string;
-        [key: string]: unknown;
-      }>;
+      people: Record<
+        string,
+        {
+          name: string;
+          groupId: string;
+          familySide?: string;
+          [key: string]: unknown;
+        }
+      >;
+      groups: Record<
+        string,
+        {
+          name: string;
+          description?: string;
+          [key: string]: unknown;
+        }
+      >;
       [key: string]: unknown;
     };
     [key: string]: unknown;

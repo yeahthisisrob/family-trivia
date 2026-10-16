@@ -57,15 +57,7 @@ export const colors = {
     textSecondary: 'rgba(255, 255, 255, 0.7)',
   },
 
-  user: [
-    '#FF5722',
-    '#4CAF50',
-    '#2196F3',
-    '#9C27B0',
-    '#FFC107',
-    '#E91E63',
-    '#00BCD4',
-  ] as const,
+  user: ['#FF5722', '#4CAF50', '#2196F3', '#9C27B0', '#FFC107', '#E91E63', '#00BCD4'] as const,
 
   familySide: {
     side1: '#2196F3',

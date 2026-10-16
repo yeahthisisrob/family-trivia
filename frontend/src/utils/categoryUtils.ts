@@ -1,7 +1,7 @@
 // File: utils/categoryUtils.ts
 // Utilities for working with categories
 
-import { SystemCategory, CategoryResponse } from '../api/modules/trivia';
+import type { CategoryResponse, SystemCategory } from '../api/modules/trivia';
 import { cacheService } from '../services/CacheService';
 
 // Default color in case the category doesn't have one
@@ -53,7 +53,7 @@ export function isCustomCategory(categoryName: string): boolean {
   }
 
   // Try to find this category in the cache
-  const allCacheKeys = Object.keys(cacheService['cache'] || {});
+  const allCacheKeys = cacheService.keys();
   const categoryKeys = allCacheKeys.filter((key) => key.startsWith('categories_'));
 
   // Check each categories cache entry
@@ -119,7 +119,7 @@ export function getCategoryColor(categoryName: string): string {
   }
 
   // Try to get from cache - check all user caches
-  const allCacheKeys = Object.keys(cacheService['cache'] || {});
+  const allCacheKeys = cacheService.keys();
   const categoryKeys = allCacheKeys.filter((key) => key.startsWith('categories_'));
 
   for (const key of categoryKeys) {
@@ -147,7 +147,7 @@ export function getSystemCategoryNames(): string[] {
   const result: string[] = [];
 
   // Check all cache entries
-  const allCacheKeys = Object.keys(cacheService['cache'] || {});
+  const allCacheKeys = cacheService.keys();
   const categoryKeys = allCacheKeys.filter((key) => key.startsWith('categories_'));
 
   for (const key of categoryKeys) {
@@ -165,4 +165,3 @@ export function getSystemCategoryNames(): string[] {
 
   return result;
 }
-

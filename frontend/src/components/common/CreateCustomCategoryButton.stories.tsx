@@ -1,8 +1,6 @@
-import { fn } from 'storybook/test';
-
-import CreateCustomCategoryButton from './CreateCustomCategoryButton';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import CreateCustomCategoryButton from './CreateCustomCategoryButton';
 
 const meta: Meta<typeof CreateCustomCategoryButton> = {
   title: 'Common/CreateCustomCategoryButton',

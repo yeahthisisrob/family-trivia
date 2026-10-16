@@ -1,25 +1,24 @@
 // Module: facts
 // Daily facts, fact history, and fact generation
 
+import type {
+  DailyFactQuestion,
+  DailyFactResult,
+  GenerateOptionsResponse,
+  RecentQuestion,
+  UserFactHistory,
+} from '@family-trivia/shared';
 import { apiService } from '../../services/ApiService';
 import { cacheService } from '../../services/CacheService';
 import { createLogger } from '../../utils/logger';
 
-import type {
-  DailyFactQuestion,
-  DailyFactResult,
-  RecentQuestion,
-  GenerateOptionsResponse,
-  UserFactHistory,
-} from '@family-trivia/shared';
-
 export type {
   DailyFactQuestion,
   DailyFactResult,
-  RecentQuestion,
-  QuestionOption,
-  GenerateOptionsResponse,
   FactHistoryItem,
+  GenerateOptionsResponse,
+  QuestionOption,
+  RecentQuestion,
   UserFactHistory,
 } from '@family-trivia/shared';
 

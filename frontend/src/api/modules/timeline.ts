@@ -1,13 +1,22 @@
 // Module: timeline
 // Timeline data and daily fact summaries
 
+import type {
+  DailyFactSummary,
+  PaginationInfo,
+  TimelineData,
+  TimelineOptions,
+} from '@family-trivia/shared';
 import { apiService } from '../../services/ApiService';
 import { cacheService } from '../../services/CacheService';
 import { createLogger } from '../../utils/logger';
 
-import type { DailyFactSummary, PaginationInfo, TimelineData, TimelineOptions } from '@family-trivia/shared';
-
-export type { DailyFactSummary, PaginationInfo, TimelineData, TimelineOptions } from '@family-trivia/shared';
+export type {
+  DailyFactSummary,
+  PaginationInfo,
+  TimelineData,
+  TimelineOptions,
+} from '@family-trivia/shared';
 
 const logger = createLogger('TimelineAPI');
 

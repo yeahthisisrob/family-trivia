@@ -6,7 +6,6 @@ import {
 } from '@family-trivia/shared';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-
 // Mock date - 2025-05-08 at 11:00 AM ET (15:00 UTC, during DST)
 const mockDate = new Date('2025-05-08T15:00:00Z');
 

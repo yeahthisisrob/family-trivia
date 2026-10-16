@@ -1,0 +1,19 @@
+# One workspace, one lockfile. Each package keeps its own package.json and
+# scripts; the root drives them with `pnpm -r` / `pnpm --filter`.
+packages:
+  - shared
+  - backend
+  - frontend
+  - infra
+
+# pnpm blocks install scripts by default. Allow only the ones that fetch or
+# build a native binary the toolchain runs.
+allowBuilds:
+  esbuild: true # Lambda + Vite bundler
+  msw: true # writes the Storybook mock service worker
+
+minimumReleaseAgeExclude:
+  - '@vitest/coverage-v8@5.0.5'
+  - '@vitest/mocker@5.0.5'
+  - '@vitest/spy@5.0.5'
+  - vitest@5.0.5

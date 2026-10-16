@@ -1,6 +1,6 @@
 // File: src/components/TimelineBoard/FactComments.tsx
 
-import React from 'react';
+import type React from 'react';
 
 import CommentsThread from '../common/CommentsThread';
 

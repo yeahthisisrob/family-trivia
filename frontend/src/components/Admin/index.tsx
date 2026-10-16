@@ -1,8 +1,10 @@
 // File: frontend/src/components/Admin/index.tsx
-import { Box, Paper, Tab, Tabs, Typography, Alert, useTheme, alpha } from '@mui/material';
-import React, { useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-
+import { Alert, alpha, Box, Paper, Tab, Tabs, Typography, useTheme } from '@mui/material';
+import type React from 'react';
+import { useEffect } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { AdminProvider, useAdmin } from '../../contexts/AdminContext';
+import { LoadingDots } from '../ui/feedback';
 import DailyQuestionsTab from './DailyQuestionsTab';
 import DataTab from './DataTab';
 import FamilyTreeTab from './FamilyTreeTab';
@@ -11,8 +13,6 @@ import PlayersTab from './PlayersTab';
 import SeasonsTab from './SeasonsTab';
 import SystemInfoTab from './SystemInfoTab';
 import TriviaBankTab from './TriviaBankTab';
-import { AdminProvider, useAdmin } from '../../contexts/AdminContext';
-import { LoadingDots } from '../ui/feedback';
 
 /** Admin sub-route definitions — order matches visual tab order */
 const ADMIN_TABS = [
@@ -37,9 +37,7 @@ const AdminPageInner: React.FC<AdminPageInnerProps> = () => {
   const location = useLocation();
 
   // Derive active tab index from current URL
-  const activeTabIndex = ADMIN_TABS.findIndex(
-    t => location.pathname === `/admin/${t.path}`,
-  );
+  const activeTabIndex = ADMIN_TABS.findIndex((t) => location.pathname === `/admin/${t.path}`);
   // Default to 0 (players) if path doesn't match any tab
   const tabValue = activeTabIndex >= 0 ? activeTabIndex : 0;
 
@@ -59,13 +57,19 @@ const AdminPageInner: React.FC<AdminPageInnerProps> = () => {
       </Typography>
 
       {admin.error && (
-        <Alert severity="error" sx={{ mb: 2 }}>{admin.error}</Alert>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {admin.error}
+        </Alert>
       )}
 
-      <Paper sx={{
-        mb: 2, borderRadius: 3, overflow: 'hidden',
-        border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
-      }}>
+      <Paper
+        sx={{
+          mb: 2,
+          borderRadius: 3,
+          overflow: 'hidden',
+          border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+        }}
+      >
         <Tabs
           value={tabValue}
           onChange={(_, v) => navigate(`/admin/${ADMIN_TABS[v].path}`)}
@@ -83,7 +87,9 @@ const AdminPageInner: React.FC<AdminPageInnerProps> = () => {
             },
           }}
         >
-          {ADMIN_TABS.map(({ label }) => <Tab key={label} label={label} />)}
+          {ADMIN_TABS.map(({ label }) => (
+            <Tab key={label} label={label} />
+          ))}
         </Tabs>
       </Paper>
 

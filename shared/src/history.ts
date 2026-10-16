@@ -1,4 +1,4 @@
-import { Question } from './question';
+import type { Question } from './question';
 
 /**
  * A single answered question record.

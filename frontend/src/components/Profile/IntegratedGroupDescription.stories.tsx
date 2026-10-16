@@ -1,7 +1,6 @@
-import IntegratedGroupDescription from './IntegratedGroupDescription';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { StoryProviders } from '../../test/storyContexts';
+import IntegratedGroupDescription from './IntegratedGroupDescription';
 
 const meta: Meta<typeof IntegratedGroupDescription> = {
   title: 'Profile/IntegratedGroupDescription',
@@ -11,7 +10,13 @@ const meta: Meta<typeof IntegratedGroupDescription> = {
     userId: 'alice',
     isCurrentUser: true,
   },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof IntegratedGroupDescription>;

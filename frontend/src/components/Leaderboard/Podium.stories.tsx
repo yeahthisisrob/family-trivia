@@ -1,8 +1,6 @@
-import { fn } from 'storybook/test';
-
-import Podium from './Podium';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import Podium from './Podium';
 
 const meta: Meta<typeof Podium> = {
   title: 'Leaderboard/Podium',

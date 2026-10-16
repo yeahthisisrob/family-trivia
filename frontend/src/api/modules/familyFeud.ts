@@ -85,7 +85,9 @@ export async function startFamilyFeudRound(userId: string): Promise<FamilyFeudRo
   return apiService.request<FamilyFeudRoundResponse>(
     '/family-feud/start-round',
     { method: 'POST', body: JSON.stringify({ userId }) },
-    undefined, false, 30000,
+    undefined,
+    false,
+    30000,
   );
 }
 

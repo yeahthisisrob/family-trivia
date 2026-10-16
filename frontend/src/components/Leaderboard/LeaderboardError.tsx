@@ -1,8 +1,8 @@
 // File: src/components/Leaderboard/LeaderboardError.tsx
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { Box, Typography, Button, Paper } from '@mui/material';
-import React from 'react';
+import { Box, Button, Paper, Typography } from '@mui/material';
+import type React from 'react';
 
 interface LeaderboardErrorProps {
   message: string;

@@ -1,10 +1,8 @@
-import { Box, Typography, Stack, Paper } from '@mui/material';
+import { Box, Paper, Stack, Typography } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
-import React from 'react';
-
-import { motion } from '../tokens/motion';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import type React from 'react';
+import { motion } from '../tokens/motion';
 
 const meta: Meta = {
   title: 'Design System/Motion',
@@ -27,7 +25,11 @@ const slide = keyframes`
   100% { transform: translateX(0); }
 `;
 
-const Demo: React.FC<{ label: string; easing: string; duration: string }> = ({ label, easing, duration }) => (
+const Demo: React.FC<{ label: string; easing: string; duration: string }> = ({
+  label,
+  easing,
+  duration,
+}) => (
   <Paper sx={{ p: 2, mb: 1.5 }}>
     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
       <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{label}</Typography>
@@ -35,17 +37,27 @@ const Demo: React.FC<{ label: string; easing: string; duration: string }> = ({ l
         {duration} · {easing}
       </Typography>
     </Box>
-    <Box sx={{ position: 'relative', height: 30, bgcolor: 'action.hover', borderRadius: 1, overflow: 'hidden' }}>
-      <Box sx={{
-        position: 'absolute',
-        top: 5,
-        left: 5,
-        width: 20,
-        height: 20,
-        borderRadius: '50%',
-        bgcolor: 'primary.main',
-        animation: `${slide} 2s ${easing} infinite`,
-      }} />
+    <Box
+      sx={{
+        position: 'relative',
+        height: 30,
+        bgcolor: 'action.hover',
+        borderRadius: 1,
+        overflow: 'hidden',
+      }}
+    >
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 5,
+          left: 5,
+          width: 20,
+          height: 20,
+          borderRadius: '50%',
+          bgcolor: 'primary.main',
+          animation: `${slide} 2s ${easing} infinite`,
+        }}
+      />
     </Box>
   </Paper>
 );
@@ -53,8 +65,14 @@ const Demo: React.FC<{ label: string; easing: string; duration: string }> = ({ l
 export const EasingCurves: Story = {
   render: () => (
     <Stack spacing={0} sx={{ maxWidth: 500 }}>
-      <Typography variant="h6" sx={{ mb: 2 }}>Easing Curves</Typography>
-      <Demo label="bounce — slight overshoot on entrance" easing={motion.ease.bounce} duration="2s" />
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Easing Curves
+      </Typography>
+      <Demo
+        label="bounce — slight overshoot on entrance"
+        easing={motion.ease.bounce}
+        duration="2s"
+      />
       <Demo label="smooth — standard in/out" easing={motion.ease.smooth} duration="2s" />
       <Demo label="snappy — quick in, gentle out" easing={motion.ease.snappy} duration="2s" />
     </Stack>
@@ -64,10 +82,24 @@ export const EasingCurves: Story = {
 export const Durations: Story = {
   render: () => (
     <Stack spacing={0} sx={{ maxWidth: 500 }}>
-      <Typography variant="h6" sx={{ mb: 2 }}>Durations</Typography>
-      <Demo label={`fast — ${motion.duration.fast} (micro-interactions)`} easing={motion.ease.smooth} duration={motion.duration.fast} />
-      <Demo label={`normal — ${motion.duration.normal} (default)`} easing={motion.ease.smooth} duration={motion.duration.normal} />
-      <Demo label={`slow — ${motion.duration.slow} (entrances, celebrations)`} easing={motion.ease.smooth} duration={motion.duration.slow} />
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Durations
+      </Typography>
+      <Demo
+        label={`fast — ${motion.duration.fast} (micro-interactions)`}
+        easing={motion.ease.smooth}
+        duration={motion.duration.fast}
+      />
+      <Demo
+        label={`normal — ${motion.duration.normal} (default)`}
+        easing={motion.ease.smooth}
+        duration={motion.duration.normal}
+      />
+      <Demo
+        label={`slow — ${motion.duration.slow} (entrances, celebrations)`}
+        easing={motion.ease.smooth}
+        duration={motion.duration.slow}
+      />
     </Stack>
   ),
 };
@@ -78,7 +110,7 @@ export const Tokens: Story = {
       <Typography variant="h6">Motion Tokens</Typography>
       <Paper sx={{ p: 2 }}>
         <Typography sx={{ fontFamily: 'monospace', fontSize: '0.8rem', whiteSpace: 'pre' }}>
-{`import { motion } from '@/shared/design-system/tokens/motion';
+          {`import { motion } from '@/shared/design-system/tokens/motion';
 
 // Use in sx or styled:
 sx={{

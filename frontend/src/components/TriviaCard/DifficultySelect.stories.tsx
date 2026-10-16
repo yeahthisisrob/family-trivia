@@ -1,9 +1,6 @@
-import React from 'react';
-import { expect, fn, userEvent, within } from 'storybook/test';
-
-import DifficultySelect from './DifficultySelect';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn, userEvent, within } from 'storybook/test';
+import DifficultySelect from './DifficultySelect';
 
 const meta: Meta<typeof DifficultySelect> = {
   title: 'Trivia/Selection/DifficultySelect',
@@ -14,7 +11,11 @@ const meta: Meta<typeof DifficultySelect> = {
     onBack: fn(),
   },
   decorators: [
-    (Story) => <div style={{ maxWidth: 400 }}><Story /></div>,
+    (Story) => (
+      <div style={{ maxWidth: 400 }}>
+        <Story />
+      </div>
+    ),
   ],
 };
 export default meta;

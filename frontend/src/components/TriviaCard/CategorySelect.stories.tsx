@@ -1,10 +1,7 @@
-import React from 'react';
-import { expect, fn, within } from 'storybook/test';
-
-import CategorySelect from './CategorySelect';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn, within } from 'storybook/test';
+import { StoryProviders } from '../../test/storyContexts';
+import CategorySelect from './CategorySelect';
 
 const meta: Meta<typeof CategorySelect> = {
   title: 'Trivia/Selection/CategorySelect',
@@ -25,7 +22,9 @@ const meta: Meta<typeof CategorySelect> = {
   decorators: [
     (Story) => (
       <StoryProviders>
-        <div style={{ maxWidth: 420 }}><Story /></div>
+        <div style={{ maxWidth: 420 }}>
+          <Story />
+        </div>
       </StoryProviders>
     ),
   ],
@@ -99,8 +98,12 @@ export const ViewOnly: Story = {
 export const GameModesLocked: Story = {
   decorators: [
     (Story) => (
-      <StoryProviders trivia={{ canPlayCasinoRush: false, canPlaySlotMachine: false, canPlayCurling: false }}>
-        <div style={{ maxWidth: 420 }}><Story /></div>
+      <StoryProviders
+        trivia={{ canPlayCasinoRush: false, canPlaySlotMachine: false, canPlayCurling: false }}
+      >
+        <div style={{ maxWidth: 420 }}>
+          <Story />
+        </div>
       </StoryProviders>
     ),
   ],
@@ -116,8 +119,12 @@ export const GameModesLocked: Story = {
 export const GameModesAvailable: Story = {
   decorators: [
     (Story) => (
-      <StoryProviders trivia={{ canPlayCasinoRush: true, canPlaySlotMachine: true, canPlayCurling: true }}>
-        <div style={{ maxWidth: 420 }}><Story /></div>
+      <StoryProviders
+        trivia={{ canPlayCasinoRush: true, canPlaySlotMachine: true, canPlayCurling: true }}
+      >
+        <div style={{ maxWidth: 420 }}>
+          <Story />
+        </div>
       </StoryProviders>
     ),
   ],

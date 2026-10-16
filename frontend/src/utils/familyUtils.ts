@@ -1,10 +1,10 @@
 // File: frontend/src/utils/familyUtils.ts
 // Purpose: Frontend utilities for family side determination
 
-import { createLogger } from './logger';
-import { UserConfigResponse } from '../api/modules/user';
+import type { UserConfigResponse } from '../api/modules/user';
 import { cacheService } from '../services/CacheService';
 import { colors } from '../shared/design-system/tokens/colors';
+import { createLogger } from './logger';
 
 // Initialize logger
 const logger = createLogger('FamilyUtils');

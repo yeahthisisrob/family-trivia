@@ -1,5 +1,6 @@
 // File: frontend/src/contexts/AdminContext.tsx
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import type React from 'react';
+import { createContext, useCallback, useContext, useState } from 'react';
 
 import * as adminApi from '../api/modules/admin';
 import { createLogger } from '../utils/logger';

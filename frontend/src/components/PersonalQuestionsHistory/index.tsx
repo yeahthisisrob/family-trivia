@@ -1,41 +1,42 @@
 // components/PersonalQuestionsHistory/index.tsx
 import {
-  ExpandMore as ExpandMoreIcon,
-  QuestionAnswer as QuestionAnswerIcon,
-  Edit as EditIcon,
-  Save as SaveIcon,
+  CalendarToday as CalendarTodayIcon,
   Cancel as CancelIcon,
   CheckCircle as CheckCircleIcon,
-  RadioButtonUnchecked as RadioButtonUncheckedIcon,
-  Schedule as ScheduleIcon,
-  CalendarToday as CalendarTodayIcon,
+  Edit as EditIcon,
+  ExpandMore as ExpandMoreIcon,
   Lightbulb as LightbulbIcon,
+  QuestionAnswer as QuestionAnswerIcon,
+  RadioButtonUnchecked as RadioButtonUncheckedIcon,
+  Save as SaveIcon,
+  Schedule as ScheduleIcon,
 } from '@mui/icons-material';
 import {
-  Box,
-  Typography,
   Accordion,
-  AccordionSummary,
   AccordionDetails,
-  Chip,
-  TextField,
-  Button,
-  Tabs,
-  Tab,
-  Paper,
-  Fade,
-  Tooltip,
-  useTheme,
+  AccordionSummary,
   alpha,
+  Box,
+  Button,
+  Chip,
+  Fade,
+  Paper,
   Skeleton,
+  Tab,
+  Tabs,
+  TextField,
+  Tooltip,
+  Typography,
+  useTheme,
 } from '@mui/material';
-import React, { useState, useEffect, useCallback } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import {
+  type FactHistoryItem,
   getUserFactHistory,
   submitHistoricalFact,
-  FactHistoryItem,
-  UserFactHistory,
+  type UserFactHistory,
 } from '../../api/modules/facts';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
@@ -214,7 +215,7 @@ const PersonalQuestionsHistory: React.FC<PersonalQuestionsHistoryProps> = ({ use
     const id = getQuestionId(item);
     const editingState = editingStates[id];
 
-    if (!editingState || !editingState.answer.trim()) return;
+    if (!editingState?.answer.trim()) return;
 
     setSubmitting(id);
     try {
@@ -464,7 +465,9 @@ const PersonalQuestionsHistory: React.FC<PersonalQuestionsHistoryProps> = ({ use
                             variant="contained"
                             onClick={() => handleSubmit(item)}
                             disabled={!editingStates[id]?.answer.trim() || isSubmitting}
-                            startIcon={isSubmitting ? <LoadingDots size={4} inline /> : <SaveIcon />}
+                            startIcon={
+                              isSubmitting ? <LoadingDots size={4} inline /> : <SaveIcon />
+                            }
                             size="small"
                           >
                             {isSubmitting ? 'Saving...' : 'Save Answer'}

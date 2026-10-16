@@ -1,13 +1,12 @@
 // File: src/components/FamilyTree/index.tsx
 import { Box, Fade } from '@mui/material';
-import React, { useMemo } from 'react';
-
+import type React from 'react';
+import { useMemo } from 'react';
+import { useFamilyData } from '../../contexts/FamilyDataContext';
+import { LoadingDots } from '../ui/feedback';
 import FamilySplitView from './FamilySplitView';
 import MemberLoadingError from './MemberLoadingError';
 import MemberSpotlight from './MemberSpotlight';
-import { FamilyHierarchy } from '../../api';
-import { useFamilyData } from '../../contexts/FamilyDataContext';
-import { LoadingDots } from '../ui/feedback';
 
 interface FamilyTreeProps {
   userId: string;
@@ -34,9 +33,7 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, onViewProfile }) => {
   }, [rawGroupDescriptions]);
 
   if (loading) {
-    return (
-      <LoadingDots mt={0} />
-    );
+    return <LoadingDots mt={0} />;
   }
 
   if (
@@ -48,10 +45,7 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, onViewProfile }) => {
   ) {
     return (
       <MemberLoadingError
-        message={
-          error ||
-          'Failed to load family data. Please try again later.'
-        }
+        message={error || 'Failed to load family data. Please try again later.'}
         onRetry={() => refreshMembers(true)}
       />
     );

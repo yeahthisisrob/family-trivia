@@ -1,16 +1,29 @@
 // Module: user
 // User config, profile, history, and member summaries
 
+import type {
+  HistoryEntry,
+  MemberSummaryResponse,
+  UserConfigResponse,
+  UserProfile,
+} from '@family-trivia/shared';
 import { apiService } from '../../services/ApiService';
 import { createLogger } from '../../utils/logger';
 
-import type { HistoryEntry, UserConfigResponse, UserProfile, MemberSummaryResponse } from '@family-trivia/shared';
-
 // ── Type re-exports ────────────────────────────────────────────────
 
-export type { UserConfig, UserConfigResponse } from '@family-trivia/shared';
-export type { FactItem, CategorySelection, DifficultyStats, ScoreHistoryEntry, UserProfile } from '@family-trivia/shared';
-export type { BasicQA, MemberInsight, MemberSummaryResponse } from '@family-trivia/shared';
+export type {
+  BasicQA,
+  CategorySelection,
+  DifficultyStats,
+  FactItem,
+  MemberInsight,
+  MemberSummaryResponse,
+  ScoreHistoryEntry,
+  UserConfig,
+  UserConfigResponse,
+  UserProfile,
+} from '@family-trivia/shared';
 
 /**
  * Re-export HistoryEntry as QuestionHistory for backward compatibility.

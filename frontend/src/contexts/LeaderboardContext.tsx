@@ -1,8 +1,9 @@
 // File: src/contexts/LeaderboardContext.tsx
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import type React from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
-import { getOptimizedLeaderboardData, SeasonInfo } from '../api/modules/leaderboard';
-import { LeaderboardEntry, GroupScore } from '../components/Leaderboard/utils';
+import { getOptimizedLeaderboardData, type SeasonInfo } from '../api/modules/leaderboard';
+import type { GroupScore, LeaderboardEntry } from '../components/Leaderboard/utils';
 import { createLogger } from '../utils/logger';
 
 // Initialize logger
@@ -61,7 +62,9 @@ export const LeaderboardProvider: React.FC<LeaderboardProviderProps> = ({ childr
   const [seasons, setSeasons] = useState<SeasonInfo[]>([]);
   const [selectedSeason, setSelectedSeasonState] = useState<number | undefined>(undefined);
   const [maxQuestionsAsked, setMaxQuestionsAsked] = useState<number | undefined>(undefined);
-  const [globalCategoryStats, setGlobalCategoryStats] = useState<Record<string, { total: number; correct: number }>>({});
+  const [globalCategoryStats, setGlobalCategoryStats] = useState<
+    Record<string, { total: number; correct: number }>
+  >({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);

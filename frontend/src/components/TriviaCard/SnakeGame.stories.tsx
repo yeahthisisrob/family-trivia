@@ -1,10 +1,8 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import React from 'react';
 import { fn } from 'storybook/test';
-
-import SnakeGame from './SnakeGame';
 import { StoryProviders } from '../../test/storyContexts';
-
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import SnakeGame from './SnakeGame';
 
 const installMockFetch = () => {
   const realFetch = window.fetch;
@@ -12,35 +10,43 @@ const installMockFetch = () => {
     const url = typeof input === 'string' ? input : input.toString();
 
     if (url.includes('/snake/questions')) {
-      return new Response(JSON.stringify({
-        ok: true,
-        data: {
-          questions: [
-            { clue: "Rob's favorite color", answer: 'BLUE' },
-            { clue: 'Capital of France', answer: 'PARIS' },
-            { clue: "Carol's dream city", answer: 'HAWAII' },
-            { clue: 'Largest ocean', answer: 'PACIFIC' },
-            { clue: "Grace's favorite dessert", answer: 'PIE' },
-            { clue: 'Fastest land animal', answer: 'CHEETAH' },
-            { clue: "Bob's pet type", answer: 'DOG' },
-            { clue: 'Frozen water', answer: 'ICE' },
-            { clue: 'Opposite of night', answer: 'DAY' },
-            { clue: "Frank's favorite sport", answer: 'SOCCER' },
-          ],
-        },
-      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          data: {
+            questions: [
+              { clue: "Rob's favorite color", answer: 'BLUE' },
+              { clue: 'Capital of France', answer: 'PARIS' },
+              { clue: "Carol's dream city", answer: 'HAWAII' },
+              { clue: 'Largest ocean', answer: 'PACIFIC' },
+              { clue: "Grace's favorite dessert", answer: 'PIE' },
+              { clue: 'Fastest land animal', answer: 'CHEETAH' },
+              { clue: "Bob's pet type", answer: 'DOG' },
+              { clue: 'Frozen water', answer: 'ICE' },
+              { clue: 'Opposite of night', answer: 'DAY' },
+              { clue: "Frank's favorite sport", answer: 'SOCCER' },
+            ],
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
     }
 
     if (url.includes('/arcade/submit-score')) {
-      return new Response(JSON.stringify({
-        ok: true,
-        data: { isNewHighScore: true, rank: 1, previousBest: 0, highScores: [] },
-      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          data: { isNewHighScore: true, rank: 1, previousBest: 0, highScores: [] },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
     }
 
     return realFetch(input, init);
   };
-  return () => { window.fetch = realFetch; };
+  return () => {
+    window.fetch = realFetch;
+  };
 };
 
 const meta: Meta<typeof SnakeGame> = {
@@ -50,7 +56,8 @@ const meta: Meta<typeof SnakeGame> = {
     layout: 'padded',
     docs: {
       description: {
-        component: 'Classic Snake with a trivia twist — collect letters in order to spell answers. Wrong letters shrink the snake. Score = words completed.',
+        component:
+          'Classic Snake with a trivia twist — collect letters in order to spell answers. Wrong letters shrink the snake. Score = words completed.',
       },
     },
   },

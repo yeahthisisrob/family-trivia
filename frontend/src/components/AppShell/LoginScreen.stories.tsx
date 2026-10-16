@@ -1,8 +1,6 @@
-import { fn } from 'storybook/test';
-
-import LoginScreen from './LoginScreen';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import LoginScreen from './LoginScreen';
 
 const meta: Meta<typeof LoginScreen> = {
   title: 'AppShell/LoginScreen',

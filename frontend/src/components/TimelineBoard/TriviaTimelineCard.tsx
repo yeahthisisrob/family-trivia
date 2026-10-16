@@ -3,10 +3,10 @@ import CasinoIcon from '@mui/icons-material/Casino';
 import SchoolIcon from '@mui/icons-material/School';
 import { Avatar, Box, Card, Chip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React, { useState } from 'react';
-
-import CustomCategoryBanner from './CustomCategoryBanner';
+import type React from 'react';
+import { useState } from 'react';
 import AnswerResultDialog from '../TriviaCard/AnswerResultDialog';
+import CustomCategoryBanner from './CustomCategoryBanner';
 
 interface TriviaEntry {
   userId: string;
@@ -74,7 +74,7 @@ const TimelineCard: React.FC<TimelineCardProps> = ({
                   }
                 : {},
             }}
-            onClick={() => onUserClick && onUserClick(entry.userId)}
+            onClick={() => onUserClick?.(entry.userId)}
           >
             {entry.initials}
           </Avatar>
@@ -102,7 +102,7 @@ const TimelineCard: React.FC<TimelineCardProps> = ({
                       }
                     : {},
                 }}
-                onClick={() => onUserClick && onUserClick(entry.userId)}
+                onClick={() => onUserClick?.(entry.userId)}
               >
                 {entry.userId}
               </Typography>

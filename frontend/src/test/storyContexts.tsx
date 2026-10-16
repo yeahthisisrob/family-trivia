@@ -1,7 +1,7 @@
 // Minimal context stubs for Storybook stories. Real providers hit the
 // network; these return plausible empty data so components render.
 
-import React from 'react';
+import type React from 'react';
 
 import { AdminContext } from '../contexts/AdminContext';
 import { FamilyDataContext } from '../contexts/FamilyDataContext';
@@ -14,21 +14,27 @@ import { UserStatusContext } from '../contexts/UserStatusContext';
 
 export interface StubTimelineOverrides {
   /** Seed comments for trivia threads, keyed by contentId */
-  triviaComments?: Record<string, Array<{
-    commentId: string;
-    userId: string;
-    text: string;
-    timestamp: string;
-    parentId?: string | null;
-  }>>;
+  triviaComments?: Record<
+    string,
+    Array<{
+      commentId: string;
+      userId: string;
+      text: string;
+      timestamp: string;
+      parentId?: string | null;
+    }>
+  >;
   /** Seed comments for fact threads, keyed by contentId */
-  factComments?: Record<string, Array<{
-    commentId: string;
-    userId: string;
-    text: string;
-    timestamp: string;
-    parentId?: string | null;
-  }>>;
+  factComments?: Record<
+    string,
+    Array<{
+      commentId: string;
+      userId: string;
+      text: string;
+      timestamp: string;
+      parentId?: string | null;
+    }>
+  >;
   commentsLoading?: boolean;
   onAddComment?: (userId: string, contentId: string, text: string) => void;
 }
@@ -235,7 +241,13 @@ export interface StoryProvidersProps {
   timeline?: StubTimelineOverrides;
 }
 
-export const StoryProviders: React.FC<StoryProvidersProps> = ({ children, trivia, family, userStatus, timeline }) => (
+export const StoryProviders: React.FC<StoryProvidersProps> = ({
+  children,
+  trivia,
+  family,
+  userStatus,
+  timeline,
+}) => (
   <FamilyDataContext.Provider value={makeFamilyValue(family) as any}>
     <LeaderboardContext.Provider value={stubLeaderboardValue as any}>
       <TriviaContext.Provider value={makeTriviaValue(trivia) as any}>
@@ -272,12 +284,21 @@ function makeAdminValue(overrides: StubAdminOverrides = {}) {
     rootPartners: [],
     loading: overrides.loading ?? false,
     error: overrides.error ?? null,
-    loadPlayers: noop, loadGroups: noop, loadFamilyTree: noop,
-    loadSeasons: noop, loadAll: noop,
-    addPlayer: noop, updatePlayer: noop, deletePlayer: noop,
-    addGroup: noop, updateGroup: noop, deleteGroup: noop,
+    loadPlayers: noop,
+    loadGroups: noop,
+    loadFamilyTree: noop,
+    loadSeasons: noop,
+    loadAll: noop,
+    addPlayer: noop,
+    updatePlayer: noop,
+    deletePlayer: noop,
+    addGroup: noop,
+    updateGroup: noop,
+    deleteGroup: noop,
     updateFamilyTree: noop,
-    addSeason: noop, updateSeason: noop, deleteSeason: noop,
+    addSeason: noop,
+    updateSeason: noop,
+    deleteSeason: noop,
   };
 }
 
@@ -286,9 +307,7 @@ export const AdminStoryProviders: React.FC<{
   admin?: StubAdminOverrides;
 }> = ({ children, admin }) => (
   <StoryProviders>
-    <AdminContext.Provider value={makeAdminValue(admin) as any}>
-      {children}
-    </AdminContext.Provider>
+    <AdminContext.Provider value={makeAdminValue(admin) as any}>{children}</AdminContext.Provider>
   </StoryProviders>
 );
 

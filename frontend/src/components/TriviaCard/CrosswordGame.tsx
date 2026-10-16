@@ -12,10 +12,18 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import {
-  Box, Button, Card, Collapse, IconButton, Typography,
-  alpha, keyframes, useTheme,
+  alpha,
+  Box,
+  Button,
+  Card,
+  Collapse,
+  IconButton,
+  keyframes,
+  Typography,
+  useTheme,
 } from '@mui/material';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { submitArcadeScore } from '../../api/modules/arcade';
 import { apiService } from '../../services/ApiService';
@@ -100,11 +108,7 @@ const LOADING_MESSAGES = [
 
 // ── Component ──────────────────────────────────────────────────────
 
-const CrosswordGame: React.FC<CrosswordGameProps> = ({
-  userId,
-  onClose,
-  onComplete,
-}) => {
+const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComplete }) => {
   const theme = useTheme();
 
   // State
@@ -133,7 +137,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
   // Timer — counts up while playing
   useEffect(() => {
     if (gameState === 'playing') {
-      timerRef.current = setInterval(() => setElapsedSeconds(s => s + 1), 1000);
+      timerRef.current = setInterval(() => setElapsedSeconds((s) => s + 1), 1000);
     }
     return () => clearInterval(timerRef.current);
   }, [gameState]);
@@ -141,30 +145,43 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
   // ── Derived data ──────────────────────────────────────────────
 
   const acrossClues = useMemo(
-    () => (crosswordData?.clues ?? []).filter(c => c.direction === 'across').sort((a, b) => a.number - b.number),
+    () =>
+      (crosswordData?.clues ?? [])
+        .filter((c) => c.direction === 'across')
+        .sort((a, b) => a.number - b.number),
     [crosswordData],
   );
 
   const downClues = useMemo(
-    () => (crosswordData?.clues ?? []).filter(c => c.direction === 'down').sort((a, b) => a.number - b.number),
+    () =>
+      (crosswordData?.clues ?? [])
+        .filter((c) => c.direction === 'down')
+        .sort((a, b) => a.number - b.number),
     [crosswordData],
   );
 
-  const allCluesSorted = useMemo(
-    () => [...acrossClues, ...downClues],
-    [acrossClues, downClues],
-  );
+  const allCluesSorted = useMemo(() => [...acrossClues, ...downClues], [acrossClues, downClues]);
 
   const activeClue = useMemo(() => {
     if (!crosswordData || !activeCell) return null;
     // Find clue matching active direction that covers the active cell
-    return crosswordData.clues.find(c => {
-      if (c.direction !== activeDirection) return false;
-      if (c.direction === 'across') {
-        return c.row === activeCell.row && activeCell.col >= c.col && activeCell.col < c.col + c.answer.length;
-      }
-      return c.col === activeCell.col && activeCell.row >= c.row && activeCell.row < c.row + c.answer.length;
-    }) ?? null;
+    return (
+      crosswordData.clues.find((c) => {
+        if (c.direction !== activeDirection) return false;
+        if (c.direction === 'across') {
+          return (
+            c.row === activeCell.row &&
+            activeCell.col >= c.col &&
+            activeCell.col < c.col + c.answer.length
+          );
+        }
+        return (
+          c.col === activeCell.col &&
+          activeCell.row >= c.row &&
+          activeCell.row < c.row + c.answer.length
+        );
+      }) ?? null
+    );
   }, [crosswordData, activeCell, activeDirection]);
 
   /** Total fillable cells */
@@ -192,14 +209,17 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
   }, [activeClue]);
 
   /** Check if a clue is fully filled */
-  const isClueComplete = useCallback((clue: Clue): boolean => {
-    for (let i = 0; i < clue.answer.length; i++) {
-      const r = clue.direction === 'across' ? clue.row : clue.row + i;
-      const c = clue.direction === 'across' ? clue.col + i : clue.col;
-      if (!userInput[r]?.[c]) return false;
-    }
-    return true;
-  }, [userInput]);
+  const isClueComplete = useCallback(
+    (clue: Clue): boolean => {
+      for (let i = 0; i < clue.answer.length; i++) {
+        const r = clue.direction === 'across' ? clue.row : clue.row + i;
+        const c = clue.direction === 'across' ? clue.col + i : clue.col;
+        if (!userInput[r]?.[c]) return false;
+      }
+      return true;
+    },
+    [userInput],
+  );
 
   // ── Generate crossword ────────────────────────────────────────
 
@@ -300,85 +320,94 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
 
   // ── Cell interaction ──────────────────────────────────────────
 
-  const selectCell = useCallback((row: number, col: number) => {
-    if (!cells[row]?.[col] || cells[row][col].isBlack) return;
+  const selectCell = useCallback(
+    (row: number, col: number) => {
+      if (!cells[row]?.[col] || cells[row][col].isBlack) return;
 
-    if (activeCell?.row === row && activeCell?.col === col) {
-      // Toggle direction on same cell
-      setActiveDirection(prev => prev === 'across' ? 'down' : 'across');
-    } else {
-      setActiveCell({ row, col });
-    }
+      if (activeCell?.row === row && activeCell?.col === col) {
+        // Toggle direction on same cell
+        setActiveDirection((prev) => (prev === 'across' ? 'down' : 'across'));
+      } else {
+        setActiveCell({ row, col });
+      }
 
-    // Focus input immediately (must be in same gesture for iOS keyboard)
-    hiddenInputRef.current?.focus();
+      // Focus input immediately (must be in same gesture for iOS keyboard)
+      hiddenInputRef.current?.focus();
 
-    // Scroll cell into view on mobile
-    const cellEl = gridRef.current?.querySelector(`[data-cell="${row}-${col}"]`);
-    if (cellEl) {
-      (cellEl as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }, [cells, activeCell]);
+      // Scroll cell into view on mobile
+      const cellEl = gridRef.current?.querySelector(`[data-cell="${row}-${col}"]`);
+      if (cellEl) {
+        (cellEl as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    },
+    [cells, activeCell],
+  );
 
-  const advanceCell = useCallback((forward: boolean) => {
-    if (!activeCell) return;
-    const { row, col } = activeCell;
-    const dr = activeDirection === 'down' ? (forward ? 1 : -1) : 0;
-    const dc = activeDirection === 'across' ? (forward ? 1 : -1) : 0;
-    const nr = row + dr;
-    const nc = col + dc;
-    if (cells[nr]?.[nc] && !cells[nr][nc].isBlack) {
-      setActiveCell({ row: nr, col: nc });
-    }
-  }, [activeCell, activeDirection, cells]);
+  const advanceCell = useCallback(
+    (forward: boolean) => {
+      if (!activeCell) return;
+      const { row, col } = activeCell;
+      const dr = activeDirection === 'down' ? (forward ? 1 : -1) : 0;
+      const dc = activeDirection === 'across' ? (forward ? 1 : -1) : 0;
+      const nr = row + dr;
+      const nc = col + dc;
+      if (cells[nr]?.[nc] && !cells[nr][nc].isBlack) {
+        setActiveCell({ row: nr, col: nc });
+      }
+    },
+    [activeCell, activeDirection, cells],
+  );
 
-  const handleKeyInput = useCallback((key: string) => {
-    if (!activeCell || gameState !== 'playing') return;
-    const { row, col } = activeCell;
+  const handleKeyInput = useCallback(
+    (key: string) => {
+      if (!activeCell || gameState !== 'playing') return;
+      const { row, col } = activeCell;
 
-    if (key === 'Backspace') {
-      setUserInput(prev => {
-        const next = prev.map(r => [...r]);
-        if (next[row][col]) {
-          next[row][col] = '';
-        } else {
-          // Move back and clear that cell
-          const dr = activeDirection === 'down' ? -1 : 0;
-          const dc = activeDirection === 'across' ? -1 : 0;
-          const pr = row + dr;
-          const pc = col + dc;
-          if (cells[pr]?.[pc] && !cells[pr][pc].isBlack) {
-            next[pr][pc] = '';
-            setActiveCell({ row: pr, col: pc });
+      if (key === 'Backspace') {
+        setUserInput((prev) => {
+          const next = prev.map((r) => [...r]);
+          if (next[row][col]) {
+            next[row][col] = '';
+          } else {
+            // Move back and clear that cell
+            const dr = activeDirection === 'down' ? -1 : 0;
+            const dc = activeDirection === 'across' ? -1 : 0;
+            const pr = row + dr;
+            const pc = col + dc;
+            if (cells[pr]?.[pc] && !cells[pr][pc].isBlack) {
+              next[pr][pc] = '';
+              setActiveCell({ row: pr, col: pc });
+            }
           }
-        }
-        return next;
-      });
-      // Clear check state for this cell
-      setCheckedCells(prev => {
-        const next = new Map(prev);
-        next.delete(`${row},${col}`);
-        return next;
-      });
-      return;
-    }
+          return next;
+        });
+        // Clear check state for this cell
+        setCheckedCells((prev) => {
+          const next = new Map(prev);
+          next.delete(`${row},${col}`);
+          return next;
+        });
+        return;
+      }
 
-    const letter = key.toUpperCase();
-    if (letter.length === 1 && letter >= 'A' && letter <= 'Z') {
-      setUserInput(prev => {
-        const next = prev.map(r => [...r]);
-        next[row][col] = letter;
-        return next;
-      });
-      // Clear check state for this cell
-      setCheckedCells(prev => {
-        const next = new Map(prev);
-        next.delete(`${row},${col}`);
-        return next;
-      });
-      advanceCell(true);
-    }
-  }, [activeCell, activeDirection, cells, gameState, advanceCell]);
+      const letter = key.toUpperCase();
+      if (letter.length === 1 && letter >= 'A' && letter <= 'Z') {
+        setUserInput((prev) => {
+          const next = prev.map((r) => [...r]);
+          next[row][col] = letter;
+          return next;
+        });
+        // Clear check state for this cell
+        setCheckedCells((prev) => {
+          const next = new Map(prev);
+          next.delete(`${row},${col}`);
+          return next;
+        });
+        advanceCell(true);
+      }
+    },
+    [activeCell, activeDirection, cells, gameState, advanceCell],
+  );
 
   // ── Clue navigation ───────────────────────────────────────────
 
@@ -386,24 +415,32 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
   const derivedClueIndex = useMemo(() => {
     if (!activeClue) return activeClueIndex;
     const idx = allCluesSorted.findIndex(
-      c => c.number === activeClue.number && c.direction === activeClue.direction,
+      (c) => c.number === activeClue.number && c.direction === activeClue.direction,
     );
     return idx >= 0 ? idx : activeClueIndex;
   }, [activeClue, allCluesSorted, activeClueIndex]);
 
-  const jumpToClue = useCallback((clue: Clue) => {
-    setActiveCell({ row: clue.row, col: clue.col });
-    setActiveDirection(clue.direction);
-    const idx = allCluesSorted.findIndex(c => c.number === clue.number && c.direction === clue.direction);
-    if (idx >= 0) setActiveClueIndex(idx);
-    hiddenInputRef.current?.focus();
-  }, [allCluesSorted]);
+  const jumpToClue = useCallback(
+    (clue: Clue) => {
+      setActiveCell({ row: clue.row, col: clue.col });
+      setActiveDirection(clue.direction);
+      const idx = allCluesSorted.findIndex(
+        (c) => c.number === clue.number && c.direction === clue.direction,
+      );
+      if (idx >= 0) setActiveClueIndex(idx);
+      hiddenInputRef.current?.focus();
+    },
+    [allCluesSorted],
+  );
 
-  const navigateClue = useCallback((delta: number) => {
-    const nextIdx = (derivedClueIndex + delta + allCluesSorted.length) % allCluesSorted.length;
-    setActiveClueIndex(nextIdx);
-    jumpToClue(allCluesSorted[nextIdx]);
-  }, [derivedClueIndex, allCluesSorted, jumpToClue]);
+  const navigateClue = useCallback(
+    (delta: number) => {
+      const nextIdx = (derivedClueIndex + delta + allCluesSorted.length) % allCluesSorted.length;
+      setActiveClueIndex(nextIdx);
+      jumpToClue(allCluesSorted[nextIdx]);
+    },
+    [derivedClueIndex, allCluesSorted, jumpToClue],
+  );
 
   // No document-level keyboard listener needed — the hidden input
   // captures all keystrokes via its onKeyDown handler.
@@ -427,9 +464,9 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
 
   const handleRevealClue = useCallback(() => {
     if (!activeClue || !crosswordData) return;
-    setRevealedClues(prev => new Set(prev).add(activeClue.number));
-    setUserInput(prev => {
-      const next = prev.map(r => [...r]);
+    setRevealedClues((prev) => new Set(prev).add(activeClue.number));
+    setUserInput((prev) => {
+      const next = prev.map((r) => [...r]);
       for (let i = 0; i < activeClue.answer.length; i++) {
         const r = activeClue.direction === 'across' ? activeClue.row : activeClue.row + i;
         const c = activeClue.direction === 'across' ? activeClue.col + i : activeClue.col;
@@ -438,7 +475,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
       return next;
     });
     // Mark revealed cells as correct
-    setCheckedCells(prev => {
+    setCheckedCells((prev) => {
       const next = new Map(prev);
       for (let i = 0; i < activeClue.answer.length; i++) {
         const r = activeClue.direction === 'across' ? activeClue.row : activeClue.row + i;
@@ -466,7 +503,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
     const baseScore = Math.max(0, correctCount - penalty);
 
     // Time bonus: faster = more points. Under 60s = 2x, under 120s = 1.5x, under 180s = 1.2x
-    const timeMultiplier = elapsedSeconds < 60 ? 2 : elapsedSeconds < 120 ? 1.5 : elapsedSeconds < 180 ? 1.2 : 1;
+    const timeMultiplier =
+      elapsedSeconds < 60 ? 2 : elapsedSeconds < 120 ? 1.5 : elapsedSeconds < 180 ? 1.2 : 1;
 
     // Difficulty multiplier from backend (1 = easy, 1.5 = medium, 2 = hard)
     const score = Math.round(baseScore * timeMultiplier * difficultyMultiplier);
@@ -475,13 +513,29 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
 
     try {
       await submitArcadeScore(userId, 'crossword', score);
-      logger.info('Score submitted', { score, baseScore, timeMultiplier, difficultyMultiplier, elapsed: elapsedSeconds });
+      logger.info('Score submitted', {
+        score,
+        baseScore,
+        timeMultiplier,
+        difficultyMultiplier,
+        elapsed: elapsedSeconds,
+      });
     } catch (err) {
       logger.error('Failed to submit score', err);
     }
 
     onComplete?.({ correct: correctCount === totalCells, streak: 0, pointsEarned: score });
-  }, [crosswordData, cells, userInput, revealedClues, userId, totalCells, onComplete, elapsedSeconds, difficultyMultiplier]);
+  }, [
+    crosswordData,
+    cells,
+    userInput,
+    revealedClues,
+    userId,
+    totalCells,
+    onComplete,
+    elapsedSeconds,
+    difficultyMultiplier,
+  ]);
 
   // ── Render helpers ────────────────────────────────────────────
 
@@ -573,9 +627,12 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
                     fontSize: '0.85rem',
                     fontWeight: 700,
                     lineHeight: 1,
-                    color: checkState === 'correct' ? colors.result.correct
-                      : checkState === 'wrong' ? colors.result.incorrect
-                      : '#222',
+                    color:
+                      checkState === 'correct'
+                        ? colors.result.correct
+                        : checkState === 'wrong'
+                          ? colors.result.incorrect
+                          : '#222',
                     pointerEvents: 'none',
                   }}
                 >
@@ -592,18 +649,25 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
   const renderClueBar = () => {
     if (!activeClue) return null;
     return (
-      <Box sx={{
-        display: 'flex', alignItems: 'center', gap: 0.5,
-        px: 1.5, py: 1, bgcolor: alpha('#2196f3', 0.06),
-        borderTop: `1px solid ${alpha('#2196f3', 0.15)}`,
-        borderBottom: `1px solid ${alpha('#2196f3', 0.15)}`,
-      }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          px: 1.5,
+          py: 1,
+          bgcolor: alpha('#2196f3', 0.06),
+          borderTop: `1px solid ${alpha('#2196f3', 0.15)}`,
+          borderBottom: `1px solid ${alpha('#2196f3', 0.15)}`,
+        }}
+      >
         <IconButton size="small" onClick={() => navigateClue(-1)} sx={{ p: 0.25 }}>
           <ArrowBackIosNewIcon sx={{ fontSize: 14 }} />
         </IconButton>
         <Typography sx={{ flex: 1, fontSize: '0.8rem', lineHeight: 1.3 }}>
           <Box component="span" sx={{ fontWeight: 700, mr: 0.5 }}>
-            {activeClue.number}{activeClue.direction === 'across' ? 'A' : 'D'}
+            {activeClue.number}
+            {activeClue.direction === 'across' ? 'A' : 'D'}
           </Box>
           {activeClue.clue}
         </Typography>
@@ -619,50 +683,71 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
       <Typography
         onClick={toggle}
         sx={{
-          fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer',
-          py: 0.75, color: theme.palette.text.secondary,
-          display: 'flex', alignItems: 'center', gap: 0.5,
+          fontWeight: 700,
+          fontSize: '0.8rem',
+          cursor: 'pointer',
+          py: 0.75,
+          color: theme.palette.text.secondary,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
           userSelect: 'none',
         }}
       >
         {title}
-        <Box component="span" sx={{
-          fontSize: '0.65rem',
-          transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
-          transition: `transform ${motion.duration.fast}`,
-        }}>
+        <Box
+          component="span"
+          sx={{
+            fontSize: '0.65rem',
+            transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
+            transition: `transform ${motion.duration.fast}`,
+          }}
+        >
           {'\u25B6'}
         </Box>
       </Typography>
       <Collapse in={open}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, pb: 1 }}>
-          {clues.map(clue => {
+          {clues.map((clue) => {
             const complete = isClueComplete(clue);
-            const isActive = activeClue?.number === clue.number && activeClue?.direction === clue.direction;
+            const isActive =
+              activeClue?.number === clue.number && activeClue?.direction === clue.direction;
             return (
               <Box
                 key={`${clue.direction}-${clue.number}`}
                 onClick={() => jumpToClue(clue)}
                 sx={{
-                  display: 'flex', alignItems: 'flex-start', gap: 0.75,
-                  py: 0.5, px: 0.75, cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 0.75,
+                  py: 0.5,
+                  px: 0.75,
+                  cursor: 'pointer',
                   borderRadius: `${radii.sm}px`,
                   bgcolor: isActive ? alpha('#2196f3', 0.08) : 'transparent',
                   '&:hover': { bgcolor: alpha('#2196f3', 0.05) },
                   transition: `background ${motion.duration.fast}`,
                 }}
               >
-                <Typography sx={{
-                  fontWeight: 700, fontSize: '0.75rem', minWidth: 20,
-                  color: complete ? colors.result.correct : theme.palette.text.primary,
-                }}>
+                <Typography
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                    minWidth: 20,
+                    color: complete ? colors.result.correct : theme.palette.text.primary,
+                  }}
+                >
                   {clue.number}.
                 </Typography>
-                <Typography sx={{
-                  fontSize: '0.75rem', lineHeight: 1.4, flex: 1,
-                  color: complete ? theme.palette.text.secondary : theme.palette.text.primary,
-                  textDecoration: complete ? 'line-through' : 'none',
-                }}>
+                <Typography
+                  sx={{
+                    fontSize: '0.75rem',
+                    lineHeight: 1.4,
+                    flex: 1,
+                    color: complete ? theme.palette.text.secondary : theme.palette.text.primary,
+                    textDecoration: complete ? 'line-through' : 'none',
+                  }}
+                >
                   {clue.clue}
                 </Typography>
                 {complete && (
@@ -693,18 +778,30 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
   // ── Render ────────────────────────────────────────────────────
 
   return (
-    <Card ref={rootRef} sx={{
-      overflow: 'hidden', borderRadius: 3, maxWidth: 400, mx: 'auto',
-      border: `2px solid ${alpha('#009688', 0.5)}`,
-      boxShadow: `0 0 20px ${alpha('#009688', 0.15)}`,
-      animation: `${fadeIn} ${motion.duration.slow} ${motion.ease.bounce}`,
-    }}>
+    <Card
+      ref={rootRef}
+      sx={{
+        overflow: 'hidden',
+        borderRadius: 3,
+        maxWidth: 400,
+        mx: 'auto',
+        border: `2px solid ${alpha('#009688', 0.5)}`,
+        boxShadow: `0 0 20px ${alpha('#009688', 0.15)}`,
+        animation: `${fadeIn} ${motion.duration.slow} ${motion.ease.bounce}`,
+      }}
+    >
       {/* Header */}
-      <Box sx={{
-        background: 'linear-gradient(135deg, #00695c 0%, #004d40 100%)',
-        color: 'white', px: 2, py: 1.25,
-        display: 'flex', alignItems: 'center', gap: 1,
-      }}>
+      <Box
+        sx={{
+          background: 'linear-gradient(135deg, #00695c 0%, #004d40 100%)',
+          color: 'white',
+          px: 2,
+          py: 1.25,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+        }}
+      >
         <AppsIcon sx={{ fontSize: 20 }} />
         <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', flex: 1, letterSpacing: 1 }}>
           FAMILY CROSSWORD
@@ -726,15 +823,21 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
 
       {/* Loading */}
       {gameState === 'loading' && (
-        <Box sx={{
-          py: 6, display: 'flex', flexDirection: 'column',
-          alignItems: 'center', gap: 2,
-        }}>
+        <Box
+          sx={{
+            py: 6,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
           <LoadingDots size={10} color="#009688" />
           <Typography
             onClick={loadingMsg.includes('retry') ? generateCrossword : undefined}
             sx={{
-              fontSize: '0.85rem', color: theme.palette.text.secondary,
+              fontSize: '0.85rem',
+              color: theme.palette.text.secondary,
               cursor: loadingMsg.includes('retry') ? 'pointer' : 'default',
               textDecoration: loadingMsg.includes('retry') ? 'underline' : 'none',
             }}
@@ -770,7 +873,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
               outline: 'none',
               background: 'transparent',
             }}
-            onKeyDown={e => {
+            onKeyDown={(e) => {
               if (e.key === 'Backspace' || e.key === 'Tab' || /^[a-zA-Z]$/.test(e.key)) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -784,32 +887,37 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
           />
 
           {/* Grid */}
-          <Box sx={{ overflow: 'auto', py: 1 }}>
-            {renderGrid()}
-          </Box>
+          <Box sx={{ overflow: 'auto', py: 1 }}>{renderGrid()}</Box>
 
           {/* Active clue bar */}
           {renderClueBar()}
 
           {/* Clue lists */}
           <Box sx={{ maxHeight: 200, overflow: 'auto', py: 0.5 }}>
-            {renderClueList('Across', acrossClues, acrossOpen, () => setAcrossOpen(p => !p))}
-            {renderClueList('Down', downClues, downOpen, () => setDownOpen(p => !p))}
+            {renderClueList('Across', acrossClues, acrossOpen, () => setAcrossOpen((p) => !p))}
+            {renderClueList('Down', downClues, downOpen, () => setDownOpen((p) => !p))}
           </Box>
 
           {/* Controls */}
-          <Box sx={{
-            display: 'flex', gap: 1, px: 1.5, py: 1.5,
-            borderTop: `1px solid ${alpha('#000', 0.08)}`,
-            bgcolor: '#fff',
-          }}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1,
+              px: 1.5,
+              py: 1.5,
+              borderTop: `1px solid ${alpha('#000', 0.08)}`,
+              bgcolor: '#fff',
+            }}
+          >
             <Button
               size="small"
               variant="outlined"
               startIcon={<CheckIcon sx={{ fontSize: 16 }} />}
               onClick={handleCheck}
               sx={{
-                flex: 1, fontSize: '0.75rem', textTransform: 'none',
+                flex: 1,
+                fontSize: '0.75rem',
+                textTransform: 'none',
                 borderRadius: `${radii.md}px`,
               }}
             >
@@ -823,7 +931,9 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
               onClick={handleRevealClue}
               disabled={!activeClue}
               sx={{
-                flex: 1, fontSize: '0.75rem', textTransform: 'none',
+                flex: 1,
+                fontSize: '0.75rem',
+                textTransform: 'none',
                 borderRadius: `${radii.md}px`,
               }}
             >
@@ -834,7 +944,9 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
               variant="contained"
               onClick={handleSubmit}
               sx={{
-                flex: 1, fontSize: '0.75rem', textTransform: 'none',
+                flex: 1,
+                fontSize: '0.75rem',
+                textTransform: 'none',
                 borderRadius: `${radii.md}px`,
                 bgcolor: '#00695c',
                 '&:hover': { bgcolor: '#004d40' },
@@ -848,18 +960,27 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
 
       {/* Complete */}
       {gameState === 'complete' && (
-        <Box sx={{
-          py: 4, px: 3,
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', gap: 2,
-          animation: `${resultPop} 0.5s ${motion.ease.bounce}`,
-        }}>
+        <Box
+          sx={{
+            py: 4,
+            px: 3,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2,
+            animation: `${resultPop} 0.5s ${motion.ease.bounce}`,
+          }}
+        >
           <Typography sx={{ fontSize: '1.4rem', fontWeight: 800 }}>
             {finalScore === totalCells ? 'Perfect!' : 'Puzzle Complete!'}
           </Typography>
-          <Box sx={{
-            display: 'flex', alignItems: 'baseline', gap: 1,
-          }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 1,
+            }}
+          >
             <Typography sx={{ fontSize: '2.5rem', fontWeight: 800, color: '#00695c' }}>
               {finalScore}
             </Typography>
@@ -870,8 +991,15 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
           {/* Scoring breakdown */}
           <Box sx={{ textAlign: 'center' }}>
             <Typography sx={{ fontSize: '0.7rem', color: theme.palette.text.secondary }}>
-              Time: {Math.floor(elapsedSeconds / 60)}:{(elapsedSeconds % 60).toString().padStart(2, '0')}
-              {elapsedSeconds < 60 ? ' (2× speed bonus!)' : elapsedSeconds < 120 ? ' (1.5× speed bonus)' : elapsedSeconds < 180 ? ' (1.2× speed bonus)' : ''}
+              Time: {Math.floor(elapsedSeconds / 60)}:
+              {(elapsedSeconds % 60).toString().padStart(2, '0')}
+              {elapsedSeconds < 60
+                ? ' (2× speed bonus!)'
+                : elapsedSeconds < 120
+                  ? ' (1.5× speed bonus)'
+                  : elapsedSeconds < 180
+                    ? ' (1.2× speed bonus)'
+                    : ''}
             </Typography>
             {difficultyMultiplier > 1 && (
               <Typography sx={{ fontSize: '0.7rem', color: theme.palette.text.secondary }}>
@@ -880,7 +1008,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
             )}
             {revealedClues.size > 0 && (
               <Typography sx={{ fontSize: '0.7rem', color: theme.palette.text.secondary }}>
-                {revealedClues.size} clue{revealedClues.size !== 1 ? 's' : ''} revealed ({-revealedClues.size * REVEAL_PENALTY} pts)
+                {revealedClues.size} clue{revealedClues.size !== 1 ? 's' : ''} revealed (
+                {-revealedClues.size * REVEAL_PENALTY} pts)
               </Typography>
             )}
           </Box>

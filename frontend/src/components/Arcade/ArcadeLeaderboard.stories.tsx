@@ -1,18 +1,45 @@
+import type { HighScoreEntry } from '@family-trivia/shared';
 import { Box } from '@mui/material';
-import React from 'react';
-
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import ArcadeLeaderboard from './ArcadeLeaderboard';
 
-import type { HighScoreEntry } from '@family-trivia/shared';
-import type { Meta, StoryObj } from '@storybook/react-vite';
-
 const mockScores: HighScoreEntry[] = [
-  { userId: 'alice', score: 1200, date: new Date(Date.now() - 86400000).toISOString(), mode: 'arcade' },
-  { userId: 'rob', score: 950, date: new Date(Date.now() - 172800000).toISOString(), mode: 'trivia' },
-  { userId: 'bob', score: 800, date: new Date(Date.now() - 259200000).toISOString(), mode: 'arcade' },
-  { userId: 'carol', score: 600, date: new Date(Date.now() - 345600000).toISOString(), mode: 'trivia' },
-  { userId: 'frank', score: 450, date: new Date(Date.now() - 432000000).toISOString(), mode: 'arcade' },
-  { userId: 'grace', score: 300, date: new Date(Date.now() - 518400000).toISOString(), mode: 'trivia' },
+  {
+    userId: 'alice',
+    score: 1200,
+    date: new Date(Date.now() - 86400000).toISOString(),
+    mode: 'arcade',
+  },
+  {
+    userId: 'rob',
+    score: 950,
+    date: new Date(Date.now() - 172800000).toISOString(),
+    mode: 'trivia',
+  },
+  {
+    userId: 'bob',
+    score: 800,
+    date: new Date(Date.now() - 259200000).toISOString(),
+    mode: 'arcade',
+  },
+  {
+    userId: 'carol',
+    score: 600,
+    date: new Date(Date.now() - 345600000).toISOString(),
+    mode: 'trivia',
+  },
+  {
+    userId: 'frank',
+    score: 450,
+    date: new Date(Date.now() - 432000000).toISOString(),
+    mode: 'arcade',
+  },
+  {
+    userId: 'grace',
+    score: 300,
+    date: new Date(Date.now() - 518400000).toISOString(),
+    mode: 'trivia',
+  },
 ];
 
 const meta: Meta<typeof ArcadeLeaderboard> = {

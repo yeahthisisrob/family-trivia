@@ -1,9 +1,7 @@
-import { fn } from 'storybook/test';
-
-import FactTimeline from './FactTimeline';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import { StoryProviders } from '../../test/storyContexts';
+import FactTimeline from './FactTimeline';
 
 const sampleFacts = [
   {
@@ -46,7 +44,13 @@ const meta: Meta<typeof FactTimeline> = {
     onUserClick: fn(),
     selectedSide: 'all',
   },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof FactTimeline>;

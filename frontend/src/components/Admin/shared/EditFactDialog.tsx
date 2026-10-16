@@ -21,7 +21,8 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 
 export interface FactEntryLike {
   timestamp: string;
@@ -101,7 +102,9 @@ const EditFactDialog: React.FC<EditFactDialogProps> = ({ open, fact, onClose, on
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <DialogTitle
+        sx={{ pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+      >
         <Box>
           <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>Edit Fact Entry</Typography>
           <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', fontFamily: 'monospace' }}>
@@ -115,17 +118,25 @@ const EditFactDialog: React.FC<EditFactDialogProps> = ({ open, fact, onClose, on
       <DialogContent dividers>
         <Stack spacing={2}>
           <TextField
-            label="Question" value={question}
-            onChange={e => setQuestion(e.target.value)}
-            multiline minRows={2} maxRows={4}
-            size="small" fullWidth
+            label="Question"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            multiline
+            minRows={2}
+            maxRows={4}
+            size="small"
+            fullWidth
             InputProps={{ sx: { fontSize: '0.85rem' } }}
           />
           <TextField
-            label="Answer" value={answer}
-            onChange={e => setAnswer(e.target.value)}
-            multiline minRows={2} maxRows={4}
-            size="small" fullWidth
+            label="Answer"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            multiline
+            minRows={2}
+            maxRows={4}
+            size="small"
+            fullWidth
             InputProps={{ sx: { fontSize: '0.85rem' } }}
             helperText={fact.skipped ? 'This entry is marked as skipped' : undefined}
           />
@@ -133,8 +144,9 @@ const EditFactDialog: React.FC<EditFactDialogProps> = ({ open, fact, onClose, on
             <FormControl size="small" fullWidth>
               <InputLabel>Type</InputLabel>
               <Select
-                label="Type" value={questionType}
-                onChange={e => setQuestionType(e.target.value as 'shared' | 'basic')}
+                label="Type"
+                value={questionType}
+                onChange={(e) => setQuestionType(e.target.value as 'shared' | 'basic')}
               >
                 <MenuItem value="shared">shared</MenuItem>
                 <MenuItem value="basic">basic</MenuItem>
@@ -142,18 +154,22 @@ const EditFactDialog: React.FC<EditFactDialogProps> = ({ open, fact, onClose, on
             </FormControl>
             {questionType === 'basic' && (
               <TextField
-                label="Index" type="number" size="small"
+                label="Index"
+                type="number"
+                size="small"
                 value={questionIndex}
-                onChange={e => setQuestionIndex(e.target.value)}
+                onChange={(e) => setQuestionIndex(e.target.value)}
                 sx={{ width: 100 }}
                 inputProps={{ min: 0 }}
               />
             )}
           </Box>
           <TextField
-            label="Date (YYYY-MM-DD)" value={date}
-            onChange={e => setDate(e.target.value)}
-            size="small" fullWidth
+            label="Date (YYYY-MM-DD)"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            size="small"
+            fullWidth
             error={!!dateError}
             helperText={dateError || 'Original question date — affects catchup dedup'}
             InputProps={{ sx: { fontFamily: 'monospace', fontSize: '0.85rem' } }}
@@ -178,9 +194,12 @@ const EditFactDialog: React.FC<EditFactDialogProps> = ({ open, fact, onClose, on
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={saving}>Cancel</Button>
+        <Button onClick={onClose} disabled={saving}>
+          Cancel
+        </Button>
         <Button
-          variant="contained" onClick={handleSave}
+          variant="contained"
+          onClick={handleSave}
           disabled={!hasChanges || saving}
           startIcon={<SaveIcon />}
         >

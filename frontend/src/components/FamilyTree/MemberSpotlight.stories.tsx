@@ -1,11 +1,8 @@
-import React from 'react';
-import { expect, userEvent, within } from 'storybook/test';
-
-import MemberSpotlight from './MemberSpotlight';
-
-import type { MockSummary } from './MemberSpotlight';
-import type { FamilyHierarchy } from '../../api';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, within } from 'storybook/test';
+import type { FamilyHierarchy } from '../../api';
+import type { MockSummary } from './MemberSpotlight';
+import MemberSpotlight from './MemberSpotlight';
 
 // ── Mock hierarchy ───────────────────────────────────────────────────
 
@@ -40,13 +37,16 @@ const mockSummaries: Record<string, MockSummary> = {
     regular:
       'Alice is the family trivia champion with an impressive 87% accuracy rate. She dominates in History and Geography categories and has maintained a 12-day answer streak. Known for her competitive spirit, she never misses a daily question.',
     roast:
-      'Alice treats family trivia like it\'s a doctoral thesis defense. She has spreadsheets tracking everyone\'s weak categories. We get it, Alice, you watch Jeopardy.',
+      "Alice treats family trivia like it's a doctoral thesis defense. She has spreadsheets tracking everyone's weak categories. We get it, Alice, you watch Jeopardy.",
     basicQAs: [
-      { question: 'What is your favorite holiday tradition?', answer: 'Making gingerbread houses on Christmas Eve' },
+      {
+        question: 'What is your favorite holiday tradition?',
+        answer: 'Making gingerbread houses on Christmas Eve',
+      },
       { question: 'What did you want to be growing up?', answer: 'An astronaut or a veterinarian' },
-      { question: 'What is your go-to comfort food?', answer: 'Mom\'s homemade mac and cheese' },
+      { question: 'What is your go-to comfort food?', answer: "Mom's homemade mac and cheese" },
       { question: 'Favorite family vacation memory?', answer: 'Road trip to Yellowstone in 2019' },
-      { question: 'Hidden talent?', answer: 'Can solve a Rubik\'s cube in under 2 minutes' },
+      { question: 'Hidden talent?', answer: "Can solve a Rubik's cube in under 2 minutes" },
     ],
     insights: [
       { text: 'History buff', category: 'preference' },
@@ -75,7 +75,7 @@ const mockSummaries: Record<string, MockSummary> = {
     regular:
       'Carol is the quiet achiever of the family. She rarely misses a daily fact submission and her answers are always thoughtful and detailed. Science & Nature is her strongest category at 91% accuracy.',
     roast:
-      'Carol writes daily fact answers like she\'s submitting a peer-reviewed paper. Nobody asked for citations, Carol.',
+      "Carol writes daily fact answers like she's submitting a peer-reviewed paper. Nobody asked for citations, Carol.",
     insights: [
       { text: 'Science whiz', category: 'preference' },
       { text: 'Detail-oriented', category: 'personality' },
@@ -86,7 +86,7 @@ const mockSummaries: Record<string, MockSummary> = {
     regular:
       'Dave joined the family trivia game late but has been climbing the leaderboard fast. His Sports & Games knowledge is unmatched in the family, and he recently won three Casino Rush games in a row.',
     roast:
-      'Dave memorized every Super Bowl winner but still can\'t remember his anniversary. Priorities, Dave.',
+      "Dave memorized every Super Bowl winner but still can't remember his anniversary. Priorities, Dave.",
     basicQAs: [
       { question: 'Dream vacation destination?', answer: 'Watching the World Cup in person' },
     ],
@@ -100,7 +100,7 @@ const mockSummaries: Record<string, MockSummary> = {
     regular:
       'Eve is the heart of the Johnson side. She consistently submits the most heartfelt daily facts and her comments always spark great family conversations. Literature & Arts is her domain.',
     roast:
-      'Eve comments on every single daily fact like she\'s writing a Hallmark card. We love you too, Eve, but please stop using so many heart emojis.',
+      "Eve comments on every single daily fact like she's writing a Hallmark card. We love you too, Eve, but please stop using so many heart emojis.",
     insights: [
       { text: 'Literature lover', category: 'preference' },
       { text: 'Most comments', category: 'activity' },
@@ -139,7 +139,16 @@ const meta: Meta<typeof MemberSpotlight> = {
   },
   decorators: [
     (Story) => (
-      <div style={{ maxWidth: 420, margin: '0 auto', background: '#f5f5f5', padding: 16, borderRadius: 12, minHeight: 200 }}>
+      <div
+        style={{
+          maxWidth: 420,
+          margin: '0 auto',
+          background: '#f5f5f5',
+          padding: 16,
+          borderRadius: 12,
+          minHeight: 200,
+        }}
+      >
         <Story />
       </div>
     ),
@@ -193,9 +202,9 @@ export const NavigateCarousel: Story = {
     const canvas = within(canvasElement);
     await expect(canvas.getByText('Alice Smith')).toBeInTheDocument();
     // Click next arrow
-    const nextBtn = canvas.getAllByRole('button').find(
-      (btn) => btn.querySelector('[data-testid="ChevronRightIcon"]'),
-    );
+    const nextBtn = canvas
+      .getAllByRole('button')
+      .find((btn) => btn.querySelector('[data-testid="ChevronRightIcon"]'));
     if (nextBtn) await userEvent.click(nextBtn);
     await expect(canvas.getByText('Bob Smith')).toBeInTheDocument();
     await expect(canvas.getByText(/brings the laughs/)).toBeInTheDocument();
@@ -240,6 +249,10 @@ export const Loading: Story = {
     __mockSummaries: undefined,
   },
   parameters: {
-    docs: { description: { story: 'Without mock data, the component shows skeletons while calling the real API.' } },
+    docs: {
+      description: {
+        story: 'Without mock data, the component shows skeletons while calling the real API.',
+      },
+    },
   },
 };

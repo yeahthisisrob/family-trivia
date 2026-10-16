@@ -9,7 +9,7 @@ import {
   DialogTitle,
   Typography,
 } from '@mui/material';
-import React from 'react';
+import type React from 'react';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -21,17 +21,22 @@ interface ConfirmDialogProps {
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
-  open, title, message, confirmLabel = 'Delete', onConfirm, onCancel,
+  open,
+  title,
+  message,
+  confirmLabel = 'Delete',
+  onConfirm,
+  onCancel,
 }) => (
   <Dialog open={open} onClose={onCancel} maxWidth="xs" fullWidth>
     <DialogTitle sx={{ fontSize: '0.95rem', fontWeight: 600 }}>{title}</DialogTitle>
     <DialogContent>
-      {typeof message === 'string'
-        ? <Typography variant="body2">{message}</Typography>
-        : message}
+      {typeof message === 'string' ? <Typography variant="body2">{message}</Typography> : message}
     </DialogContent>
     <DialogActions sx={{ px: 2, pb: 2 }}>
-      <Button onClick={onCancel} size="small">Cancel</Button>
+      <Button onClick={onCancel} size="small">
+        Cancel
+      </Button>
       <Button variant="contained" color="error" size="small" onClick={onConfirm}>
         {confirmLabel}
       </Button>

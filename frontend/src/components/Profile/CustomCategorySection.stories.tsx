@@ -1,8 +1,6 @@
-import { fn } from 'storybook/test';
-
-import CustomCategorySection from './CustomCategorySection';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import CustomCategorySection from './CustomCategorySection';
 
 const meta: Meta<typeof CustomCategorySection> = {
   title: 'Profile/CustomCategorySection',

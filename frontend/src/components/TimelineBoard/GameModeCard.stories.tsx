@@ -1,9 +1,7 @@
-import { fn } from 'storybook/test';
-
-import GameModeCard from './GameModeCard';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import { StoryProviders } from '../../test/storyContexts';
+import GameModeCard from './GameModeCard';
 
 const baseEntry = {
   userId: 'alice',
@@ -22,8 +20,19 @@ const meta: Meta<typeof GameModeCard> = {
   title: 'TimelineBoard/GameModeCard',
   component: GameModeCard,
   parameters: { layout: 'padded' },
-  args: { mode: 'casino-rush', entries: [baseEntry, baseEntry, baseEntry], userId: 'alice', onUserClick: fn() },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  args: {
+    mode: 'casino-rush',
+    entries: [baseEntry, baseEntry, baseEntry],
+    userId: 'alice',
+    onUserClick: fn(),
+  },
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof GameModeCard>;
@@ -31,11 +40,7 @@ type Story = StoryObj<typeof GameModeCard>;
 export const CasinoRushAllCorrect: Story = {};
 export const CasinoRushFailed: Story = {
   args: {
-    entries: [
-      baseEntry,
-      { ...baseEntry, selectedAnswer: 'Jupiter', correct: false },
-      baseEntry,
-    ],
+    entries: [baseEntry, { ...baseEntry, selectedAnswer: 'Jupiter', correct: false }, baseEntry],
   },
 };
 export const SlotMachine: Story = {

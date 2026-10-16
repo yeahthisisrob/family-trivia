@@ -1,9 +1,7 @@
-import { fn } from 'storybook/test';
-
-import TriviaTimelineCard from './TriviaTimelineCard';
-import { StoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import { StoryProviders } from '../../test/storyContexts';
+import TriviaTimelineCard from './TriviaTimelineCard';
 
 const baseEntry = {
   userId: 'alice',
@@ -23,7 +21,13 @@ const meta: Meta<typeof TriviaTimelineCard> = {
   component: TriviaTimelineCard,
   parameters: { layout: 'padded' },
   args: { entry: baseEntry, onUserClick: fn() },
-  decorators: [(Story) => <StoryProviders><Story /></StoryProviders>],
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof TriviaTimelineCard>;

@@ -2,7 +2,7 @@
 import StarsIcon from '@mui/icons-material/Stars';
 import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React from 'react';
+import type React from 'react';
 
 interface CustomCategoryBannerProps {
   text?: string;

@@ -1,8 +1,6 @@
 import { Box } from '@mui/material';
-
-import CategoryChip from './CategoryChip';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import CategoryChip from './CategoryChip';
 
 const meta: Meta<typeof CategoryChip> = {
   title: 'Leaderboard/CategoryChip',

@@ -2,7 +2,7 @@
 import CasinoIcon from '@mui/icons-material/Casino';
 import { Box, Chip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React from 'react';
+import type React from 'react';
 
 interface CasinoRushBannerProps {
   failed?: boolean;

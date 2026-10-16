@@ -1,17 +1,18 @@
-import GroupsTab from './GroupsTab';
-import { AdminStoryProviders } from '../../test/storyContexts';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { AdminStoryProviders } from '../../test/storyContexts';
+import GroupsTab from './GroupsTab';
 
 const meta: Meta<typeof GroupsTab> = {
   title: 'Admin/GroupsTab',
   component: GroupsTab,
   parameters: { layout: 'padded' },
-  decorators: [(Story, ctx) => (
-    <AdminStoryProviders admin={ctx.parameters.admin}>
-      <Story />
-    </AdminStoryProviders>
-  )],
+  decorators: [
+    (Story, ctx) => (
+      <AdminStoryProviders admin={ctx.parameters.admin}>
+        <Story />
+      </AdminStoryProviders>
+    ),
+  ],
 };
 export default meta;
 type Story = StoryObj<typeof GroupsTab>;

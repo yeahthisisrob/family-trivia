@@ -6,30 +6,30 @@ import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import TimerIcon from '@mui/icons-material/Timer';
 import {
   Alert,
+  alpha,
   Box,
   Button,
   Card,
   CardContent,
   Chip,
+  keyframes,
   LinearProgress,
   Typography,
   useTheme,
-  alpha,
-  keyframes,
 } from '@mui/material';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-
-import CasinoRushProgress from './CasinoRushProgress';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  type CasinoRushResult,
+  type CasinoRushSession,
   startCasinoRush,
   submitCasinoRushAnswer,
-  type CasinoRushSession,
-  type CasinoRushResult,
 } from '../../api/modules/games';
-import { ProgressMessage } from '../../api/modules/trivia';
+import type { ProgressMessage } from '../../api/modules/trivia';
 import { useTrivia } from '../../contexts/TriviaContext';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
+import CasinoRushProgress from './CasinoRushProgress';
 
 const logger = createLogger('CasinoRush');
 
@@ -40,7 +40,12 @@ interface CasinoRushProps {
   isCatchingUp?: boolean;
 }
 
-export const CasinoRush: React.FC<CasinoRushProps> = ({ userId, onComplete, onClose, isCatchingUp = false }) => {
+export const CasinoRush: React.FC<CasinoRushProps> = ({
+  userId,
+  onComplete,
+  onClose,
+  isCatchingUp = false,
+}) => {
   const theme = useTheme();
   const timerRef = useRef<number | null>(null);
 
@@ -96,9 +101,14 @@ export const CasinoRush: React.FC<CasinoRushProps> = ({ userId, onComplete, onCl
         setShowStartDialog(false);
 
         logger.info('Starting Casino Rush game', { difficulty: selectedDifficulty || difficulty });
-        const gameSession = await startCasinoRush(userId, selectedDifficulty || difficulty, true, isCatchingUp);
+        const gameSession = await startCasinoRush(
+          userId,
+          selectedDifficulty || difficulty,
+          true,
+          isCatchingUp,
+        );
 
-        if (!gameSession || !gameSession.currentQuestion) {
+        if (!gameSession?.currentQuestion) {
           throw new Error('Invalid session received from server');
         }
 
@@ -190,7 +200,14 @@ export const CasinoRush: React.FC<CasinoRushProps> = ({ userId, onComplete, onCl
   // Timer effect — ONLY runs when the question is actually visible.
   // The generation dialog and loading states block the timer.
   useEffect(() => {
-    if (session && !result && timeRemaining > 0 && !selectedAnswer && !showGenerationDialog && !loading) {
+    if (
+      session &&
+      !result &&
+      timeRemaining > 0 &&
+      !selectedAnswer &&
+      !showGenerationDialog &&
+      !loading
+    ) {
       timerRef.current = window.setTimeout(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
@@ -209,7 +226,16 @@ export const CasinoRush: React.FC<CasinoRushProps> = ({ userId, onComplete, onCl
         }
       };
     }
-  }, [session, result, timeRemaining, selectedAnswer, showGenerationDialog, loading, handleTimeExpired]);
+    return undefined;
+  }, [
+    session,
+    result,
+    timeRemaining,
+    selectedAnswer,
+    showGenerationDialog,
+    loading,
+    handleTimeExpired,
+  ]);
 
   // Cleanup effect
   useEffect(() => {
@@ -310,7 +336,14 @@ export const CasinoRush: React.FC<CasinoRushProps> = ({ userId, onComplete, onCl
           <Button variant="outlined" onClick={onClose}>
             Close
           </Button>
-          <Button variant="contained" onClick={() => { setError(null); statusProcessedRef.current = false; refresh(); }}>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setError(null);
+              statusProcessedRef.current = false;
+              refresh();
+            }}
+          >
             Try Again
           </Button>
         </Box>
@@ -353,20 +386,36 @@ export const CasinoRush: React.FC<CasinoRushProps> = ({ userId, onComplete, onCl
     return (
       <Card sx={{ overflow: 'hidden', borderRadius: 3 }}>
         {/* Header */}
-        <Box sx={{
-          background: `linear-gradient(45deg, ${theme.palette.error.dark} 30%, ${theme.palette.warning.dark} 90%)`,
-          color: 'white', px: 2, py: 1.25,
-          display: 'flex', alignItems: 'center', gap: 1,
-        }}>
+        <Box
+          sx={{
+            background: `linear-gradient(45deg, ${theme.palette.error.dark} 30%, ${theme.palette.warning.dark} 90%)`,
+            color: 'white',
+            px: 2,
+            py: 1.25,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
           <CasinoIcon sx={{ fontSize: 20 }} />
           <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', flex: 1 }}>Casino Rush</Typography>
-          <Button onClick={onClose} size="small" sx={{ color: 'white', minWidth: 0, fontSize: '0.7rem' }}>Cancel</Button>
+          <Button
+            onClick={onClose}
+            size="small"
+            sx={{ color: 'white', minWidth: 0, fontSize: '0.7rem' }}
+          >
+            Cancel
+          </Button>
         </Box>
 
         <Box sx={{ p: 2 }}>
           <Box sx={{ textAlign: 'center', mb: 2 }}>
-            <LocalFireDepartmentIcon sx={{ fontSize: 44, color: theme.palette.warning.main, mb: 1 }} />
-            <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', mb: 0.5 }}>Triple or Nothing!</Typography>
+            <LocalFireDepartmentIcon
+              sx={{ fontSize: 44, color: theme.palette.warning.main, mb: 1 }}
+            />
+            <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', mb: 0.5 }}>
+              Triple or Nothing!
+            </Typography>
             <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary' }}>
               3 questions, 60s each — get one wrong and lose it all
             </Typography>
@@ -374,23 +423,37 @@ export const CasinoRush: React.FC<CasinoRushProps> = ({ userId, onComplete, onCl
 
           {/* Difficulty */}
           <Box sx={{ mb: 2 }}>
-            <Typography sx={{ fontSize: '0.72rem', fontWeight: 600, color: 'text.secondary', mb: 0.75, textAlign: 'center' }}>
+            <Typography
+              sx={{
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                color: 'text.secondary',
+                mb: 0.75,
+                textAlign: 'center',
+              }}
+            >
               Difficulty
             </Typography>
             <Box sx={{ display: 'flex', gap: 0.75, justifyContent: 'center' }}>
-              <Chip label="Easy 1.5×" size="small"
+              <Chip
+                label="Easy 1.5×"
+                size="small"
                 color={difficulty === 'easy' ? 'success' : 'default'}
                 onClick={() => setDifficulty('easy')}
                 variant={difficulty === 'easy' ? 'filled' : 'outlined'}
                 sx={{ fontSize: '0.7rem' }}
               />
-              <Chip label="Normal 3×" size="small"
+              <Chip
+                label="Normal 3×"
+                size="small"
                 color={difficulty === 'normal' ? 'primary' : 'default'}
                 onClick={() => setDifficulty('normal')}
                 variant={difficulty === 'normal' ? 'filled' : 'outlined'}
                 sx={{ fontSize: '0.7rem' }}
               />
-              <Chip label="Hard 6×" size="small"
+              <Chip
+                label="Hard 6×"
+                size="small"
                 color={difficulty === 'hard' ? 'error' : 'default'}
                 onClick={() => setDifficulty('hard')}
                 variant={difficulty === 'hard' ? 'filled' : 'outlined'}
@@ -400,11 +463,14 @@ export const CasinoRush: React.FC<CasinoRushProps> = ({ userId, onComplete, onCl
           </Box>
 
           <Button
-            variant="contained" fullWidth
+            variant="contained"
+            fullWidth
             onClick={() => startGame(difficulty)}
             startIcon={<CasinoIcon />}
             sx={{
-              py: 1, fontWeight: 600, fontSize: '0.85rem',
+              py: 1,
+              fontWeight: 600,
+              fontSize: '0.85rem',
               background: `linear-gradient(45deg, ${theme.palette.error.main} 30%, ${theme.palette.warning.main} 90%)`,
               borderRadius: 2,
             }}
@@ -420,22 +486,36 @@ export const CasinoRush: React.FC<CasinoRushProps> = ({ userId, onComplete, onCl
   if (showGenerationDialog) {
     return (
       <Card sx={{ overflow: 'hidden', borderRadius: 3 }}>
-        <Box sx={{
-          background: `linear-gradient(45deg, ${theme.palette.error.dark} 30%, ${theme.palette.warning.dark} 90%)`,
-          color: 'white', px: 2, py: 1.25,
-          display: 'flex', alignItems: 'center', gap: 1,
-        }}>
+        <Box
+          sx={{
+            background: `linear-gradient(45deg, ${theme.palette.error.dark} 30%, ${theme.palette.warning.dark} 90%)`,
+            color: 'white',
+            px: 2,
+            py: 1.25,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
           <CasinoIcon sx={{ fontSize: 20 }} />
-          <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>Preparing Casino Rush</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>
+            Preparing Casino Rush
+          </Typography>
         </Box>
         <Box sx={{ p: 3, textAlign: 'center' }}>
           <CasinoRushProgress messages={progressMessages} compact={false} />
           {!generatingQuestions && (
             <Button
-              variant="contained" fullWidth
-              onClick={() => { setTimeRemaining(60); setShowGenerationDialog(false); }}
+              variant="contained"
+              fullWidth
+              onClick={() => {
+                setTimeRemaining(60);
+                setShowGenerationDialog(false);
+              }}
               sx={{
-                mt: 2, py: 1, fontWeight: 600,
+                mt: 2,
+                py: 1,
+                fontWeight: 600,
                 background: `linear-gradient(45deg, ${theme.palette.error.main} 30%, ${theme.palette.warning.main} 90%)`,
                 borderRadius: 2,
               }}

@@ -6,7 +6,8 @@ import ErrorIcon from '@mui/icons-material/Error';
 import InfoIcon from '@mui/icons-material/Info';
 import { Box, Card, Chip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 
 import { apiService } from '../../services/ApiService';
 import { createLogger } from '../../utils/logger';
@@ -43,9 +44,10 @@ const SystemInfoTab: React.FC = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    apiService.request<SystemInfo>('/admin/system-info', { method: 'GET' })
+    apiService
+      .request<SystemInfo>('/admin/system-info', { method: 'GET' })
       .then(setInfo)
-      .catch(err => {
+      .catch((err) => {
         logger.error('Failed to load system info', err);
         setError('Failed to load system info');
       })
@@ -71,8 +73,12 @@ const SystemInfoTab: React.FC = () => {
           ['Environment', info.deployment.nodeEnv],
         ].map(([label, value]) => (
           <Box key={label} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.4 }}>
-            <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>{label}</Typography>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, fontFamily: 'monospace' }}>{value}</Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>
+              {label}
+            </Typography>
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, fontFamily: 'monospace' }}>
+              {value}
+            </Typography>
           </Box>
         ))}
       </Card>
@@ -80,13 +86,12 @@ const SystemInfoTab: React.FC = () => {
       {/* Health Check */}
       <Card variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1 }}>
-          {info.health.allHealthy
-            ? <CheckCircleIcon sx={{ fontSize: 18, color: theme.palette.success.main }} />
-            : <ErrorIcon sx={{ fontSize: 18, color: theme.palette.error.main }} />
-          }
-          <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>
-            Health Check
-          </Typography>
+          {info.health.allHealthy ? (
+            <CheckCircleIcon sx={{ fontSize: 18, color: theme.palette.success.main }} />
+          ) : (
+            <ErrorIcon sx={{ fontSize: 18, color: theme.palette.error.main }} />
+          )}
+          <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>Health Check</Typography>
           <Chip
             label={info.health.allHealthy ? 'All Good' : 'Issues Found'}
             size="small"
@@ -101,11 +106,17 @@ const SystemInfoTab: React.FC = () => {
           { ok: info.health.categories, label: 'categories/categories.json' },
         ].map(({ ok, label }) => (
           <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 0.75, py: 0.5 }}>
-            {ok
-              ? <CheckCircleIcon sx={{ fontSize: 16, color: theme.palette.success.main }} />
-              : <ErrorIcon sx={{ fontSize: 16, color: theme.palette.error.main }} />
-            }
-            <Typography sx={{ fontSize: '0.8rem', color: ok ? theme.palette.text.primary : theme.palette.error.main }}>
+            {ok ? (
+              <CheckCircleIcon sx={{ fontSize: 16, color: theme.palette.success.main }} />
+            ) : (
+              <ErrorIcon sx={{ fontSize: 16, color: theme.palette.error.main }} />
+            )}
+            <Typography
+              sx={{
+                fontSize: '0.8rem',
+                color: ok ? theme.palette.text.primary : theme.palette.error.main,
+              }}
+            >
               {label}
             </Typography>
           </Box>
@@ -120,21 +131,31 @@ const SystemInfoTab: React.FC = () => {
             { label: 'Users', value: info.stats.userCount },
             { label: 'Seasons', value: info.stats.totalSeasons },
             { label: 'Trivia Bank', value: `${info.stats.triviaQuestionCount} files` },
-          ].map(s => (
-            <Box key={s.label} sx={{
-              flex: 1, minWidth: 80, textAlign: 'center',
-              py: 1, px: 1.5, borderRadius: 2,
-              bgcolor: alpha(theme.palette.primary.main, 0.04),
-            }}>
+          ].map((s) => (
+            <Box
+              key={s.label}
+              sx={{
+                flex: 1,
+                minWidth: 80,
+                textAlign: 'center',
+                py: 1,
+                px: 1.5,
+                borderRadius: 2,
+                bgcolor: alpha(theme.palette.primary.main, 0.04),
+              }}
+            >
               <Typography sx={{ fontSize: '1.2rem', fontWeight: 800 }}>{s.value}</Typography>
-              <Typography sx={{ fontSize: '0.65rem', color: theme.palette.text.secondary }}>{s.label}</Typography>
+              <Typography sx={{ fontSize: '0.65rem', color: theme.palette.text.secondary }}>
+                {s.label}
+              </Typography>
             </Box>
           ))}
         </Box>
         {info.stats.activeSeason && (
           <Box sx={{ mt: 1.5 }}>
             <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>
-              Active Season: <strong>{info.stats.activeSeason.name}</strong> (started {info.stats.activeSeason.startDate})
+              Active Season: <strong>{info.stats.activeSeason.name}</strong> (started{' '}
+              {info.stats.activeSeason.startDate})
             </Typography>
           </Box>
         )}

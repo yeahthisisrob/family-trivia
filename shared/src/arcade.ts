@@ -3,7 +3,14 @@
  * Unified high score system for all game modes (trivia + arcade plays).
  */
 
-export type ArcadeGameId = 'tetris' | 'curling' | 'slot-machine' | 'crossword' | 'snake' | 'blackjack' | 'casino';
+export type ArcadeGameId =
+  | 'tetris'
+  | 'curling'
+  | 'slot-machine'
+  | 'crossword'
+  | 'snake'
+  | 'blackjack'
+  | 'casino';
 
 export interface HighScoreEntry {
   userId: string;

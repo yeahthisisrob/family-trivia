@@ -1,9 +1,6 @@
-import React from 'react';
-import { expect, within } from 'storybook/test';
-
-import LoadingDots from './LoadingDots';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, within } from 'storybook/test';
+import LoadingDots from './LoadingDots';
 
 const meta: Meta<typeof LoadingDots> = {
   title: 'Feedback/LoadingDots',
@@ -34,9 +31,9 @@ export const Default: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     // 3 dots rendered
-    const dots = canvas.getAllByRole('generic').filter(el =>
-      getComputedStyle(el).borderRadius === '50%',
-    );
+    const dots = canvas
+      .getAllByRole('generic')
+      .filter((el) => getComputedStyle(el).borderRadius === '50%');
     await expect(dots.length).toBeGreaterThanOrEqual(3);
   },
 };
@@ -48,7 +45,8 @@ export const Inline: Story = {
   args: { inline: true, size: 6 },
   render: (args) => (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 16 }}>
-      Loading<LoadingDots {...args} />
+      Loading
+      <LoadingDots {...args} />
     </span>
   ),
 };
@@ -61,6 +59,7 @@ export const InButton: Story = {
   args: { inline: true, size: 5 },
   render: (args) => (
     <button
+      type="button"
       disabled
       style={{
         padding: '10px 20px',
@@ -75,7 +74,8 @@ export const InButton: Story = {
         fontWeight: 600,
       }}
     >
-      Submitting<LoadingDots {...args} />
+      Submitting
+      <LoadingDots {...args} />
     </button>
   ),
 };

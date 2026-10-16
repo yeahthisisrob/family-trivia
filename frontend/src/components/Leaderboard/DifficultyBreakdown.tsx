@@ -2,9 +2,9 @@
 import EmojiObjectsIcon from '@mui/icons-material/EmojiObjects';
 import FlareIcon from '@mui/icons-material/Flare';
 import SchoolIcon from '@mui/icons-material/School';
-import { Box, Typography, LinearProgress, useTheme, Tooltip } from '@mui/material';
+import { Box, LinearProgress, Tooltip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React from 'react';
+import type React from 'react';
 
 import { calculatePercentage, getDifficultyInfo } from './utils';
 

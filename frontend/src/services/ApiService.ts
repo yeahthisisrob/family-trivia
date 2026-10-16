@@ -7,8 +7,8 @@
 
 import { loadConfig } from '../config';
 import { getToken, updateToken } from '../session';
-import { cacheService } from './CacheService';
 import { createLogger } from '../utils/logger';
+import { cacheService } from './CacheService';
 
 /** Structured API error thrown when the server returns an error envelope */
 export class ApiError extends Error {
@@ -36,9 +36,13 @@ export class ApiService {
     : null;
 
   /** Read JWT from session storage. */
-  static getAuthToken(): string | null { return getToken(); }
+  static getAuthToken(): string | null {
+    return getToken();
+  }
   /** Update JWT after silent refresh. */
-  static updateAuthToken(token: string) { updateToken(token); }
+  static updateAuthToken(token: string) {
+    updateToken(token);
+  }
 
   /**
    * Returns the configured API URL, loading config.json if needed
@@ -119,7 +123,7 @@ export class ApiService {
           'Content-Type': 'application/json',
           Accept: 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          ...(callerHeaders as Record<string, string> || {}),
+          ...((callerHeaders as Record<string, string>) || {}),
         },
         ...restOptions,
       };
@@ -144,7 +148,9 @@ export class ApiService {
       // Use provided timeout or determine based on endpoint
       // In local dev (proxied through Vite), SAM needs more time
       const isLocalDev = import.meta.env.DEV;
-      const timeoutDuration = timeoutMs || (isExpensiveOperation ? (isLocalDev ? 120000 : 45000) : (isLocalDev ? 60000 : 10000));
+      const timeoutDuration =
+        timeoutMs ||
+        (isExpensiveOperation ? (isLocalDev ? 120000 : 45000) : isLocalDev ? 60000 : 10000);
       const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
       requestOptions.signal = controller.signal;
 
@@ -177,7 +183,7 @@ export class ApiService {
 
       // Check for HTML responses (which indicate errors)
       const contentType = response.headers.get('content-type');
-      if (contentType && contentType.toLowerCase().includes('text/html')) {
+      if (contentType?.toLowerCase().includes('text/html')) {
         logger.error(
           `Received HTML response from ${endpoint} - This indicates a misconfigured API`,
         );
@@ -329,7 +335,13 @@ export class ApiService {
       'ok' in data &&
       typeof (data as Record<string, unknown>).ok === 'boolean'
     ) {
-      const envelope = data as { ok: boolean; data?: unknown; error?: string; details?: string; errorType?: string };
+      const envelope = data as {
+        ok: boolean;
+        data?: unknown;
+        error?: string;
+        details?: string;
+        errorType?: string;
+      };
       if (envelope.ok === false) {
         throw new ApiError(
           envelope.error || 'Unknown server error',

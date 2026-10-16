@@ -1,8 +1,6 @@
-import { http, HttpResponse } from 'msw';
-
-import DailyQuestionsTab from './DailyQuestionsTab';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { HttpResponse, http } from 'msw';
+import DailyQuestionsTab from './DailyQuestionsTab';
 
 const API = '/api';
 
@@ -13,12 +11,22 @@ const meta: Meta<typeof DailyQuestionsTab> = {
     layout: 'padded',
     msw: {
       handlers: [
-        http.get(`${API}/admin/daily-questions`, () => HttpResponse.json({
-          questions: [
-            { date: '2026-04-10', question: "What's your favorite memory from this week?", createdBy: 'alice' },
-            { date: '2026-04-09', question: 'If you could travel anywhere tomorrow, where would you go?', createdBy: 'bob' },
-          ],
-        })),
+        http.get(`${API}/admin/daily-questions`, () =>
+          HttpResponse.json({
+            questions: [
+              {
+                date: '2026-04-10',
+                question: "What's your favorite memory from this week?",
+                createdBy: 'alice',
+              },
+              {
+                date: '2026-04-09',
+                question: 'If you could travel anywhere tomorrow, where would you go?',
+                createdBy: 'bob',
+              },
+            ],
+          }),
+        ),
       ],
     },
   },

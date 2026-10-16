@@ -5,7 +5,7 @@
  */
 
 // Re-export the full generated types for advanced usage (paths, operations)
-export type { paths, components, operations } from './api-types';
+export type { components, operations, paths } from './api-types';
 
 // ── Schema type aliases ──
 // These map directly to components.schemas.* in the OpenAPI spec.

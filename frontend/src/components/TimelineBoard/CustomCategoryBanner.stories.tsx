@@ -1,6 +1,5 @@
-import CustomCategoryBanner from './CustomCategoryBanner';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import CustomCategoryBanner from './CustomCategoryBanner';
 
 const meta: Meta<typeof CustomCategoryBanner> = {
   title: 'TimelineBoard/CustomCategoryBanner',

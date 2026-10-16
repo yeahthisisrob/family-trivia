@@ -1,9 +1,6 @@
-import React from 'react';
-import { expect, fn, screen, userEvent, waitFor } from 'storybook/test';
-
-import EditFactDialog, { FactEntryLike } from './EditFactDialog';
-
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn, screen, userEvent, waitFor } from 'storybook/test';
+import EditFactDialog, { type FactEntryLike } from './EditFactDialog';
 
 const meta: Meta<typeof EditFactDialog> = {
   title: 'Admin/EditFactDialog',
@@ -29,7 +26,8 @@ type Story = StoryObj<typeof EditFactDialog>;
 const sharedFact: FactEntryLike = {
   timestamp: '2026-04-05T13:15:00.000Z',
   date: '2026-04-05',
-  question: "If you could only keep one favorite possession forever, what would it be and what's its story?",
+  question:
+    "If you could only keep one favorite possession forever, what would it be and what's its story?",
   answer: "That's a hard one. I have favorite things but all things seem wear down.",
   questionType: 'shared',
 };
@@ -91,7 +89,12 @@ export const SkippedEntry: Story = {
 export const WrongTypedEntry: Story = {
   args: { fact: wrongTypedFact },
   parameters: {
-    docs: { description: { story: 'Entry saved with wrong questionType. Change the type dropdown to see the warning banner.' } },
+    docs: {
+      description: {
+        story:
+          'Entry saved with wrong questionType. Change the type dropdown to see the warning banner.',
+      },
+    },
   },
 };
 
@@ -128,10 +131,14 @@ export const ChangingTypeShowsWarning: Story = {
     const canvas = screen;
     // Change type dropdown from basic → shared. MUI Select: click the
     // combobox then pick the option from the listbox (both in document).
-    const typeSelect = canvas.getAllByRole('combobox').find(el =>
-      el.getAttribute('aria-labelledby')?.includes('Type') ||
-      el.closest('[class*="FormControl"]')?.textContent?.includes('Type'),
-    ) || canvas.getAllByRole('combobox')[0];
+    const typeSelect =
+      canvas
+        .getAllByRole('combobox')
+        .find(
+          (el) =>
+            el.getAttribute('aria-labelledby')?.includes('Type') ||
+            el.closest('[class*="FormControl"]')?.textContent?.includes('Type'),
+        ) || canvas.getAllByRole('combobox')[0];
     await userEvent.click(typeSelect);
     const sharedOption = await canvas.findByRole('option', { name: 'shared' });
     await userEvent.click(sharedOption);

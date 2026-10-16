@@ -1,15 +1,15 @@
 // File: src/components/TimelineBoard/CommentsTimeline.tsx
-import { Box, Card, Typography, Divider, useTheme, keyframes } from '@mui/material';
+import { Box, Card, Divider, keyframes, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { format, parseISO, isToday, isYesterday } from 'date-fns';
-import React, { useMemo, useCallback, useRef } from 'react';
-
+import { format, isToday, isYesterday, parseISO } from 'date-fns';
+import type React from 'react';
+import { useCallback, useMemo, useRef } from 'react';
+import type { FactItem, QuestionHistory } from '../../api/modules/user';
+import type { FamilySide } from '../../utils/familyUtils';
 import FactComments from './FactComments';
 import FactTimelineCard from './FactTimelineCard';
 import TriviaComments from './TriviaComments';
 import TriviaTimelineCard from './TriviaTimelineCard';
-import { FactItem, QuestionHistory } from '../../api/modules/user';
-import { FamilySide } from '../../utils/familyUtils';
 
 // Type for merged fact items with comment count and extra metadata
 type FactWithComments = FactItem & {
@@ -114,7 +114,7 @@ const CommentsTimeline: React.FC<CommentsTimelineProps> = ({
     return Array.from(dateGroups.entries())
       .sort(([a], [b]) => b.localeCompare(a))
       .map(([dateKey, items]) => ({
-        date: parseISO(dateKey + 'T00:00:00'),
+        date: parseISO(`${dateKey}T00:00:00`),
         dateKey,
         items,
       }));

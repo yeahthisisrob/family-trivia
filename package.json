@@ -1,19 +1,17 @@
 {
   "name": "family-trivia",
   "version": "0.1.0",
-  "main": "index.js",
-  "workspaces": [
-    "shared",
-    "frontend",
-    "cdk/lambda"
-  ],
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "just dev",
-    "dev:quick": "just quick",
-    "install:all": "cd cdk/lambda && npm ci && cd ../../frontend && npm ci && cd ../cdk && npm ci",
-    "generate:types": "openapi-typescript shared/schemas/api.openapi.yaml -o shared/generated/api-types.ts",
-    "validate:api": "redocly lint shared/schemas/api.openapi.yaml --skip-rule operation-4xx-response --skip-rule security-defined --skip-rule no-server-example.com --skip-rule info-license"
+  "private": true,
+  "description": "AI-powered family trivia, daily facts, and mini-games, built with React, AWS CDK, and Claude on Bedrock.",
+  "license": "MIT",
+  "author": "Rob D'Hondt",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yeahthisisrob/family-trivia.git"
+  },
+  "homepage": "https://github.com/yeahthisisrob/family-trivia#readme",
+  "bugs": {
+    "url": "https://github.com/yeahthisisrob/family-trivia/issues"
   },
   "keywords": [
     "family",
@@ -24,30 +22,27 @@
     "claude",
     "ai"
   ],
-  "author": "Rob D'Hondt",
-  "license": "MIT",
-  "description": "AI-powered family trivia, daily facts, and mini-games — built with React, AWS CDK, and Claude on Bedrock.",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yeahthisisrob/family-trivia.git"
-  },
-  "homepage": "https://github.com/yeahthisisrob/family-trivia#readme",
-  "bugs": {
-    "url": "https://github.com/yeahthisisrob/family-trivia/issues"
+  "scripts": {
+    "dev": "just dev",
+    "check": "biome check .",
+    "fix": "biome check --write .",
+    "deadcode": "knip --no-progress",
+    "build": "pnpm -r run build",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "contract": "pnpm --filter @family-trivia/shared run contract",
+    "leaks": "node scripts/leak-guard.mjs"
   },
   "devDependencies": {
-    "@redocly/cli": "^2.25.1",
-    "openapi-typescript": "^7.13.0",
-    "ts-loader": "^9.5.2",
-    "typescript": "^5.8.3",
-    "webpack": "^5.99.7",
-    "webpack-cli": "^6.0.1"
+    "@biomejs/biome": "2.5.15",
+    "concurrently": "^10.0.6",
+    "knip": "^6.41.0",
+    "typescript": "~5.9.3",
+    "playwright": "^1.59.0"
   },
-  "dependencies": {
-    "@aws-sdk/client-s3": "^3.806.0",
-    "@types/aws-sdk": "^0.0.42",
-    "@types/node": "^22.15.24",
-    "aws-sdk": "^2.1692.0",
-    "axios": "^1.9.0"
+  "packageManager": "pnpm@12.13.0",
+  "engines": {
+    "node": ">=22 <23",
+    "pnpm": ">=12"
   }
 }

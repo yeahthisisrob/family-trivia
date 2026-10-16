@@ -1,15 +1,11 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
-import {
-  CurlingSimulation,
-  SHEET_WIDTH,
-  HOUSE_CENTER_Y,
-  STONE_START_X,
-  STONE_START_Y,
-  STOP_THRESHOLD,
-} from './curlingPhysics';
+import { CurlingSimulation, SHEET_WIDTH, STONE_START_X, STONE_START_Y } from './curlingPhysics';
 
-function runUntilStopped(sim: CurlingSimulation, maxFrames = 600): ReturnType<CurlingSimulation['snapshot']> {
+function runUntilStopped(
+  sim: CurlingSimulation,
+  maxFrames = 600,
+): ReturnType<CurlingSimulation['snapshot']> {
   let snap = sim.snapshot();
   for (let i = 0; i < maxFrames && !snap.allStopped; i++) {
     sim.step();
@@ -21,7 +17,9 @@ function runUntilStopped(sim: CurlingSimulation, maxFrames = 600): ReturnType<Cu
 describe('CurlingSimulation', () => {
   let sim: CurlingSimulation;
 
-  afterEach(() => { sim?.destroy(); });
+  afterEach(() => {
+    sim?.destroy();
+  });
 
   it('launches the player stone and it decelerates to a stop', () => {
     sim = new CurlingSimulation([]);
