@@ -1,7 +1,18 @@
 // File: lambda/services/bedrock/members/memberSummary.ts
 
+import {
+  auntsAndUnclesOf,
+  childrenOf,
+  cousinsOf,
+  currentPartnersOf,
+  householdsOf,
+  niecesAndNephewsOf,
+  parentsOf,
+  siblingsOf,
+} from '@family-trivia/shared';
 import { FEATURE_FLAGS, getModelForService } from '../../../config';
 import { S3_PATHS } from '../../../constants';
+import { loadFamily } from '../../family/roster';
 import { logger } from '../../logger';
 import { getJson } from '../../s3';
 import { invokeBedrockPrompt } from '../core/bedrockClient';
@@ -216,152 +227,74 @@ async function analyzeMemberData(memberData: MemberData) {
   let groupInfo: any = {};
   let detailedRelationships: any = {};
 
+  // Relationships come from the family roster (0009): current ties only, so a
+  // summary never calls someone "married to" a former partner, and people who
+  // opted out of AI mentions are left out.
+  let remembered: { died?: string } | null = null;
   try {
-    const hierarchyData = await getJson<any>(S3_PATHS.FAMILY_HIERARCHY);
-    if (hierarchyData?.family?.people?.[memberData.userId]) {
-      const personData = hierarchyData.family.people[memberData.userId];
-      familySide = personData.familySide || 'unknown';
+    const family = await loadFamily();
+    const me = memberData.userId;
+    const person = family.people[me];
+    remembered = person?.memorial ? { died: person.memorial.died } : null;
+    familySide = householdsOf(family, me)[0]?.name ?? 'unknown';
+    const household = householdsOf(family, me)[0];
+    if (household) groupInfo = { name: household.name, description: household.description };
 
-      // Get group information with detailed context
-      if (personData.groupId && hierarchyData.family.groups?.[personData.groupId]) {
-        groupInfo = hierarchyData.family.groups[personData.groupId];
-      }
+    const nameOf = (ids: string[]) =>
+      ids
+        .map((id) => family.people[id])
+        .filter((p): p is NonNullable<typeof p> => !!p && !p.noAiMentions)
+        .map((p) => p.name);
+    const partnerTie = family.ties.find(
+      (t) => t.type === 'partner' && !t.ended && (t.a === me || t.b === me),
+    );
+    const partner = nameOf(currentPartnersOf(family, me))[0] ?? null;
+    const children = nameOf(childrenOf(family, me));
+    const parents = nameOf(parentsOf(family, me));
+    const sib = siblingsOf(family, me);
+    const siblings = nameOf([...sib.full, ...sib.half, ...sib.step]);
+    const cousins = nameOf(cousinsOf(family, me));
+    const aunt = nameOf(auntsAndUnclesOf(family, me));
+    const nieceNephew = nameOf(niecesAndNephewsOf(family, me));
+    const married = partnerTie?.type === 'partner' && partnerTie.kind === 'married';
 
-      // Extract detailed family relationships
-      if (hierarchyData.family.relationships && hierarchyData.family.people) {
-        const allPeople = hierarchyData.family.people;
-        const relationships = hierarchyData.family.relationships;
-
-        // Find all relationships involving this person
-        const personRelationships = relationships.filter(
-          (rel: any) =>
-            rel.parent1 === memberData.userId ||
-            rel.parent2 === memberData.userId ||
-            rel.partner1 === memberData.userId ||
-            rel.partner2 === memberData.userId ||
-            rel.person1 === memberData.userId ||
-            rel.people?.includes(memberData.userId) ||
-            rel.children?.includes(memberData.userId) ||
-            (rel.aunt && rel.aunt === memberData.userId) ||
-            rel['nieces-nephews']?.includes(memberData.userId),
-        );
-
-        // Extract specific relationships with names
-        let partner = null;
-        let children: string[] = [];
-        const parents: string[] = [];
-        const siblings: string[] = [];
-        let cousins: string[] = [];
-        const aunt: string[] = [];
-        let nieceNephew: string[] = [];
-
-        personRelationships.forEach((rel: any) => {
-          switch (rel.type) {
-            case 'partners':
-              if (rel.partner1 === memberData.userId && allPeople[rel.partner2]) {
-                partner = allPeople[rel.partner2].name;
-              } else if (rel.partner2 === memberData.userId && allPeople[rel.partner1]) {
-                partner = allPeople[rel.partner1].name;
-              }
-              break;
-
-            case 'parents-of':
-              if (rel.parent1 === memberData.userId || rel.parent2 === memberData.userId) {
-                // This person is a parent
-                if (rel.children) {
-                  children = rel.children
-                    .map((childId: string) => allPeople[childId]?.name)
-                    .filter(Boolean);
-                }
-              } else if (rel.children?.includes(memberData.userId)) {
-                // This person is a child
-                if (rel.parent1 && allPeople[rel.parent1])
-                  parents.push(allPeople[rel.parent1].name);
-                if (rel.parent2 && allPeople[rel.parent2])
-                  parents.push(allPeople[rel.parent2].name);
-              }
-              break;
-
-            case 'cousins':
-              if (rel.person1 === memberData.userId && rel.people) {
-                cousins = rel.people
-                  .map((cousinId: string) => allPeople[cousinId]?.name)
-                  .filter(Boolean);
-              } else if (
-                rel.people?.includes(memberData.userId) &&
-                rel.person1 &&
-                allPeople[rel.person1]
-              ) {
-                cousins.push(allPeople[rel.person1].name);
-              }
-              break;
-
-            case 'aunt-of':
-              if (rel.aunt === memberData.userId && rel['nieces-nephews']) {
-                nieceNephew = rel['nieces-nephews']
-                  .map((id: string) => allPeople[id]?.name)
-                  .filter(Boolean);
-              } else if (
-                rel['nieces-nephews']?.includes(memberData.userId) &&
-                allPeople[rel.aunt]
-              ) {
-                aunt.push(allPeople[rel.aunt].name);
-              }
-              break;
-          }
-        });
-
-        // Also find siblings by looking for shared parents
-        const myParentRelationships = relationships.filter(
-          (rel: any) =>
-            rel.type === 'parents-of' && rel.children && rel.children.includes(memberData.userId),
-        );
-
-        myParentRelationships.forEach((parentRel: any) => {
-          if (parentRel.children) {
-            const siblingIds = parentRel.children.filter((id: string) => id !== memberData.userId);
-            const siblingNames = siblingIds
-              .map((id: string) => allPeople[id]?.name)
-              .filter(Boolean);
-            siblings.push(...siblingNames);
-          }
-        });
-
-        detailedRelationships = {
-          partner,
-          children,
-          parents,
-          siblings,
-          cousins,
-          aunt,
-          nieceNephew,
-          // Family generation context
-          generation: children.length > 0 ? 'parent' : parents.length > 0 ? 'child' : 'adult',
-          familyRole: partner ? 'married' : children.length > 0 ? 'parent' : 'individual',
-        };
-
-        familyPosition = {
-          isParent: children.length > 0,
-          isChild: parents.length > 0,
-          hasPartner: !!partner,
-          hasSiblings: siblings.length > 0,
-          relationships: personRelationships.map((r: any) => r.type),
-          totalRelatedPeople: [
-            partner,
-            ...children,
-            ...parents,
-            ...siblings,
-            ...cousins,
-            ...aunt,
-            ...nieceNephew,
-          ].filter(Boolean).length,
-        };
-      }
-    }
+    detailedRelationships = {
+      partner,
+      partnerWord: married ? 'married to' : 'partnered with',
+      children,
+      parents,
+      siblings,
+      cousins,
+      aunt,
+      nieceNephew,
+      generation: children.length > 0 ? 'parent' : parents.length > 0 ? 'child' : 'adult',
+      familyRole: partner
+        ? married
+          ? 'married'
+          : 'partnered'
+        : children.length > 0
+          ? 'parent'
+          : 'individual',
+    };
+    familyPosition = {
+      isParent: children.length > 0,
+      isChild: parents.length > 0,
+      hasPartner: !!partner,
+      hasSiblings: siblings.length > 0,
+      totalRelatedPeople: [
+        partner,
+        ...children,
+        ...parents,
+        ...siblings,
+        ...cousins,
+        ...aunt,
+        ...nieceNephew,
+      ].filter(Boolean).length,
+    };
   } catch (e) {
-    // Couldn't get family hierarchy data
-    logger.debug('Could not fetch family hierarchy for member summary', {
+    logger.debug('Could not load the family for member summary', {
       userId: memberData.userId,
+      error: e instanceof Error ? e.message : String(e),
     });
   }
 
@@ -522,6 +455,7 @@ async function analyzeMemberData(memberData: MemberData) {
     // Family hierarchy data
     familySide,
     familyPosition,
+    remembered,
     groupInfo,
     detailedRelationships,
     // Structured data
@@ -555,7 +489,7 @@ async function buildMemberSummaryPrompts(memberData: MemberData): Promise<{
 
     // Primary relationships
     if (rel.partner) {
-      familyDesc.push(`married to ${rel.partner}`);
+      familyDesc.push(`${rel.partnerWord ?? 'partnered with'} ${rel.partner}`);
     }
 
     if (rel.children && rel.children.length > 0) {
@@ -758,7 +692,13 @@ ${familyFeudInstruction}
 `;
 
   // Regular summary prompt with 70% personal facts focus and family context
-  const regularPrompt = `
+  // Someone the family remembers is written about with warmth, in the past
+  // tense, as a remembrance. Roast mode is never generated for them.
+  const remembrance = analysis.remembered
+    ? `\nIMPORTANT: This family member has died${analysis.remembered.died ? ` (${analysis.remembered.died})` : ''}. Write a warm remembrance in the past tense, celebrating who they were and what they shared with the family. No teasing, no jokes at their expense.\n`
+    : '';
+
+  const regularPrompt = `${remembrance}
 You are creating a fun, insightful summary of a family member for a family trivia game. This will be shown in a featured spotlight carousel within the app.
 
 ${contextSection}
@@ -792,7 +732,7 @@ ${commonInstructions}
   const rel = analysis.detailedRelationships || {};
   const roastRelationshipContext = `
 FAMILY RELATIONSHIP CONTEXT FOR ROASTING:
-${rel.partner ? `- They are married to/partnered with ${rel.partner}` : '- They are single'}
+${rel.partner ? `- They are ${rel.partnerWord ?? 'partnered with'} ${rel.partner}` : ''}
 ${rel.children && rel.children.length > 0 ? `- They are a parent to: ${rel.children.join(', ')}` : ''}
 ${rel.parents && rel.parents.length > 0 ? `- Their parents are: ${rel.parents.join(', ')}` : ''}
 ${rel.siblings && rel.siblings.length > 0 ? `- Their siblings are: ${rel.siblings.join(', ')}` : ''}
@@ -943,7 +883,8 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
     // Determine what needs to be generated
     const generateBoth = !memberData.type;
     const generateRegular = !memberData.type || memberData.type === 'regular';
-    const generateRoast = !memberData.type || memberData.type === 'roast';
+    // Never roast someone the family remembers.
+    const generateRoast = (!memberData.type || memberData.type === 'roast') && !analysis.remembered;
 
     // If generating both, do it in parallel for speed
     if (generateBoth) {

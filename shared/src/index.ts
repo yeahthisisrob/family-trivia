@@ -15,6 +15,7 @@ export * from './history';
 export * from './leaderboard';
 export * from './member-summary';
 export * from './notifications';
+export * from './people';
 export * from './profile';
 export * from './question';
 export * from './question-gen';

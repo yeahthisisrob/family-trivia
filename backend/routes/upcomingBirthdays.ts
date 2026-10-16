@@ -1,10 +1,11 @@
 // File: lambda/routes/upcomingBirthdays.ts
 
-import { getDaysUntilET, isTodayET } from '@family-trivia/shared';
+import { getDaysUntilET, isRemembered, isTodayET } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
 import { getAllFactHistories } from '../services/factHistoryService';
+import { loadFamily } from '../services/family/roster';
 import { logger } from '../services/logger';
 import { getJson } from '../services/s3';
 
@@ -22,6 +23,8 @@ interface Birthday {
   year?: number;
   celebrationId?: string;
   isFromFacts?: boolean;
+  /** The person has died: the day is for remembering, not celebrating. */
+  remembered?: boolean;
 }
 
 interface UpcomingBirthdaysResponse {
@@ -132,6 +135,7 @@ export async function getUpcomingBirthdays(
       return errorResponse('Family hierarchy not found', 404);
     }
 
+    const family = await loadFamily();
     const birthdays: Birthday[] = [];
 
     // Read birthday answers from all users' consolidated histories
@@ -164,6 +168,7 @@ export async function getUpcomingBirthdays(
             isPast,
             type: 'birthday' as const,
             isFromFacts: true,
+            ...(isRemembered(family.people[userId]) ? { remembered: true } : {}),
           };
         } catch {
           return null;

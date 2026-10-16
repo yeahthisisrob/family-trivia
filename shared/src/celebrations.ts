@@ -13,6 +13,8 @@ export interface Birthday {
   year?: number;
   celebrationId?: string;
   isFromFacts?: boolean;
+  /** The person has died: the day is for remembering, not celebrating. */
+  remembered?: boolean;
 }
 
 /** Upcoming birthdays response */

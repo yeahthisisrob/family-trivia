@@ -1,6 +1,7 @@
 // File: lambda/routes/familyFeud.ts
 // Purpose: Family Feud round-robin game mode endpoints.
 
+import { playingPeople } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { AVAILABLE_MODELS, errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
@@ -9,6 +10,7 @@ import {
   collectResponseBody,
   extractJsonFromResponse,
 } from '../services/bedrock/core/responseParser';
+import { loadFamily } from '../services/family/roster';
 import {
   completeRound,
   createRound,
@@ -40,15 +42,14 @@ interface HierarchyData {
   };
 }
 
+/** Feud targets and players: people playing right now, never paused or remembered. */
 async function getAllPeopleIds(): Promise<{ ids: string[]; names: Record<string, string> }> {
-  const hierarchy = await getJson<HierarchyData>(S3_PATHS.FAMILY_HIERARCHY);
-  if (!hierarchy?.family?.people) return { ids: [], names: {} };
-  const ids = Object.keys(hierarchy.family.people);
-  const names: Record<string, string> = {};
-  for (const [id, person] of Object.entries(hierarchy.family.people)) {
-    names[id] = person.name || id;
-  }
-  return { ids, names };
+  const family = await loadFamily();
+  const playing = playingPeople(family);
+  return {
+    ids: playing.map((p) => p.id),
+    names: Object.fromEntries(Object.values(family.people).map((p) => [p.id, p.name || p.id])),
+  };
 }
 
 /**

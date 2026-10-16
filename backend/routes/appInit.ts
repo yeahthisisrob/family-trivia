@@ -6,6 +6,7 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
+import { accountIsPlaying, loadFamily } from '../services/family/roster';
 import { canPlayGameModeAny } from '../services/gameModeService';
 import { logger } from '../services/logger';
 import { calculateCatchupStatus, checkPlayEligibility } from '../services/playerStateService';
@@ -230,6 +231,7 @@ export async function appInitDeferred(event: APIGatewayProxyEvent): Promise<APIG
       return successResponse({});
     }
 
+    const family = await loadFamily();
     // Load hierarchy for people/sides filtering (TTL-cached, no extra S3 read)
     const rawHierarchy = await getJson<HierarchyData>(S3_PATHS.FAMILY_HIERARCHY);
     const hierarchy = validateHierarchy(rawHierarchy);
@@ -310,7 +312,9 @@ export async function appInitDeferred(event: APIGatewayProxyEvent): Promise<APIG
       // Family Feud
       familyFeud: (() => {
         const currentIdx = feudRotation?.currentIndex ?? 0;
-        const allIds = feudRotation?.allUserIds || allUserIds;
+        const allIds = (feudRotation?.allUserIds || allUserIds).filter((id: string) =>
+          accountIsPlaying(family, id),
+        );
         const nextTargetId = allIds[currentIdx] || allIds[0];
         return {
           currentRound: feudCurrentRound

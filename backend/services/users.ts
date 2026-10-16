@@ -3,6 +3,7 @@
 import { S3_PATHS } from '../constants';
 import { getAllCasinoRushSessions } from '../routes/game-modes/casinoRushUtils';
 import { getFactHistory } from './factHistoryService';
+import { accountIsPlaying, loadFamily } from './family/roster';
 import { logger } from './logger';
 import { getJson } from './s3';
 
@@ -80,8 +81,14 @@ export async function getUserGroup(userId: string): Promise<string | undefined> 
   return config?.users[userId]?.group;
 }
 
+/** Account ids that are playing right now: paused and remembered people sit out. */
+async function playingAccounts(ids: string[]): Promise<string[]> {
+  const family = await loadFamily();
+  return ids.filter((id) => accountIsPlaying(family, id));
+}
+
 /**
- * Get all users in a specific group
+ * Players in a group who are playing right now
  */
 export async function getUsersInGroup(groupId: string): Promise<string[]> {
   logger.debug('Fetching users for group', { groupId });
@@ -93,9 +100,11 @@ export async function getUsersInGroup(groupId: string): Promise<string[]> {
     return [];
   }
 
-  const usersInGroup = Object.entries(config.users)
-    .filter(([, userData]) => userData.group === groupId)
-    .map(([userId]) => userId);
+  const usersInGroup = await playingAccounts(
+    Object.entries(config.users)
+      .filter(([, userData]) => userData.group === groupId)
+      .map(([userId]) => userId),
+  );
 
   logger.debug('Found users in group', {
     groupId,
@@ -114,7 +123,14 @@ export async function getAllGroups(): Promise<string[]> {
 
   if (!config) return [];
 
-  return Array.from(new Set(Object.values(config.users).map((userData) => userData.group)));
+  const playing = new Set(await playingAccounts(Object.keys(config.users)));
+  return Array.from(
+    new Set(
+      Object.entries(config.users)
+        .filter(([id]) => playing.has(id))
+        .map(([, userData]) => userData.group),
+    ),
+  );
 }
 
 /**
@@ -135,14 +151,15 @@ export async function isUserAdmin(userId: string): Promise<boolean> {
 }
 
 /**
- * Get all user IDs
+ * Players who are playing right now. Everything that ranks, rotates or
+ * notifies uses this; admin and sign-in read every account directly.
  */
 export async function getAllUsers(): Promise<string[]> {
   const config = await getUserConfig();
 
   if (!config) return [];
 
-  return Object.keys(config.users);
+  return playingAccounts(Object.keys(config.users));
 }
 
 /**
