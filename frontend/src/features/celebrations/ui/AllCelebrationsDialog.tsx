@@ -1,4 +1,6 @@
 // File: frontend/src/components/UpcomingDates/AllCelebrationsDialog.tsx
+
+import type { Celebration } from '@family-trivia/shared';
 import CakeIcon from '@mui/icons-material/Cake';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CelebrationIcon from '@mui/icons-material/Celebration';
@@ -21,15 +23,10 @@ import {
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useEffect, useState } from 'react';
-
-import {
-  type Celebration,
-  deleteCelebration,
-  getCelebrations,
-} from '../../api/modules/celebrations';
-import { colors } from '../../shared/design-system';
-import { createLogger } from '../../utils/logger';
-import { LoadingDots } from '../ui/feedback';
+import { LoadingDots } from '../../../components/ui/feedback';
+import { colors } from '../../../shared/design-system';
+import { createLogger } from '../../../utils/logger';
+import { celebrationsApi } from '../api/celebrationsApi';
 
 const logger = createLogger('AllCelebrationsDialog');
 
@@ -72,7 +69,7 @@ const AllCelebrationsDialog: React.FC<AllCelebrationsDialogProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const response = await getCelebrations();
+      const response = await celebrationsApi.all();
       setCelebrations(
         [...response.celebrations].sort((a, b) => {
           const [am, ad] = a.date.split('/').map(Number);
@@ -92,7 +89,7 @@ const AllCelebrationsDialog: React.FC<AllCelebrationsDialogProps> = ({
     if (!window.confirm(`Delete ${c.name}?`)) return;
     setDeleting(c.id);
     try {
-      await deleteCelebration(c.id, currentUserId);
+      await celebrationsApi.remove(c.id);
       await fetchCelebrations();
       onDeleted();
     } catch {

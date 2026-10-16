@@ -695,9 +695,9 @@ export interface paths {
         /** Get all celebrations */
         get: operations["getCelebrations"];
         put?: never;
-        /** Create a celebration */
+        /** Add a date to the family's calendar, as the caller */
         post: operations["createCelebration"];
-        /** Delete a celebration */
+        /** Delete a celebration the caller added */
         delete: operations["deleteCelebration"];
         options?: never;
         head?: never;
@@ -1950,6 +1950,13 @@ export interface components {
             addedBy: string;
             addedAt: string;
             recurring: boolean;
+            year?: number;
+            addedByName?: string;
+            /** @description Someone's birthday, from the family or their own answer */
+            isFromFacts?: boolean;
+            isManual?: boolean;
+            /** @description The birthday of someone the family remembers */
+            remembered?: boolean;
         };
         PhotoAlbum: {
             id: string;
@@ -3520,9 +3527,9 @@ export interface operations {
                     /** @enum {string} */
                     type: "birthday" | "anniversary" | "holiday" | "other";
                     name: string;
+                    /** @description MM/DD, a real day of the year */
                     date: string;
                     description?: string;
-                    addedBy: string;
                     recurring?: boolean;
                     year?: number;
                 };
@@ -3547,7 +3554,6 @@ export interface operations {
         parameters: {
             query: {
                 id: string;
-                userId: string;
             };
             header?: never;
             path?: never;
