@@ -1,7 +1,8 @@
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import HubIcon from '@mui/icons-material/Hub';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, fn, userEvent, within } from 'storybook/test';
+import { rememberingHandlers } from '../../remembering/ui/rememberingMocks';
 import { FamilyHome } from './FamilyHome';
 import { familyHomeHandlers } from './familyHomeMocks';
 
@@ -10,6 +11,7 @@ const meta: Meta<typeof FamilyHome> = {
   component: FamilyHome,
   args: {
     meId: 'carol',
+    onOpenPerson: fn(),
     doors: [
       {
         id: 'tree',
@@ -41,13 +43,28 @@ export const StoryFirst: Story = {
   },
 };
 
+/** Tapping someone goes to their profile, where their story is told. */
 export const OpensAPerson: Story = {
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
     const [face] = await canvas.findAllByRole('button', { name: /Aunt Ivy/ });
     await userEvent.click(face!);
+    await expect(args.onOpenPerson).toHaveBeenCalledWith('ivy');
+  },
+};
+
+/** Someone the family has lost opens on their Remembering page, right here. */
+export const OpensSomeoneRemembered: Story = {
+  parameters: { msw: { handlers: [...rememberingHandlers(), ...familyHomeHandlers()] } },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const [face] = await canvas.findAllByRole('button', { name: /Grandma Grace/ });
+    await userEvent.click(face!);
     const page = within(document.body);
-    await expect(await page.findByRole('tab', { name: 'You & them' })).toBeInTheDocument();
+    await expect(
+      await page.findByRole('heading', { name: 'The last things Grandma Grace told us' }),
+    ).toBeInTheDocument();
+    await expect(args.onOpenPerson).not.toHaveBeenCalled();
   },
 };
 

@@ -25,7 +25,9 @@ const AdminPage = React.lazy(() => import('./components/Admin'));
 const ArcadePage = React.lazy(() => import('./components/Arcade/ArcadePage'));
 const FamilyTree = React.lazy(() => import('./components/FamilyTree'));
 const Leaderboard = React.lazy(() => import('./components/Leaderboard'));
-const Profile = React.lazy(() => import('./components/Profile'));
+const StoryProfile = React.lazy(() =>
+  import('./features/profile').then((m) => ({ default: m.StoryProfile })),
+);
 const SetupWizard = React.lazy(() => import('./components/SetupWizard/SetupWizard'));
 
 const logger = createLogger('App');
@@ -315,10 +317,10 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
                 {/* Profile route — shown as overlay when URL matches */}
                 {profileUser && user && (
                   <React.Suspense fallback={null}>
-                    <Profile
+                    <StoryProfile
                       userId={profileUser}
-                      isCurrentUser={profileUser === user}
-                      onBackToLeaderboard={() => setProfileUser(null)}
+                      meId={user}
+                      onBack={() => setProfileUser(null)}
                     />
                   </React.Suspense>
                 )}

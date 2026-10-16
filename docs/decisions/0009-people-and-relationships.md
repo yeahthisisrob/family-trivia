@@ -41,8 +41,10 @@ is the only place features ask "who is in this family" and "who is playing".
 Player lists (`getAllUsers`, `getUsersInGroup`) only return people playing
 now, which fixes leaderboards, rotations and notifications in one place.
 Past answers, facts and timelines keep everyone, remembered people included.
-Opening a remembered person shows their Remembering page instead of the
-everyday one (`features/remembering`): the last things they told the family,
+Everyone has one profile, told as a story from their own answers
+(`features/profile`, `GET /family/person-story`). Opening a remembered person
+shows their Remembering page instead (`features/remembering`), read from the
+same story: the last things they told the family,
 what it loved most, the family's memories (comments of type `memorial` on
 their id), every answer by month, and a keepsake page to save or print.
 The admin and the family tree move to this model next; the version 1 tree

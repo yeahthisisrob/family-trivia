@@ -1,5 +1,5 @@
-/** MSW handlers for the Remembering stories: made-up words from the example family's grandmother. */
-import type { Comment, Remembering } from '@family-trivia/shared';
+/** MSW handlers for the PersonStory stories: made-up words from the example family's grandmother. */
+import type { Comment, PersonStory } from '@family-trivia/shared';
 import { HttpResponse, http } from 'msw';
 
 const ok = (data: unknown, status = 200) => HttpResponse.json({ ok: true, data }, { status });
@@ -11,7 +11,7 @@ const w = (date: string, question: string, answer: string) => ({
   date,
 });
 
-export const GRACE: Remembering = {
+export const GRACE: PersonStory = {
   personId: 'grace',
   words: [
     w('2023-05-02', 'Who taught you to cook?', 'My mother, standing on a chair at her stove'),
@@ -52,10 +52,10 @@ export const MEMORIES: Comment[] = [
   },
 ];
 
-export const rememberingHandlers = (data: Remembering = GRACE, memories = MEMORIES) => {
+export const rememberingHandlers = (data: PersonStory = GRACE, memories = MEMORIES) => {
   const thread = [...memories];
   return [
-    http.get('*/family/remembering', () => ok(data)),
+    http.get('*/family/person-story', () => ok(data)),
     http.get('*/comments', () =>
       ok({
         thread: {

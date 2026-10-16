@@ -1,4 +1,4 @@
-import type { FamilyKnowledge } from '@family-trivia/shared';
+import { knowledgeApi } from '../../../entities/family';
 import { apiService } from '../../../services/ApiService';
 
 export interface FamilyStory {
@@ -27,8 +27,7 @@ export const familyHomeApi = {
       { method: 'GET' },
       `words_${personId}`,
     ),
-  knowledge: () =>
-    apiService.request<FamilyKnowledge>('/family/knowledge', { method: 'GET' }, 'family_knowledge'),
+  knowledge: knowledgeApi.get,
   buildKnowledge: () =>
     apiService.request<{ read: number; personas: number; left: number; failures: string[] }>(
       '/admin/knowledge/build',

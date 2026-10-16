@@ -1,33 +1,33 @@
 /**
- * A remembered person's page (shared/src/remembering.ts): everything they
- * told the family, what the family loved most, and their trivia. Only for
- * people the family remembers; everyone else has their person page.
+ * Someone's story (shared/src/person-story.ts): everything they told the
+ * family, what the family loved most, and their trivia. Their profile and,
+ * once they're gone, their Remembering page both read it. Only for people
+ * the family can see (docs/decisions/0009).
  */
 import {
   type HistoryEntry,
-  isRemembered,
   LAST_WORDS,
-  type RememberedWord,
-  type Remembering,
+  type PersonStory,
+  type StoryWord,
 } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
 import { S3_PATHS } from '../../constants';
 import { getCommentCounts } from '../../services/commentsService';
 import { getFactHistory } from '../../services/factHistoryService';
-import { loadFamily } from '../../services/family/roster';
+import { loadJoined } from '../../services/family/joined';
 import { readRecord } from '../../services/reactions';
 import { getJson } from '../../services/s3';
 
 const LOVED = 3;
 
-export async function buildRemembering(personId: string): Promise<Remembering> {
+export async function buildPersonStory(personId: string): Promise<PersonStory> {
   const [facts, trivia] = await Promise.all([
     getFactHistory(personId),
     getJson<HistoryEntry[]>(S3_PATHS.ANSWER_HISTORY(personId)).then((h) => h ?? []),
   ]);
 
-  const words: RememberedWord[] = facts
+  const words: StoryWord[] = facts
     .filter((f) => f.answered && !f.skipped && f.answer?.trim() && f.question && f.timestamp)
     .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
     .map((f) => ({
@@ -63,11 +63,10 @@ export async function buildRemembering(personId: string): Promise<Remembering> {
   };
 }
 
-/** GET /family/remembering?personId=X */
-export async function getRemembering(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+/** GET /family/person-story?personId=X */
+export async function getPersonStory(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const id = event.queryStringParameters?.personId ?? '';
-  const person = (await loadFamily()).people[id];
-  if (!person || !isRemembered(person))
-    return errorResponse('Not someone the family remembers', 404);
-  return successResponse(await buildRemembering(id));
+  const { visible } = await loadJoined();
+  if (!visible.people[id]) return errorResponse('Unknown person', 404);
+  return successResponse(await buildPersonStory(id));
 }

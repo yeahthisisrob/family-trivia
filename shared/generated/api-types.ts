@@ -1506,15 +1506,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/family/remembering": {
+    "/family/person-story": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** A remembered person's page, everything they told the family and what it loved most */
-        get: operations["getRemembering"];
+        /** Someone's story, everything they told the family and what it loved most */
+        get: operations["getPersonStory"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1995,7 +1995,7 @@ export interface components {
             timestamp: string;
             parentId?: string;
         };
-        Remembering: {
+        PersonStory: {
             personId: string;
             words: {
                 /** @description {personId}_{timestamp}, what comments and reactions hang on */
@@ -5250,7 +5250,7 @@ export interface operations {
             };
         };
     };
-    getRemembering: {
+    getPersonStory: {
         parameters: {
             query: {
                 personId: string;
@@ -5267,10 +5267,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Remembering"];
+                    "application/json": components["schemas"]["PersonStory"];
                 };
             };
-            /** @description Not someone the family remembers */
+            /** @description Not someone the family can see */
             404: {
                 headers: {
                     [name: string]: unknown;
