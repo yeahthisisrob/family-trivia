@@ -3,7 +3,7 @@
 
 import { playingPeople } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { AVAILABLE_MODELS, errorResponse, successResponse } from '../config';
+import { errorResponse, MODELS, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
 import { invokeBedrockPrompt } from '../services/bedrock/core/bedrockClient';
 import {
@@ -177,8 +177,7 @@ Return ONLY: {"wrong1": "...", "wrong2": "...", "wrong3": "..."}`;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       // Step 1: Generate with Sonnet
-      const genModel =
-        attempt < 2 ? AVAILABLE_MODELS.CLAUDE_SONNET_4 : AVAILABLE_MODELS.CLAUDE_HAIKU_4_5;
+      const genModel = attempt < 2 ? MODELS.WRITER : MODELS.FAST;
       const stream = await invokeBedrockPrompt(genPrompt, 128, 0.7, {}, genModel);
       const buf = await collectResponseBody(stream);
       const parsed = extractJsonFromResponse(buf, genModel);
@@ -190,8 +189,7 @@ Return ONLY: {"wrong1": "...", "wrong2": "...", "wrong3": "..."}`;
       }
 
       // Step 2: Validate with a different model
-      const valModel =
-        attempt < 2 ? AVAILABLE_MODELS.CLAUDE_HAIKU_4_5 : AVAILABLE_MODELS.CLAUDE_SONNET_4;
+      const valModel = attempt < 2 ? MODELS.FAST : MODELS.WRITER;
       const valPrompt = `A family trivia game asked: "${question}"
 The real answer is: "${realAnswer}"
 The proposed wrong choices are: "${wrongs[0]}", "${wrongs[1]}", "${wrongs[2]}"

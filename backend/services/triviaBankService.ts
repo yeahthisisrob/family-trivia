@@ -2,7 +2,7 @@
 // Purpose: Trivia bank management — stats, import from external APIs,
 // AI-generated local categories, question browsing, dedup tracking.
 
-import { AVAILABLE_MODELS } from '../config';
+import { MODELS } from '../config';
 import { invokeBedrockPrompt } from './bedrock/core/bedrockClient';
 import { collectResponseBody, extractJsonFromResponse } from './bedrock/core/responseParser';
 import { logger } from './logger';
@@ -439,7 +439,7 @@ Return a JSON array of objects:
 Return ONLY the JSON array.`;
 
   try {
-    const modelId = AVAILABLE_MODELS.CLAUDE_SONNET_4;
+    const modelId = MODELS.WRITER;
     const stream = await invokeBedrockPrompt(prompt, 4096, 0.8, {}, modelId);
     const buf = await collectResponseBody(stream);
     const parsed = extractJsonFromResponse(buf, modelId);

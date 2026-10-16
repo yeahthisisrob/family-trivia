@@ -9,7 +9,7 @@
  * Cheap — uses Haiku, ~128 output tokens per call.
  */
 
-import { AVAILABLE_MODELS } from '../config';
+import { MODELS } from '../config';
 import { invokeBedrockPrompt } from './bedrock/core/bedrockClient';
 import { collectResponseBody, extractJsonFromResponse } from './bedrock/core/responseParser';
 import { logger } from './logger';
@@ -21,7 +21,7 @@ export interface GameAIPrompt<TState, TMove> {
   parseMove: (raw: Record<string, unknown>) => TMove;
 }
 
-const MODEL = AVAILABLE_MODELS.CLAUDE_HAIKU_4_5;
+const MODEL = MODELS.FAST;
 const MAX_TOKENS = 128;
 const TEMPERATURE = 0.5;
 

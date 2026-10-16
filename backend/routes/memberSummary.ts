@@ -85,7 +85,10 @@ export async function getMemberSummary(
         if (existingSummary.generatedAt.regular) {
           const regularAge = new Date(existingSummary.generatedAt.regular);
           const regularDiffHours = (now.getTime() - regularAge.getTime()) / (1000 * 60 * 60);
-          generateRegular = regularDiffHours >= 24;
+          // A saved failure counts as missing (older versions cached them).
+          generateRegular =
+            regularDiffHours >= 24 ||
+            /^Unable to generate/.test(existingSummary.regularSummary ?? '');
           logger.debug('Regular summary freshness check', {
             ageHours: regularDiffHours,
             needsRefresh: generateRegular,
@@ -99,7 +102,8 @@ export async function getMemberSummary(
         if (existingSummary.generatedAt.roast) {
           const roastAge = new Date(existingSummary.generatedAt.roast);
           const roastDiffHours = (now.getTime() - roastAge.getTime()) / (1000 * 60 * 60);
-          generateRoast = roastDiffHours >= 24;
+          generateRoast =
+            roastDiffHours >= 24 || /^Unable to generate/.test(existingSummary.roastSummary ?? '');
           logger.debug('Roast summary freshness check', {
             ageHours: roastDiffHours,
             needsRefresh: generateRoast,
@@ -334,7 +338,18 @@ export async function getMemberSummary(
       logger.info('Roast summary generated successfully');
     }
 
-    // 7) Save the summaries to S3
+    // 7) Save only real summaries. A failed model call must never be cached
+    //    as the person's summary, or it would stick until the cache expires.
+    const failed = (text?: string) => !text?.trim() || /^Unable to generate/.test(text);
+    const requested =
+      mode === 'roast' ? updatedSummary.roastSummary : updatedSummary.regularSummary;
+    if (failed(requested)) {
+      logger.error('Member summary generation failed; not saving', { userId, mode });
+      return errorResponse(
+        'The spotlight could not be written right now. Try again in a moment.',
+        503,
+      );
+    }
     logger.info('Saving member summary to S3', { summaryPath });
     await putJson(summaryPath, updatedSummary);
 

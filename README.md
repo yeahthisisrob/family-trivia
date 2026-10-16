@@ -153,7 +153,8 @@ Passphrases are **one-time identification, not ongoing auth** — they exist so 
 | `jwtSecret` | Random hex string — generate with `openssl rand -hex 32` |
 | `certificateArn` | ACM certificate ARN for custom domain (optional) |
 | `customDomain` | Your domain, e.g. `trivia.example.com` (optional) |
-| `bedrockModelId` | Claude model ID (defaults to Sonnet) |
+| `bedrockModelId` | Claude model for writing (default Sonnet 4.5). Newer models need access enabled in the Bedrock console |
+| `bedrockFastModelId` | Claude model for fast checks and roasts (default Haiku 4.5) |
 
 `frontend/public/config.local.json` (gitignored — copy from `config.example.json`): runtime URL config for the React app.
 
