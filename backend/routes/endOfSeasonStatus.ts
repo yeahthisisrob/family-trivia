@@ -8,9 +8,10 @@ import { getSeasonStatusResponse } from '../services/seasonService';
 
 export async function endOfSeasonStatus(
   _event: APIGatewayProxyEvent,
+  userId: string,
 ): Promise<APIGatewayProxyResult> {
   try {
-    const status = await getSeasonStatusResponse();
+    const status = await getSeasonStatusResponse(userId);
 
     logger.info('Season status check', {
       isEndOfSeason: status.isEndOfSeason,

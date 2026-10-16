@@ -24,6 +24,12 @@ const config: StorybookConfig = {
   async viteFinal(config) {
     return {
       ...config,
+      // Pre-bundle dependencies that are only reached from a few stories, so
+      // Vite doesn't re-optimize (and reload the test iframe) mid-run.
+      optimizeDeps: {
+        ...config.optimizeDeps,
+        include: [...(config.optimizeDeps?.include ?? []), 'react-markdown', 'remark-gfm'],
+      },
       resolve: {
         ...config.resolve,
         alias: {

@@ -1,12 +1,12 @@
 // File: src/App.tsx
 import { Box, Container, Typography } from '@mui/material';
 import React from 'react';
-
+import { markSeasonLetterSeen } from './api/modules/celebrations';
 import { AppHeader } from './components/AppShell';
 import { DailyFactCard } from './components/DailyFact';
 import DailyFactSummary from './components/DailyFactSummary';
-import { EndOfSeason } from './components/EndOfSeason';
 import FamilyFeud from './components/FamilyFeud';
+import { SeasonLetter } from './components/SeasonLetter/SeasonLetter';
 import StatusGridToggle from './components/StatusGridToggle';
 import TimelineBoard from './components/TimelineBoard';
 import TriviaTab from './components/TriviaCard';
@@ -118,29 +118,26 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
 
   const HomePage = (
     <Box>
-      {/* End of season modal — only after app is fully ready */}
-      <EndOfSeason
-        open={!!endOfSeasonStatus?.isEndOfSeason && !endOfSeasonDismissed}
-        onDismiss={() => setEndOfSeasonDismissed(true)}
-        personalMessage={endOfSeasonStatus?.personalMessage || ''}
-        lastSeason={endOfSeasonStatus?.lastSeason}
-        questionsBehind={userStatus.catchupStatus?.questionsBehind || 0}
-        onCatchUp={() => {
-          const currentStatus = userStatus.catchupStatus;
-          if (currentStatus) {
-            userStatus.updateCatchupStatus({
-              ...currentStatus,
-              questionsBehind: Math.max(2, currentStatus.questionsBehind),
-            });
+      {/* The season letter: shown once per person, remembered on every device */}
+      {endOfSeasonStatus?.letter && !endOfSeasonDismissed && (
+        <SeasonLetter
+          letter={endOfSeasonStatus.letter}
+          seasonName={
+            (endOfSeasonStatus.letter.kind === 'end'
+              ? endOfSeasonStatus.lastSeason
+              : endOfSeasonStatus.currentSeason
+            )?.name
           }
-        }}
-        factsBehind={0}
-        onCatchUpFacts={() => {
-          setTab(ROUTES.HOME);
-        }}
-      />
+          onClose={() => {
+            setEndOfSeasonDismissed(true);
+            const { seasonNumber, kind } = endOfSeasonStatus.letter!;
+            markSeasonLetterSeen(seasonNumber, kind).catch(() => undefined);
+          }}
+        />
+      )}
 
-      {!factInlineDismissed && (
+      {/* Between seasons nothing new is asked: no daily fact prompt */}
+      {isSeasonActive && !factInlineDismissed && (
         <DailyFactCard
           userId={user}
           onFactSubmitted={handleFactSubmit}
@@ -150,7 +147,8 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
 
       <StatusGridToggle userId={user} />
 
-      <FamilyFeud userId={user} />
+      {/* Family Feud asks questions too, so it also waits for a season */}
+      {isSeasonActive && <FamilyFeud userId={user} />}
 
       <UpcomingDates />
 

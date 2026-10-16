@@ -11,12 +11,38 @@ import {
   invalidateFactHistoryCache,
 } from '../services/factHistoryService';
 import { logger } from '../services/logger';
+import { isImageType, isMediaKey, readUrl, uploadUrl } from '../services/media';
 import { deleteObject, getJson, listObjects, putJson } from '../services/s3';
 // Re-export for invalidation of season cache
 import { invalidateSeasonsCache, type Season, type SeasonsConfig } from '../services/seasonService';
 import { invalidateUserConfigCache, type UserConfigData } from '../services/users';
 
 // ── Helpers ──────────────────────────────────────────────────────
+
+/** Validate season letters: Markdown text and, optionally, an image we stored under media/. */
+function cleanNotes(raw: unknown): Season['notes'] | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const out: NonNullable<Season['notes']> = {};
+  for (const kind of ['start', 'end'] as const) {
+    const n = (raw as Record<string, unknown>)[kind];
+    if (n === undefined || n === null) continue;
+    if (typeof n !== 'object') return null;
+    const { title, markdown, image } = n as {
+      title?: unknown;
+      markdown?: unknown;
+      image?: unknown;
+    };
+    if (typeof markdown !== 'string' || markdown.length > 20_000) return null;
+    if (title !== undefined && (typeof title !== 'string' || title.length > 200)) return null;
+    if (image !== undefined && !isMediaKey(image)) return null;
+    out[kind] = {
+      ...(title ? { title: title as string } : {}),
+      markdown,
+      ...(image ? { image: image as string } : {}),
+    };
+  }
+  return out;
+}
 
 function getAdminUserId(event: APIGatewayProxyEvent): string | undefined {
   // Check query params first, then body
@@ -520,7 +546,8 @@ export async function updateSeason(event: APIGatewayProxyEvent): Promise<APIGate
   if (denied) return denied;
 
   const body = JSON.parse(event.body || '{}');
-  const { seasonNumber, name, startDate, endDate, status, message, currentSeasonNumber } = body;
+  const { seasonNumber, name, startDate, endDate, status, message, currentSeasonNumber, notes } =
+    body;
 
   const config = await getJson<SeasonsConfig>(S3_PATHS.SEASONS_CONFIG);
   if (!config) return errorResponse('Seasons config not found', 404);
@@ -541,6 +568,15 @@ export async function updateSeason(event: APIGatewayProxyEvent): Promise<APIGate
     if (endDate !== undefined) season.endDate = endDate;
     if (status !== undefined) season.status = status;
     if (message !== undefined) season.message = message;
+    if (notes !== undefined) {
+      const clean = cleanNotes(notes);
+      if (!clean)
+        return errorResponse(
+          'notes must be { start?, end? } with markdown and an optional media image',
+          400,
+        );
+      season.notes = clean;
+    }
 
     // Keep currentSeasonNumber in sync with status changes
     if (status === 'active') {
@@ -1028,4 +1064,31 @@ export async function deleteDailyQuestion(
     deletedCount: deleted.length,
   });
   return successResponse({ success: true, date, deleted: deleted.length });
+}
+
+// ── Media ────────────────────────────────────────────────────────
+
+/** A presigned URL to upload one image (season letters, memorials). */
+export async function getMediaUploadUrl(
+  event: APIGatewayProxyEvent,
+): Promise<APIGatewayProxyResult> {
+  const denied = await checkAdmin(event);
+  if (denied) return denied;
+  const { contentType, folder } = JSON.parse(event.body || '{}') as {
+    contentType?: unknown;
+    folder?: unknown;
+  };
+  if (!isImageType(contentType))
+    return errorResponse('contentType must be a JPEG, PNG, WebP or GIF image', 400);
+  const safeFolder =
+    typeof folder === 'string' && /^[a-z0-9-]{1,40}$/.test(folder) ? folder : 'uploads';
+  return successResponse(await uploadUrl(safeFolder, contentType));
+}
+
+/** A short-lived URL to preview an uploaded image in the admin. */
+export async function getMediaReadUrl(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const denied = await checkAdmin(event);
+  if (denied) return denied;
+  const url = await readUrl(event.queryStringParameters?.key ?? '');
+  return url ? successResponse({ url }) : errorResponse('Unknown media key', 400);
 }

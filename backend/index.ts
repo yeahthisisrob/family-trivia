@@ -111,6 +111,8 @@ import { step2CheckDuplicates } from './routes/questionGeneration/step2CheckDupl
 import { step3FactCheck } from './routes/questionGeneration/step3FactCheck';
 // Question status endpoints
 import { questionStatus } from './routes/questionStatus';
+// Weekly fact summary endpoint
+import { markSeasonLetterSeen } from './routes/seasonLetters';
 import { getSnakeQuestions } from './routes/snake';
 import { submitAnswer } from './routes/submitAnswer';
 import { submitCustomCategory } from './routes/submitCustomCategory';
@@ -128,7 +130,6 @@ import {
 // Upcoming birthdays endpoint
 import { getUpcomingBirthdays } from './routes/upcomingBirthdays';
 import { userProfile } from './routes/userProfile';
-// Weekly fact summary endpoint
 import { getWeeklyFactSummary } from './routes/weeklyFactSummary';
 import { invalidateFactHistoryCache } from './services/factHistoryService';
 import { invalidateGameModeCache } from './services/gameModeService';
@@ -166,6 +167,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   'GET /question-status': requireAuth(questionStatus),
   'GET /can-answer-question': requireAuth(canAnswerQuestion),
   'GET /end-of-season-status': requireAuth(endOfSeasonStatus),
+  'POST /season-letters/seen': requireAuth(markSeasonLetterSeen),
   'GET /app-init': requireAuth(appInit),
   'GET /app-init-deferred': requireAuth(appInitDeferred),
   'GET /fact-suggestions': requireAuth(getFactSuggestions),
@@ -239,6 +241,8 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   'GET /admin/family-tree': requireAuth(adminHandlers.getFamilyTree, SUBJECT),
   'PUT /admin/family-tree': requireAuth(adminHandlers.updateFamilyTree, SUBJECT),
   'GET /admin/seasons': requireAuth(adminHandlers.getSeasons, SUBJECT),
+  'POST /admin/media/upload-url': requireAuth(adminHandlers.getMediaUploadUrl, SUBJECT),
+  'GET /admin/media/url': requireAuth(adminHandlers.getMediaReadUrl, SUBJECT),
   'POST /admin/seasons': requireAuth(adminHandlers.addSeason, SUBJECT),
   'PUT /admin/seasons': requireAuth(adminHandlers.updateSeason, SUBJECT),
   'DELETE /admin/seasons': requireAuth(adminHandlers.deleteSeason, SUBJECT),
