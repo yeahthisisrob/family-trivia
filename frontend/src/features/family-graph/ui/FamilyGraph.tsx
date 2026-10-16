@@ -6,11 +6,14 @@
  */
 
 import { relationOf } from '@family-trivia/shared';
+import CloseIcon from '@mui/icons-material/Close';
 import {
   Autocomplete,
   alpha,
   Box,
+  Button,
   Chip,
+  IconButton,
   Slider,
   Stack,
   TextField,
@@ -150,15 +153,18 @@ export const FamilyGraph: React.FC<FamilyGraphProps> = ({
   return (
     <Box
       sx={{
+        position: 'relative',
         display: 'grid',
-        gridTemplateColumns: { xs: '1fr', md: focused ? '1fr 300px' : '1fr' },
+        // minmax(0, …): the canvas has a fixed width, so a plain 1fr column
+        // never shrinks and the panel beside it gets clipped.
+        gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: focused ? 'minmax(0, 1fr) 300px' : '1fr' },
         bgcolor: night.sky,
         color: night.text,
         borderRadius: 2,
         overflow: 'hidden',
       }}
     >
-      <Box ref={box} sx={{ position: 'relative', minHeight: height }}>
+      <Box ref={box} sx={{ position: 'relative', minHeight: height, minWidth: 0 }}>
         <Stack
           direction="row"
           sx={{
@@ -372,14 +378,32 @@ export const FamilyGraph: React.FC<FamilyGraphProps> = ({
 
       {focused?.person && (
         <Box
+          aria-label={`About ${focused.label}`}
           sx={{
             p: 2.5,
             borderLeft: { md: `1px solid ${alpha(night.text, 0.08)}` },
-            borderTop: { xs: `1px solid ${alpha(night.text, 0.08)}`, md: 'none' },
-            maxHeight: { md: height },
+            maxHeight: { xs: '55%', md: height },
             overflowY: 'auto',
+            // On a phone the panel rises over the sky; below it, it would sit off screen.
+            position: { xs: 'absolute', md: 'static' },
+            zIndex: 3,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            bgcolor: { xs: alpha(night.sky, 0.96), md: 'transparent' },
+            borderTop: { xs: `1px solid ${alpha(night.text, 0.16)}`, md: 'none' },
+            borderRadius: { xs: '16px 16px 0 0', md: 0 },
+            backdropFilter: { xs: 'blur(6px)', md: 'none' },
           }}
         >
+          <IconButton
+            aria-label="Close"
+            size="small"
+            onClick={() => setFocus(null)}
+            sx={{ float: 'right', color: night.textDim, mt: -0.75, mr: -0.75 }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
           <Typography
             sx={{
               fontSize: 11,
@@ -410,6 +434,16 @@ export const FamilyGraph: React.FC<FamilyGraphProps> = ({
                 return r ? `Your ${r}` : 'In your family';
               })()}
             </Typography>
+          )}
+          {onOpenProfile && (
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => onOpenProfile(focused.id)}
+              sx={{ mt: 1.5, color: night.text, borderColor: alpha(night.text, 0.3) }}
+            >
+              See their page
+            </Button>
           )}
 
           {alikeList.length > 0 && (
