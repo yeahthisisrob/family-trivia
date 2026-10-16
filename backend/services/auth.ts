@@ -10,8 +10,11 @@ import { logger } from './logger';
 
 const JWT_SECRET = process.env.JWT_SECRET || '';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
-const JWT_EXPIRY = '7d'; // token lifetime
-const REFRESH_WINDOW_MS = 24 * 60 * 60 * 1000; // refresh if <1 day left
+// A session lasts 30 days and renews itself once a day while it's used, so
+// someone who plays even occasionally (an older parent, a busy month) is
+// never logged out; only 30 days away asks them to sign in again.
+const JWT_EXPIRY = '30d';
+const REFRESH_WINDOW_MS = 29 * 24 * 60 * 60 * 1000; // renew once it's a day old
 
 // Cached Google JWKS key set (stays warm on hot Lambdas)
 let googleJWKS: ReturnType<typeof jose.createRemoteJWKSet>;

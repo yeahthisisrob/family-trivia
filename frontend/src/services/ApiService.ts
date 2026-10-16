@@ -6,7 +6,7 @@
 // The backend is always treated as the source of truth for game state.
 
 import { loadConfig } from '../config';
-import { getToken, updateToken } from '../session';
+import { expireSession, getToken, updateToken } from '../session';
 import { createLogger } from '../utils/logger';
 import { cacheService } from './CacheService';
 
@@ -159,6 +159,18 @@ export class ApiService {
       const response = await fetch(url, requestOptions);
       const endTime = Date.now();
       clearTimeout(timeoutId);
+
+      // An expired or invalid session: sign out once and go to the sign-in
+      // screen, instead of every screen failing on its own.
+      if (response.status === 401 && endpoint !== '/auth/google') {
+        expireSession();
+        throw new ApiError(
+          'Your session ended. Please sign in again.',
+          401,
+          undefined,
+          'SESSION_EXPIRED',
+        );
+      }
 
       // Silent token refresh — backend returns a fresh JWT when close to expiry
       const refreshedToken = response.headers.get('X-Refreshed-Token');

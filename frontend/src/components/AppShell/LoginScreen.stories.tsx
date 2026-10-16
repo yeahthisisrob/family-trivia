@@ -15,3 +15,8 @@ export default meta;
 type Story = StoryObj<typeof LoginScreen>;
 
 export const Default: Story = {};
+
+/** After a session ends, a gentle note instead of errors. */
+export const SessionEnded: Story = {
+  args: { notice: "Welcome back! It's been a while, so please sign in again." },
+};

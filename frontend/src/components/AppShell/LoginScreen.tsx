@@ -24,9 +24,11 @@ type LoginState = 'idle' | 'linking' | 'loading';
 interface LoginScreenProps {
   googleClientId: string;
   onActivate: (userId: string, valid: boolean, token: string) => void;
+  /** A gentle note above sign-in, e.g. when a session has ended. */
+  notice?: string;
 }
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate }) => {
+const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate, notice }) => {
   const theme = useTheme();
 
   const [state, setState] = useState<LoginState>('idle');
@@ -124,6 +126,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate })
                 : 'Sign in to play'}
             </Typography>
           </Box>
+
+          {notice && !error && (
+            <Alert severity="info" sx={{ mb: 2, borderRadius: `${radii.md}px` }}>
+              {notice}
+            </Alert>
+          )}
 
           {error && (
             <Alert

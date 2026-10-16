@@ -13,7 +13,7 @@ import { TimelineProvider } from './contexts/TimelineContext';
 import { TriviaProvider } from './contexts/TriviaContext';
 import { UserStatusProvider } from './contexts/UserStatusContext';
 import { apiService } from './services/ApiService';
-import { loadSession, saveSession } from './session';
+import { loadSession, onSessionExpired, saveSession } from './session';
 import { createLogger, LogLevel } from './utils/logger';
 
 const logger = createLogger('AppProvider');
@@ -39,6 +39,19 @@ const AppProvider: React.FC = () => {
     configureLogging(import.meta.env.PROD ? LogLevel.ERROR : LogLevel.INFO);
   }, []);
 
+  // The session ran out while the app was open (or since the last visit).
+  const [expired, setExpired] = useState(false);
+  useEffect(
+    () =>
+      onSessionExpired(() => {
+        apiService.clearCache();
+        setExpired(true);
+        setAuthValid(false);
+        setUserId(null);
+      }),
+    [],
+  );
+
   const handleUserChange = useCallback((newUserId: string | null) => {
     setUserId(newUserId);
   }, []);
@@ -51,6 +64,7 @@ const AppProvider: React.FC = () => {
   const handleLoginActivate = useCallback((newUserId: string, valid: boolean, token: string) => {
     if (valid) {
       saveSession(newUserId, token);
+      setExpired(false);
       setUserId(newUserId);
       setAuthValid(true);
     }
@@ -69,7 +83,13 @@ const AppProvider: React.FC = () => {
     if (!googleClientId) {
       return null; // Brief flash while config.json loads
     }
-    return <LoginScreen googleClientId={googleClientId} onActivate={handleLoginActivate} />;
+    return (
+      <LoginScreen
+        googleClientId={googleClientId}
+        onActivate={handleLoginActivate}
+        notice={expired ? "Welcome back! It's been a while, so please sign in again." : undefined}
+      />
+    );
   }
 
   // ── Post-auth: mount all providers + the app. ──
