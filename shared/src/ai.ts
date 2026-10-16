@@ -126,6 +126,13 @@ export const AI_TASKS = [
     usage: { callsPerPersonPerDay: 0.02, inputTokens: 8000, outputTokens: 1000 },
   },
   {
+    id: 'familyStory',
+    label: 'Family story',
+    description: 'Writes the short story of the family at the top of the Family tab.',
+    role: 'writer',
+    usage: { callsPerPersonPerDay: 0.005, inputTokens: 9000, outputTokens: 700 },
+  },
+  {
     id: 'gameMoves',
     label: 'Game opponents',
     description: 'Plays against you in arcade games.',

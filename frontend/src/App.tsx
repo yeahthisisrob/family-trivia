@@ -24,7 +24,6 @@ const AdminPage = React.lazy(() => import('./components/Admin'));
 const ArcadePage = React.lazy(() => import('./components/Arcade/ArcadePage'));
 const FamilyTree = React.lazy(() => import('./components/FamilyTree'));
 const Leaderboard = React.lazy(() => import('./components/Leaderboard'));
-const PhotosPage = React.lazy(() => import('./components/Photos'));
 const Profile = React.lazy(() => import('./components/Profile'));
 const SetupWizard = React.lazy(() => import('./components/SetupWizard/SetupWizard'));
 
@@ -39,7 +38,6 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
   const [leaderboardMounted, setLeaderboardMounted] = React.useState(false);
   const [familyMounted, setFamilyMounted] = React.useState(false);
   const [arcadeMounted, setArcadeMounted] = React.useState(false);
-  const [photosMounted, setPhotosMounted] = React.useState(false);
   const [highlightContentId, setHighlightContentId] = React.useState<string | null>(null);
   // "Skip for now" on the inline card hides it for the rest of the session.
   const INLINE_DISMISS_KEY = 'dailyFactInlineDismissed';
@@ -100,8 +98,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
     if (currentPath === ROUTES.LEADERBOARD && !leaderboardMounted) setLeaderboardMounted(true);
     if (currentPath === ROUTES.FAMILY && !familyMounted) setFamilyMounted(true);
     if (currentPath === ROUTES.ARCADE && !arcadeMounted) setArcadeMounted(true);
-    if (currentPath === ROUTES.PHOTOS && !photosMounted) setPhotosMounted(true);
-  }, [currentPath, leaderboardMounted, familyMounted, arcadeMounted, photosMounted]);
+  }, [currentPath, leaderboardMounted, familyMounted, arcadeMounted]);
 
   // Reset scroll on every tab change. Tabs are kept mounted under
   // display:none, so the window scroll position is shared across all of
@@ -284,7 +281,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
               // Route to the tab that owns the content being discussed.
               // album_added notifications are also 'album' contentType.
               if (item.contentType === 'album') {
-                navigateTo(ROUTES.PHOTOS);
+                navigateTo(ROUTES.FAMILY); // albums live on the Family tab
                 return;
               }
               if (item.contentType === 'arcade') {
@@ -335,15 +332,6 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
                     {(currentPath === ROUTES.FAMILY || familyMounted) && (
                       <Box sx={{ display: currentPath === ROUTES.FAMILY ? 'block' : 'none' }}>
                         <React.Suspense fallback={null}>{FamilyPage}</React.Suspense>
-                      </Box>
-                    )}
-
-                    {/* Photos Tab — lazy-mounted on first visit, kept mounted after */}
-                    {(currentPath === ROUTES.PHOTOS || photosMounted) && (
-                      <Box sx={{ display: currentPath === ROUTES.PHOTOS ? 'block' : 'none' }}>
-                        <React.Suspense fallback={null}>
-                          <PhotosPage userId={user} isAdmin={isAdmin} />
-                        </React.Suspense>
                       </Box>
                     )}
 

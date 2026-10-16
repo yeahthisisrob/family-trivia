@@ -3,7 +3,6 @@ import Diversity3Icon from '@mui/icons-material/Diversity3';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import LogoutIcon from '@mui/icons-material/Logout';
-import PhotoLibraryRoundedIcon from '@mui/icons-material/PhotoLibraryRounded';
 import QuizIcon from '@mui/icons-material/Quiz';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
@@ -35,7 +34,6 @@ const NAV_ITEMS = [
   { label: 'Trivia', icon: QuizIcon, path: ROUTES.PLAY },
   { label: 'Leaderboard', icon: EmojiEventsIcon, path: ROUTES.LEADERBOARD },
   { label: 'Family', icon: Diversity3Icon, path: ROUTES.FAMILY },
-  { label: 'Photos', icon: PhotoLibraryRoundedIcon, path: ROUTES.PHOTOS },
   { label: 'Arcade', icon: SportsEsportsIcon, path: ROUTES.ARCADE },
 ];
 
@@ -139,7 +137,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       >
         {NAV_ITEMS.filter(
           (n) =>
-            (n.path !== ROUTES.PHOTOS || features.photos) &&
             (n.path !== ROUTES.ARCADE || features.arcade),
         ).map(({ label, icon: Icon, path }) => {
           const isActive = currentPath === path;
