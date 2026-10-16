@@ -1,0 +1,82 @@
+name: Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # mise installs the node/pnpm/gitleaks pinned in mise.toml, so CI runs
+      # the same binaries as laptops. No `node-version:` here to drift.
+      - uses: jdx/mise-action@v3
+        with:
+          cache: true
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Format and lint
+        run: pnpm exec biome ci .
+
+      # LEAKGUARD_TERMS is an optional repo secret: your family's names, one per
+      # line. Without it only the built-in patterns run.
+      - name: Family privacy
+        run: node scripts/leak-guard.mjs
+        env:
+          LEAKGUARD_TERMS: ${{ secrets.LEAKGUARD_TERMS }}
+
+      - name: Dead code
+        run: pnpm exec knip --no-progress
+
+      - name: Typecheck
+        run: pnpm -r run typecheck
+
+      - name: Test
+        run: pnpm -r run test
+
+      - name: Contract is current
+        run: |
+          pnpm --filter @family-trivia/shared run contract
+          git diff --exit-code --stat shared/generated \
+            || { echo "::error::shared/generated is stale: run 'just contract' and commit the result"; exit 1; }
+
+      - name: Build
+        run: pnpm -r run build
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: jdx/mise-action@v3
+        with:
+          cache: true
+      - run: gitleaks git --no-banner --redact
+
+  storybook:
+    name: Storybook stories
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: jdx/mise-action@v3
+        with:
+          cache: true
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @family-trivia/web exec playwright install --with-deps chromium
+      - name: Story tests
+        run: pnpm --filter @family-trivia/web run storybook:test

@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # One entry for the whole pnpm workspace: a bump lands in one PR that is
+  # consistent across frontend, backend, infra and shared.
+  - package-ecosystem: npm
+    directory: "/"
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 8
+    groups:
+      aws-sdk:
+        patterns: ["@aws-sdk/*", "@smithy/*", "aws-cdk", "aws-cdk-lib"]
+      tooling:
+        patterns: ["@biomejs/*", "vitest", "@vitest/*", "typescript", "vite", "@vitejs/*", "storybook", "@storybook/*", "openapi-typescript", "@redocly/*", "knip"]
+        update-types: [minor, patch]
+      minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule: { interval: weekly, day: monday }
+    groups:
+      actions:
+        patterns: ["*"]
