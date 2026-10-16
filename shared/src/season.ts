@@ -15,9 +15,10 @@ export interface SeasonNote {
 
 /**
  * What a season's trivia is about: general knowledge, the family itself
- * (questions written from the family's own answers), or both.
+ * (questions written from the family's own answers), both, or none at all
+ * (a facts-only season: the daily family questions carry on, no trivia).
  */
-export type SeasonTrivia = 'general' | 'family' | 'mixed';
+export type SeasonTrivia = 'general' | 'family' | 'mixed' | 'off';
 
 export const SEASON_TRIVIA: readonly { id: SeasonTrivia; label: string; help: string }[] = [
   {
@@ -31,7 +32,16 @@ export const SEASON_TRIVIA: readonly { id: SeasonTrivia; label: string; help: st
     help: 'Every question is about us, written from our own answers.',
   },
   { id: 'mixed', label: 'Both', help: 'The categories, plus Our Family as one of them.' },
+  {
+    id: 'off',
+    label: 'No trivia',
+    help: 'Just the daily questions about us. Nothing to score.',
+  },
 ];
+
+/** Whether this season asks trivia at all. */
+export const hasTrivia = (s: Pick<Season, 'trivia'> | null | undefined): boolean =>
+  seasonTriviaOf(s) !== 'off';
 
 export const isSeasonTrivia = (v: unknown): v is SeasonTrivia =>
   typeof v === 'string' && SEASON_TRIVIA.some((t) => t.id === v);

@@ -505,7 +505,7 @@ export async function addSeason(event: APIGatewayProxyEvent): Promise<APIGateway
   const body = JSON.parse(event.body || '{}');
   const { seasonNumber, name, startDate, endDate, status, message, trivia } = body;
   if (trivia !== undefined && !isSeasonTrivia(trivia))
-    return errorResponse('trivia must be general, family or mixed', 400);
+    return errorResponse('trivia must be general, family, mixed or off', 400);
 
   if (!seasonNumber || !name || !startDate) {
     return errorResponse('seasonNumber, name, and startDate are required', 400);
@@ -562,7 +562,7 @@ export async function updateSeason(event: APIGatewayProxyEvent): Promise<APIGate
     trivia,
   } = body;
   if (trivia !== undefined && !isSeasonTrivia(trivia))
-    return errorResponse('trivia must be general, family or mixed', 400);
+    return errorResponse('trivia must be general, family, mixed or off', 400);
 
   const config = await getJson<SeasonsConfig>(S3_PATHS.SEASONS_CONFIG);
   if (!config) return errorResponse('Seasons config not found', 404);

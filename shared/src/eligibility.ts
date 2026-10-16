@@ -1,5 +1,18 @@
 /** Why a user cannot play right now */
-export type IneligibilityReason = 'daily_limit_reached' | 'no_catchup_available' | 'end_of_season';
+export type IneligibilityReason =
+  | 'daily_limit_reached'
+  | 'no_catchup_available'
+  | 'end_of_season'
+  /** A facts-only season: the season runs, but asks no trivia. */
+  | 'no_trivia_this_season';
+
+/** What to tell someone who can't play, by reason. */
+export const INELIGIBLE_MESSAGE: Record<IneligibilityReason, string> = {
+  daily_limit_reached: 'Daily question limit reached',
+  no_catchup_available: 'No catch-up questions available',
+  end_of_season: 'Season has ended',
+  no_trivia_this_season: 'No trivia this season',
+};
 
 /** What game mode the eligibility check is for */
 export type PlayMode =

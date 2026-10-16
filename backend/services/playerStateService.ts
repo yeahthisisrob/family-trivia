@@ -36,6 +36,7 @@ import {
   getEasternDateString,
   getNextMidnightET,
   type HistoryEntry,
+  hasTrivia,
   type PlayEligibility,
   type PlayMode,
 } from '@family-trivia/shared';
@@ -301,6 +302,9 @@ export async function checkPlayEligibility(
     if (summary.isEndOfSeason) {
       return { canPlay: false, reason: 'end_of_season', nextAvailableAt: null, ...base };
     }
+    if (!hasTrivia(summary.activeSeason)) {
+      return { canPlay: false, reason: 'no_trivia_this_season', nextAvailableAt: null, ...base };
+    }
     if (catchupAvailable <= 0) {
       return { canPlay: false, reason: 'no_catchup_available', ...base };
     }
@@ -310,6 +314,9 @@ export async function checkPlayEligibility(
   // Non-catchup: end-of-season and daily limit apply
   if (summary.isEndOfSeason) {
     return { canPlay: false, reason: 'end_of_season', nextAvailableAt: null, ...base };
+  }
+  if (!hasTrivia(summary.activeSeason)) {
+    return { canPlay: false, reason: 'no_trivia_this_season', nextAvailableAt: null, ...base };
   }
 
   if (dailyLimitReached) {

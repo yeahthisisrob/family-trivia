@@ -13,3 +13,6 @@ type Story = StoryObj<typeof TriviaTabs>;
 
 export const Play: Story = { args: { currentPath: ROUTES.PLAY } };
 export const Leaderboard: Story = { args: { currentPath: ROUTES.LEADERBOARD } };
+export const FactsOnlySeason: Story = {
+  args: { currentPath: ROUTES.LEADERBOARD, factsOnly: true },
+};

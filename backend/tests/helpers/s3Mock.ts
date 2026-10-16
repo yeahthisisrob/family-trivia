@@ -13,7 +13,7 @@
  *   getHistory(user)      — read a user's history
  */
 import type { HistoryEntry } from '@family-trivia/shared';
-import type { SeasonsConfig } from '../../services/seasonService';
+import type { Season, SeasonsConfig } from '../../services/seasonService';
 
 const store = new Map<string, unknown>();
 
@@ -42,7 +42,7 @@ export function seedSeasons(config: SeasonsConfig): void {
 }
 
 /** Active season covering today, running since 30 days ago */
-export function seedDefaultActiveSeason(): void {
+export function seedDefaultActiveSeason(trivia?: Season['trivia']): void {
   const today = new Date();
   const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
   const iso = (d: Date) => d.toISOString().split('T')[0];
@@ -56,6 +56,7 @@ export function seedDefaultActiveSeason(): void {
         startDate: iso(thirtyDaysAgo),
         endDate: null,
         message: null,
+        ...(trivia ? { trivia } : {}),
       },
     ],
   });

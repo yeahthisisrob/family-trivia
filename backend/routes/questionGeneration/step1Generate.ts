@@ -1,7 +1,12 @@
 // File: lambda/routes/questionGeneration/step1Generate.ts
 // Purpose: Step 1 — Generate a trivia question via the multi-model pipeline.
 
-import type { PlayMode, Step1Request, Step1Response } from '@family-trivia/shared';
+import {
+  INELIGIBLE_MESSAGE,
+  type PlayMode,
+  type Step1Request,
+  type Step1Response,
+} from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
 import { logger } from '../../services/logger';
@@ -31,12 +36,7 @@ export async function step1Generate(event: APIGatewayProxyEvent): Promise<APIGat
     const requestedMode: PlayMode = isCatchingUp ? 'catchup' : 'regular';
     const eligibility = await checkPlayEligibility(userId, requestedMode);
     if (!eligibility.canPlay) {
-      const message =
-        eligibility.reason === 'no_catchup_available'
-          ? 'No catch-up questions available'
-          : eligibility.reason === 'end_of_season'
-            ? 'Season has ended'
-            : 'Daily question limit reached';
+      const message = INELIGIBLE_MESSAGE[eligibility.reason ?? 'daily_limit_reached'];
       logger.warn(`Step1 blocked for ${userId}: ${message}`);
       return errorResponse(
         message,
