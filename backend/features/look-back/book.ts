@@ -2,13 +2,14 @@
  * A season as a printed book, set on the press (services/press/press.ts).
  *
  *   half title · title page · colophon · in memory of (when the season has
- *   someone to remember) · contents · foreword · a chapter per month, opened
- *   by a few written lines · the people in this book
+ *   someone to remember) · contents · foreword · chapters by theme, each
+ *   opened by a few paragraphs telling its story (a chapter a month when the
+ *   book is just our words) · the people in this book
  *
  * Every day's question is printed with everyone's answers, names in small
  * caps in their own column, as a script is set.
  */
-import type { BookWriting, SeasonReview } from '@family-trivia/shared';
+import { type BookPage, type BookWriting, pageKey, type SeasonReview } from '@family-trivia/shared';
 import {
   curly,
   dayName,
@@ -105,18 +106,32 @@ export async function seasonBook(input: BookInput): Promise<{ pdf: Buffer; pages
     p.paragraphs(writing.foreword, 11.5);
   }
 
-  const months = groupByMonth(review);
-  const entries: { label: string; at: number }[] = [];
-  months.forEach((m, i) => {
-    const label = monthName(m.month);
-    entries.push({
-      label,
-      at: p.chapter(label, {
-        kicker: `Chapter ${numberWord(i + 1)}`,
+  // Chapters by theme when the book was written that way, else a chapter a month.
+  const byKey = new Map(review.book.map((d) => [pageKey(d), d]));
+  const chapters = writing?.plan?.length
+    ? writing.plan.map((c) => ({
+        title: c.title,
+        note: c.intro ?? undefined,
+        noteFace: 'body' as const,
+        pages: c.pages.map((k) => byKey.get(k)).filter((d): d is BookPage => !!d),
+      }))
+    : groupByMonth(review).map((m) => ({
+        title: monthName(m.month),
         note: writing?.chapters[m.month],
+        noteFace: 'italic' as const,
+        pages: m.pages,
+      }));
+  const entries: { label: string; at: number }[] = [];
+  chapters.forEach((c, i) => {
+    entries.push({
+      label: c.title,
+      at: p.chapter(c.title, {
+        kicker: `Chapter ${numberWord(i + 1)}`,
+        note: c.note,
+        noteFace: c.noteFace,
       }),
     });
-    for (const page of m.pages) {
+    for (const page of c.pages) {
       // Keep a question with at least its first answer.
       const first = page.answers[0];
       p.need(
@@ -129,7 +144,11 @@ export async function seasonBook(input: BookInput): Promise<{ pdf: Buffer; pages
         .fontSize(12.5)
         .fillColor(INK)
         .text(curly(page.question), MARGIN.inside, doc.y, { width: MEASURE });
-      doc.font('italic').fontSize(9.5).fillColor(SOFT).text(dayName(page.date), { width: MEASURE });
+      doc
+        .font('italic')
+        .fontSize(9.5)
+        .fillColor(SOFT)
+        .text(dayName(page.date, true), { width: MEASURE });
       doc.moveDown(0.5);
       for (const a of page.answers) {
         const name = nameOf(a.personId);

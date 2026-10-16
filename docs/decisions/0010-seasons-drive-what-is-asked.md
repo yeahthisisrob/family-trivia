@@ -40,9 +40,11 @@ the family's own words, shown once.
   answered side by side, what was loved, everyone's season, and every day's
   question with everyone's answers. A season can be made into a printed
   book: a 6 × 9 inch PDF a print-on-demand press takes as it is
-  (`features/look-back/book.ts`, EB Garamond embedded under the OFL). Its
-  foreword and chapter openings are written by AI once per season and tone
-  and kept under `books/`; the PDF is kept too and made again only when the
+  (`features/look-back/book.ts`, EB Garamond embedded under the OFL). When
+  it's written (warm or playful), AI plans it first: a foreword and chapters
+  by theme, then each chapter's opening, a few paragraphs telling its story,
+  one per request so none outruns the API's 30 seconds. All of it is written
+  once per season and tone and kept under `books/`; the PDF is kept too and made again only when the
   season's answers change or someone asks. Nothing is replaced: every PDF is
   kept beside the input it was set from (answers, people, writing, layout
   version), and every piece of writing beside the AI's prompt and reply.

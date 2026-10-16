@@ -20,8 +20,11 @@ const meta: Meta<typeof BookDialog> = {
               tone: 'warm',
               foreword: 'We kept coming back to the beach.',
               chapters: {},
+              plan: [{ title: 'Around the table', pages: [], intro: 'Pie came first.' }],
               writtenAt: '2025-08-01T00:00:00Z',
             },
+            left: 0,
+            chapters: 1,
           }),
         ),
         http.get('*/seasons/book/versions', () =>

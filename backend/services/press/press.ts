@@ -100,7 +100,10 @@ export interface Press {
    * Opens a chapter: the first opens on a right-hand page, the rest on the
    * next page unless `recto`. Its body pages carry `title` as their head.
    */
-  chapter(title: string, opts?: { kicker?: string; note?: string; recto?: boolean }): number;
+  chapter(
+    title: string,
+    opts?: { kicker?: string; note?: string; noteFace?: Face; recto?: boolean },
+  ): number;
   contents(at: number, entries: { label: string; at: number }[]): void;
   finish(): Promise<{ pdf: Buffer; pages: number }>;
 }
@@ -222,8 +225,10 @@ export function press(info: { title: string; author: string }): Press {
       p.rule();
       doc.moveDown(1.5);
       if (opts.note?.trim()) {
-        p.paragraphs(opts.note, 11.5, 'italic');
+        p.paragraphs(opts.note, 11.5, opts.noteFace ?? 'italic');
         doc.moveDown(0.8);
+        p.rule();
+        doc.moveDown(1.2);
       } else doc.moveDown(0.5);
       return at;
     },
