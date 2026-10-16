@@ -9,5 +9,5 @@ JsStringLiteralExpression() as $s where {
     $s <: r"[\"'][^\"']*#[0-9a-fA-F]{3,8}[^\"']*[\"']",
     $s <: r"[\"'][^\"']*rgba?\([^\"']*[\"']"
   },
-  register_diagnostic(span=$s, message="Raw color in a component: use a theme palette key, theme.palette.*, or a design-system token (docs/decisions/0012).", severity="warn")
+  register_diagnostic(span=$s, message="Raw color in a component: use a theme palette key, theme.palette.*, or a design-system token (docs/decisions/0012).", severity="error")
 }
