@@ -47,3 +47,17 @@ export async function readUrl(key: string): Promise<string | null> {
     expiresIn: READ_SECONDS,
   });
 }
+
+/** A short-lived link that downloads an export as a named file. */
+export async function downloadUrl(key: string, filename: string): Promise<string> {
+  if (!/^exports\/[a-z0-9_-]+\/[\w-]+\.zip$/.test(key)) throw new Error('Not an export key');
+  return getSignedUrl(
+    s3,
+    new GetObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+      ResponseContentDisposition: `attachment; filename="${filename.replace(/"/g, '')}"`,
+    }),
+    { expiresIn: READ_SECONDS },
+  );
+}

@@ -27,15 +27,18 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   MenuItem,
   Stack,
+  Switch,
   TextField,
   Typography,
 } from '@mui/material';
 import type React from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { familyApi, useFamily } from '../../../entities/family';
 import { ApiError } from '../../../services/ApiService';
+import { archiveApi } from '../../family-archive';
 import { PersonDialog, participationLabel } from './PersonDialog';
 
 const slug = (name: string, taken: Set<string>) => {
@@ -66,6 +69,26 @@ export const FamilyEditor: React.FC<{ adminUserId: string }> = ({ adminUserId })
   const [problems, setProblems] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedNote, setSavedNote] = useState(false);
+  const [exportPerms, setExportPerms] = useState<{
+    everyone: boolean;
+    users: Record<string, boolean>;
+  } | null>(null);
+
+  useEffect(() => {
+    archiveApi
+      .permissions()
+      .then(setExportPerms)
+      .catch(() => undefined);
+  }, []);
+
+  const setExport = async (next: { everyone: boolean; users: Record<string, boolean> }) => {
+    setExportPerms(next);
+    try {
+      await archiveApi.savePermissions(next);
+    } catch {
+      setProblems("The archive setting didn't save. Try again.");
+    }
+  };
 
   const family = draft ?? saved;
   const dirty = draft !== null;
@@ -222,6 +245,24 @@ export const FamilyEditor: React.FC<{ adminUserId: string }> = ({ adminUserId })
         ))}
       </Box>
 
+      {exportPerms && (
+        <Card variant="outlined" sx={{ mt: 3, p: 2 }}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={exportPerms.everyone}
+                onChange={(e) => setExport({ ...exportPerms, everyone: e.target.checked })}
+              />
+            }
+            label="Everyone can download the family archive"
+          />
+          <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+            A zip of everyone's answers, facts, games and comments, one folder per person. Admins
+            can always download it; you can also allow or block one person in their details.
+          </Typography>
+        </Card>
+      )}
+
       <Typography variant="subtitle2" sx={{ mt: 4, mb: 1 }}>
         Households
       </Typography>
@@ -252,6 +293,18 @@ export const FamilyEditor: React.FC<{ adminUserId: string }> = ({ adminUserId })
           isNew={editing.isNew}
           adminUserId={adminUserId}
           photoUrls={photoUrls}
+          canDownload={
+            exportPerms ? (exportPerms.users[editing.person.id] ?? exportPerms.everyone) : undefined
+          }
+          onCanDownload={
+            exportPerms
+              ? (on) =>
+                  setExport({
+                    ...exportPerms,
+                    users: { ...exportPerms.users, [editing.person.id]: on },
+                  })
+              : undefined
+          }
           onClose={() => setEditing(null)}
           onRemove={() => removePerson(editing.person.id)}
           onSave={(person, ties) =>
