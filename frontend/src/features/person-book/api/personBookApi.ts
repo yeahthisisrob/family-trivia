@@ -10,13 +10,18 @@ export interface PersonBook {
 
 export const personBookApi = {
   make: (personId: string, fresh = false) =>
-    apiService.request<PersonBook>(
-      '/family/person-book',
-      { method: 'POST', body: JSON.stringify({ personId, fresh }) },
-      undefined,
-      true,
-      60_000,
-    ),
+    apiService
+      .request<PersonBook>(
+        '/family/person-book',
+        { method: 'POST', body: JSON.stringify({ personId, fresh }) },
+        undefined,
+        true,
+        60_000,
+      )
+      .then((r) => {
+        if (!r?.url) throw new Error('The book didn’t come back');
+        return r;
+      }),
   versions: (personId: string) =>
     apiService
       .request<{ versions: { madeAt: string; pages: number; url: string }[] }>(
@@ -25,5 +30,5 @@ export const personBookApi = {
         undefined,
         true,
       )
-      .then((r) => r.versions),
+      .then((r) => (Array.isArray(r?.versions) ? r.versions : [])),
 };
