@@ -439,3 +439,66 @@ export function fromLegacyHierarchy(
   }
   return { version: 2, name: fam.name || 'Our family', people, ties, households };
 }
+
+// ── Checking a family before it's saved ──────────────────────────────────
+
+const PARTICIPATION: Participation[] = ['playing', 'paused', 'not-playing'];
+const PARTNER_KINDS: PartnerKind[] = ['married', 'partnered', 'engaged'];
+const ENDINGS: PartnershipEnd[] = ['separated', 'divorced', 'widowed'];
+const PARENT_KINDS: ParentKind[] = ['birth', 'adoptive', 'step', 'foster', 'guardian'];
+const KIN: DeclaredKin[] = [
+  'sibling',
+  'cousin',
+  'aunt-uncle',
+  'grandparent',
+  'in-law',
+  'chosen-family',
+  'friend',
+];
+const DATE = /^\d{4}(-\d{2}(-\d{2})?)?$/;
+
+/**
+ * Problems that would make a family file unsafe to save, in plain words.
+ * Empty means it's fine. Checked on the server before every save.
+ */
+export function familyProblems(f: Family): string[] {
+  const problems: string[] = [];
+  if (f?.version !== 2) return ['This is not a version 2 family.'];
+  const ids = new Set(Object.keys(f.people ?? {}));
+  for (const [id, p] of Object.entries(f.people ?? {})) {
+    if (p.id !== id) problems.push(`Person "${id}" has a mismatched id.`);
+    if (!p.name?.trim()) problems.push(`Person "${id}" needs a name.`);
+    if (!PARTICIPATION.includes(p.participation))
+      problems.push(`${p.name || id}: unknown participation.`);
+    if (p.born?.date && !DATE.test(p.born.date))
+      problems.push(`${p.name}: birth date should be YYYY-MM-DD.`);
+    if (p.memorial?.died && !DATE.test(p.memorial.died))
+      problems.push(`${p.name}: date of death should be YYYY-MM-DD.`);
+  }
+  const seen = new Set<string>();
+  for (const t of f.ties ?? []) {
+    if (seen.has(t.id)) problems.push(`Tie "${t.id}" appears twice.`);
+    seen.add(t.id);
+    const ends = t.type === 'parent' ? [t.parent, t.child] : [t.a, t.b];
+    if (ends.some((e) => !ids.has(e)))
+      problems.push(`Tie "${t.id}" points at someone who isn't in the family.`);
+    if (ends[0] === ends[1]) problems.push(`Tie "${t.id}" connects someone to themselves.`);
+    if (t.type === 'partner') {
+      if (!PARTNER_KINDS.includes(t.kind)) problems.push(`Tie "${t.id}": unknown partnership.`);
+      if (t.ended && !ENDINGS.includes(t.ended.reason))
+        problems.push(`Tie "${t.id}": unknown way of ending.`);
+    } else if (t.type === 'parent') {
+      if (!PARENT_KINDS.includes(t.kind)) problems.push(`Tie "${t.id}": unknown kind of parent.`);
+    } else if (t.type === 'kin') {
+      if (!KIN.includes(t.relation)) problems.push(`Tie "${t.id}": unknown relation.`);
+    } else {
+      problems.push('A tie has an unknown type.');
+    }
+  }
+  for (const [hid, h] of Object.entries(f.households ?? {})) {
+    if (!h.name?.trim()) problems.push(`Household "${hid}" needs a name.`);
+    if ((h.members ?? []).some((m) => !ids.has(m)))
+      problems.push(`${h.name || hid} lists someone who isn't in the family.`);
+  }
+  return problems;
+}

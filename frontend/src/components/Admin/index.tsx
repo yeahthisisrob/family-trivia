@@ -4,6 +4,7 @@ import type React from 'react';
 import { useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AdminProvider, useAdmin } from '../../contexts/AdminContext';
+import { FamilyEditor } from '../../features/family-editor';
 import { LoadingDots } from '../ui/feedback';
 import DailyQuestionsTab from './DailyQuestionsTab';
 import DataTab from './DataTab';
@@ -16,6 +17,7 @@ import TriviaBankTab from './TriviaBankTab';
 
 /** Admin sub-route definitions — order matches visual tab order */
 const ADMIN_TABS = [
+  { label: 'Family', path: 'family' },
   { label: 'Players', path: 'players' },
   { label: 'Groups', path: 'groups' },
   { label: 'Family Tree', path: 'tree' },
@@ -38,7 +40,7 @@ const AdminPageInner: React.FC<AdminPageInnerProps> = () => {
 
   // Derive active tab index from current URL
   const activeTabIndex = ADMIN_TABS.findIndex((t) => location.pathname === `/admin/${t.path}`);
-  // Default to 0 (players) if path doesn't match any tab
+  // Default to the first tab (family) if the path doesn't match one
   const tabValue = activeTabIndex >= 0 ? activeTabIndex : 0;
 
   useEffect(() => {
@@ -95,6 +97,7 @@ const AdminPageInner: React.FC<AdminPageInnerProps> = () => {
 
       <Box>
         <Routes>
+          <Route path="/admin/family" element={<FamilyEditor adminUserId={admin.adminUserId} />} />
           <Route path="/admin/players" element={<PlayersTab />} />
           <Route path="/admin/groups" element={<GroupsTab />} />
           <Route path="/admin/tree" element={<FamilyTreeTab />} />
@@ -104,7 +107,7 @@ const AdminPageInner: React.FC<AdminPageInnerProps> = () => {
           <Route path="/admin/bank" element={<TriviaBankTab />} />
           <Route path="/admin/system" element={<SystemInfoTab />} />
           {/* Default: redirect /admin to /admin/players */}
-          <Route path="*" element={<Navigate to="/admin/players" replace />} />
+          <Route path="*" element={<Navigate to="/admin/family" replace />} />
         </Routes>
       </Box>
     </Box>

@@ -26,6 +26,7 @@ const TTL_MS = 60_000; // 60 seconds
 const STABLE_KEYS = new Set([
   'config/users.json',
   'family/hierarchy.json',
+  'family/family.json',
   'config/group_descriptions.json',
   'categories/categories.json',
   'config/seasons.json',

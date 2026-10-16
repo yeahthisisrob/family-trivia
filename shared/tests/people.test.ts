@@ -4,6 +4,7 @@ import {
   currentPartnersOf,
   type Family,
   type FamilyPerson,
+  familyProblems,
   formerPartnersOf,
   fromLegacyHierarchy,
   grandparentsOf,
@@ -200,5 +201,31 @@ describe('reading a version 1 hierarchy', () => {
     expect(relationOf(f, 'c', 'd')).toBe('cousin');
     expect(relationOf(f, 'c', 'e')).toBe('aunt or uncle');
     expect(f.households.g?.members).toEqual(['a', 'b', 'c']);
+  });
+});
+
+describe('familyProblems', () => {
+  test('the example family is valid', () => {
+    expect(familyProblems(family)).toEqual([]);
+  });
+
+  test('catches ties to missing people, self ties, bad dates and nameless people', () => {
+    const broken: Family = {
+      ...family,
+      people: {
+        ...family.people,
+        zed: { id: 'zed', name: ' ', participation: 'playing', born: { date: '5/1/80' } },
+      },
+      ties: [
+        ...family.ties,
+        { id: 'x1', type: 'kin', a: 'carol', b: 'nobody', relation: 'cousin' },
+        { id: 'x2', type: 'partner', a: 'dave', b: 'dave', kind: 'married' },
+      ],
+    };
+    const problems = familyProblems(broken).join('\n');
+    expect(problems).toContain('needs a name');
+    expect(problems).toContain('YYYY-MM-DD');
+    expect(problems).toContain("isn't in the family");
+    expect(problems).toContain('to themselves');
   });
 });
