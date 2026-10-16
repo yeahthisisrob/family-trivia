@@ -60,3 +60,26 @@ export function updateToken(token: string) {
 export function clearSession() {
   localStorage.removeItem(SESSION_KEY);
 }
+
+const EXPIRED_EVENT = 'ft:session-expired';
+let expiring = false;
+
+/**
+ * The server said the session is no longer valid. Clear it once and tell the
+ * app (AppProvider) to show the sign-in screen, however many requests were in
+ * flight when it happened.
+ */
+export function expireSession() {
+  if (expiring) return;
+  expiring = true;
+  clearSession();
+  window.dispatchEvent(new Event(EXPIRED_EVENT));
+  setTimeout(() => {
+    expiring = false;
+  }, 1000);
+}
+
+export function onSessionExpired(handler: () => void): () => void {
+  window.addEventListener(EXPIRED_EVENT, handler);
+  return () => window.removeEventListener(EXPIRED_EVENT, handler);
+}
