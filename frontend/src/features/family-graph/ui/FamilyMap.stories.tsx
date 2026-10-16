@@ -60,6 +60,9 @@ export const NotReadYet: Story = {
     await expect(
       await within(canvasElement).findByText('Our map fills in as the family’s answers are read'),
     ).toBeInTheDocument();
+    // The note never stands between a finger and the map.
+    const note = within(canvasElement).getByTestId('map-not-read');
+    await expect(getComputedStyle(note).pointerEvents).toBe('none');
   },
 };
 

@@ -223,16 +223,21 @@ export const FamilyMap: React.FC<{
     >
       <Box ref={box} sx={{ position: 'relative', minHeight: height, minWidth: 0 }}>
         {!map?.topics.length && (
+          // A banner over the sky, not a sheet across it: taps and drags reach the map.
           <Stack
+            data-testid="map-not-read"
             sx={{
               position: 'absolute',
-              inset: 0,
+              top: 0,
+              left: 0,
+              right: 0,
               zIndex: 2,
               alignItems: 'center',
-              justifyContent: 'center',
               textAlign: 'center',
-              p: 4,
-              gap: 1,
+              p: 2.5,
+              gap: 0.5,
+              pointerEvents: 'none',
+              background: `linear-gradient(${alpha(night.sky, 0.95)}, ${alpha(night.sky, 0)})`,
             }}
           >
             <Typography sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
