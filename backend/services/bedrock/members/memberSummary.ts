@@ -16,6 +16,7 @@ import { loadFamily } from '../../family/roster';
 import { logger } from '../../logger';
 import { getJson } from '../../s3';
 import { invokeBedrockPrompt } from '../core/bedrockClient';
+import { findJsonWithKey, withoutJsonKey } from '../core/jsonInText';
 import { collectResponseBody } from '../core/responseParser';
 import { extractTextContent } from '../core/textExtractor';
 
@@ -89,10 +90,8 @@ function extractInsights(text: string): MemberInsight[] {
     }
 
     // Look for JSON insights in the response
-    const insightsMatch = text.match(/\{"insights":\s*\[(.*?)\]\}/s);
-    if (insightsMatch) {
-      const insightsJson = insightsMatch[0];
-      const parsed = JSON.parse(insightsJson);
+    const parsed = findJsonWithKey<{ insights?: MemberInsight[] }>(text, 'insights')?.value;
+    if (parsed) {
       if (parsed.insights && Array.isArray(parsed.insights)) {
         logger.info('Successfully extracted insights from embedded JSON', {
           count: parsed.insights.length,
@@ -926,7 +925,7 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
 
           const roastBuffer = await collectResponseBody(roastResponse);
           const fullResponse = extractTextContent(roastBuffer, roastModel, 'summary');
-          const summaryText = fullResponse.replace(/\{"insights":\s*\[(.*?)\]\}/s, '').trim();
+          const summaryText = withoutJsonKey(fullResponse, 'insights');
 
           return { summary: summaryText };
         } catch (error: any) {
@@ -1173,7 +1172,7 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
           }
         }
 
-        const summaryText = fullResponse.replace(/\{"insights":\s*\[(.*?)\]\}/s, '').trim();
+        const summaryText = withoutJsonKey(fullResponse, 'insights');
         result.roastSummary = summaryText;
 
         logger.info('Roast summary generated', {

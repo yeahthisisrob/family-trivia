@@ -58,8 +58,6 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, onViewProfile }) => {
   return (
     <Fade in={true}>
       <Box>
-        <FamilyGraphSection meId={userId} onOpenProfile={onViewProfile} />
-
         <MemberSpotlight
           hierarchy={hierarchy}
           currentUserId={userId}
@@ -73,6 +71,11 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, onViewProfile }) => {
           currentUserId={userId}
           onMemberClick={onViewProfile}
         />
+
+        {/* The graph is a way to explore, below the story the tab tells. */}
+        <Box sx={{ mt: 4 }}>
+          <FamilyGraphSection meId={userId} onOpenProfile={onViewProfile} />
+        </Box>
 
         <Box sx={{ mt: 3, textAlign: 'center' }}>
           <Button startIcon={<DownloadIcon />} onClick={() => setArchiveOpen(true)}>
