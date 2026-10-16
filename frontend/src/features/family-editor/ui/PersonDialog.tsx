@@ -34,6 +34,9 @@ interface PersonDialogProps {
   adminUserId: string;
   photoUrls: Record<string, string>;
   onSave: (person: FamilyPerson, ties: Tie[]) => void;
+  /** Whether this person may download the family archive (saved right away). */
+  canDownload?: boolean;
+  onCanDownload?: (on: boolean) => void;
   onRemove?: () => void;
   onClose: () => void;
 }
@@ -61,6 +64,8 @@ export const PersonDialog: React.FC<PersonDialogProps> = ({
   onSave,
   onRemove,
   onClose,
+  canDownload,
+  onCanDownload,
 }) => {
   const [draft, setDraft] = useState<FamilyPerson>(person);
   const [ties, setTies] = useState<Tie[]>(family.ties);
@@ -173,6 +178,14 @@ export const PersonDialog: React.FC<PersonDialogProps> = ({
             }
             label="Leave them out of AI-written questions, summaries and stories"
           />
+          {onCanDownload && !isNew && (
+            <FormControlLabel
+              control={
+                <Switch checked={!!canDownload} onChange={(e) => onCanDownload(e.target.checked)} />
+              }
+              label="Can download the family archive"
+            />
+          )}
 
           <Divider />
 

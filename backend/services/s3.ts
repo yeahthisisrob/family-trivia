@@ -170,6 +170,13 @@ export async function putJson(key: string, data: any): Promise<void> {
  * @param data Data to store as JSON
  * @returns true if successfully written, false if object already exists
  */
+/** Write raw bytes (exports, generated files). */
+export async function putBytes(key: string, body: Uint8Array, contentType: string): Promise<void> {
+  await s3.send(
+    new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: body, ContentType: contentType }),
+  );
+}
+
 export async function putJsonIfNotExists(key: string, data: any): Promise<boolean> {
   try {
     // Use IfNoneMatch condition to only write if object doesn't exist

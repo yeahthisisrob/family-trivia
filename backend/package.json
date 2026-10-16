@@ -19,7 +19,8 @@
     "@family-trivia/shared": "workspace:*",
     "fuse.js": "^7.3.0",
     "jose": "^6.2.12",
-    "@aws-sdk/s3-request-presigner": "^3.1152.0"
+    "@aws-sdk/s3-request-presigner": "^3.1152.0",
+    "fflate": "^0.8.3"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.164",

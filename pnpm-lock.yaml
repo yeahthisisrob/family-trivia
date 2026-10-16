@@ -199,6 +199,9 @@ importers:
       '@family-trivia/shared':
         specifier: workspace:*
         version: link:../shared
+      fflate:
+        specifier: ^0.8.3
+        version: 0.8.3
       fuse.js:
         specifier: ^7.3.0
         version: 7.5.0

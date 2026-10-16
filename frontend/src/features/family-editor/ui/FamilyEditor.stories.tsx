@@ -56,6 +56,12 @@ const meta: Meta<typeof FamilyEditor> = {
         http.get('*/family', () =>
           HttpResponse.json({ ok: true, data: { family, photoUrls: {} } }),
         ),
+        http.get('*/admin/archive/permissions', () =>
+          HttpResponse.json({ ok: true, data: { everyone: true, users: { frank: false } } }),
+        ),
+        http.put('*/admin/archive/permissions', async ({ request }) =>
+          HttpResponse.json({ ok: true, data: await request.json() }),
+        ),
         http.put('*/admin/family', async ({ request }) => {
           const body = (await request.json()) as { family: Family };
           return HttpResponse.json({ ok: true, data: { family: body.family, photoUrls: {} } });

@@ -8,6 +8,7 @@ const SUBJECT = { userId: 'subject' } as const;
 
 // Admin endpoints
 import { appearanceRoutes } from './features/appearance/routes';
+import { archiveRoutes } from './features/archive/routes';
 import { familyRoutes } from './features/family/routes';
 import * as adminHandlers from './routes/admin';
 // Answer grid for trivia status matrix
@@ -144,6 +145,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   // ── Feature slices (backend/features/*) ─────────────────────
   ...familyRoutes,
   ...appearanceRoutes,
+  ...archiveRoutes,
 
   // ── Public (no auth) ─────────────────────────────────────────
   'POST /auth/google': authGoogle,
