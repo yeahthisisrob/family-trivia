@@ -1,3 +1,4 @@
+import { hasTrivia } from '@family-trivia/shared';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -212,6 +213,8 @@ export function useApp({ onUserChange, onAuthChange }: UseAppOptions) {
 
   // Derived: is there an active season right now?
   const isSeasonActive = !loadingEndOfSeason && !endOfSeasonStatus?.isEndOfSeason;
+  // A facts-only season runs (daily questions go on) but asks no trivia.
+  const isTriviaOn = isSeasonActive && hasTrivia(endOfSeasonStatus?.currentSeason);
 
   return {
     // State
@@ -224,6 +227,7 @@ export function useApp({ onUserChange, onAuthChange }: UseAppOptions) {
     endOfSeasonStatus,
     endOfSeasonDismissed,
     isSeasonActive,
+    isTriviaOn,
     isAppReady,
     myGroup,
     isAdmin,

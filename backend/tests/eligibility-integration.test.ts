@@ -251,6 +251,40 @@ describe('checkPlayEligibility', () => {
 // Route-level: submitAnswer
 // ═════════════════════════════════════════════════════════════════════
 
+describe('a season without trivia', () => {
+  test('blocks the daily question and catch-up, and says why', async () => {
+    seedDefaultActiveSeason('off');
+    seedHistory('alice', []);
+    seedHistory('leader', [regular({ timestamp: yesterdayTimestamp() })]);
+
+    for (const mode of ['regular', 'catchup', 'slot-machine'] as const) {
+      const result = await checkPlayEligibility('alice', mode);
+      expect(result.canPlay).toBe(false);
+      expect(result.reason).toBe('no_trivia_this_season');
+    }
+  });
+
+  test('turns away an answer', async () => {
+    seedDefaultActiveSeason('off');
+    seedHistory('alice', []);
+
+    const resp = parseResponse(
+      await submitAnswer(
+        mockEvent({ userId: 'alice', question: validQuestion, selectedAnswer: 'A' }) as any,
+      ),
+    );
+    expect(resp.statusCode).toBe(403);
+    expect(JSON.stringify(resp.body)).toContain('No trivia this season');
+    expect(getHistory('alice')).toEqual([]);
+  });
+
+  test('a family season still plays', async () => {
+    seedDefaultActiveSeason('family');
+    seedHistory('alice', []);
+    expect((await checkPlayEligibility('alice', 'regular')).canPlay).toBe(true);
+  });
+});
+
 describe('submitAnswer route', () => {
   test('accepts first regular answer of the day', async () => {
     seedDefaultActiveSeason();

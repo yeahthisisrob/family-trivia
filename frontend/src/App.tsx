@@ -80,6 +80,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
     endOfSeasonDismissed,
     setEndOfSeasonDismissed,
     isSeasonActive,
+    isTriviaOn,
     isAppReady,
   } = useApp({ onUserChange, onAuthChange });
 
@@ -100,6 +101,14 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
     if (currentPath === ROUTES.FAMILY && !familyMounted) setFamilyMounted(true);
     if (currentPath === ROUTES.ARCADE && !arcadeMounted) setArcadeMounted(true);
   }, [currentPath, leaderboardMounted, familyMounted, arcadeMounted]);
+
+  // A season without trivia has nothing to play: a link or a refresh on Play
+  // lands on the results instead.
+  React.useEffect(() => {
+    if (currentPath === ROUTES.PLAY && isSeasonActive && !isTriviaOn) {
+      navigateTo(ROUTES.LEADERBOARD);
+    }
+  }, [currentPath, isSeasonActive, isTriviaOn, navigateTo]);
 
   // Reset scroll on every tab change. Tabs are kept mounted under
   // display:none, so the window scroll position is shared across all of
@@ -223,7 +232,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
         </Box>
       )}
 
-      {isSeasonActive ? (
+      {isTriviaOn ? (
         <TriviaTab userId={user} groupId={myGroup} onAnswerResult={handleAnswerSubmit} />
       ) : (
         <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -274,9 +283,10 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
             selectedUser={user}
             onLogout={handleLogout}
             currentPath={currentPath}
-            // Between seasons there's nothing to play: Trivia opens on the last results.
+            // Between seasons, or in a season without trivia, there's nothing to
+            // play: Trivia opens on the results.
             onNavigate={(path) =>
-              navigateTo(path === ROUTES.PLAY && !isSeasonActive ? ROUTES.LEADERBOARD : path)
+              navigateTo(path === ROUTES.PLAY && !isTriviaOn ? ROUTES.LEADERBOARD : path)
             }
             isAdmin={isAdmin}
             loading={!isAppReady}
@@ -321,7 +331,11 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
                     </Box>
 
                     {(currentPath === ROUTES.PLAY || currentPath === ROUTES.LEADERBOARD) && (
-                      <TriviaTabs currentPath={currentPath} onNavigate={navigateTo} />
+                      <TriviaTabs
+                        currentPath={currentPath}
+                        onNavigate={navigateTo}
+                        factsOnly={isSeasonActive && !isTriviaOn}
+                      />
                     )}
 
                     {/* Trivia Tab — kept mounted to preserve TriviaCard state */}

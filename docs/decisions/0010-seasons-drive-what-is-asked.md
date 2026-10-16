@@ -30,7 +30,11 @@ the family's own words, shown once.
   choice is really in it. They're checked against the family, not against
   world knowledge, so the general fact-checker skips them. A family that
   hasn't shared enough yet gets a general question instead.
+- A season can also be **off**: facts only. The daily questions about the
+  family go on; the one eligibility gate (`checkPlayEligibility`) turns trivia
+  and the arcade away with `no_trivia_this_season`, and the Trivia tab opens
+  on the results with a line saying why.
 
 ## Consequences
-The season is the one switch for what the app asks. A facts-only season (no
-trivia at all) is the next mode to add.
+The season is the one switch for what the app asks: general trivia, family
+trivia, both, or none.

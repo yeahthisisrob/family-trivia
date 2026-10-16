@@ -80,5 +80,6 @@ test('a season offers the categories its trivia mode asks for', () => {
   expect(seasonTriviaOf({})).toBe('general');
   expect(categoriesFor(sys, 'general')).toEqual(sys);
   expect(categoriesFor(sys, 'family')).toEqual([FAMILY_CATEGORY]);
+  expect(categoriesFor(sys, 'off')).toEqual([]);
   expect(categoriesFor(sys, 'mixed').map((c) => c.name)).toEqual(['Our Family', 'History']);
 });

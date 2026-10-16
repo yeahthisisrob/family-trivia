@@ -1,7 +1,12 @@
 // File: lambda/routes/submitAnswer.ts
 // Purpose: Handle user answer to a trivia question—persist history, compute correctness & streak.
 
-import type { HistoryEntry, PlayMode, Question } from '@family-trivia/shared';
+import {
+  type HistoryEntry,
+  INELIGIBLE_MESSAGE,
+  type PlayMode,
+  type Question,
+} from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
@@ -43,19 +48,14 @@ export async function submitAnswer(event: APIGatewayProxyEvent): Promise<APIGate
       logger.warn(`Answer submission blocked for ${userId}: ${eligibility.reason}`, {
         claimedMode: mode,
       });
-      const reason = (eligibility as any).reason;
-      const message =
-        reason === 'end_of_season'
-          ? 'Season has ended'
-          : reason === 'no_catchup_available'
-            ? 'No catch-up questions available'
-            : 'Daily question limit reached';
+      const reason = eligibility.reason;
+      const message = INELIGIBLE_MESSAGE[reason ?? 'daily_limit_reached'];
       return errorResponse(
         message,
         403,
         JSON.stringify({
           reason,
-          nextAvailableAt: (eligibility as any).nextAvailableAt,
+          nextAvailableAt: eligibility.nextAvailableAt,
           catchupAvailable: eligibility.catchupAvailable,
         }),
       );

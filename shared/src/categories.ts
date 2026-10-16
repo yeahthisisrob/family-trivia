@@ -38,8 +38,9 @@ export const isFamilyCategory = (name: string | undefined) => name === FAMILY_CA
 /** The categories a season offers. */
 export function categoriesFor(
   system: SystemCategory[],
-  trivia: 'general' | 'family' | 'mixed',
+  trivia: 'general' | 'family' | 'mixed' | 'off',
 ): SystemCategory[] {
+  if (trivia === 'off') return [];
   if (trivia === 'family') return [FAMILY_CATEGORY];
   if (trivia === 'mixed')
     return [FAMILY_CATEGORY, ...system.filter((c) => !isFamilyCategory(c.name))];

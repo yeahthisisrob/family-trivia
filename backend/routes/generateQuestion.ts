@@ -1,7 +1,7 @@
 // File: lambda/routes/generateQuestion.ts
 // Purpose: Generate a trivia question on-demand using Bedrock.
 
-import type { PlayMode } from '@family-trivia/shared';
+import { INELIGIBLE_MESSAGE, type PlayMode } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
 import type { DifficultyLevel, GenerateMode } from '../services/bedrock';
@@ -52,12 +52,7 @@ export async function generateQuestion(
   const eligibility = await checkPlayEligibility(userId, requestedMode);
 
   if (!eligibility.canPlay) {
-    const message =
-      eligibility.reason === 'end_of_season'
-        ? 'Season has ended'
-        : eligibility.reason === 'no_catchup_available'
-          ? 'No catch-up questions available'
-          : 'Daily question limit reached';
+    const message = INELIGIBLE_MESSAGE[eligibility.reason ?? 'daily_limit_reached'];
 
     logger.warn(`User ${userId} blocked: ${message}`, {
       reason: eligibility.reason,
