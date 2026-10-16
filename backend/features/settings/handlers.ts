@@ -10,9 +10,9 @@ import { requireAdmin } from '../../services/adminAuth';
 import { loadModelChoices, modelFor } from '../../services/bedrock/core/models';
 import { usageKey } from '../../services/bedrock/core/usage';
 import { getJson } from '../../services/s3';
+import { resolveSettings, saveSettings } from '../../services/settings';
 import { getAllUsers } from '../../services/users';
 import { modelAvailability } from './availability';
-import { resolveSettings, saveSettings } from './store';
 
 /** GET /settings/features: which optional parts of the app are on. */
 export async function getFeatures(_e: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {

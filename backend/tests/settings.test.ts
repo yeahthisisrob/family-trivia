@@ -1,9 +1,9 @@
 vi.mock('../services/s3', async () => (await import('./helpers/s3Mock')).s3MockModule);
 
 import { aiTask, estimateMonthly, modelInfo } from '@family-trivia/shared';
-import { resolveSettings, saveSettings } from '../features/settings/store';
 import { loadModelChoices, modelFor } from '../services/bedrock/core/models';
 import { flushUsage, recordUsage, usageFromBody, usageKey } from '../services/bedrock/core/usage';
+import { resolveSettings, saveSettings } from '../services/settings';
 import { getStored, resetS3Mock } from './helpers/s3Mock';
 
 beforeEach(() => resetS3Mock());

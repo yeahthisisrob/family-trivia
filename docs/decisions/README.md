@@ -24,3 +24,4 @@ when the decision is made, so the reason survives the people who made it.
 | [0011](0011-light-dark-and-the-night-surface.md) | Light and dark, one theme per scheme, and a night surface for graphs | Accepted |
 | [0012](0012-themes-and-tokens.md) | Themes are data, and every color is a token | Accepted |
 | [0013](0013-settings-and-ai-models.md) | Settings from definitions, and an AI model per task with real costs | Accepted |
+| [0014](0014-backups.md) | Backups: versioned data, checked copies, nightly only when asked | Accepted |

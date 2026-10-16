@@ -6,6 +6,8 @@ import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -36,6 +38,8 @@ export class FamilyTriviaStack extends Stack {
     // ── S3 Buckets ───────────────────────────────────────────────────
     const triviaBucket = new s3.Bucket(this, 'TriviaDataBucket', {
       removalPolicy: RemovalPolicy.RETAIN,
+      // Every overwrite keeps the version it replaced (docs/decisions/0014).
+      versioned: true,
       autoDeleteObjects: false,
       encryption: s3.BucketEncryption.S3_MANAGED,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
@@ -48,6 +52,35 @@ export class FamilyTriviaStack extends Stack {
           allowedOrigins: [`https://${config.customDomain}`, 'http://localhost:3000'],
           allowedHeaders: ['content-type'],
           maxAge: 3600,
+        },
+      ],
+    });
+
+    // Full copies of the data bucket (backend/features/backups): daily ones
+    // for 35 days, the first of each month for good.
+    const backupBucket = new s3.Bucket(this, 'BackupBucket', {
+      removalPolicy: RemovalPolicy.RETAIN,
+      autoDeleteObjects: false,
+      versioned: true,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      enforceSSL: true,
+      lifecycleRules: [
+        {
+          id: 'daily-copies',
+          prefix: 'daily/',
+          expiration: Duration.days(35),
+          noncurrentVersionExpiration: Duration.days(7),
+        },
+        {
+          id: 'monthly-to-cold',
+          prefix: 'monthly/',
+          transitions: [
+            {
+              storageClass: s3.StorageClass.GLACIER_INSTANT_RETRIEVAL,
+              transitionAfter: Duration.days(90),
+            },
+          ],
         },
       ],
     });
@@ -74,6 +107,7 @@ export class FamilyTriviaStack extends Stack {
       },
       environment: {
         BUCKET_NAME: triviaBucket.bucketName,
+        BACKUP_BUCKET_NAME: backupBucket.bucketName,
         ...(config.bedrockModelId ? { BEDROCK_MODEL_WRITER: config.bedrockModelId } : {}),
         ...(config.bedrockFastModelId ? { BEDROCK_MODEL_FAST: config.bedrockFastModelId } : {}),
         NODE_ENV: 'production',
@@ -83,6 +117,29 @@ export class FamilyTriviaStack extends Stack {
     });
 
     triviaBucket.grantReadWrite(apiLambda);
+    backupBucket.grantReadWrite(apiLambda);
+
+    // The nightly backup. It runs every night and does nothing unless the
+    // family turned on Settings › Backups › Automatic nightly backups.
+    const backupJob = new NodejsFunction(this, 'NightlyBackup', {
+      runtime: lambda.Runtime.NODEJS_22_X,
+      entry: path.join(__dirname, '../../backend/features/backups/job.ts'),
+      handler: 'handler',
+      timeout: Duration.minutes(10),
+      memorySize: 512,
+      bundling: { minify: true, sourceMap: false, target: 'node22' },
+      environment: {
+        BUCKET_NAME: triviaBucket.bucketName,
+        BACKUP_BUCKET_NAME: backupBucket.bucketName,
+        NODE_ENV: 'production',
+      },
+    });
+    triviaBucket.grantReadWrite(backupJob); // reads everything, writes backups/status.json
+    backupBucket.grantReadWrite(backupJob);
+    new events.Rule(this, 'NightlyBackupSchedule', {
+      schedule: events.Schedule.cron({ minute: '0', hour: '8' }), // 4am Eastern
+      targets: [new targets.LambdaFunction(backupJob, { retryAttempts: 2 })],
+    });
 
     apiLambda.addToRolePolicy(
       new iam.PolicyStatement({
@@ -339,6 +396,7 @@ export class FamilyTriviaStack extends Stack {
     }
 
     // ── Outputs ──────────────────────────────────────────────────────
+    new CfnOutput(this, 'BackupBucketName', { value: backupBucket.bucketName });
     new CfnOutput(this, 'SiteURL', { value: `https://${siteUrl}` });
     new CfnOutput(this, 'ApiUrl', { value: api.apiEndpoint });
     new CfnOutput(this, 'DataBucket', { value: triviaBucket.bucketName });

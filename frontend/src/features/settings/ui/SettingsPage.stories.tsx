@@ -33,6 +33,15 @@ const admin = {
   },
 };
 
+const run = {
+  at: '2026-10-16T08:00:00Z',
+  ok: true,
+  trigger: 'manual',
+  objects: 1427,
+  bytes: 48_200_000,
+  prefix: 'daily/2026-10-16/',
+};
+
 const meta: Meta<typeof SettingsPage> = {
   title: 'Admin/SettingsPage',
   component: SettingsPage,
@@ -42,6 +51,19 @@ const meta: Meta<typeof SettingsPage> = {
       handlers: [
         http.get('*/admin/settings', () => HttpResponse.json({ ok: true, data: admin })),
         http.put('*/admin/settings', () => HttpResponse.json({ ok: true, data: admin })),
+        http.get('*/admin/backups', () =>
+          HttpResponse.json({
+            ok: true,
+            data: {
+              last: run,
+              lastOk: run,
+              snapshots: { daily: ['2026-10-16', '2026-10-15'], monthly: ['2026-10'] },
+              automatic: false,
+              configured: true,
+            },
+          }),
+        ),
+        http.post('*/admin/backups', () => HttpResponse.json({ ok: true, data: run })),
         http.get('*/admin/archive/permissions', () =>
           HttpResponse.json({ ok: true, data: { everyone: true, users: {} } }),
         ),
@@ -68,5 +90,16 @@ export const AiAndCost: Story = {
     const canvas = within(canvasElement);
     await expect(await canvas.findByText('This month so far')).toBeInTheDocument();
     await expect(canvas.getByText('Spotlights')).toBeInTheDocument();
+  },
+};
+
+export const Backups: Story = {
+  parameters: { route: '/admin/settings?section=backups' },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(await canvas.findByText('Automatic nightly backups')).toBeInTheDocument();
+    await expect(canvas.getByRole('switch')).not.toBeChecked();
+    await userEvent.click(canvas.getByRole('button', { name: 'Back up now' }));
+    await expect(await canvas.findByText(/Backed up 1427 files/)).toBeInTheDocument();
   },
 };
