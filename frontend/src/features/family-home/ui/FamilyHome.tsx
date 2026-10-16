@@ -1,7 +1,7 @@
 /**
- * The Family tab: the story first, then today's spotlight, everyone, the
- * people the family remembers, and doors into the tree, the connections and
- * the albums. It is for looking at the family, not for doing chores in it
+ * The Family tab: the story first, doors into the tree, the connections and
+ * the albums, today's spotlight, what we share, the people the family
+ * remembers (each with their own Remembering page), and everyone. It is for looking at the family, not for doing chores in it
  * (docs/decisions/0009). Whatever opens behind a door is passed in, so this
  * feature doesn't reach into others.
  */
@@ -21,6 +21,7 @@ import {
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { type GraphData, graphApi, useFamily } from '../../../entities/family';
+import { RememberingPage } from '../../remembering';
 import { type FamilyStory, familyHomeApi } from '../api/familyHomeApi';
 import { peopleFor, rememberedOf, sortForMe, spotlightOf } from '../model/people';
 import { FamilyHero } from './FamilyHero';
@@ -82,6 +83,8 @@ export const FamilyHome: React.FC<{
   const nameOf = (id: string) => family.people[id]?.name ?? id;
   const open = (id: string) => (id === meId && onOpenMe ? onOpenMe() : setOpenId(id));
   const opened = people.find((p) => p.id === openId) ?? null;
+  const openedPerson = openId ? family.people[openId] : undefined;
+  const remembering = openedPerson?.memorial ? openedPerson : null;
 
   return (
     <Stack spacing={3}>
@@ -153,7 +156,18 @@ export const FamilyHome: React.FC<{
 
       {footer}
 
-      {opened && (
+      {/* Someone the family has lost opens on their own page, not the everyday one. */}
+      {remembering && (
+        <RememberingPage
+          person={remembering}
+          photo={photos[remembering.id]}
+          topics={knowledge?.people[remembering.id]?.top.map((t) => t.name)}
+          nameOf={nameOf}
+          onClose={() => setOpenId(null)}
+        />
+      )}
+
+      {opened && !remembering && (
         <PersonPage
           person={opened}
           meId={meId}

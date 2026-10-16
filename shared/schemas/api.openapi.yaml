@@ -2959,6 +2959,27 @@ paths:
         "503":
           description: The AI model could not write it right now
 
+  /family/remembering:
+    get:
+      summary: A remembered person's page, everything they told the family and what it loved most
+      operationId: getRemembering
+      tags: [Family]
+      parameters:
+        - name: personId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Their words, oldest first, with the last few and the most loved picked out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Remembering"
+        "404":
+          description: Not someone the family remembers
+
   /family/words:
     get:
       summary: Someone's answers in their own words, newest first
@@ -3901,9 +3922,65 @@ components:
         parentId:
           type: string
 
+    Remembering:
+      type: object
+      required: [personId, words, last, loved, trivia, span]
+      properties:
+        personId:
+          type: string
+        words:
+          type: array
+          items:
+            type: object
+            required: [id, question, answer, date]
+            properties:
+              id:
+                type: string
+                description: "{personId}_{timestamp}, what comments and reactions hang on"
+              question:
+                type: string
+              answer:
+                type: string
+              date:
+                type: string
+        last:
+          type: array
+          items:
+            type: string
+        loved:
+          type: array
+          items:
+            type: object
+            required: [id, reactions, comments]
+            properties:
+              id:
+                type: string
+              reactions:
+                type: integer
+              comments:
+                type: integer
+        trivia:
+          type: object
+          required: [played, right]
+          properties:
+            played:
+              type: integer
+            right:
+              type: integer
+        span:
+          type: object
+          required: [first, last]
+          properties:
+            first:
+              type: string
+              nullable: true
+            last:
+              type: string
+              nullable: true
+
     CommentContentType:
       type: string
-      enum: [fact, trivia, album, arcade]
+      enum: [fact, trivia, album, arcade, memorial]
 
     CommentThread:
       type: object

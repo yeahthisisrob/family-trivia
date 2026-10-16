@@ -23,6 +23,7 @@ export * from './profile';
 export * from './question';
 export * from './question-gen';
 export * from './reactions';
+export * from './remembering';
 export * from './season';
 export * from './settings';
 export * from './similarity';

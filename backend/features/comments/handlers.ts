@@ -1,10 +1,13 @@
-/** Comments on facts, trivia answers, albums and arcade games (services/commentsService.ts). */
+/**
+ * Comments on facts, trivia answers, albums and arcade games, and the family's
+ * memories of someone they remember ('memorial', keyed by person id).
+ */
 import type { CommentContentType } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
 import { addComment, getCommentCounts, getCommentThread } from '../../services/commentsService';
 
-const TYPES: readonly CommentContentType[] = ['fact', 'trivia', 'album', 'arcade'];
+const TYPES: readonly CommentContentType[] = ['fact', 'trivia', 'album', 'arcade', 'memorial'];
 const MAX_IDS = 200;
 const MAX_TEXT = 2000;
 

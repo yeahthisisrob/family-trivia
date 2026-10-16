@@ -7,7 +7,7 @@
  *   - arcade: arcade games keyed by game id (`snake`, `tetris`, `slot-machine`,
  *     `curling`, `crossword`)
  */
-export type CommentContentType = 'fact' | 'trivia' | 'album' | 'arcade';
+export type CommentContentType = 'fact' | 'trivia' | 'album' | 'arcade' | 'memorial';
 
 /** A single comment on any content item */
 export interface Comment {
