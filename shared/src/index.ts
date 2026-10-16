@@ -20,6 +20,7 @@ export * from './profile';
 export * from './question';
 export * from './question-gen';
 export * from './season';
+export * from './similarity';
 export * from './slot-machine';
 export * from './timeline';
 export * from './timezoneUtils';
