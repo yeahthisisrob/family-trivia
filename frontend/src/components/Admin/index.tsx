@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AdminProvider, useAdmin } from '../../contexts/AdminContext';
 import { FamilyEditor } from '../../features/family-editor';
-import { StoryAdmin } from '../../features/family-home';
+import { KnowledgeAdmin, StoryAdmin } from '../../features/family-home';
 import { SettingsPage } from '../../features/settings';
 import { LoadingDots } from '../ui/feedback';
 import DailyQuestionsTab from './DailyQuestionsTab';
@@ -105,6 +105,7 @@ const AdminPageInner: React.FC<AdminPageInnerProps> = () => {
             element={
               <>
                 <StoryAdmin />
+                <KnowledgeAdmin />
                 <FamilyEditor adminUserId={admin.adminUserId} />
               </>
             }

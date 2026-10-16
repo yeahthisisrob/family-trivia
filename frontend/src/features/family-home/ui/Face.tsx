@@ -18,7 +18,9 @@ export const Face: React.FC<{
   photo?: string;
   remembered?: boolean;
   dim?: boolean;
-}> = ({ id, name, size = 48, photo, remembered, dim }) => (
+  /** A light ring, for a face set on its own color. */
+  ring?: boolean;
+}> = ({ id, name, size = 48, photo, remembered, dim, ring }) => (
   <Avatar
     src={photo}
     alt=""
@@ -29,7 +31,11 @@ export const Face: React.FC<{
       fontWeight: 700,
       bgcolor: remembered ? paper.paper : identityColor(id),
       color: remembered ? paper.ink : colors.onColor,
-      border: remembered ? `2px solid ${colors.medal.gold}` : 'none',
+      border: remembered
+        ? `2px solid ${colors.medal.gold}`
+        : ring
+          ? `3px solid ${colors.onColor}`
+          : 'none',
       fontFamily: remembered ? paper.serif : undefined,
       opacity: dim ? 0.6 : 1,
     }}

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from 'storybook/test';
 import { exampleGraph } from '../../../test/fixtures/exampleFamily';
-import { familyHomeHandlers } from './familyHomeMocks';
+import { familyHomeHandlers, KNOWLEDGE } from './familyHomeMocks';
 import { PersonPage } from './PersonPage';
 
 const meta: Meta<typeof PersonPage> = {
@@ -31,6 +31,17 @@ export default meta;
 type Story = StoryObj<typeof PersonPage>;
 
 export const About: Story = {};
+
+/** With the family's index: the persona, what they talk about, their longest run. */
+export const AboutFromTheIndex: Story = {
+  args: { known: KNOWLEDGE.people.jo },
+  play: async () => {
+    const page = within(document.body);
+    await expect(await page.findByText(/happiest near water/)).toBeInTheDocument();
+    await expect(page.getByText('Often talks about')).toBeInTheDocument();
+    await expect(page.getByText('9 days')).toBeInTheDocument();
+  },
+};
 
 export const YouAndThem: Story = {
   play: async () => {

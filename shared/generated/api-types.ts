@@ -1751,6 +1751,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/family/knowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What the family shares, each person's top things and persona, and counted statistics */
+        get: operations["getFamilyKnowledge"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/knowledge/build": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Read the next batch of new answers into the index and refresh personas (admins). Call again while left > 0. */
+        post: operations["buildKnowledge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2204,6 +2238,27 @@ export interface components {
             automatic: boolean;
             /** @description False when the deployment has no backups bucket */
             configured: boolean;
+        };
+        FamilyKnowledge: {
+            themes: {
+                name: string;
+                kind: string;
+                people: string[];
+                quotes: {
+                    personId?: string;
+                    says?: string;
+                }[];
+            }[];
+            people: {
+                [key: string]: {
+                    [key: string]: unknown;
+                };
+            };
+            stats: {
+                [key: string]: unknown;
+            };
+            unread: number;
+            builtAt: string | null;
         };
     };
     responses: never;
@@ -5785,6 +5840,58 @@ export interface operations {
             };
             /** @description The copy did not finish (the reason is in the error) */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getFamilyKnowledge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The family's knowledge view (shape in shared/src/knowledge.ts) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyKnowledge"];
+                };
+            };
+        };
+    };
+    buildKnowledge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description What this call did */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        read: number;
+                        personas: number;
+                        left: number;
+                        failures: string[];
+                    };
+                };
+            };
+            /** @description Not an admin */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

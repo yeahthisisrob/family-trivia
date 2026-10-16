@@ -5,7 +5,7 @@
  * (docs/decisions/0009). Whatever opens behind a door is passed in, so this
  * feature doesn't reach into others.
  */
-import type { Family, FamilyPerson } from '@family-trivia/shared';
+import type { Family, FamilyKnowledge, FamilyPerson } from '@family-trivia/shared';
 import CloseIcon from '@mui/icons-material/Close';
 import {
   Alert,
@@ -23,11 +23,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { type GraphData, graphApi, useFamily } from '../../../entities/family';
 import { type FamilyStory, familyHomeApi } from '../api/familyHomeApi';
 import { peopleFor, rememberedOf, sortForMe, spotlightOf } from '../model/people';
+import { ByTheNumbers } from './ByTheNumbers';
 import { FamilyHero } from './FamilyHero';
 import { InMemory } from './InMemory';
 import { PeopleSection } from './PeopleSection';
 import { PersonPage } from './PersonPage';
 import { SpotlightCard } from './SpotlightCard';
+import { WhatWeShare } from './WhatWeShare';
 
 export interface FamilyDoor {
   id: string;
@@ -48,6 +50,7 @@ export const FamilyHome: React.FC<{
   const { family, photoUrls, error } = useFamily();
   const [graph, setGraph] = useState<GraphData | null>(null);
   const [story, setStory] = useState<FamilyStory | null>(null);
+  const [knowledge, setKnowledge] = useState<FamilyKnowledge | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [door, setDoor] = useState<FamilyDoor | null>(null);
 
@@ -59,6 +62,10 @@ export const FamilyHome: React.FC<{
     familyHomeApi
       .story()
       .then(setStory)
+      .catch(() => undefined);
+    familyHomeApi
+      .knowledge()
+      .then(setKnowledge)
       .catch(() => undefined);
   }, []);
 
@@ -73,6 +80,7 @@ export const FamilyHome: React.FC<{
   if (error) return <Alert severity="warning">{error}</Alert>;
   if (!family || !graph) return <Skeleton variant="rounded" height={320} />;
 
+  const nameOf = (id: string) => family.people[id]?.name ?? id;
   const open = (id: string) => (id === meId && onOpenMe ? onOpenMe() : setOpenId(id));
   const opened = people.find((p) => p.id === openId) ?? null;
 
@@ -133,9 +141,15 @@ export const FamilyHome: React.FC<{
         />
       )}
 
+      {knowledge && (
+        <WhatWeShare themes={knowledge.themes} nameOf={nameOf} photos={photos} onOpen={open} />
+      )}
+
       <PeopleSection people={people} meId={meId} photos={photos} onOpen={open} />
 
       <InMemory people={remembered} photos={photos} onOpen={open} />
+
+      {knowledge && <ByTheNumbers stats={knowledge.stats} nameOf={nameOf} />}
 
       {footer}
 
@@ -146,6 +160,7 @@ export const FamilyHome: React.FC<{
           photo={photos[opened.id]}
           dedication={family.people[opened.id]?.memorial?.dedication}
           likenesses={graph.likenesses}
+          known={knowledge?.people[opened.id]}
           onClose={() => setOpenId(null)}
         />
       )}
