@@ -10,6 +10,7 @@ const SUBJECT = { userId: 'subject' } as const;
 import { appearanceRoutes } from './features/appearance/routes';
 import { archiveRoutes } from './features/archive/routes';
 import { familyRoutes } from './features/family/routes';
+import { graphRoutes } from './features/graph/routes';
 import * as adminHandlers from './routes/admin';
 // Answer grid for trivia status matrix
 import { getAnswerGrid } from './routes/answerGrid';
@@ -146,6 +147,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...familyRoutes,
   ...appearanceRoutes,
   ...archiveRoutes,
+  ...graphRoutes,
 
   // ── Public (no auth) ─────────────────────────────────────────
   'POST /auth/google': authGoogle,

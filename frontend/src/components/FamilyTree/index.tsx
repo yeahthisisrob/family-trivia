@@ -3,6 +3,7 @@ import { Box, Fade } from '@mui/material';
 import type React from 'react';
 import { useMemo } from 'react';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
+import { FamilyGraphSection } from '../../features/family-graph';
 import { LoadingDots } from '../ui/feedback';
 import FamilySplitView from './FamilySplitView';
 import MemberLoadingError from './MemberLoadingError';
@@ -54,6 +55,8 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, onViewProfile }) => {
   return (
     <Fade in={true}>
       <Box>
+        <FamilyGraphSection meId={userId} onOpenProfile={onViewProfile} />
+
         <MemberSpotlight
           hierarchy={hierarchy}
           currentUserId={userId}
