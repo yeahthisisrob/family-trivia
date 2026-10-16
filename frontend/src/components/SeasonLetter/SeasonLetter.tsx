@@ -97,6 +97,8 @@ export const LetterPaper: React.FC<{ heading: string; markdown: string; imageUrl
           textAlign: 'center',
           my: 2,
         },
+        // The line right under a heading (dates, a subtitle) sits centered with it.
+        '& h1 + p, & h2 + p, & h3 + p': { textAlign: 'center', mt: -1 },
         '& blockquote': {
           fontStyle: 'italic',
           textAlign: 'center',
