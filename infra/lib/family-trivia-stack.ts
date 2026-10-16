@@ -74,7 +74,8 @@ export class FamilyTriviaStack extends Stack {
       },
       environment: {
         BUCKET_NAME: triviaBucket.bucketName,
-        BEDROCK_MODEL_ID: config.bedrockModelId,
+        ...(config.bedrockModelId ? { BEDROCK_MODEL_WRITER: config.bedrockModelId } : {}),
+        ...(config.bedrockFastModelId ? { BEDROCK_MODEL_FAST: config.bedrockFastModelId } : {}),
         NODE_ENV: 'production',
         JWT_SECRET: config.jwtSecret,
         GOOGLE_CLIENT_ID: config.googleClientId,
@@ -92,10 +93,11 @@ export class FamilyTriviaStack extends Stack {
           'bedrock:ListFoundationModels',
           'bedrock:GetFoundationModel',
         ],
+        // Any Anthropic model or cross-region profile, so changing models
+        // (backend/config.ts MODELS) is a config change, not an IAM change.
         resources: [
-          `arn:aws:bedrock:${this.region}:*:inference-profile/us.anthropic.claude-sonnet-4-20250514-v1:0`,
-          `arn:aws:bedrock:${this.region}:*:inference-profile/us.anthropic.claude-haiku-4-5-20251001-v1:0`,
-          '*',
+          'arn:aws:bedrock:*::foundation-model/anthropic.*',
+          `arn:aws:bedrock:*:${this.account}:inference-profile/*anthropic.*`,
         ],
       }),
     );

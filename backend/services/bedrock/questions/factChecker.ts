@@ -28,11 +28,7 @@ export async function factCheckQuestion(
   const selectedModel = factCheckers[Math.floor(Math.random() * factCheckers.length)];
 
   // Determine model name for display
-  const modelDisplayName = selectedModel.includes('claude-3-7-sonnet')
-    ? 'Claude 3.7 Sonnet'
-    : selectedModel.includes('llama')
-      ? 'Meta Llama 3.3'
-      : 'AI Fact Checker';
+  const modelDisplayName = 'AI fact checker';
 
   logger.info('Fact checking question', {
     model: selectedModel,

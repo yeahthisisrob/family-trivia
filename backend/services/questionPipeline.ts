@@ -3,7 +3,7 @@
 // Generates candidates from trivia bank + Sonnet + Haiku in parallel,
 // deduplicates, judges the best, validates difficulty, and fact-checks.
 
-import { AVAILABLE_MODELS } from '../config';
+import { MODELS } from '../config';
 import { invokeBedrockPrompt } from './bedrock/core/bedrockClient';
 import { collectResponseBody, extractJsonFromResponse } from './bedrock/core/responseParser';
 import type { DifficultyLevel, Question } from './bedrock/core/types';
@@ -159,7 +159,7 @@ Return ONLY: {
 }`;
 
     try {
-      const modelId = AVAILABLE_MODELS.CLAUDE_HAIKU_4_5;
+      const modelId = MODELS.FAST;
       const stream = await invokeBedrockPrompt(prompt, 256, 0.1, {}, modelId);
       const buf = await collectResponseBody(stream);
       const parsed = extractJsonFromResponse(buf, modelId);
@@ -223,7 +223,7 @@ Return ONLY: {
 }`;
 
   try {
-    const modelId = AVAILABLE_MODELS.CLAUDE_SONNET_4;
+    const modelId = MODELS.WRITER;
     const stream = await invokeBedrockPrompt(prompt, 256, 0.2, {}, modelId);
     const buf = await collectResponseBody(stream);
     const parsed = extractJsonFromResponse(buf, modelId);
@@ -325,20 +325,20 @@ export async function generateBestQuestion(options: PipelineOptions): Promise<Pi
 
   // Sonnet 4 — always generate
   candidatePromises.push(
-    generateWithModel(AVAILABLE_MODELS.CLAUDE_SONNET_4, prompt, category, difficulty, history).then(
-      (r) => ({ question: r.question, source: 'sonnet', calls: r.calls }),
-    ),
+    generateWithModel(MODELS.WRITER, prompt, category, difficulty, history).then((r) => ({
+      question: r.question,
+      source: 'sonnet',
+      calls: r.calls,
+    })),
   );
 
   // Haiku 4.5 — generate for ALL modes (including custom, was skipping before)
   candidatePromises.push(
-    generateWithModel(
-      AVAILABLE_MODELS.CLAUDE_HAIKU_4_5,
-      prompt,
-      category,
-      difficulty,
-      history,
-    ).then((r) => ({ question: r.question, source: 'haiku', calls: r.calls })),
+    generateWithModel(MODELS.FAST, prompt, category, difficulty, history).then((r) => ({
+      question: r.question,
+      source: 'haiku',
+      calls: r.calls,
+    })),
   );
 
   const results = await Promise.all(candidatePromises);
@@ -360,7 +360,7 @@ export async function generateBestQuestion(options: PipelineOptions): Promise<Pi
   if (validCandidates.length === 0) {
     logger.warn('No valid candidates, retrying with higher temperature');
     const retry = await generateWithModel(
-      AVAILABLE_MODELS.CLAUDE_SONNET_4,
+      MODELS.WRITER,
       prompt,
       category,
       difficulty,

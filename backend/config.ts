@@ -4,13 +4,25 @@ import type { APIGatewayProxyResult } from 'aws-lambda';
 export const BUCKET = process.env.BUCKET_NAME!;
 export const REGION = process.env.AWS_REGION || 'us-east-1';
 
-// Model configuration - supports multiple models
-export const AVAILABLE_MODELS = {
-  CLAUDE_SONNET_4: 'us.anthropic.claude-sonnet-4-20250514-v1:0',
-  CLAUDE_HAIKU_4_5: 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
+/**
+ * Claude models on Bedrock, by role rather than by name, so moving to a new
+ * model is a config change (BEDROCK_MODEL_WRITER / BEDROCK_MODEL_FAST, set
+ * from infra/cdk.config.json). Defaults are models most accounts can call;
+ * newer ones need access enabled in the Bedrock console first.
+ * Models reach end of life; when one does, every AI feature fails with
+ * "This model version has reached the end of its life".
+ */
+export const MODELS = {
+  /** Writing: questions, summaries, stories. */
+  WRITER:
+    process.env.BEDROCK_MODEL_WRITER ||
+    process.env.BEDROCK_MODEL_ID ||
+    'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+  /** Fast and cheap: fact checks, roasts, game moves, second opinions. */
+  FAST: process.env.BEDROCK_MODEL_FAST || 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
 } as const;
 
-export const MODEL_ID = process.env.BEDROCK_MODEL_ID || AVAILABLE_MODELS.CLAUDE_SONNET_4;
+export const MODEL_ID = MODELS.WRITER;
 
 // Service-specific model selection
 type ServiceModelMap = {
@@ -25,17 +37,17 @@ type ServiceModelMap = {
 };
 
 export const SERVICE_MODELS: ServiceModelMap = {
-  // Sonnet 4 for most generation tasks
-  MEMBER_SUMMARIES: AVAILABLE_MODELS.CLAUDE_SONNET_4,
-  FUN_FACTS: AVAILABLE_MODELS.CLAUDE_SONNET_4,
-  CUSTOM_CATEGORIES: AVAILABLE_MODELS.CLAUDE_SONNET_4,
-  GROUP_DESCRIPTIONS: AVAILABLE_MODELS.CLAUDE_SONNET_4,
-  PERSONAL_QUESTIONS: AVAILABLE_MODELS.CLAUDE_SONNET_4,
-  QUESTION_GENERATION: AVAILABLE_MODELS.CLAUDE_SONNET_4,
+  // The writer for anything the family reads
+  MEMBER_SUMMARIES: MODELS.WRITER,
+  FUN_FACTS: MODELS.WRITER,
+  CUSTOM_CATEGORIES: MODELS.WRITER,
+  GROUP_DESCRIPTIONS: MODELS.WRITER,
+  PERSONAL_QUESTIONS: MODELS.WRITER,
+  QUESTION_GENERATION: MODELS.WRITER,
 
-  // Haiku 4.5 for roasts (snarkier, less filtered) and fact checking (fast + cheap)
-  ROAST_SUMMARIES: AVAILABLE_MODELS.CLAUDE_HAIKU_4_5,
-  FACT_CHECKERS: [AVAILABLE_MODELS.CLAUDE_HAIKU_4_5],
+  // The fast model for roasts and fact checking
+  ROAST_SUMMARIES: MODELS.FAST,
+  FACT_CHECKERS: [MODELS.FAST],
 };
 
 /**

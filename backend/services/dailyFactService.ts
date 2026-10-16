@@ -3,7 +3,7 @@
 // Loads ALL previous questions for dedup, uses best model, stores metadata.
 
 import { getEasternDateString } from '@family-trivia/shared';
-import { AVAILABLE_MODELS } from '../config';
+import { MODELS } from '../config';
 import { S3_PATHS } from '../constants';
 import { invokeBedrockPrompt } from './bedrock/core/bedrockClient';
 import { collectResponseBody } from './bedrock/core/responseParser';
@@ -127,7 +127,7 @@ ${previousList}
 Return ONLY the question text. No quotes, no prefix, no explanation.`;
 
   // Use Sonnet for quality
-  const modelId = AVAILABLE_MODELS.CLAUDE_SONNET_4;
+  const modelId = MODELS.WRITER;
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -231,7 +231,7 @@ Return ONLY a JSON array of 3 objects: [{"question": "...", "category": "..."}]
 Categories: ${FACT_CATEGORIES.join(', ')}`;
 
   try {
-    const modelId = AVAILABLE_MODELS.CLAUDE_SONNET_4;
+    const modelId = MODELS.WRITER;
     const stream = await invokeBedrockPrompt(prompt, 512, 0.9, {}, modelId);
     const buf = await collectResponseBody(stream);
     const text = (buf as any).rawText || JSON.stringify(buf);
