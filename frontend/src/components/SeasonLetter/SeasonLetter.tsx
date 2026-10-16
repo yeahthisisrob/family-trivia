@@ -6,20 +6,20 @@
  */
 
 import type { SeasonLetter as Letter } from '@family-trivia/shared';
-import { Box, Button, Dialog, Fade, Typography, useMediaQuery, useTheme } from '@mui/material';
+import {
+  alpha,
+  Box,
+  Button,
+  Dialog,
+  Fade,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
 import type React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-
-/** Paper and ink stay warm in both color schemes: a letter is a letter. */
-export const PAPER = {
-  paper: '#f3ead7',
-  edge: '#e6dabf',
-  ink: '#3a2e21',
-  inkSoft: '#6b5a44',
-  rule: '#c9b994',
-  serif: '"Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif',
-};
+import { paper } from '../../shared/design-system';
 
 interface SeasonLetterProps {
   letter: Letter;
@@ -38,11 +38,11 @@ export const LetterPaper: React.FC<{ heading: string; markdown: string; imageUrl
       id="season-letter-title"
       component="h2"
       sx={{
-        fontFamily: PAPER.serif,
+        fontFamily: paper.serif,
         fontSize: '0.95rem',
         letterSpacing: '0.18em',
         textTransform: 'uppercase',
-        color: PAPER.inkSoft,
+        color: paper.inkSoft,
       }}
     >
       {heading}
@@ -58,8 +58,7 @@ export const LetterPaper: React.FC<{ heading: string; markdown: string; imageUrl
           width: '100%',
           maxWidth: 520,
           borderRadius: 0.5,
-          boxShadow:
-            '0 12px 32px -12px rgba(58, 46, 33, 0.35), 0 4px 10px -4px rgba(58, 46, 33, 0.25)',
+          boxShadow: `0 12px 32px -12px ${paper.shadow}, 0 4px 10px -4px ${alpha(paper.ink, 0.25)}`,
         }}
       />
     )}
@@ -72,12 +71,12 @@ export const LetterPaper: React.FC<{ heading: string; markdown: string; imageUrl
         justifyContent: 'center',
         gap: 1.5,
         my: 3,
-        color: PAPER.rule,
+        color: paper.rule,
         '&::before, &::after': {
           content: '""',
           flex: '0 1 90px',
           height: '1px',
-          bgcolor: PAPER.rule,
+          bgcolor: paper.rule,
           opacity: 0.7,
         },
       }}
@@ -92,7 +91,7 @@ export const LetterPaper: React.FC<{ heading: string; markdown: string; imageUrl
         lineHeight: 1.65,
         '& p': { my: 1.5 },
         '& h1, & h2, & h3': {
-          fontFamily: PAPER.serif,
+          fontFamily: paper.serif,
           fontWeight: 400,
           textAlign: 'center',
           my: 2,
@@ -104,9 +103,9 @@ export const LetterPaper: React.FC<{ heading: string; markdown: string; imageUrl
           textAlign: 'center',
           mx: 0,
           my: 2.5,
-          color: PAPER.ink,
+          color: paper.ink,
         },
-        '& a': { color: PAPER.ink },
+        '& a': { color: paper.ink },
         '& img': { maxWidth: '100%', borderRadius: 0.5 },
         '& ul, & ol': { pl: 3 },
       }}
@@ -136,9 +135,9 @@ export const SeasonLetter: React.FC<SeasonLetterProps> = ({ letter, seasonName, 
         transition: { timeout: 500 },
         paper: {
           sx: {
-            bgcolor: PAPER.paper,
-            color: PAPER.ink,
-            backgroundImage: `radial-gradient(circle at 50% 0%, #faf2dd 0%, transparent 60%), radial-gradient(circle at 0% 100%, ${PAPER.edge} 0%, transparent 55%)`,
+            bgcolor: paper.paper,
+            color: paper.ink,
+            backgroundImage: `radial-gradient(circle at 50% 0%, ${paper.glow} 0%, transparent 60%), radial-gradient(circle at 0% 100%, ${paper.edge} 0%, transparent 55%)`,
             borderRadius: fullScreen ? 0 : 1,
           },
         },
@@ -150,7 +149,7 @@ export const SeasonLetter: React.FC<SeasonLetterProps> = ({ letter, seasonName, 
           px: { xs: 3, sm: 6 },
           py: { xs: 5, sm: 6 },
           textAlign: 'center',
-          fontFamily: PAPER.serif,
+          fontFamily: paper.serif,
         }}
       >
         <LetterPaper heading={heading} markdown={letter.markdown} imageUrl={letter.imageUrl} />
@@ -160,11 +159,11 @@ export const SeasonLetter: React.FC<SeasonLetterProps> = ({ letter, seasonName, 
           sx={{
             mt: 4,
             px: 4,
-            color: PAPER.ink,
-            borderColor: PAPER.rule,
-            fontFamily: PAPER.serif,
+            color: paper.ink,
+            borderColor: paper.rule,
+            fontFamily: paper.serif,
             letterSpacing: '0.06em',
-            '&:hover': { borderColor: PAPER.inkSoft, bgcolor: 'rgba(58, 46, 33, 0.04)' },
+            '&:hover': { borderColor: paper.inkSoft, bgcolor: alpha(paper.ink, 0.04) },
           }}
           variant="outlined"
         >

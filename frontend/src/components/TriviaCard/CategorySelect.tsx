@@ -33,6 +33,7 @@ import appStrings from '../../constants/strings';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
 import { useLeaderboard } from '../../contexts/LeaderboardContext';
 import { useTrivia } from '../../contexts/TriviaContext';
+import { colors } from '../../shared/design-system';
 import { LoadingDots } from '../ui/feedback';
 
 // Feature flags — per-mode toggles. Matches GAME_MODES registry order.
@@ -54,26 +55,26 @@ interface GameModeTheme {
 const GAME_MODE_THEMES: Record<GameModeId, GameModeTheme> = {
   'casino-rush': {
     icon: <CasinoIcon />,
-    gradient: 'linear-gradient(135deg, #c62828 0%, #ef6c00 100%)',
-    accentColor: '#ffd54f',
+    gradient: colors.gameMode.slotMachine.gradient,
+    accentColor: colors.gameMode.slotMachine.accent,
     badge: '3× OR BUST',
   },
   'slot-machine': {
     icon: <SmartToyIcon />,
-    gradient: 'linear-gradient(135deg, #6a1b9a 0%, #d81b60 100%)',
-    accentColor: '#ffd700',
+    gradient: `linear-gradient(135deg, ${colors.accent.purple} 0%, ${colors.accent.pink} 100%)`,
+    accentColor: colors.accent.gold,
     badge: 'SPIN TO WIN',
   },
   curling: {
     icon: <AcUnitIcon />,
-    gradient: 'linear-gradient(135deg, #0d47a1 0%, #1976d2 60%, #64b5f6 100%)',
-    accentColor: '#ffffff',
+    gradient: colors.gameMode.curling.gradient,
+    accentColor: colors.gameMode.curling.accent,
     badge: 'HOLD · SWEEP',
   },
   tetris: {
     icon: <GamepadIcon />,
-    gradient: 'linear-gradient(135deg, #4a148c 0%, #7b1fa2 60%, #ce93d8 100%)',
-    accentColor: '#e1bee7',
+    gradient: colors.gameMode.tetris.gradient,
+    accentColor: colors.gameMode.tetris.accent,
     badge: '60s BLOCKS',
   },
 };
@@ -239,7 +240,7 @@ const CategorySelect: React.FC<CategorySelectProps> = (props) => {
         overflow: 'hidden',
         borderRadius: 3,
         border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
-        boxShadow: `0 2px 12px ${alpha('#000', 0.06)}`,
+        boxShadow: `0 2px 12px ${alpha(colors.scrim, 0.06)}`,
       }}
     >
       {/* ── Catch-up banner (only when catching up) ────────── */}
@@ -544,8 +545,8 @@ const GameModeTile: React.FC<GameModeTileProps> = ({
         background: locked
           ? `linear-gradient(135deg, ${alpha(muiTheme.palette.action.disabledBackground, 0.4)}, ${alpha(muiTheme.palette.action.disabled, 0.2)})`
           : theme.gradient,
-        color: '#fff',
-        boxShadow: locked ? 'none' : `0 4px 14px ${alpha('#000', 0.18)}`,
+        color: colors.onColor,
+        boxShadow: locked ? 'none' : `0 4px 14px ${alpha(colors.scrim, 0.18)}`,
         transition: 'transform 160ms ease, box-shadow 160ms ease',
         opacity: locked ? 0.55 : 1,
         '@media (hover: hover)': {
@@ -553,7 +554,7 @@ const GameModeTile: React.FC<GameModeTileProps> = ({
             ? {}
             : {
                 transform: 'translateY(-2px)',
-                boxShadow: `0 6px 20px ${alpha('#000', 0.28)}`,
+                boxShadow: `0 6px 20px ${alpha(colors.scrim, 0.28)}`,
               },
         },
         '&:active': isDisabled ? {} : { transform: 'translateY(0)' },
@@ -591,9 +592,9 @@ const GameModeTile: React.FC<GameModeTileProps> = ({
             width: 28,
             height: 28,
             borderRadius: '50%',
-            bgcolor: alpha('#fff', 0.22),
+            bgcolor: alpha(colors.onColor, 0.22),
             backdropFilter: 'blur(4px)',
-            '& .MuiSvgIcon-root': { fontSize: '0.95rem', color: '#fff' },
+            '& .MuiSvgIcon-root': { fontSize: '0.95rem', color: colors.onColor },
           }}
         >
           {locked ? <LockIcon /> : theme.icon}
@@ -607,7 +608,7 @@ const GameModeTile: React.FC<GameModeTileProps> = ({
               px: 0.6,
               py: 0.2,
               borderRadius: 0.75,
-              bgcolor: alpha('#000', 0.25),
+              bgcolor: alpha(colors.scrim, 0.25),
               color: theme.accentColor,
               lineHeight: 1,
             }}
@@ -624,7 +625,7 @@ const GameModeTile: React.FC<GameModeTileProps> = ({
             fontWeight: 800,
             fontSize: '0.85rem',
             lineHeight: 1.15,
-            textShadow: `0 1px 2px ${alpha('#000', 0.25)}`,
+            textShadow: `0 1px 2px ${alpha(colors.scrim, 0.25)}`,
           }}
         >
           {mode.label}
@@ -636,7 +637,7 @@ const GameModeTile: React.FC<GameModeTileProps> = ({
             lineHeight: 1.25,
             opacity: 0.88,
             mt: 0.15,
-            textShadow: `0 1px 2px ${alpha('#000', 0.2)}`,
+            textShadow: `0 1px 2px ${alpha(colors.scrim, 0.2)}`,
           }}
         >
           {mode.description}
@@ -662,7 +663,7 @@ const GameModeTile: React.FC<GameModeTileProps> = ({
                 gap: 0.3,
                 fontSize: '0.58rem',
                 fontWeight: 700,
-                color: alpha('#fff', 0.85),
+                color: alpha(colors.onColor, 0.85),
               }}
             >
               <AccessTimeIcon sx={{ fontSize: '0.7rem' }} />
@@ -678,7 +679,7 @@ const GameModeTile: React.FC<GameModeTileProps> = ({
               fontSize: '0.58rem',
               fontWeight: 800,
               letterSpacing: 0.4,
-              color: '#fff',
+              color: colors.onColor,
               textTransform: 'uppercase',
             }}
           >
@@ -768,7 +769,7 @@ const CategoryTile: React.FC<CategoryTileProps> = ({
     accent === 'secondary'
       ? theme.palette.secondary.main
       : accent === 'local'
-        ? '#455A64'
+        ? colors.accent.slate
         : theme.palette.primary.main;
 
   const familyTotal = categoryStats?.total ?? 0;
@@ -811,12 +812,12 @@ const CategoryTile: React.FC<CategoryTileProps> = ({
         justifyContent: 'center',
         textAlign: 'center',
         minHeight: 80,
-        boxShadow: locked || disabled ? 'none' : `0 1px 4px ${alpha('#000', 0.04)}`,
+        boxShadow: locked || disabled ? 'none' : `0 1px 4px ${alpha(colors.scrim, 0.04)}`,
         '&:hover':
           locked || disabled
             ? {}
             : {
-                boxShadow: `0 3px 10px ${alpha('#000', 0.08)}`,
+                boxShadow: `0 3px 10px ${alpha(colors.scrim, 0.08)}`,
                 borderColor: alpha(bonusInfo ? theme.palette.warning.main : accentColor, 0.35),
                 transform: 'translateY(-1px)',
               },
@@ -843,14 +844,14 @@ const CategoryTile: React.FC<CategoryTileProps> = ({
               alignItems: 'center',
               gap: 0.2,
               bgcolor: bonusInfo.bonus >= 1 ? theme.palette.error.main : theme.palette.warning.dark,
-              color: '#fff',
+              color: colors.onColor,
               px: 0.5,
               py: 0.15,
               borderRadius: 1,
               fontSize: '0.55rem',
               fontWeight: 800,
               lineHeight: 1,
-              boxShadow: `0 1px 4px ${alpha('#000', 0.2)}`,
+              boxShadow: `0 1px 4px ${alpha(colors.scrim, 0.2)}`,
             }}
           >
             <LocalFireDepartmentIcon sx={{ fontSize: '0.6rem' }} />

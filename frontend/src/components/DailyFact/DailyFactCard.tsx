@@ -280,7 +280,7 @@ const DailyFactCard: React.FC<DailyFactCardProps> = ({
         overflow: 'hidden',
         borderRadius: `${radii.lg}px`,
         border: `1px solid ${tint(colors.brand.primary, 0.18)}`,
-        boxShadow: `0 2px 12px ${alpha('#000', 0.06)}`,
+        boxShadow: `0 2px 12px ${alpha(colors.scrim, 0.06)}`,
         bgcolor: colors.surface.card,
       }}
     >

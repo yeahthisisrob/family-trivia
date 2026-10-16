@@ -4,11 +4,14 @@
 
 import { alpha, Box, Divider, keyframes, Typography, useTheme } from '@mui/material';
 import React, { useEffect, useRef } from 'react';
+import { colors } from '../../shared/design-system';
 
-const catchupPulse = keyframes`
-  0%, 100% { transform: scale(1); background-color: rgba(158,158,158,0.25); box-shadow: none; }
-  50% { transform: scale(1.15); background-color: rgba(156,39,176,0.45); box-shadow: 0 0 6px 2px rgba(156,39,176,0.25); }
+const catchupPulse = (grey: string) => keyframes`
+  0%, 100% { transform: scale(1); background-color: ${grey}; box-shadow: none; }
+  50% { transform: scale(1.15); background-color: ${alpha(colors.accent.purple, 0.45)}; box-shadow: 0 0 6px 2px ${alpha(colors.accent.purple, 0.25)}; }
 `;
+
+const GAME_MODE_RING = `inset 0 0 0 2px ${colors.accent.purple}, inset 0 0 0 3px ${alpha(colors.onColor, 0.95)}`;
 
 export interface GridCell {
   result: boolean | null;
@@ -234,23 +237,20 @@ const AnswerGridView: React.FC<AnswerGridViewProps> = ({
                             ml: isSeason ? 0 : `${GAP}px`,
                             bgcolor:
                               c.result === true
-                                ? '#4caf50'
+                                ? colors.result.correct
                                 : c.result === false
-                                  ? '#ef5350'
+                                  ? colors.result.incorrect
                                   : isActiveGap
-                                    ? isMe
-                                      ? 'rgba(158,158,158,0.25)'
-                                      : 'rgba(158,158,158,0.15)'
+                                    ? alpha(theme.palette.grey[500], isMe ? 0.25 : 0.15)
                                     : 'transparent',
                             // Game-mode cells: inset purple ring with white separator.
                             // Contained within the cell (no bleed into gaps).
                             ...(c.isGameMode && {
-                              boxShadow:
-                                'inset 0 0 0 2px #7b1fa2, inset 0 0 0 3px rgba(255,255,255,0.95)',
+                              boxShadow: GAME_MODE_RING,
                             }),
                             ...(isMe &&
                               isActiveGap && {
-                                animation: `${catchupPulse} 1.8s ease-in-out infinite`,
+                                animation: `${catchupPulse(alpha(theme.palette.grey[500], 0.25))} 1.8s ease-in-out infinite`,
                                 animationDelay: `${(ci % 4) * 0.15}s`,
                               }),
                           }}
@@ -267,9 +267,9 @@ const AnswerGridView: React.FC<AnswerGridViewProps> = ({
       {showLegend && (
         <Box sx={{ display: 'flex', gap: 1.5, mt: 0.75, ml: `${NAME_W}px`, flexWrap: 'wrap' }}>
           {[
-            { color: '#4caf50', label: 'Correct' },
-            { color: '#ef5350', label: 'Wrong' },
-            { color: 'rgba(158,158,158,0.25)', label: 'Catch-up' },
+            { color: colors.result.correct, label: 'Correct' },
+            { color: colors.result.incorrect, label: 'Wrong' },
+            { color: alpha(theme.palette.grey[500], 0.25), label: 'Catch-up' },
           ].map((item) => (
             <Box key={item.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
               <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: item.color }} />
@@ -286,8 +286,8 @@ const AnswerGridView: React.FC<AnswerGridViewProps> = ({
                 width: 13,
                 height: 13,
                 borderRadius: '3px',
-                bgcolor: '#4caf50',
-                boxShadow: 'inset 0 0 0 2px #7b1fa2, inset 0 0 0 3px rgba(255,255,255,0.95)',
+                bgcolor: colors.result.correct,
+                boxShadow: GAME_MODE_RING,
               }}
             />
             <Typography

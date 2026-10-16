@@ -36,6 +36,7 @@ import {
   getDailyFactSummary,
 } from '../../api/modules/timeline';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
+import { colors } from '../../shared/design-system';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
 
@@ -377,7 +378,7 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
   // Get side comparison color
   const getSideColor = useCallback(
     (side: 'sideA' | 'sideB') => {
-      return side === 'sideA' ? theme.palette.info.main : '#d32f2f';
+      return side === 'sideA' ? theme.palette.info.main : theme.palette.error.main;
     },
     [theme.palette.info.main],
   );
@@ -479,7 +480,7 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
           borderRadius: 3,
           overflow: 'hidden',
           border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
-          boxShadow: `0 2px 12px ${alpha('#000', 0.06)}`,
+          boxShadow: `0 2px 12px ${alpha(colors.scrim, 0.06)}`,
         }}
       >
         {/* Header — matches timeline/celebrations design */}

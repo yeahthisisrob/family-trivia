@@ -27,6 +27,7 @@ import {
   deleteCelebration,
   getCelebrations,
 } from '../../api/modules/celebrations';
+import { colors } from '../../shared/design-system';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
 
@@ -203,7 +204,7 @@ const AllCelebrationsDialog: React.FC<AllCelebrationsDialogProps> = ({
               cursor: 'pointer',
               transition: 'all 0.2s',
               bgcolor: filter === key ? theme.palette.background.paper : 'transparent',
-              boxShadow: filter === key ? `0 1px 3px ${alpha('#000', 0.08)}` : 'none',
+              boxShadow: filter === key ? `0 1px 3px ${alpha(colors.scrim, 0.08)}` : 'none',
               '&:hover':
                 filter !== key ? { bgcolor: alpha(theme.palette.background.paper, 0.5) } : {},
             }}

@@ -64,9 +64,9 @@ const iconPop = keyframes`
 `;
 
 const correctGlow = keyframes`
-  0%   { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.5); }
-  70%  { box-shadow: 0 0 0 12px rgba(76, 175, 80, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+  0%   { box-shadow: 0 0 0 0 ${alpha(colors.result.correct, 0.5)}; }
+  70%  { box-shadow: 0 0 0 12px ${alpha(colors.result.correct, 0)}; }
+  100% { box-shadow: 0 0 0 0 ${alpha(colors.result.correct, 0)}; }
 `;
 
 const headerShake = keyframes`
@@ -557,14 +557,14 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
         glow: `0 0 20px ${alpha(colors.casinoRush.gold, 0.12)}, ${shadows.card}`,
       },
       curling: {
-        border: `2px solid ${alpha('#64b5f6', 0.5)}`,
-        borderTop: `3px solid #1976d2`,
-        glow: `0 0 20px ${alpha('#64b5f6', 0.15)}, ${shadows.card}`,
+        border: `2px solid ${alpha(colors.accent.sky, 0.5)}`,
+        borderTop: `3px solid ${colors.accent.blue}`,
+        glow: `0 0 20px ${alpha(colors.accent.sky, 0.15)}, ${shadows.card}`,
       },
       tetris: {
-        border: `2px solid ${alpha('#9c27b0', 0.5)}`,
-        borderTop: `3px solid #7b1fa2`,
-        glow: `0 0 20px ${alpha('#9c27b0', 0.15)}, ${shadows.card}`,
+        border: `2px solid ${alpha(colors.accent.purple, 0.5)}`,
+        borderTop: `3px solid ${colors.accent.purple}`,
+        glow: `0 0 20px ${alpha(colors.accent.purple, 0.15)}, ${shadows.card}`,
       },
     };
 

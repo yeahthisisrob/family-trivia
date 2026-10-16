@@ -26,6 +26,7 @@ import { useEffect, useRef, useState } from 'react';
 import ConfettiExplosion from 'react-confetti-explosion';
 import { type Birthday, getUpcomingBirthdays } from '../../api/modules/celebrations';
 import { loadSession } from '../../session';
+import { colors } from '../../shared/design-system';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
 import AddCelebrationDialog from './AddCelebrationDialog';
@@ -34,8 +35,8 @@ import AllCelebrationsDialog from './AllCelebrationsDialog';
 const logger = createLogger('UpcomingDates');
 
 const pulseGlow = keyframes`
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255,152,0,0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(255,152,0,0); }
+  0%, 100% { box-shadow: 0 0 0 0 ${alpha(colors.accent.orange, 0.4)}; }
+  50% { box-shadow: 0 0 0 8px ${alpha(colors.accent.orange, 0)}; }
 `;
 
 // ---------------------------------------------------------------------------
@@ -98,7 +99,7 @@ const BirthdayCard: React.FC<{ birthday: Birthday; isToday?: boolean }> = ({
         transition: 'all 0.2s',
         '&:hover': {
           transform: 'translateY(-2px)',
-          boxShadow: `0 4px 12px ${alpha('#000', 0.08)}`,
+          boxShadow: `0 4px 12px ${alpha(colors.scrim, 0.08)}`,
         },
       }}
     >
@@ -147,8 +148,8 @@ const BirthdayCard: React.FC<{ birthday: Birthday; isToday?: boolean }> = ({
           fontSize: '0.55rem',
           fontWeight: 600,
           bgcolor: isToday ? color : alpha(color, 0.1),
-          color: isToday ? '#fff' : color,
-          '& .MuiChip-icon': { fontSize: 11, color: isToday ? '#fff' : color },
+          color: isToday ? colors.onColor : color,
+          '& .MuiChip-icon': { fontSize: 11, color: isToday ? colors.onColor : color },
         }}
       />
     </Box>
@@ -276,7 +277,7 @@ const UpcomingDates: React.FC = () => {
           overflow: 'hidden',
           borderRadius: 3,
           border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
-          boxShadow: `0 2px 12px ${alpha('#000', 0.06)}`,
+          boxShadow: `0 2px 12px ${alpha(colors.scrim, 0.06)}`,
         }}
       >
         <Box
@@ -316,7 +317,14 @@ const UpcomingDates: React.FC = () => {
             duration={3000}
             particleCount={200}
             width={1600}
-            colors={['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F']}
+            colors={[
+              colors.accent.red,
+              colors.accent.teal,
+              colors.accent.sky,
+              colors.accent.orange,
+              colors.accent.green,
+              colors.accent.amber,
+            ]}
           />
         </Box>
       )}
@@ -328,7 +336,7 @@ const UpcomingDates: React.FC = () => {
             overflow: 'hidden',
             borderRadius: 3,
             border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
-            boxShadow: `0 2px 12px ${alpha('#000', 0.06)}`,
+            boxShadow: `0 2px 12px ${alpha(colors.scrim, 0.06)}`,
           }}
         >
           {/* Header */}
@@ -485,7 +493,7 @@ const UpcomingDates: React.FC = () => {
                     transform: 'translateY(-50%)',
                     zIndex: 2,
                     bgcolor: theme.palette.background.paper,
-                    boxShadow: `0 2px 8px ${alpha('#000', 0.12)}`,
+                    boxShadow: `0 2px 8px ${alpha(colors.scrim, 0.12)}`,
                     width: 28,
                     height: 28,
                     '&:hover': { bgcolor: theme.palette.action.hover },
@@ -505,7 +513,7 @@ const UpcomingDates: React.FC = () => {
                     transform: 'translateY(-50%)',
                     zIndex: 2,
                     bgcolor: theme.palette.background.paper,
-                    boxShadow: `0 2px 8px ${alpha('#000', 0.12)}`,
+                    boxShadow: `0 2px 8px ${alpha(colors.scrim, 0.12)}`,
                     width: 28,
                     height: 28,
                     '&:hover': { bgcolor: theme.palette.action.hover },

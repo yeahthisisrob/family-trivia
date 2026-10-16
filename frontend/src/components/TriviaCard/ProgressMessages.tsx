@@ -83,7 +83,8 @@ const ProgressMessages: React.FC<ProgressMessagesProps> = ({ messages, isGenerat
             backgroundColor: 'action.hover',
             '& .MuiLinearProgress-bar': {
               borderRadius: 3,
-              background: 'linear-gradient(90deg, #1976d2 0%, #42a5f5 100%)',
+              background: (t) =>
+                `linear-gradient(90deg, ${t.palette.info.main} 0%, ${t.palette.info.light} 100%)`,
             },
           }}
         />

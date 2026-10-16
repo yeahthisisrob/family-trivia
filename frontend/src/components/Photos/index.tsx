@@ -432,12 +432,12 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
       sx={{
         borderRadius: `${radii.lg}px`,
         overflow: 'hidden',
-        boxShadow: `0 4px 16px ${alpha('#000', 0.08)}`,
+        boxShadow: `0 4px 16px ${alpha(colors.scrim, 0.08)}`,
         border: `1px solid ${colors.border.light}`,
         transition: 'transform 0.15s, box-shadow 0.15s',
         '&:hover': {
           transform: 'translateY(-2px)',
-          boxShadow: `0 8px 24px ${alpha('#000', 0.12)}`,
+          boxShadow: `0 8px 24px ${alpha(colors.scrim, 0.12)}`,
         },
       }}
     >
@@ -455,8 +455,8 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
           <PhotoLibraryRoundedIcon
             sx={{
               fontSize: 56,
-              color: alpha('#fff', 0.92),
-              filter: `drop-shadow(0 2px 6px ${alpha('#000', 0.25)})`,
+              color: alpha(colors.onColor, 0.92),
+              filter: `drop-shadow(0 2px 6px ${alpha(colors.scrim, 0.25)})`,
             }}
           />
           <Box
@@ -467,13 +467,13 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
               width: 26,
               height: 26,
               borderRadius: '50%',
-              bgcolor: alpha('#000', 0.25),
+              bgcolor: alpha(colors.scrim, 0.25),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <OpenInNewIcon sx={{ fontSize: 14, color: '#fff' }} />
+            <OpenInNewIcon sx={{ fontSize: 14, color: colors.onColor }} />
           </Box>
         </Box>
 

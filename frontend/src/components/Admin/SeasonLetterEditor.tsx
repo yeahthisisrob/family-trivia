@@ -24,7 +24,8 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { getMediaUrl, uploadImage } from '../../api/modules/admin';
 import { useAdmin } from '../../contexts/AdminContext';
-import { LetterPaper, PAPER } from '../SeasonLetter/SeasonLetter';
+import { paper } from '../../shared/design-system';
+import { LetterPaper } from '../SeasonLetter/SeasonLetter';
 
 type Kind = 'start' | 'end';
 
@@ -192,8 +193,8 @@ export const SeasonLetterEditor: React.FC<SeasonLetterEditorProps> = ({ season, 
             sx={{
               flex: 1,
               minWidth: 0,
-              bgcolor: PAPER.paper,
-              color: PAPER.ink,
+              bgcolor: paper.paper,
+              color: paper.ink,
               borderRadius: 1,
               px: 3,
               py: 4,
