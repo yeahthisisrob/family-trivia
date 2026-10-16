@@ -110,4 +110,8 @@ export interface FactAnswerEntry {
   timestamp: string;
   questionType: 'shared' | 'basic';
   questionIndex?: number;
+  /** When they last added to it. `timestamp` stays the first time, so comments and reactions keep their place. */
+  editedAt?: string;
+  /** What it said before each time they added to it, oldest first. Nothing is lost. */
+  earlier?: { answer: string; fact: string; at: string }[];
 }

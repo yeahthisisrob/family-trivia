@@ -3400,6 +3400,58 @@ paths:
         "400":
           description: A value didn't fit its setting
 
+  # ──────────────────────────────────────────────
+  # Filling in (backend/features/fill-in)
+  # ──────────────────────────────────────────────
+
+  /fill-in:
+    get:
+      summary: The caller's family questions to go back to, and how full their answers run
+      operationId: getFillIn
+      tags: [Facts]
+      responses:
+        "200":
+          description: Every question with its state, the few most worth going back to, and a summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FillInView"
+    put:
+      summary: Answer a question the caller missed or skipped, or add to an answer (the earlier text is kept)
+      operationId: putFillIn
+      tags: [Facts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [key, answer]
+              properties:
+                key:
+                  type: string
+                  description: '"shared:YYYY-MM-DD" or "basic:N"'
+                answer:
+                  type: string
+                  maxLength: 2000
+      responses:
+        "200":
+          description: Saved, with the fun fact written from it
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [key, fact]
+                properties:
+                  key:
+                    type: string
+                  fact:
+                    type: string
+        "400":
+          description: Empty or too long
+        "404":
+          description: Not one of the family's questions
+
 components:
   schemas:
     # ──────────────────────────────────────────────
@@ -4247,3 +4299,63 @@ components:
           description: Per-person overrides
           additionalProperties:
             type: boolean
+
+    FillInItem:
+      type: object
+      required: [key, questionType, question, answer, words, familyWords, familyAnswered, state, added]
+      properties:
+        key:
+          type: string
+        questionType:
+          type: string
+          enum: [shared, basic]
+        date:
+          type: string
+        questionIndex:
+          type: integer
+        question:
+          type: string
+        answer:
+          type: string
+          nullable: true
+        words:
+          type: integer
+        familyWords:
+          type: integer
+          description: Middle answer length among everyone else who answered
+        familyAnswered:
+          type: integer
+        state:
+          type: string
+          enum: [missing, skipped, brief, full]
+        added:
+          type: integer
+          description: How many times they have added to it
+
+    FillInView:
+      type: object
+      required: [items, suggested, summary]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/FillInItem"
+        suggested:
+          type: array
+          items:
+            type: string
+        summary:
+          type: object
+          required: [answered, total, yourWords, familyWords, depth]
+          properties:
+            answered:
+              type: integer
+            total:
+              type: integer
+            yourWords:
+              type: integer
+            familyWords:
+              type: integer
+            depth:
+              type: string
+              enum: [shorter, similar, fuller]
