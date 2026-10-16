@@ -10,7 +10,7 @@ import { colors } from '../../shared/design-system/tokens/colors';
 
 // Custom category purple — use the design system token
 const CUSTOM_CATEGORY = colors.category.custom;
-const CUSTOM_CATEGORY_DARK = '#7B1FA2';
+const CUSTOM_CATEGORY_DARK = colors.accent.purple;
 
 interface FactEntry {
   userId: string;

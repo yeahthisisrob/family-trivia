@@ -5,6 +5,7 @@ import { Avatar, Box, Card, Chip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useState } from 'react';
+import { colors } from '../../shared/design-system';
 import AnswerResultDialog from '../TriviaCard/AnswerResultDialog';
 import CustomCategoryBanner from './CustomCategoryBanner';
 
@@ -537,7 +538,7 @@ const TimelineCard: React.FC<TimelineCardProps> = ({
   );
 
   if (wrapWithCard) {
-    const customCategoryColor = '#9C27B0'; // Purple for custom categories
+    const customCategoryColor = colors.category.custom;
 
     return (
       <Box sx={{ position: 'relative', width: '100%' }}>
@@ -579,13 +580,8 @@ const TimelineCard: React.FC<TimelineCardProps> = ({
 
 // Helper function
 const getDifficultyColor = (difficulty?: 'easy' | 'normal' | 'hard') => {
-  const DIFFICULTY_COLORS = {
-    easy: '#66bb6a',
-    normal: '#42a5f5',
-    hard: '#ef5350',
-  };
-  if (!difficulty) return DIFFICULTY_COLORS.normal;
-  return DIFFICULTY_COLORS[difficulty] || DIFFICULTY_COLORS.normal;
+  if (!difficulty) return colors.difficulty.normal;
+  return colors.difficulty[difficulty] || colors.difficulty.normal;
 };
 
 export default TimelineCard;

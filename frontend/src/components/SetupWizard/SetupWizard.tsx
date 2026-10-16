@@ -37,6 +37,7 @@ import { useCallback, useState } from 'react';
 
 import * as adminApi from '../../api/modules/admin';
 import { importQuestions } from '../../api/modules/triviaBank';
+import { colors } from '../../shared/design-system';
 import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('SetupWizard');
@@ -432,7 +433,7 @@ interface MembersStepProps {
 const EMPTY_MEMBER: MemberDraft = {
   userId: '',
   group: '',
-  color: '#4CAF50',
+  color: colors.user[1],
   passphrase: '',
   isAdmin: false,
 };
@@ -897,8 +898,8 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
 
   // Step 1: Family Sides state
   const [sides, setSides] = useState<[FamilySide, FamilySide]>([
-    { id: '', name: '', color: '#2196F3' },
-    { id: '', name: '', color: '#E91E63' },
+    { id: '', name: '', color: colors.familySide.side1 },
+    { id: '', name: '', color: colors.accent.pink },
   ]);
   const [rootPartner1, setRootPartner1] = useState('');
   const [rootPartner2, setRootPartner2] = useState('');

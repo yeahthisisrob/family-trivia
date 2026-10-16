@@ -1,6 +1,7 @@
 // File: frontend/src/utils/familyUtils.ts
 // Purpose: Frontend utilities for family side determination
 
+import { alpha } from '@mui/material/styles';
 import type { UserConfigResponse } from '../api/modules/user';
 import { cacheService } from '../services/CacheService';
 import { colors } from '../shared/design-system/tokens/colors';
@@ -26,15 +27,15 @@ export interface FamilySidesMap {
 }
 
 // Fallback purple for family sides that don't have a color set
-const DEFAULT_SIDE_COLOR = '#6200ea';
-const DEFAULT_SIDE_BG = 'rgba(98, 0, 234, 0.1)';
+const DEFAULT_SIDE_COLOR = colors.accent.violet;
+const DEFAULT_SIDE_BG = alpha(DEFAULT_SIDE_COLOR, 0.1);
 
 // Default all family option
 const DEFAULT_ALL_OPTION = {
   id: 'all',
   label: 'All Family',
   color: colors.defaultUser,
-  bgColor: 'rgba(25, 118, 210, 0.1)',
+  bgColor: alpha(colors.defaultUser, 0.1),
 };
 
 // Function to get family sides that can be refreshed

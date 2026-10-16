@@ -3,12 +3,13 @@
 
 import type { CategoryResponse, SystemCategory } from '../api/modules/trivia';
 import { cacheService } from '../services/CacheService';
+import { colors } from '../shared/design-system/tokens/colors';
 
 // Default color in case the category doesn't have one
-const DEFAULT_CATEGORY_COLOR = '#607D8B'; // Blue Gray
+const DEFAULT_CATEGORY_COLOR = colors.category.default;
 
 // Default color for custom categories
-const CUSTOM_CATEGORY_COLOR = '#9C27B0'; // Purple
+const CUSTOM_CATEGORY_COLOR = colors.category.custom;
 
 /**
  * Check if a category name belongs to a custom category

@@ -21,6 +21,7 @@ import {
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useState } from 'react';
+import { colors as dsColors } from '../../shared/design-system/tokens/colors';
 import { getUserColor, getUserInitials } from '../../utils';
 import { getCategoryColor, isCustomCategory } from '../../utils/categoryUtils';
 import CategoryChip from './CategoryChip';
@@ -41,10 +42,10 @@ const BREAKDOWN_SEGMENTS: Array<{
   label: string;
   color: string;
 }> = [
-  { key: 'regularPoints', label: 'Trivia', color: '#1976d2' },
-  { key: 'gameModePoints', label: 'Games', color: '#7b1fa2' },
-  { key: 'arcadeBonusPoints', label: 'Arcade', color: '#f57c00' },
-  { key: 'familyFeudPoints', label: 'Feud', color: '#388e3c' },
+  { key: 'regularPoints', label: 'Trivia', color: dsColors.accent.blue },
+  { key: 'gameModePoints', label: 'Games', color: dsColors.accent.purple },
+  { key: 'arcadeBonusPoints', label: 'Arcade', color: dsColors.accent.orange },
+  { key: 'familyFeudPoints', label: 'Feud', color: dsColors.accent.green },
 ];
 
 const PointBreakdownBar: React.FC<{ breakdown: PointBreakdown; theme: Theme }> = ({
@@ -102,7 +103,7 @@ const PointBreakdownBar: React.FC<{ breakdown: PointBreakdown; theme: Theme }> =
               fontSize: '0.55rem',
               fontWeight: 700,
               bgcolor: s.color,
-              color: 'white',
+              color: dsColors.onColor,
             }}
           />
         ))}
@@ -144,7 +145,13 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   const breakdown = player.pointBreakdown;
 
   const rankColor =
-    rank === 1 ? '#FFD700' : rank === 2 ? '#C0C0C0' : rank === 3 ? '#CD7F32' : undefined;
+    rank === 1
+      ? dsColors.medal.gold
+      : rank === 2
+        ? dsColors.medal.silver
+        : rank === 3
+          ? dsColors.medal.bronze
+          : undefined;
 
   const questionsProgress =
     player.questionsAnswered != null && maxQuestionsAsked != null && maxQuestionsAsked > 0
@@ -169,7 +176,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
         bgcolor: theme.palette.background.paper,
         transition: 'all 0.15s ease',
         '&:hover': {
-          boxShadow: `0 4px 20px ${alpha('#000', 0.08)}`,
+          boxShadow: `0 4px 20px ${alpha(dsColors.scrim, 0.08)}`,
           borderColor: alpha(theme.palette.primary.main, 0.3),
         },
         '&:active': { transform: 'scale(0.995)' },
@@ -277,9 +284,9 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
                   fontWeight: 700,
                   bgcolor:
                     topCategory === 'Custom' || isCustomCategory(topCategory)
-                      ? '#9C27B0'
+                      ? dsColors.category.custom
                       : getCategoryColor(topCategory),
-                  color: 'white',
+                  color: dsColors.onColor,
                 }}
               />
             )}

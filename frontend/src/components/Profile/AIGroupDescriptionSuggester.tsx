@@ -17,10 +17,12 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 
 import { type GroupDescriptionSuggestion, suggestGroupDescription } from '../../api';
+import { colors } from '../../shared/design-system';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
 
@@ -225,7 +227,7 @@ const AIGroupDescriptionSuggester: React.FC<AIGroupDescriptionSuggesterProps> = 
                   p: 2,
                   bgcolor: 'background.default',
                   borderColor: 'secondary.main',
-                  boxShadow: '0 0 0 1px rgba(0,0,0,0.05)',
+                  boxShadow: `0 0 0 1px ${alpha(colors.scrim, 0.05)}`,
                   position: 'relative',
                   fontWeight: 'medium',
                 }}

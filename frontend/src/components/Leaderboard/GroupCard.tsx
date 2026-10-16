@@ -87,7 +87,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
         border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
         transition: 'all 0.15s ease',
         '&:hover': {
-          boxShadow: `0 4px 20px ${alpha('#000', 0.08)}`,
+          boxShadow: `0 4px 20px ${alpha(dsColors.scrim, 0.08)}`,
           borderColor: alpha(theme.palette.primary.main, 0.2),
         },
       }}
@@ -224,10 +224,25 @@ const GroupCard: React.FC<GroupCardProps> = ({
               agg.regularPoints + agg.gameModePoints + agg.arcadeBonusPoints + agg.familyFeudPoints;
             if (total <= 0) return null;
             const segs = [
-              { key: 'r', label: 'Trivia', color: '#1976d2', value: agg.regularPoints },
-              { key: 'g', label: 'Games', color: '#7b1fa2', value: agg.gameModePoints },
-              { key: 'a', label: 'Arcade', color: '#f57c00', value: agg.arcadeBonusPoints },
-              { key: 'f', label: 'Feud', color: '#388e3c', value: agg.familyFeudPoints },
+              { key: 'r', label: 'Trivia', color: dsColors.accent.blue, value: agg.regularPoints },
+              {
+                key: 'g',
+                label: 'Games',
+                color: dsColors.accent.purple,
+                value: agg.gameModePoints,
+              },
+              {
+                key: 'a',
+                label: 'Arcade',
+                color: dsColors.accent.orange,
+                value: agg.arcadeBonusPoints,
+              },
+              {
+                key: 'f',
+                label: 'Feud',
+                color: dsColors.accent.green,
+                value: agg.familyFeudPoints,
+              },
             ].filter((s) => s.value > 0);
             return (
               <Box sx={{ mt: 0.5 }}>

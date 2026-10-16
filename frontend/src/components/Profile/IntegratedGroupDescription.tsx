@@ -13,10 +13,12 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { type GroupDescription, updateGroupDescription } from '../../api';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
+import { colors } from '../../shared/design-system';
 import { getUserGroup } from '../../utils';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
@@ -291,7 +293,7 @@ const IntegratedGroupDescription: React.FC<IntegratedGroupDescriptionProps> = ({
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2,
                   '&.Mui-focused': {
-                    boxShadow: '0 0 0 3px rgba(0,0,0,0.05)',
+                    boxShadow: `0 0 0 3px ${alpha(colors.scrim, 0.05)}`,
                   },
                 },
               }}

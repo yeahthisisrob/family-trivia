@@ -12,6 +12,7 @@ import { Avatar, Box, Card, Chip, IconButton, Typography, useTheme } from '@mui/
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useState } from 'react';
+import { colors } from '../../shared/design-system';
 
 interface GameEntry {
   question: string;
@@ -142,9 +143,11 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
                   fontSize: '0.6rem',
                   fontWeight: 700,
                   bgcolor:
-                    multiplier >= 5 ? alpha('#FFD700', 0.2) : alpha(theme.palette.info.main, 0.1),
+                    multiplier >= 5
+                      ? alpha(colors.accent.gold, 0.2)
+                      : alpha(theme.palette.info.main, 0.1),
                   color: multiplier >= 5 ? 'goldenrod' : theme.palette.info.main,
-                  border: `1px solid ${multiplier >= 5 ? alpha('#FFD700', 0.4) : alpha(theme.palette.info.main, 0.2)}`,
+                  border: `1px solid ${multiplier >= 5 ? alpha(colors.accent.gold, 0.4) : alpha(theme.palette.info.main, 0.2)}`,
                 }}
               />
             )}

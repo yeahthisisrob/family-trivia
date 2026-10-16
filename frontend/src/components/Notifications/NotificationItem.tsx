@@ -11,6 +11,7 @@ import { Avatar, Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { formatDistance } from 'date-fns';
 import type React from 'react';
+import { colors } from '../../shared/design-system';
 import { getUserColor, getUserInitials } from '../../utils';
 
 interface Props {
@@ -134,9 +135,9 @@ const NotificationItem: React.FC<Props> = ({ item, onClick }) => {
             height: 28,
             mt: 0.25,
             bgcolor: isHighScore
-              ? '#FFD700'
+              ? colors.medal.gold
               : isFeud
-                ? '#9c27b0'
+                ? colors.accent.purple
                 : isAlbumAdded
                   ? theme.palette.info.main
                   : theme.palette.primary.main,

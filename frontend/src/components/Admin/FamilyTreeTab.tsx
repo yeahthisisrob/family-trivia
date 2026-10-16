@@ -16,6 +16,7 @@ import { useState } from 'react';
 
 import type { SideConfig } from '../../api/modules/admin';
 import { useAdmin } from '../../contexts/AdminContext';
+import { colors } from '../../shared/design-system';
 
 const FamilyTreeTab: React.FC = () => {
   const admin = useAdmin();
@@ -58,7 +59,7 @@ const FamilyTreeTab: React.FC = () => {
     const id = `side-${Date.now()}`;
     setEditSides((prev) => ({
       ...prev,
-      [id]: { id, name: 'New Side', color: '#1976d2', groups: [] },
+      [id]: { id, name: 'New Side', color: colors.defaultUser, groups: [] },
     }));
   };
 

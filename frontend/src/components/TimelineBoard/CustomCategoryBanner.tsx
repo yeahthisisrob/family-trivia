@@ -3,6 +3,7 @@ import StarsIcon from '@mui/icons-material/Stars';
 import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
+import { colors } from '../../shared/design-system';
 
 interface CustomCategoryBannerProps {
   text?: string;
@@ -13,7 +14,7 @@ const CustomCategoryBanner: React.FC<CustomCategoryBannerProps> = ({
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const theme = useTheme();
-  const bannerColor = '#9C27B0'; // Purple for custom categories
+  const bannerColor = colors.category.custom;
 
   return (
     <Box

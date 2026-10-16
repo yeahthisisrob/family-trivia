@@ -4,16 +4,19 @@
 import type { NotificationItem } from '@family-trivia/shared';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import { Badge, IconButton } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useCallback, useState } from 'react';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { colors, tint } from '../../shared/design-system';
 import NotificationPanel from './NotificationPanel';
 
 interface Props {
   /** Called when a comment notification is clicked — navigate to that thread */
   onNotificationClick?: (item: NotificationItem) => void;
 }
+
+// The bell sits on the app header, so it uses the theme's on-header color.
+const onHeader = `var(--ft-on-header, ${colors.onColor})`;
 
 const NotificationBell: React.FC<Props> = ({ onNotificationClick }) => {
   const { unreadCount, notifications, markAllRead, markRead } = useNotifications();
@@ -49,8 +52,8 @@ const NotificationBell: React.FC<Props> = ({ onNotificationClick }) => {
         size="small"
         onClick={handleOpen}
         sx={{
-          color: alpha('#c8e6c9', 0.85),
-          '&:hover': { color: '#fff' },
+          color: tint(onHeader, 0.85),
+          '&:hover': { color: onHeader },
         }}
       >
         <Badge

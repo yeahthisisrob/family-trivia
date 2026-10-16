@@ -54,7 +54,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   // The app bar takes its colors from the active theme (themes/registry.ts):
   // the header may be a gradient, and text on it is the theme's onHeader.
   const headerBg = colors.surface.header;
-  const onHeader = 'var(--ft-on-header, #fff)';
+  const onHeader = `var(--ft-on-header, ${colors.onColor})`;
   const activeBg = tint(onHeader, 0.15);
   const activeText = onHeader;
   const inactiveText = tint(onHeader, 0.78);
@@ -183,7 +183,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       {/* Loading dots */}
       {loading && (
         <Box sx={{ py: 0.5 }}>
-          <LoadingDots size={5} color="rgba(255,255,255,0.6)" mt={0} />
+          <LoadingDots size={5} color={tint(onHeader, 0.6)} mt={0} />
         </Box>
       )}
     </AppBar>
