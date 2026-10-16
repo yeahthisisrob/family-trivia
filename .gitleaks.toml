@@ -1,0 +1,8 @@
+# Credentials only; private-but-not-secret details are the leak guard's job
+# (scripts/leak-guard.mjs, docs/decisions/0006-privacy-by-default.md).
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Placeholders in example configs"
+paths = ['''(^|/)[^/]*\.example\.[^/]+$''', '''(^|/)\.env\.example$''']

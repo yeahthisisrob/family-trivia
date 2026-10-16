@@ -1,0 +1,41 @@
+# Git hooks, run by lefthook (pinned in mise.toml). Install with `just install`.
+# Every command goes through `mise exec --` because git runs hooks in a bare
+# shell where pnpm and gitleaks may not be on PATH.
+#
+# pre-commit is fast (staged files only, fixes what it can) so nobody reaches
+# for --no-verify. pre-push proves the thing works and may take a minute.
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: format-and-lint
+      glob: '*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,css}'
+      run: mise exec -- pnpm exec biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      stage_fixed: true
+
+    - name: secrets
+      run: mise exec -- gitleaks git --staged --redact --no-banner
+
+    - name: family-privacy
+      run: mise exec -- node scripts/leak-guard.mjs --staged
+
+commit-msg:
+  jobs:
+    - name: family-privacy
+      run: mise exec -- node scripts/leak-guard.mjs --message {1}
+
+pre-push:
+  parallel: false
+  jobs:
+    - name: typecheck
+      run: mise exec -- pnpm -r run typecheck
+    - name: deadcode
+      run: mise exec -- pnpm exec knip --no-progress
+    - name: test
+      run: mise exec -- pnpm -r run test
+    - name: contract
+      # The generated types are committed; fail if they've drifted from the schema.
+      run: |
+        mise exec -- pnpm --filter @family-trivia/shared run contract
+        git diff --exit-code --stat shared/generated \
+          || { echo "shared/generated is stale: run 'just contract' and commit the result"; exit 1; }
