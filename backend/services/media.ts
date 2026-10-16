@@ -48,9 +48,17 @@ export async function readUrl(key: string): Promise<string | null> {
   });
 }
 
-/** A short-lived link that downloads an export as a named file. */
+/**
+ * What may be handed out as a download: a family archive (exports/) or a
+ * book and its cover (books/). Nothing else in the bucket.
+ */
+export const isDownloadKey = (key: string) =>
+  /^exports\/[a-z0-9_-]+\/[\w-]+\.zip$/.test(key) ||
+  /^books\/(season-\d+|people\/[a-z0-9_-]+)\/([a-z]+\/)?[\w-]+(\.cover)?\.pdf$/.test(key);
+
+/** A short-lived link that downloads an export or a book as a named file. */
 export async function downloadUrl(key: string, filename: string): Promise<string> {
-  if (!/^exports\/[a-z0-9_-]+\/[\w-]+\.zip$/.test(key)) throw new Error('Not an export key');
+  if (!isDownloadKey(key)) throw new Error('Not a downloadable key');
   return getSignedUrl(
     s3,
     new GetObjectCommand({

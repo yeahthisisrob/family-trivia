@@ -32,10 +32,17 @@ export const lookBackApi = {
       season,
       tone,
       fresh,
+    }).then((r) => {
+      // A reply without its count is a failure, not "nothing left".
+      if (typeof r?.left !== 'number') throw new Error('The writing didn’t come back');
+      return r;
     }),
   /** The print-ready PDF: kept until the season's answers change, unless asked fresh. */
   makeBook: (season: number, tone: BookTone, fresh = false) =>
-    post<SeasonBook>('/seasons/book', { season, tone, fresh }),
+    post<SeasonBook>('/seasons/book', { season, tone, fresh }).then((r) => {
+      if (!r?.url) throw new Error('The book didn’t come back');
+      return r;
+    }),
   /** Every book made for the season; none is ever replaced. */
   versions: (season: number) =>
     apiService
@@ -45,5 +52,5 @@ export const lookBackApi = {
         undefined,
         true,
       )
-      .then((r) => r.versions),
+      .then((r) => (Array.isArray(r?.versions) ? r.versions : [])),
 };

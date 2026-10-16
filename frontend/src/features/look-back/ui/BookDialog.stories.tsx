@@ -82,3 +82,25 @@ export const MakeTheBook: Story = {
     );
   },
 };
+
+/** When the server can't make it: a message, never a blank page. */
+export const WhenItFails: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/seasons/book/versions', () =>
+          HttpResponse.json({ ok: false, error: 'Not a downloadable key' }, { status: 500 }),
+        ),
+        http.post('*/seasons/book/writing', () =>
+          HttpResponse.json({ ok: false, error: 'Not a downloadable key' }, { status: 500 }),
+        ),
+      ],
+    },
+  },
+  play: async () => {
+    const page = within(document.body);
+    await userEvent.click(await page.findByRole('button', { name: 'Make the book' }));
+    await expect(await page.findByRole('alert', {}, { timeout: 15000 })).toBeInTheDocument();
+    await expect(page.getByRole('button', { name: 'Make the book' })).toBeInTheDocument();
+  },
+};
