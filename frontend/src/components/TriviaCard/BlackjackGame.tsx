@@ -17,6 +17,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { getCasinoBalance, updateCasinoBalance } from '../../api/modules/casino';
 import { getBlackjackTaunt } from '../../api/modules/gameAI';
+import { colors } from '../../shared/design-system/tokens/colors';
+import { games } from '../../shared/design-system/tokens/games';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
@@ -25,11 +27,12 @@ const logger = createLogger('BlackjackGame');
 
 // ── Theme (matches SlotMachine) ─────────────────────────────────
 
-const gold = '#ffd700';
-const darkBg = '#1a1a2e';
-const frameBg = '#2c2c44';
-const feltGreen = '#0d5930';
-const feltGradient = `radial-gradient(ellipse at 50% 40%, #0f6b38, ${feltGreen} 60%, #0a4a26)`;
+const art = games.blackjack;
+const gold = art.gold;
+const darkBg = art.cabinet;
+const frameBg = art.frame;
+const feltGreen = art.felt;
+const feltGradient = `radial-gradient(ellipse at 50% 40%, ${art.feltLight}, ${feltGreen} 60%, ${art.feltDark})`;
 
 // ── Card types ──────────────────────────────────────────────────
 
@@ -48,10 +51,10 @@ const SUIT_SYM: Record<Suit, string> = {
   spades: '\u2660',
 };
 const SUIT_CLR: Record<Suit, string> = {
-  hearts: '#ef5350',
-  diamonds: '#ef5350',
-  clubs: '#263238',
-  spades: '#263238',
+  hearts: art.suitRed,
+  diamonds: art.suitRed,
+  clubs: art.suitBlack,
+  spades: art.suitBlack,
 };
 
 function handTotal(hand: Card[]): number {
@@ -99,9 +102,9 @@ const flipCard = keyframes`
 `;
 
 const winPulse = keyframes`
-  0%   { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.6); transform: scale(1); }
-  50%  { box-shadow: 0 0 30px 10px rgba(255, 215, 0, 0.2); transform: scale(1.02); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); transform: scale(1); }
+  0%   { box-shadow: 0 0 0 0 ${alpha(gold, 0.6)}; transform: scale(1); }
+  50%  { box-shadow: 0 0 30px 10px ${alpha(gold, 0.2)}; transform: scale(1.02); }
+  100% { box-shadow: 0 0 0 0 ${alpha(gold, 0)}; transform: scale(1); }
 `;
 
 const loseShake = keyframes`
@@ -398,7 +401,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
             flexShrink: 0,
             background: `repeating-linear-gradient(135deg, ${frameBg}, ${frameBg} 3px, ${darkBg} 3px, ${darkBg} 6px)`,
             border: `2px solid ${alpha(gold, 0.3)}`,
-            boxShadow: `0 3px 10px ${alpha('#000', 0.5)}`,
+            boxShadow: `0 3px 10px ${alpha(colors.scrim, 0.5)}`,
             animation: `${dealCard} 0.35s ${delay}ms ease-out both`,
           }}
         />
@@ -407,14 +410,15 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
     const isRed = card.suit === 'hearts' || card.suit === 'diamonds';
     return (
       <Box
+        data-light-surface
         sx={{
           width: 56,
           height: 80,
           borderRadius: `${radii.md}px`,
           flexShrink: 0,
-          bgcolor: '#fafafa',
-          border: `2px solid ${alpha('#000', 0.12)}`,
-          boxShadow: `0 3px 10px ${alpha('#000', 0.3)}`,
+          bgcolor: art.cardFace,
+          border: `2px solid ${alpha(colors.scrim, 0.12)}`,
+          boxShadow: `0 3px 10px ${alpha(colors.scrim, 0.3)}`,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -473,7 +477,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
           sx={{
             fontSize: '0.65rem',
             fontWeight: 800,
-            color: alpha('#fff', 0.55),
+            color: alpha(colors.onColor, 0.55),
             textTransform: 'uppercase',
             letterSpacing: 1.5,
           }}
@@ -488,8 +492,8 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
               borderRadius: 1,
               minWidth: 22,
               textAlign: 'center',
-              bgcolor: total === 21 ? gold : total > 21 ? '#ef5350' : alpha('#fff', 0.15),
-              color: total === 21 ? darkBg : '#fff',
+              bgcolor: total === 21 ? gold : total > 21 ? art.loss : alpha(colors.onColor, 0.15),
+              color: total === 21 ? darkBg : colors.onColor,
               fontSize: '0.7rem',
               fontWeight: 900,
               ...(total === 21 && { animation: `${glowText} 1.5s ease-in-out infinite` }),
@@ -531,7 +535,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
           borderRadius: 3,
           border: `3px solid ${gold}`,
           overflow: 'hidden',
-          boxShadow: `0 10px 40px rgba(0,0,0,0.6), inset 0 1px 0 ${alpha(gold, 0.2)}`,
+          boxShadow: `0 10px 40px ${alpha(colors.scrim, 0.6)}, inset 0 1px 0 ${alpha(gold, 0.2)}`,
         }}
       >
         {/* ── Header ─────────────────────────────────────────────── */}
@@ -546,7 +550,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
           }}
         >
           <Box sx={{ flex: 1 }}>
-            <Typography sx={{ fontSize: '0.72rem', color: alpha('#fff', 0.55) }}>
+            <Typography sx={{ fontSize: '0.72rem', color: alpha(colors.onColor, 0.55) }}>
               CREDITS{' '}
               <Box
                 component="span"
@@ -574,7 +578,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
             <IconButton
               size="small"
               onClick={endSession}
-              sx={{ color: alpha('#fff', 0.4), '&:hover': { color: '#fff' } }}
+              sx={{ color: alpha(colors.onColor, 0.4), '&:hover': { color: colors.onColor } }}
             >
               <CloseIcon sx={{ fontSize: 18 }} />
             </IconButton>
@@ -616,7 +620,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
               <Typography
                 sx={{
                   fontSize: '0.7rem',
-                  color: alpha('#fff', 0.5),
+                  color: alpha(colors.onColor, 0.5),
                   textTransform: 'uppercase',
                   letterSpacing: 2,
                   fontWeight: 700,
@@ -644,15 +648,15 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
                         alignItems: 'center',
                         justifyContent: 'center',
                         background: active
-                          ? `radial-gradient(circle at 35% 35%, #ffe066, ${gold}, #c9a400)`
-                          : `radial-gradient(circle at 35% 35%, #555, #333, #222)`,
-                        color: active ? darkBg : alpha('#fff', 0.7),
+                          ? `radial-gradient(circle at 35% 35%, ${art.chipGoldLight}, ${gold}, ${art.chipGoldDark})`
+                          : `radial-gradient(circle at 35% 35%, ${art.chipIdleLight}, ${art.chipIdle}, ${art.chipIdleDark})`,
+                        color: active ? darkBg : alpha(colors.onColor, 0.7),
                         fontWeight: 900,
                         fontSize: '0.95rem',
-                        border: `3px solid ${active ? '#fff' : alpha('#fff', 0.15)}`,
+                        border: `3px solid ${active ? colors.onColor : alpha(colors.onColor, 0.15)}`,
                         boxShadow: active
-                          ? `0 0 12px ${alpha(gold, 0.6)}, inset 0 1px 0 ${alpha('#fff', 0.4)}`
-                          : `0 2px 6px ${alpha('#000', 0.4)}, inset 0 1px 0 ${alpha('#fff', 0.08)}`,
+                          ? `0 0 12px ${alpha(gold, 0.6)}, inset 0 1px 0 ${alpha(colors.onColor, 0.4)}`
+                          : `0 2px 6px ${alpha(colors.scrim, 0.4)}, inset 0 1px 0 ${alpha(colors.onColor, 0.08)}`,
                         cursor: 'pointer',
                         transition: 'all 0.12s',
                         animation: active ? `${chipPop} 0.2s ease-out` : 'none',
@@ -677,14 +681,17 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
                   fontSize: '0.95rem',
                   textTransform: 'none',
                   boxShadow: `0 4px 16px ${alpha(gold, 0.4)}`,
-                  '&:hover': { bgcolor: '#ffca28', boxShadow: `0 4px 20px ${alpha(gold, 0.6)}` },
+                  '&:hover': {
+                    bgcolor: art.goldHover,
+                    boxShadow: `0 4px 20px ${alpha(gold, 0.6)}`,
+                  },
                 }}
               >
                 Deal — {bet} credits
               </Button>
 
               {handsPlayed > 0 && (
-                <Typography sx={{ fontSize: '0.68rem', color: alpha('#fff', 0.35) }}>
+                <Typography sx={{ fontSize: '0.68rem', color: alpha(colors.onColor, 0.35) }}>
                   {handsPlayed} hands · {handsWon} won
                 </Typography>
               )}
@@ -703,11 +710,11 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
                 gap: 2,
               }}
             >
-              <Typography sx={{ fontSize: '1.3rem', fontWeight: 900, color: '#ef5350' }}>
+              <Typography sx={{ fontSize: '1.3rem', fontWeight: 900, color: art.loss }}>
                 Out of credits!
               </Typography>
               <Typography
-                sx={{ fontSize: '0.78rem', color: alpha('#fff', 0.5), textAlign: 'center' }}
+                sx={{ fontSize: '0.78rem', color: alpha(colors.onColor, 0.5), textAlign: 'center' }}
               >
                 {handsPlayed} hands · {handsWon} won
               </Typography>
@@ -720,7 +727,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
                   textTransform: 'none',
                   borderRadius: `${radii.md}px`,
                   px: 3,
-                  '&:hover': { bgcolor: '#ffca28' },
+                  '&:hover': { bgcolor: art.goldHover },
                 }}
               >
                 Back to Arcade
@@ -763,9 +770,9 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
                     bgcolor: isWin
                       ? alpha(gold, 0.15)
                       : isLoss
-                        ? alpha('#ef5350', 0.15)
-                        : alpha('#fff', 0.06),
-                    border: `2px solid ${isWin ? alpha(gold, 0.5) : isLoss ? alpha('#ef5350', 0.4) : alpha('#fff', 0.12)}`,
+                        ? alpha(art.loss, 0.15)
+                        : alpha(colors.onColor, 0.06),
+                    border: `2px solid ${isWin ? alpha(gold, 0.5) : isLoss ? alpha(art.loss, 0.4) : alpha(colors.onColor, 0.12)}`,
                     ...(isBlackjack && {
                       border: `2px solid ${gold}`,
                       boxShadow: `0 0 20px ${alpha(gold, 0.3)}`,
@@ -776,7 +783,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
                     sx={{
                       fontWeight: 900,
                       fontSize: isBlackjack ? '1.2rem' : '1rem',
-                      color: isWin ? gold : isLoss ? '#ef5350' : '#fff',
+                      color: isWin ? gold : isLoss ? art.loss : colors.onColor,
                       letterSpacing: isBlackjack ? 2 : 0,
                       ...(isBlackjack && { animation: `${glowText} 1.5s ease-in-out infinite` }),
                     }}
@@ -788,7 +795,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
                       sx={{
                         fontSize: '0.72rem',
                         fontStyle: 'italic',
-                        color: alpha('#fff', 0.6),
+                        color: alpha(colors.onColor, 0.6),
                         mt: 0.5,
                       }}
                     >
@@ -814,7 +821,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
                         textTransform: 'none',
                         fontSize: '0.95rem',
                         boxShadow: `0 3px 10px ${alpha(gold, 0.3)}`,
-                        '&:hover': { bgcolor: '#ffca28' },
+                        '&:hover': { bgcolor: art.goldHover },
                       }}
                     >
                       Hit
@@ -822,16 +829,16 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
                     <Button
                       onClick={stand}
                       sx={{
-                        bgcolor: alpha('#fff', 0.1),
-                        color: '#fff',
+                        bgcolor: alpha(colors.onColor, 0.1),
+                        color: colors.onColor,
                         fontWeight: 900,
                         flex: 1,
                         py: 1.25,
                         borderRadius: `${radii.md}px`,
                         textTransform: 'none',
                         fontSize: '0.95rem',
-                        border: `1px solid ${alpha('#fff', 0.15)}`,
-                        '&:hover': { bgcolor: alpha('#fff', 0.18) },
+                        border: `1px solid ${alpha(colors.onColor, 0.15)}`,
+                        '&:hover': { bgcolor: alpha(colors.onColor, 0.18) },
                       }}
                     >
                       Stand
@@ -840,16 +847,16 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
                       <Button
                         onClick={doubleDown}
                         sx={{
-                          bgcolor: alpha('#e040fb', 0.15),
-                          color: '#e040fb',
+                          bgcolor: alpha(art.double, 0.15),
+                          color: art.double,
                           fontWeight: 900,
                           flex: 1,
                           py: 1.25,
                           borderRadius: `${radii.md}px`,
                           textTransform: 'none',
                           fontSize: '0.95rem',
-                          border: `1px solid ${alpha('#e040fb', 0.3)}`,
-                          '&:hover': { bgcolor: alpha('#e040fb', 0.25) },
+                          border: `1px solid ${alpha(art.double, 0.3)}`,
+                          '&:hover': { bgcolor: alpha(art.double, 0.25) },
                         }}
                       >
                         2x
@@ -859,9 +866,13 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
                 )}
                 {phase === 'dealerTurn' && (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1 }}>
-                    <CasinoIcon sx={{ color: alpha('#fff', 0.4), fontSize: 18 }} />
+                    <CasinoIcon sx={{ color: alpha(colors.onColor, 0.4), fontSize: 18 }} />
                     <Typography
-                      sx={{ color: alpha('#fff', 0.5), fontSize: '0.85rem', fontWeight: 600 }}
+                      sx={{
+                        color: alpha(colors.onColor, 0.5),
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                      }}
                     >
                       Dealer drawing...
                     </Typography>
@@ -880,7 +891,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
                       textTransform: 'none',
                       fontSize: '0.95rem',
                       boxShadow: `0 3px 10px ${alpha(gold, 0.3)}`,
-                      '&:hover': { bgcolor: '#ffca28' },
+                      '&:hover': { bgcolor: art.goldHover },
                     }}
                   >
                     {balance > 0 ? 'Next Hand' : 'View Results'}
@@ -894,7 +905,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
         {/* ── Footer — current bet + stats ───────────────────────── */}
         <Box
           sx={{
-            bgcolor: alpha('#000', 0.3),
+            bgcolor: alpha(colors.scrim, 0.3),
             borderTop: `1px solid ${alpha(gold, 0.15)}`,
             px: 2,
             py: 0.75,
@@ -903,20 +914,20 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
             alignItems: 'center',
           }}
         >
-          <Typography sx={{ fontSize: '0.65rem', color: alpha('#fff', 0.4) }}>
+          <Typography sx={{ fontSize: '0.65rem', color: alpha(colors.onColor, 0.4) }}>
             BET:{' '}
             <Box component="span" sx={{ color: gold, fontWeight: 800 }}>
               {bet}
             </Box>
           </Typography>
-          <Typography sx={{ fontSize: '0.65rem', color: alpha('#fff', 0.4) }}>
+          <Typography sx={{ fontSize: '0.65rem', color: alpha(colors.onColor, 0.4) }}>
             WON:{' '}
             <Box component="span" sx={{ color: gold, fontWeight: 800 }}>
               {handsWon}
             </Box>
             /{handsPlayed}
           </Typography>
-          <Typography sx={{ fontSize: '0.65rem', color: alpha('#fff', 0.4) }}>
+          <Typography sx={{ fontSize: '0.65rem', color: alpha(colors.onColor, 0.4) }}>
             FLOOR:{' '}
             <Box component="span" sx={{ color: gold, fontWeight: 800 }}>
               {floorVal}

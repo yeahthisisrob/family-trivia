@@ -3,6 +3,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 
 import type { ProgressMessage } from '../../api/modules/trivia';
+import { games } from '../../shared/design-system/tokens/games';
 
 interface CasinoRushProgressProps {
   messages: ProgressMessage[];
@@ -66,7 +67,7 @@ const CasinoRushProgress: React.FC<CasinoRushProgressProps> = ({ messages, compa
           backgroundColor: 'action.hover',
           '& .MuiLinearProgress-bar': {
             borderRadius: 2,
-            background: 'linear-gradient(90deg, #ff6b6b 0%, #ffa502 100%)',
+            background: games.casino.rushBar,
           },
         }}
       />

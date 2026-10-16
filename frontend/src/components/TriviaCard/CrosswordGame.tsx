@@ -28,12 +28,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { submitArcadeScore } from '../../api/modules/arcade';
 import { apiService } from '../../services/ApiService';
 import { colors } from '../../shared/design-system/tokens/colors';
+import { games } from '../../shared/design-system/tokens/games';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
 
 const logger = createLogger('CrosswordGame');
+const art = games.crossword;
 
 // ── Constants ──────────────────────────────────────────────────────
 
@@ -547,13 +549,15 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
     return (
       <Box
         ref={gridRef}
+        // The grid is drawn light on purpose, in both schemes.
+        data-light-surface
         sx={{
           display: 'grid',
           gridTemplateColumns: `repeat(${size}, ${CELL_SIZE}px)`,
           gridTemplateRows: `repeat(${size}, ${CELL_SIZE}px)`,
           gap: '1px',
-          bgcolor: alpha('#000', 0.3),
-          border: `1px solid ${alpha('#000', 0.3)}`,
+          bgcolor: art.gridLine,
+          border: `1px solid ${art.gridLine}`,
           width: gridWidth + size + 1,
           mx: 'auto',
           my: 1,
@@ -566,7 +570,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
                 <Box
                   key={`${r}-${c}`}
                   data-cell={`${r}-${c}`}
-                  sx={{ bgcolor: '#2c2c2c', width: CELL_SIZE, height: CELL_SIZE }}
+                  sx={{ bgcolor: art.block, width: CELL_SIZE, height: CELL_SIZE }}
                 />
               );
             }
@@ -576,11 +580,11 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
             const checkState = checkedCells.get(`${r},${c}`);
             const input = userInput[r]?.[c] ?? '';
 
-            let bg = '#ffffff';
+            let bg: string = art.cell;
             if (checkState === 'correct') bg = alpha(colors.result.correct, 0.25);
             else if (checkState === 'wrong') bg = alpha(colors.result.incorrect, 0.25);
-            else if (isActive) bg = alpha('#2196f3', 0.15);
-            else if (isInWord) bg = alpha('#2196f3', 0.07);
+            else if (isActive) bg = alpha(art.highlight, 0.15);
+            else if (isInWord) bg = alpha(art.highlight, 0.07);
 
             return (
               <Box
@@ -596,7 +600,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: isActive ? '2px solid #1565c0' : '1px solid transparent',
+                  border: isActive ? `2px solid ${art.activeCell}` : '1px solid transparent',
                   boxSizing: 'border-box',
                   transition: `background ${motion.duration.fast} ${motion.ease.smooth}`,
                   animation: checkState === 'wrong' ? `${shake} 0.4s ease` : undefined,
@@ -614,7 +618,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
                       fontSize: '0.5rem',
                       lineHeight: 1,
                       fontWeight: 600,
-                      color: alpha('#000', 0.6),
+                      color: art.clueNumber,
                       pointerEvents: 'none',
                     }}
                   >
@@ -632,7 +636,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
                         ? colors.result.correct
                         : checkState === 'wrong'
                           ? colors.result.incorrect
-                          : '#222',
+                          : art.letter,
                     pointerEvents: 'none',
                   }}
                 >
@@ -656,9 +660,9 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
           gap: 0.5,
           px: 1.5,
           py: 1,
-          bgcolor: alpha('#2196f3', 0.06),
-          borderTop: `1px solid ${alpha('#2196f3', 0.15)}`,
-          borderBottom: `1px solid ${alpha('#2196f3', 0.15)}`,
+          bgcolor: alpha(art.highlight, 0.06),
+          borderTop: `1px solid ${alpha(art.highlight, 0.15)}`,
+          borderBottom: `1px solid ${alpha(art.highlight, 0.15)}`,
         }}
       >
         <IconButton size="small" onClick={() => navigateClue(-1)} sx={{ p: 0.25 }}>
@@ -724,8 +728,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
                   px: 0.75,
                   cursor: 'pointer',
                   borderRadius: `${radii.sm}px`,
-                  bgcolor: isActive ? alpha('#2196f3', 0.08) : 'transparent',
-                  '&:hover': { bgcolor: alpha('#2196f3', 0.05) },
+                  bgcolor: isActive ? alpha(art.highlight, 0.08) : 'transparent',
+                  '&:hover': { bgcolor: alpha(art.highlight, 0.05) },
                   transition: `background ${motion.duration.fast}`,
                 }}
               >
@@ -785,15 +789,15 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
         borderRadius: 3,
         maxWidth: 400,
         mx: 'auto',
-        border: `2px solid ${alpha('#009688', 0.5)}`,
-        boxShadow: `0 0 20px ${alpha('#009688', 0.15)}`,
+        border: `2px solid ${alpha(art.trim, 0.5)}`,
+        boxShadow: `0 0 20px ${alpha(art.trim, 0.15)}`,
         animation: `${fadeIn} ${motion.duration.slow} ${motion.ease.bounce}`,
       }}
     >
       {/* Header */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #00695c 0%, #004d40 100%)',
+          background: `linear-gradient(135deg, ${art.header} 0%, ${art.headerDeep} 100%)`,
           color: 'white',
           px: 2,
           py: 1.25,
@@ -832,7 +836,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
             gap: 2,
           }}
         >
-          <LoadingDots size={10} color="#009688" />
+          <LoadingDots size={10} color={art.trim} />
           <Typography
             onClick={loadingMsg.includes('retry') ? generateCrossword : undefined}
             sx={{
@@ -905,8 +909,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
               gap: 1,
               px: 1.5,
               py: 1.5,
-              borderTop: `1px solid ${alpha('#000', 0.08)}`,
-              bgcolor: '#fff',
+              borderTop: `1px solid ${alpha(colors.scrim, 0.08)}`,
+              bgcolor: 'background.paper',
             }}
           >
             <Button
@@ -948,8 +952,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
                 fontSize: '0.75rem',
                 textTransform: 'none',
                 borderRadius: `${radii.md}px`,
-                bgcolor: '#00695c',
-                '&:hover': { bgcolor: '#004d40' },
+                bgcolor: art.header,
+                '&:hover': { bgcolor: art.headerDeep },
               }}
             >
               Submit
@@ -981,7 +985,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
               gap: 1,
             }}
           >
-            <Typography sx={{ fontSize: '2.5rem', fontWeight: 800, color: '#00695c' }}>
+            <Typography sx={{ fontSize: '2.5rem', fontWeight: 800, color: art.header }}>
               {finalScore}
             </Typography>
             <Typography sx={{ fontSize: '1rem', color: theme.palette.text.secondary }}>
@@ -1020,8 +1024,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
               sx={{
                 textTransform: 'none',
                 borderRadius: `${radii.md}px`,
-                borderColor: '#00695c',
-                color: '#00695c',
+                borderColor: art.header,
+                color: art.header,
               }}
             >
               Play Again
@@ -1032,8 +1036,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
               sx={{
                 textTransform: 'none',
                 borderRadius: `${radii.md}px`,
-                bgcolor: '#00695c',
-                '&:hover': { bgcolor: '#004d40' },
+                bgcolor: art.header,
+                '&:hover': { bgcolor: art.headerDeep },
               }}
             >
               Back to Arcade

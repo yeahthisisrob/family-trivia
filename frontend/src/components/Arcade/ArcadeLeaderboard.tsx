@@ -9,6 +9,7 @@ import { alpha } from '@mui/material/styles';
 import { formatDistance } from 'date-fns';
 import type React from 'react';
 import { colors } from '../../shared/design-system/tokens/colors';
+import { games } from '../../shared/design-system/tokens/games';
 import { getUserColor, getUserInitials } from '../../utils';
 
 interface Props {
@@ -143,7 +144,7 @@ const ArcadeLeaderboard: React.FC<Props> = ({
                 fontSize: '0.7rem',
                 bgcolor:
                   rank === 1 ? alpha(colors.medal.gold, 0.15) : alpha(theme.palette.divider, 0.08),
-                color: rank === 1 ? '#B8860B' : theme.palette.text.primary,
+                color: rank === 1 ? games.arcade.leaderScore : theme.palette.text.primary,
               }}
             />
           </Box>

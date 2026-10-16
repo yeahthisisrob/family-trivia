@@ -18,6 +18,8 @@ import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { getArcadeLeaderboard } from '../../api/modules/arcade';
 import { getCasinoBalance } from '../../api/modules/casino';
+import { colors } from '../../shared/design-system/tokens/colors';
+import { games } from '../../shared/design-system/tokens/games';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { getUserColor, getUserInitials } from '../../utils';
 import { createLogger } from '../../utils/logger';
@@ -29,9 +31,7 @@ import ArcadeLeaderboard from './ArcadeLeaderboard';
 
 const logger = createLogger('CasinoLobby');
 
-const gold = '#ffd700';
-const darkBg = '#1a1a2e';
-const frameBg = '#2c2c44';
+const { gold, cabinet: darkBg, header: frameBg } = games.casino;
 
 const glow = keyframes`
   0%, 100% { text-shadow: 0 0 8px ${gold}; }
@@ -103,7 +103,7 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
           borderRadius: 3,
           border: `3px solid ${gold}`,
           overflow: 'hidden',
-          boxShadow: `0 10px 40px rgba(0,0,0,0.6), inset 0 1px 0 ${alpha(gold, 0.2)}`,
+          boxShadow: `0 10px 40px ${alpha(colors.scrim, 0.6)}, inset 0 1px 0 ${alpha(gold, 0.2)}`,
         }}
       >
         {/* Header */}
@@ -118,7 +118,7 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
           }}
         >
           <Box sx={{ flex: 1 }}>
-            <Typography sx={{ fontSize: '0.72rem', color: alpha('#fff', 0.55) }}>
+            <Typography sx={{ fontSize: '0.72rem', color: alpha(colors.onColor, 0.55) }}>
               CREDITS{' '}
               <Box component="span" sx={{ color: gold, fontWeight: 900, fontSize: '0.9rem' }}>
                 {balance ?? '...'}
@@ -143,7 +143,7 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
             <IconButton
               size="small"
               onClick={onClose}
-              sx={{ color: alpha('#fff', 0.4), '&:hover': { color: '#fff' } }}
+              sx={{ color: alpha(colors.onColor, 0.4), '&:hover': { color: colors.onColor } }}
             >
               <CloseIcon sx={{ fontSize: 18 }} />
             </IconButton>
@@ -158,7 +158,7 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
             sx={{
               py: 2,
               borderRadius: `${radii.lg}px`,
-              background: 'linear-gradient(135deg, #c62828, #ef6c00)',
+              background: games.casino.slotsTile,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -168,18 +168,18 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
               transition: 'all 0.15s',
               '&:hover': {
                 transform: 'translateY(-2px)',
-                boxShadow: `0 6px 20px ${alpha('#000', 0.4)}`,
+                boxShadow: `0 6px 20px ${alpha(colors.scrim, 0.4)}`,
               },
             }}
           >
-            <CasinoIcon sx={{ fontSize: 30, color: '#ffd54f' }} />
-            <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: '0.75rem' }}>
+            <CasinoIcon sx={{ fontSize: 30, color: games.casino.slotsIcon }} />
+            <Typography sx={{ fontWeight: 800, color: colors.onColor, fontSize: '0.75rem' }}>
               Slots
             </Typography>
             <Typography
               sx={{
                 fontSize: '0.5rem',
-                color: alpha('#fff', 0.65),
+                color: alpha(colors.onColor, 0.65),
                 letterSpacing: 1,
                 fontWeight: 700,
               }}
@@ -194,7 +194,7 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
             sx={{
               py: 2,
               borderRadius: `${radii.lg}px`,
-              background: 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)',
+              background: games.casino.blackjackTile,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -204,18 +204,18 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
               transition: 'all 0.15s',
               '&:hover': {
                 transform: 'translateY(-2px)',
-                boxShadow: `0 6px 20px ${alpha('#000', 0.4)}`,
+                boxShadow: `0 6px 20px ${alpha(colors.scrim, 0.4)}`,
               },
             }}
           >
             <StyleIcon sx={{ fontSize: 30, color: gold }} />
-            <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: '0.75rem' }}>
+            <Typography sx={{ fontWeight: 800, color: colors.onColor, fontSize: '0.75rem' }}>
               Blackjack
             </Typography>
             <Typography
               sx={{
                 fontSize: '0.5rem',
-                color: alpha('#fff', 0.65),
+                color: alpha(colors.onColor, 0.65),
                 letterSpacing: 1,
                 fontWeight: 700,
               }}
@@ -230,7 +230,7 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
             sx={{
               py: 2,
               borderRadius: `${radii.lg}px`,
-              background: 'linear-gradient(135deg, #1b5e20, #2e7d32, #4caf50)',
+              background: games.casino.rouletteTile,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -240,18 +240,18 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
               transition: 'all 0.15s',
               '&:hover': {
                 transform: 'translateY(-2px)',
-                boxShadow: `0 6px 20px ${alpha('#000', 0.4)}`,
+                boxShadow: `0 6px 20px ${alpha(colors.scrim, 0.4)}`,
               },
             }}
           >
             <FiberSmartRecordIcon sx={{ fontSize: 30, color: gold }} />
-            <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: '0.75rem' }}>
+            <Typography sx={{ fontWeight: 800, color: colors.onColor, fontSize: '0.75rem' }}>
               Roulette
             </Typography>
             <Typography
               sx={{
                 fontSize: '0.5rem',
-                color: alpha('#fff', 0.65),
+                color: alpha(colors.onColor, 0.65),
                 letterSpacing: 1,
                 fontWeight: 700,
               }}
@@ -263,7 +263,9 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
 
         {/* Floor info */}
         <Box sx={{ px: 2, pb: 1.5 }}>
-          <Typography sx={{ fontSize: '0.62rem', color: alpha('#fff', 0.3), textAlign: 'center' }}>
+          <Typography
+            sx={{ fontSize: '0.62rem', color: alpha(colors.onColor, 0.3), textAlign: 'center' }}
+          >
             Your trivia score ({floor} pts) is your safety net — you can never drop below it.
           </Typography>
         </Box>

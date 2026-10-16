@@ -16,10 +16,13 @@ import {
   spinSlotMachine,
   submitSlotMachineAnswer,
 } from '../../api/modules/games';
+import { colors } from '../../shared/design-system/tokens/colors';
+import { games } from '../../shared/design-system/tokens/games';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
 
 const logger = createLogger('SlotMachine');
+const art = games.slots;
 
 // ── Symbols ──────────────────────────────────────────────────────────
 const SYMBOLS = ['🍒', '🍋', '🍉', '🍊', '🔔', '⭐', '7️⃣', '💎', '🍀'];
@@ -39,13 +42,13 @@ const PAYOUT_TABLE: Record<string, number> = {
 
 // ── Animations ───────────────────────────────────────────────────────
 const glow = keyframes`
-  0%, 100% { text-shadow: 0 0 10px #ffd700; }
-  50% { text-shadow: 0 0 30px #ffd700, 0 0 50px #ffaa00; }
+  0%, 100% { text-shadow: 0 0 10px ${art.gold}; }
+  50% { text-shadow: 0 0 30px ${art.gold}, 0 0 50px ${art.goldGlow}; }
 `;
 
 const winFlash = keyframes`
-  0%, 100% { opacity: 0.3; box-shadow: 0 0 4px #ffd700; }
-  50% { opacity: 1; box-shadow: 0 0 20px #ffd700, 0 0 40px #ffaa00; }
+  0%, 100% { opacity: 0.3; box-shadow: 0 0 4px ${art.gold}; }
+  50% { opacity: 1; box-shadow: 0 0 20px ${art.gold}, 0 0 40px ${art.goldGlow}; }
 `;
 
 const leverPull = keyframes`
@@ -68,7 +71,7 @@ const confettiDrop = keyframes`
 const CONFETTI = Array.from({ length: 20 }, (_, i) => ({
   left: `${(i * 7919 + 104729) % 100}%`,
   delay: `${(((i * 6271 + 32749) % 80) / 100).toFixed(2)}s`,
-  color: ['#ffd700', '#ff4444', '#44ff44', '#4444ff', '#ff44ff'][i % 5],
+  color: art.confetti[i % art.confetti.length],
   size: 4 + ((i * 4517 + 78901) % 60) / 10,
 }));
 
@@ -105,10 +108,10 @@ const Reel: React.FC<ReelProps> = ({ targetIndex, spinning, stopDelay, overlayTe
         height: REEL_HEIGHT * 3,
         overflow: 'hidden',
         borderRadius: 1.5,
-        bgcolor: '#0a0a1a',
+        bgcolor: art.reel,
         position: 'relative',
-        border: !spinning ? '2px solid #ffd700' : '2px solid #333',
-        boxShadow: 'inset 0 0 20px rgba(0,0,0,0.9)',
+        border: `2px solid ${!spinning ? art.gold : art.reelBorderSpinning}`,
+        boxShadow: `inset 0 0 20px ${alpha(colors.scrim, 0.9)}`,
         transition: 'border-color 0.3s',
       }}
     >
@@ -150,8 +153,7 @@ const Reel: React.FC<ReelProps> = ({ targetIndex, spinning, stopDelay, overlayTe
           position: 'absolute',
           inset: 0,
           pointerEvents: 'none',
-          background:
-            'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 35%, transparent 65%, rgba(0,0,0,0.4) 100%)',
+          background: `linear-gradient(180deg, ${alpha(colors.onColor, 0.08)} 0%, transparent 35%, transparent 65%, ${alpha(colors.scrim, 0.4)} 100%)`,
         }}
       />
 
@@ -164,16 +166,16 @@ const Reel: React.FC<ReelProps> = ({ targetIndex, spinning, stopDelay, overlayTe
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            bgcolor: alpha('#000', 0.75),
+            bgcolor: alpha(colors.scrim, 0.75),
             animation: `${fadeUp} 0.3s ease-out`,
           }}
         >
           <Typography
             sx={{
-              color: '#ffd700',
+              color: art.gold,
               fontWeight: 900,
               fontSize: overlayText.length > 6 ? '0.7rem' : '1.4rem',
-              textShadow: '0 0 10px #ffd700',
+              textShadow: `0 0 10px ${art.gold}`,
               textAlign: 'center',
               px: 0.5,
             }}
@@ -260,9 +262,9 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
   }, [isArcade, userId]);
 
   // Gold accent
-  const gold = '#ffd700';
-  const darkBg = '#1a1a2e';
-  const frameBg = '#2c2c44';
+  const gold = art.gold;
+  const darkBg = art.cabinet;
+  const frameBg = art.frame;
 
   // ── Spin handler ────────────────────────────────────────────────────
   const handleSpin = useCallback(async () => {
@@ -395,7 +397,7 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
           borderRadius: 3,
           border: `3px solid ${gold}`,
           overflow: 'hidden',
-          boxShadow: `0 10px 40px rgba(0,0,0,0.6), inset 0 1px 0 ${alpha(gold, 0.2)}`,
+          boxShadow: `0 10px 40px ${alpha(colors.scrim, 0.6)}, inset 0 1px 0 ${alpha(gold, 0.2)}`,
         }}
       >
         {/* ── Header ───────────────────────────────────────────────── */}
@@ -412,14 +414,16 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
           {/* Balance (arcade) or mode label */}
           <Box sx={{ flex: 1 }}>
             {isArcade ? (
-              <Typography sx={{ fontSize: '0.75rem', color: alpha('#fff', 0.6) }}>
+              <Typography sx={{ fontSize: '0.75rem', color: alpha(colors.onColor, 0.6) }}>
                 CREDITS{' '}
                 <Box component="span" sx={{ color: gold, fontWeight: 800, fontSize: '0.85rem' }}>
                   ${balance.toFixed(2)}
                 </Box>
               </Typography>
             ) : (
-              <Typography sx={{ fontSize: '0.65rem', color: alpha('#fff', 0.5), letterSpacing: 1 }}>
+              <Typography
+                sx={{ fontSize: '0.65rem', color: alpha(colors.onColor, 0.5), letterSpacing: 1 }}
+              >
                 TRIVIA MODE
               </Typography>
             )}
@@ -444,7 +448,7 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
             <IconButton
               size="small"
               onClick={handleClose}
-              sx={{ color: alpha('#fff', 0.5), '&:hover': { color: '#fff' } }}
+              sx={{ color: alpha(colors.onColor, 0.5), '&:hover': { color: colors.onColor } }}
             >
               <CloseIcon sx={{ fontSize: 18 }} />
             </IconButton>
@@ -454,7 +458,7 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
         {/* ── Reel Window ──────────────────────────────────────────── */}
         <Box
           sx={{
-            bgcolor: '#0f0f1f',
+            bgcolor: art.reelWindow,
             py: 2,
             px: 1.5,
             position: 'relative',
@@ -496,9 +500,9 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
                   width: 24,
                   height: 24,
                   borderRadius: '50%',
-                  background: 'radial-gradient(circle at 35% 30%, #ff6666, #cc0000, #880000)',
-                  border: '2px solid #990000',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.5), inset 0 2px 3px rgba(255,255,255,0.25)',
+                  background: `radial-gradient(circle at 35% 30%, ${art.leverBallLight}, ${art.leverBall}, ${art.leverBallDark})`,
+                  border: `2px solid ${art.leverBallRim}`,
+                  boxShadow: `0 2px 8px ${alpha(colors.scrim, 0.5)}, inset 0 2px 3px ${alpha(colors.onColor, 0.25)}`,
                   zIndex: 2,
                   animation: spinning
                     ? `${leverPull} 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)`
@@ -511,9 +515,9 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
                   width: 8,
                   height: 140,
                   mt: -1,
-                  background: 'linear-gradient(90deg, #888, #ddd 30%, #fff 50%, #ddd 70%, #888)',
+                  background: `linear-gradient(90deg, ${art.shaftDark}, ${art.shaftLight} 30%, ${colors.onColor} 50%, ${art.shaftLight} 70%, ${art.shaftDark})`,
                   borderRadius: 1,
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                  boxShadow: `0 2px 4px ${alpha(colors.scrim, 0.3)}`,
                 }}
               />
               {/* Base */}
@@ -521,9 +525,9 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
                 sx={{
                   width: 28,
                   height: 10,
-                  background: 'linear-gradient(180deg, #bbb, #666)',
+                  background: `linear-gradient(180deg, ${art.leverBaseLight}, ${art.leverBaseDark})`,
                   borderRadius: '2px 2px 4px 4px',
-                  border: '1px solid #555',
+                  border: `1px solid ${art.leverBaseRim}`,
                 }}
               />
             </Box>
@@ -603,7 +607,7 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            bgcolor: alpha('#000', 0.3),
+            bgcolor: alpha(colors.scrim, 0.3),
             borderTop: `1px solid ${alpha(gold, 0.15)}`,
             borderBottom: `1px solid ${alpha(gold, 0.15)}`,
           }}
@@ -621,9 +625,11 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
               {winText}
             </Typography>
           ) : spinning ? (
-            <LoadingDots size={4} color={alpha('#fff', 0.3)} mt={0} />
+            <LoadingDots size={4} color={alpha(colors.onColor, 0.3)} mt={0} />
           ) : (
-            <Typography sx={{ color: alpha('#fff', 0.2), fontSize: '0.7rem', letterSpacing: 2 }}>
+            <Typography
+              sx={{ color: alpha(colors.onColor, 0.2), fontSize: '0.7rem', letterSpacing: 2 }}
+            >
               {isArcade ? 'PLACE YOUR BET' : 'SPIN TO PLAY'}
             </Typography>
           )}
@@ -636,13 +642,15 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
             justifyContent: 'space-between',
             px: 2,
             py: 0.75,
-            bgcolor: '#111',
+            bgcolor: art.infoStrip,
             borderTop: `1px solid ${alpha(gold, 0.15)}`,
             borderBottom: `1px solid ${alpha(gold, 0.15)}`,
           }}
         >
           <Box sx={{ textAlign: 'center' }}>
-            <Typography sx={{ fontSize: '0.45rem', color: alpha('#fff', 0.4), letterSpacing: 1.5 }}>
+            <Typography
+              sx={{ fontSize: '0.45rem', color: alpha(colors.onColor, 0.4), letterSpacing: 1.5 }}
+            >
               CREDITS
             </Typography>
             <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: gold }}>
@@ -650,22 +658,26 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
             </Typography>
           </Box>
           <Box sx={{ textAlign: 'center' }}>
-            <Typography sx={{ fontSize: '0.45rem', color: alpha('#fff', 0.4), letterSpacing: 1.5 }}>
+            <Typography
+              sx={{ fontSize: '0.45rem', color: alpha(colors.onColor, 0.4), letterSpacing: 1.5 }}
+            >
               BET
             </Typography>
-            <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#fff' }}>
+            <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: colors.onColor }}>
               ${bet < 1 ? bet.toFixed(2) : bet}
             </Typography>
           </Box>
           <Box sx={{ textAlign: 'center' }}>
-            <Typography sx={{ fontSize: '0.45rem', color: alpha('#fff', 0.4), letterSpacing: 1.5 }}>
+            <Typography
+              sx={{ fontSize: '0.45rem', color: alpha(colors.onColor, 0.4), letterSpacing: 1.5 }}
+            >
               WIN
             </Typography>
             <Typography
               sx={{
                 fontSize: '0.8rem',
                 fontWeight: 800,
-                color: showWin ? gold : alpha('#fff', 0.2),
+                color: showWin ? gold : alpha(colors.onColor, 0.2),
               }}
             >
               {showWin && winText ? winText.replace('WIN ', '') : '---'}
@@ -676,12 +688,12 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
         {/* ── Control Panel — Physical casino buttons ──────────────── */}
         <Box
           sx={{
-            background: 'linear-gradient(180deg, #3a3a4e, #2c2c3e, #222234)',
+            background: `linear-gradient(180deg, ${art.panelTop}, ${art.panelMid}, ${art.panelBottom})`,
             px: 1.5,
             py: 1.5,
             pb: 'calc(12px + env(safe-area-inset-bottom, 0px))',
-            borderTop: '1px solid #555',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+            borderTop: `1px solid ${art.panelEdge}`,
+            boxShadow: `inset 0 1px 0 ${alpha(colors.onColor, 0.05)}`,
           }}
         >
           {/* Button row — chunky physical buttons on a shelf */}
@@ -699,14 +711,14 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
                 label: 'BET',
                 sublabel: 'LESS',
                 onClick: betDown,
-                color: '#2196f3',
+                color: art.betLess,
                 disabled: !isArcade,
               },
               {
                 label: 'BET',
                 sublabel: 'MORE',
                 onClick: betUp,
-                color: '#4caf50',
+                color: art.betMore,
                 disabled: !isArcade,
               },
               { label: 'MAX', sublabel: 'BET', onClick: betMax, color: gold, disabled: !isArcade },
@@ -727,12 +739,12 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
                   cursor: btn.disabled || spinning ? 'default' : 'pointer',
                   userSelect: 'none',
                   // 3D physical button look
-                  bgcolor: btn.disabled ? '#2a2a3a' : '#333345',
-                  border: `2px solid ${btn.disabled ? '#3a3a4a' : alpha(btn.color, 0.5)}`,
-                  borderBottom: `4px solid ${btn.disabled ? '#222' : alpha(btn.color, 0.3)}`,
+                  bgcolor: btn.disabled ? art.buttonDisabled : art.button,
+                  border: `2px solid ${btn.disabled ? art.buttonDisabledRim : alpha(btn.color, 0.5)}`,
+                  borderBottom: `4px solid ${btn.disabled ? art.buttonDisabledBase : alpha(btn.color, 0.3)}`,
                   boxShadow: btn.disabled
                     ? 'none'
-                    : `0 3px 8px rgba(0,0,0,0.4), inset 0 1px 0 ${alpha('#fff', 0.08)}`,
+                    : `0 3px 8px ${alpha(colors.scrim, 0.4)}, inset 0 1px 0 ${alpha(colors.onColor, 0.08)}`,
                   opacity: btn.disabled ? 0.4 : 1,
                   transition: 'all 0.1s',
                   '&:active':
@@ -740,7 +752,7 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
                       ? {
                           transform: 'translateY(2px)',
                           borderBottomWidth: '2px',
-                          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)',
+                          boxShadow: `inset 0 2px 4px ${alpha(colors.scrim, 0.5)}`,
                         }
                       : {},
                 }}
@@ -750,7 +762,7 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
                     fontSize: '0.5rem',
                     fontWeight: 700,
                     letterSpacing: 1,
-                    color: btn.disabled ? '#555' : alpha(btn.color, 0.9),
+                    color: btn.disabled ? art.buttonDisabledLabel : alpha(btn.color, 0.9),
                   }}
                 >
                   {btn.label}
@@ -760,7 +772,7 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
                     fontSize: '0.55rem',
                     fontWeight: 900,
                     letterSpacing: 1.5,
-                    color: btn.disabled ? '#444' : '#fff',
+                    color: btn.disabled ? art.buttonDisabledSublabel : colors.onColor,
                   }}
                 >
                   {btn.sublabel}
@@ -782,18 +794,18 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
                 borderRadius: '10px',
                 cursor: canSpin ? 'pointer' : 'default',
                 userSelect: 'none',
-                bgcolor: canSpin ? '#1b5e20' : '#2a2a3a',
-                border: `2px solid ${canSpin ? '#4caf50' : '#3a3a4a'}`,
-                borderBottom: `5px solid ${canSpin ? '#2e7d32' : '#222'}`,
+                bgcolor: canSpin ? art.spin : art.buttonDisabled,
+                border: `2px solid ${canSpin ? art.spinRim : art.buttonDisabledRim}`,
+                borderBottom: `5px solid ${canSpin ? art.spinBase : art.buttonDisabledBase}`,
                 boxShadow: canSpin
-                  ? `0 4px 12px rgba(76,175,80,0.4), inset 0 1px 0 ${alpha('#fff', 0.1)}`
+                  ? `0 4px 12px ${alpha(art.spinRim, 0.4)}, inset 0 1px 0 ${alpha(colors.onColor, 0.1)}`
                   : 'none',
                 transition: 'all 0.1s',
                 '&:active': canSpin
                   ? {
                       transform: 'translateY(3px)',
                       borderBottomWidth: '2px',
-                      boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.6)',
+                      boxShadow: `inset 0 2px 6px ${alpha(colors.scrim, 0.6)}`,
                     }
                   : {},
               }}
@@ -803,8 +815,8 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
                   fontSize: '0.95rem',
                   fontWeight: 900,
                   letterSpacing: 3,
-                  color: canSpin ? '#fff' : '#555',
-                  textShadow: canSpin ? '0 1px 3px rgba(0,0,0,0.5)' : 'none',
+                  color: canSpin ? colors.onColor : art.buttonDisabledLabel,
+                  textShadow: canSpin ? `0 1px 3px ${alpha(colors.scrim, 0.5)}` : 'none',
                 }}
               >
                 {spinning ? '•••' : 'SPIN'}
@@ -821,13 +833,13 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
             gap: 0.75,
             py: 0.5,
             px: 1,
-            bgcolor: alpha('#000', 0.4),
+            bgcolor: alpha(colors.scrim, 0.4),
             borderTop: `1px solid ${alpha(gold, 0.08)}`,
             flexWrap: 'wrap',
           }}
         >
           {Object.entries(PAYOUT_TABLE).map(([sym, mult]) => (
-            <Typography key={sym} sx={{ fontSize: '0.5rem', color: alpha('#fff', 0.3) }}>
+            <Typography key={sym} sx={{ fontSize: '0.5rem', color: alpha(colors.onColor, 0.3) }}>
               {sym}
               {mult}×
             </Typography>
@@ -836,8 +848,8 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
 
         {/* ── Error ────────────────────────────────────────────────── */}
         {error && (
-          <Box sx={{ px: 2, py: 1, bgcolor: alpha('#f44336', 0.1) }}>
-            <Typography sx={{ fontSize: '0.72rem', color: '#f44336', textAlign: 'center' }}>
+          <Box sx={{ px: 2, py: 1, bgcolor: alpha(art.error, 0.1) }}>
+            <Typography sx={{ fontSize: '0.72rem', color: art.error, textAlign: 'center' }}>
               {error}
             </Typography>
           </Box>
@@ -850,7 +862,7 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
               position: 'absolute',
               inset: 0,
               zIndex: 20,
-              bgcolor: alpha('#000', 0.85),
+              bgcolor: alpha(colors.scrim, 0.85),
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -858,10 +870,10 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
               animation: `${fadeUp} 0.4s ease-out`,
             }}
           >
-            <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: '#f44336', mb: 1 }}>
+            <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: art.error, mb: 1 }}>
               BUSTED
             </Typography>
-            <Typography sx={{ fontSize: '0.8rem', color: alpha('#fff', 0.6), mb: 0.5 }}>
+            <Typography sx={{ fontSize: '0.8rem', color: alpha(colors.onColor, 0.6), mb: 0.5 }}>
               Best payout: ${highScore.toFixed(2)}
             </Typography>
             <Button
@@ -870,9 +882,9 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
               sx={{
                 mt: 2,
                 bgcolor: gold,
-                color: '#000',
+                color: art.goldInk,
                 fontWeight: 700,
-                '&:hover': { bgcolor: '#ffeb3b' },
+                '&:hover': { bgcolor: art.goldHover },
               }}
             >
               Back to Arcade
@@ -887,12 +899,12 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
           sx={{
             mt: -1,
             borderRadius: '0 0 12px 12px',
-            bgcolor: '#fff',
+            bgcolor: 'background.paper',
             border: `2px solid ${alpha(gold, 0.3)}`,
             borderTop: 'none',
             overflow: 'hidden',
             animation: `${fadeUp} 0.3s ease-out`,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+            boxShadow: `0 8px 24px ${alpha(colors.scrim, 0.15)}`,
           }}
         >
           {/* Category + multiplier header */}
@@ -918,7 +930,7 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
                 py: 0.25,
                 borderRadius: 1,
                 bgcolor: alpha(gold, 0.15),
-                color: '#b8860b',
+                color: art.multiplierInk,
                 fontWeight: 800,
                 fontSize: '0.7rem',
               }}
@@ -969,7 +981,7 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
                           ? alpha(theme.palette.error.main, 0.08)
                           : isSelected
                             ? alpha(theme.palette.primary.main, 0.05)
-                            : '#fff',
+                            : theme.palette.background.paper,
                       borderWidth: isCorrect || isWrong ? 2 : 1,
                       '&.Mui-disabled': {
                         color: isCorrect
