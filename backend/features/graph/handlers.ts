@@ -1,0 +1,59 @@
+/**
+ * GET /graph: everything the family graph draws. People with how active they
+ * are, the ties between them, households, and who answered alike (with the
+ * answers as evidence). Computed from the family's own data on each request;
+ * nothing is sent anywhere.
+ */
+import { type Answer, likenesses } from '@family-trivia/shared';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { successResponse } from '../../config';
+import { loadFamily } from '../../services/family/roster';
+import { getJson } from '../../services/s3';
+
+interface FactEntry {
+  question?: string;
+  answer?: string;
+  answered?: boolean;
+  skipped?: boolean;
+  questionType?: string;
+}
+
+export async function getGraph(_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const family = await loadFamily();
+  const ids = Object.keys(family.people);
+  const [facts, trivia] = await Promise.all([
+    Promise.all(ids.map((id) => getJson<FactEntry[]>(`facts/answers/${id}.json`))),
+    Promise.all(ids.map((id) => getJson<unknown[]>(`answers/history/${id}.json`))),
+  ]);
+
+  const answers: Answer[] = [];
+  const activity: Record<string, { facts: number; trivia: number }> = {};
+  ids.forEach((id, i) => {
+    const mine = (facts[i] ?? []).filter(
+      (f) => f.answer?.trim() && f.answered !== false && !f.skipped,
+    );
+    // Birthdays and other basic questions aren't opinions: leave them out of likeness.
+    for (const f of mine) {
+      if (f.question && f.questionType !== 'basic')
+        answers.push({ personId: id, question: f.question, answer: f.answer as string });
+    }
+    activity[id] = {
+      facts: mine.length,
+      trivia: Array.isArray(trivia[i]) ? (trivia[i] as unknown[]).length : 0,
+    };
+  });
+
+  return successResponse({
+    people: Object.values(family.people).map((p) => ({
+      id: p.id,
+      name: p.name,
+      participation: p.participation,
+      remembered: !!p.memorial,
+      died: p.memorial?.died ?? null,
+      activity: activity[p.id],
+    })),
+    ties: family.ties,
+    households: Object.values(family.households),
+    likenesses: likenesses(answers),
+  });
+}
