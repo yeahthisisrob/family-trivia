@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import type { GraphData } from '../api/graphApi';
+import type { GraphData } from '../../../entities/family';
 import { buildGraph, DEFAULT_OPTIONS, likenessesOf } from './buildGraph';
 
 const data: GraphData = {

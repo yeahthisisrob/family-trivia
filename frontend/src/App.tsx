@@ -3,6 +3,7 @@ import { Box, Container, Typography } from '@mui/material';
 import React from 'react';
 import { markSeasonLetterSeen } from './api/modules/celebrations';
 import { AppHeader } from './components/AppShell';
+import { TriviaTabs } from './components/AppShell/TriviaTabs';
 import { DailyFactCard } from './components/DailyFact';
 import DailyFactSummary from './components/DailyFactSummary';
 import FamilyFeud from './components/FamilyFeud';
@@ -255,7 +256,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
 
   const FamilyPage = (
     <Box>
-      <FamilyTree userId={user} onViewProfile={navigateToProfile} />
+      <FamilyTree userId={user} isAdmin={isAdmin} onViewProfile={navigateToProfile} />
     </Box>
   );
 
@@ -316,12 +317,16 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
                       {HomePage}
                     </Box>
 
+                    {(currentPath === ROUTES.PLAY || currentPath === ROUTES.LEADERBOARD) && (
+                      <TriviaTabs currentPath={currentPath} onNavigate={navigateTo} />
+                    )}
+
                     {/* Trivia Tab — kept mounted to preserve TriviaCard state */}
                     <Box sx={{ display: currentPath === ROUTES.PLAY ? 'block' : 'none' }}>
                       {TriviaPage}
                     </Box>
 
-                    {/* Leaderboard Tab — lazy-mounted on first visit, kept mounted after */}
+                    {/* Trivia › Leaderboard — lazy-mounted on first visit, kept mounted after */}
                     {(currentPath === ROUTES.LEADERBOARD || leaderboardMounted) && (
                       <Box sx={{ display: currentPath === ROUTES.LEADERBOARD ? 'block' : 'none' }}>
                         <React.Suspense fallback={null}>{LeaderboardPage}</React.Suspense>

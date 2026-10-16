@@ -1,87 +1,98 @@
 // File: src/components/FamilyTree/index.tsx
+/**
+ * The Family tab. The page itself is the family-home feature; this puts the
+ * tree, the connections graph and (when the family turned them on) the
+ * albums behind its doors, and the archive at the foot.
+ */
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import DownloadIcon from '@mui/icons-material/Download';
+import HubIcon from '@mui/icons-material/Hub';
+import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import { Box, Button, Fade } from '@mui/material';
-import type React from 'react';
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
+import { useFeatures } from '../../entities/settings';
 import { ArchiveDialog } from '../../features/family-archive';
-import { FamilyGraphSection } from '../../features/family-graph';
-import { LoadingDots } from '../ui/feedback';
+import { FamilyGraph } from '../../features/family-graph';
+import { type FamilyDoor, FamilyHome } from '../../features/family-home';
 import FamilySplitView from './FamilySplitView';
-import MemberLoadingError from './MemberLoadingError';
-import MemberSpotlight from './MemberSpotlight';
+
+const PhotosPage = React.lazy(() => import('../Photos'));
 
 interface FamilyTreeProps {
   userId: string;
+  isAdmin?: boolean;
   onViewProfile: (userId: string) => void;
 }
 
-const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, onViewProfile }) => {
+const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, isAdmin, onViewProfile }) => {
   const [archiveOpen, setArchiveOpen] = useState(false);
-  // Use data already loaded by FamilyDataContext (from /app-init) — no extra API calls
-  const {
-    hierarchyData: hierarchy,
-    groupDescriptions: rawGroupDescriptions,
-    loadingMembers: loading,
-    loadError: error,
-    refreshMembers,
-  } = useFamilyData();
+  const features = useFeatures();
+  const { hierarchyData: hierarchy, groupDescriptions: raw } = useFamilyData();
 
-  // Map { groupId: { description, lastUpdated } } → { groupId: description }
   const groupDescriptions = useMemo(() => {
     const result: Record<string, string> = {};
-    for (const [groupId, desc] of Object.entries(rawGroupDescriptions)) {
+    for (const [groupId, desc] of Object.entries(raw)) {
       result[groupId] = typeof desc === 'string' ? desc : desc.description || '';
     }
     return result;
-  }, [rawGroupDescriptions]);
+  }, [raw]);
 
-  if (loading) {
-    return <LoadingDots mt={0} />;
-  }
-
-  if (
-    error ||
-    !hierarchy ||
-    !hierarchy.family ||
-    !hierarchy.family.groups ||
-    !hierarchy.family.people
-  ) {
-    return (
-      <MemberLoadingError
-        message={error || 'Failed to load family data. Please try again later.'}
-        onRetry={() => refreshMembers(true)}
-      />
-    );
-  }
-
-  return (
-    <Fade in={true}>
-      <Box>
-        <MemberSpotlight
-          hierarchy={hierarchy}
-          currentUserId={userId}
-          onMemberClick={onViewProfile}
-          key={`member-spotlight-${userId}`}
-        />
-
+  const doors: FamilyDoor[] = [];
+  if (hierarchy?.family?.groups) {
+    doors.push({
+      id: 'tree',
+      title: 'The family tree',
+      caption: 'Every side, every home',
+      icon: <AccountTreeIcon />,
+      render: (_graph, openPerson) => (
         <FamilySplitView
           hierarchy={hierarchy}
           groupDescriptions={groupDescriptions}
           currentUserId={userId}
-          onMemberClick={onViewProfile}
+          onMemberClick={openPerson}
         />
+      ),
+    });
+  }
+  doors.push({
+    id: 'connections',
+    title: 'How we’re connected',
+    caption: 'Ties, and who answers alike',
+    icon: <HubIcon />,
+    render: (graph, openPerson) => (
+      <FamilyGraph data={graph} meId={userId} height={640} onOpenProfile={openPerson} />
+    ),
+  });
+  if (features.photos) {
+    doors.push({
+      id: 'albums',
+      title: 'Albums',
+      caption: 'The family’s shared photos',
+      icon: <PhotoLibraryIcon />,
+      render: () => (
+        <React.Suspense fallback={null}>
+          <PhotosPage userId={userId} isAdmin={isAdmin} />
+        </React.Suspense>
+      ),
+    });
+  }
 
-        {/* The graph is a way to explore, below the story the tab tells. */}
-        <Box sx={{ mt: 4 }}>
-          <FamilyGraphSection meId={userId} onOpenProfile={onViewProfile} />
-        </Box>
-
-        <Box sx={{ mt: 3, textAlign: 'center' }}>
-          <Button startIcon={<DownloadIcon />} onClick={() => setArchiveOpen(true)}>
-            Download the family archive
-          </Button>
-        </Box>
+  return (
+    <Fade in>
+      <Box>
+        <FamilyHome
+          meId={userId}
+          doors={doors}
+          onOpenMe={() => onViewProfile(userId)}
+          footer={
+            <Box sx={{ textAlign: 'center' }}>
+              <Button startIcon={<DownloadIcon />} onClick={() => setArchiveOpen(true)}>
+                Download the family archive
+              </Button>
+            </Box>
+          }
+        />
         {archiveOpen && <ArchiveDialog onClose={() => setArchiveOpen(false)} />}
       </Box>
     </Fade>

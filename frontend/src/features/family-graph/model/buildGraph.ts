@@ -3,7 +3,7 @@
  * no drawing, so the rules for what connects to what are tested on their own.
  */
 import type { Family } from '@family-trivia/shared';
-import type { GraphData, GraphPerson } from '../api/graphApi';
+import type { GraphData, GraphPerson } from '../../../entities/family';
 
 export type LinkKind = 'partner' | 'former-partner' | 'parent' | 'kin' | 'household' | 'alike';
 

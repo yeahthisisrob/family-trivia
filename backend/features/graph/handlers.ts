@@ -11,6 +11,7 @@ import { loadFamily } from '../../services/family/roster';
 import { getJson } from '../../services/s3';
 
 interface FactEntry {
+  date?: string;
   question?: string;
   answer?: string;
   answered?: boolean;
@@ -23,11 +24,18 @@ export async function getGraph(_event: APIGatewayProxyEvent): Promise<APIGateway
   const ids = Object.keys(family.people);
   const [facts, trivia] = await Promise.all([
     Promise.all(ids.map((id) => getJson<FactEntry[]>(`facts/answers/${id}.json`))),
-    Promise.all(ids.map((id) => getJson<unknown[]>(`answers/history/${id}.json`))),
+    Promise.all(
+      ids.map((id) =>
+        getJson<{ correct?: boolean; timestamp?: string }[]>(`answers/history/${id}.json`),
+      ),
+    ),
   ]);
 
   const answers: Answer[] = [];
-  const activity: Record<string, { facts: number; trivia: number }> = {};
+  const activity: Record<
+    string,
+    { facts: number; trivia: number; correct: number; since: string | null }
+  > = {};
   ids.forEach((id, i) => {
     const mine = (facts[i] ?? []).filter(
       (f) => f.answer?.trim() && f.answered !== false && !f.skipped,
@@ -37,9 +45,17 @@ export async function getGraph(_event: APIGatewayProxyEvent): Promise<APIGateway
       if (f.question && f.questionType !== 'basic')
         answers.push({ personId: id, question: f.question, answer: f.answer as string });
     }
+    const history = Array.isArray(trivia[i])
+      ? (trivia[i] as { correct?: boolean; timestamp?: string }[])
+      : [];
+    const dates = [...mine.map((f) => f.date), ...history.map((h) => h.timestamp?.slice(0, 10))]
+      .filter((d): d is string => !!d)
+      .sort();
     activity[id] = {
       facts: mine.length,
-      trivia: Array.isArray(trivia[i]) ? (trivia[i] as unknown[]).length : 0,
+      trivia: history.length,
+      correct: history.filter((h) => h.correct).length,
+      since: dates[0] ?? null,
     };
   });
 

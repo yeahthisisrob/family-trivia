@@ -7,7 +7,7 @@ export interface GraphPerson {
   participation: Participation;
   remembered: boolean;
   died: string | null;
-  activity?: { facts: number; trivia: number };
+  activity?: { facts: number; trivia: number; correct?: number; since?: string | null };
 }
 
 export interface GraphData {
