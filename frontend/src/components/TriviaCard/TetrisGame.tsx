@@ -26,6 +26,7 @@ import { submitArcadeScore } from '../../api/modules/arcade';
 import type { TetrisAnswerResult, TetrisLockResult } from '../../api/modules/games';
 import { lockTetris, submitTetrisAnswer } from '../../api/modules/games';
 import { colors } from '../../shared/design-system/tokens/colors';
+import { games } from '../../shared/design-system/tokens/games';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../utils/logger';
@@ -245,16 +246,9 @@ const TETROMINOES: Record<string, PieceShape> = {
   ],
 };
 
-// NES-inspired piece colors
-const PIECE_COLORS: Record<string, string> = {
-  I: '#00f0f0', // cyan
-  O: '#f0f000', // yellow
-  T: '#a000f0', // purple
-  S: '#00f000', // green
-  Z: '#f00000', // red
-  J: '#0000f0', // blue
-  L: '#f0a000', // orange
-};
+const art = games.tetris;
+
+const PIECE_COLORS: Record<string, string> = art.piece;
 
 const PIECE_KEYS = Object.keys(TETROMINOES);
 
@@ -342,8 +336,8 @@ function takeSnapshot(grid: Grid, piece: Piece, nextPiece: Piece): RenderSnapsho
 // ── Animations ────────────────────────────────────────────────────
 
 const lineClearFlash = keyframes`
-  0%   { background-color: #fff; }
-  50%  { background-color: rgba(255,255,255,0.5); }
+  0%   { background-color: ${colors.onColor}; }
+  50%  { background-color: ${alpha(colors.onColor, 0.5)}; }
   100% { background-color: transparent; }
 `;
 
@@ -710,16 +704,16 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
       sx={{
         overflow: 'hidden',
         borderRadius: 3,
-        border: `2px solid ${alpha('#7c4dff', 0.5)}`,
-        boxShadow: `0 0 20px ${alpha('#7c4dff', 0.15)}`,
+        border: `2px solid ${alpha(art.frame, 0.5)}`,
+        boxShadow: `0 0 20px ${alpha(art.frame, 0.15)}`,
         scrollMarginTop: 16,
       }}
     >
       {/* Header */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #311b92 0%, #4a148c 100%)',
-          color: 'white',
+          background: `linear-gradient(135deg, ${art.headerStart} 0%, ${art.headerEnd} 100%)`,
+          color: colors.onColor,
           px: 2,
           py: 1,
           display: 'flex',
@@ -779,21 +773,27 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
           </>
         )}
 
-        <IconButton size="small" onClick={onClose} sx={{ color: 'white', p: 0.5 }}>
+        <IconButton size="small" onClick={onClose} sx={{ color: colors.onColor, p: 0.5 }}>
           <CloseIcon sx={{ fontSize: 18 }} />
         </IconButton>
       </Box>
 
       {/* ── Idle screen ──────────────────────────────────────────── */}
       {gameState === 'idle' && (
-        <Box sx={{ p: 3, textAlign: 'center', bgcolor: '#1a0a2e' }}>
+        <Box sx={{ p: 3, textAlign: 'center', bgcolor: art.panel }}>
           <Typography
-            sx={{ fontSize: '1.8rem', fontWeight: 900, color: '#fff', mb: 0.5, letterSpacing: 2 }}
+            sx={{
+              fontSize: '1.8rem',
+              fontWeight: 900,
+              color: colors.onColor,
+              mb: 0.5,
+              letterSpacing: 2,
+            }}
           >
             TETRIS
           </Typography>
           <Typography
-            sx={{ fontSize: '0.75rem', color: alpha('#fff', 0.7), mb: 2, lineHeight: 1.5 }}
+            sx={{ fontSize: '0.75rem', color: alpha(colors.onColor, 0.7), mb: 2, lineHeight: 1.5 }}
           >
             {mode === 'arcade'
               ? "Classic Tetris — play until you can't!"
@@ -807,7 +807,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                 gap: 2,
                 mb: 2.5,
                 fontSize: '0.65rem',
-                color: alpha('#fff', 0.5),
+                color: alpha(colors.onColor, 0.5),
               }}
             >
               <Box>0-499 = 1x</Box>
@@ -825,8 +825,10 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
               fontWeight: 800,
               fontSize: '0.95rem',
               letterSpacing: 1,
-              background: 'linear-gradient(135deg, #7c4dff, #651fff)',
-              '&:hover': { background: 'linear-gradient(135deg, #651fff, #6200ea)' },
+              background: `linear-gradient(135deg, ${art.button}, ${art.buttonEnd})`,
+              '&:hover': {
+                background: `linear-gradient(135deg, ${art.buttonEnd}, ${art.buttonHoverEnd})`,
+              },
             }}
           >
             START GAME
@@ -836,7 +838,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
 
       {/* ── Playing / Game Over grid ─────────────────────────────── */}
       {(gameState === 'playing' || gameState === 'gameOver') && (
-        <Box sx={{ bgcolor: '#0a0a0a', position: 'relative' }}>
+        <Box sx={{ bgcolor: art.well, position: 'relative' }}>
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 0.5 }}>
             {/* Main grid */}
             <div
@@ -845,8 +847,8 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                 gridTemplateColumns: `repeat(${COLS}, ${CELL_SIZE}px)`,
                 gridTemplateRows: `repeat(${ROWS}, ${CELL_SIZE}px)`,
                 gap: '1px',
-                backgroundColor: alpha('#fff', 0.04),
-                border: `2px solid ${alpha('#7c4dff', 0.3)}`,
+                backgroundColor: alpha(colors.onColor, 0.04),
+                border: `2px solid ${alpha(art.frame, 0.3)}`,
                 position: 'relative',
                 contain: 'layout style paint',
               }}
@@ -863,7 +865,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                     ? cellColor
                     : isGhost
                       ? alpha(PIECE_COLORS[piece.type], 0.2)
-                      : alpha('#fff', 0.02);
+                      : alpha(colors.onColor, 0.02);
 
                   return (
                     <div
@@ -874,7 +876,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                         backgroundColor: bg,
                         borderRadius: 2,
                         boxShadow: cellColor
-                          ? `inset 0 0 0 1px ${alpha('#fff', 0.2)}, inset 2px 2px 0 ${alpha('#fff', 0.15)}`
+                          ? `inset 0 0 0 1px ${alpha(colors.onColor, 0.2)}, inset 2px 2px 0 ${alpha(colors.onColor, 0.15)}`
                           : undefined,
                         border:
                           isGhost && !cellColor
@@ -902,7 +904,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                 sx={{
                   fontSize: '0.5rem',
                   fontWeight: 700,
-                  color: alpha('#fff', 0.5),
+                  color: alpha(colors.onColor, 0.5),
                   letterSpacing: 1,
                   mb: 0.5,
                 }}
@@ -930,7 +932,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                         bgcolor: isBlock ? nextColor : 'transparent',
                         borderRadius: '1px',
                         ...(isBlock && {
-                          boxShadow: `inset 0 0 0 1px ${alpha('#fff', 0.2)}`,
+                          boxShadow: `inset 0 0 0 1px ${alpha(colors.onColor, 0.2)}`,
                         }),
                       }}
                     />
@@ -944,7 +946,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                   sx={{
                     fontSize: '0.5rem',
                     fontWeight: 700,
-                    color: alpha('#fff', 0.5),
+                    color: alpha(colors.onColor, 0.5),
                     letterSpacing: 1,
                     mb: 0.25,
                   }}
@@ -970,7 +972,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
               sx={{
                 position: 'absolute',
                 inset: 0,
-                bgcolor: alpha('#000', 0.7),
+                bgcolor: alpha(colors.scrim, 0.7),
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -981,13 +983,13 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
             >
               <Box
                 sx={{
-                  bgcolor: '#1a0a2e',
+                  bgcolor: art.panel,
                   borderRadius: 3,
                   px: 3,
                   py: 2.5,
                   textAlign: 'center',
                   minWidth: 200,
-                  boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                  boxShadow: `0 10px 30px ${alpha(colors.scrim, 0.5)}`,
                   border: `3px solid ${resultColor}`,
                 }}
               >
@@ -995,7 +997,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                   sx={{
                     fontSize: '0.7rem',
                     fontWeight: 700,
-                    color: alpha('#fff', 0.6),
+                    color: alpha(colors.onColor, 0.6),
                     letterSpacing: 1,
                     mb: 0.5,
                   }}
@@ -1007,7 +1009,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                     fontSize: '2rem',
                     fontWeight: 900,
                     lineHeight: 1,
-                    color: '#fff',
+                    color: colors.onColor,
                     mb: 0.5,
                   }}
                 >
@@ -1017,7 +1019,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                   sx={{
                     fontSize: '0.65rem',
                     fontWeight: 600,
-                    color: alpha('#fff', 0.5),
+                    color: alpha(colors.onColor, 0.5),
                     mb: 1,
                   }}
                 >
@@ -1040,7 +1042,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                       fontWeight: 900,
                       color: resultColor,
                       ...(multInfo.multiplier >= 3 && {
-                        background: 'linear-gradient(90deg, #ffd700, #ffa000, #ffd700)',
+                        background: `linear-gradient(90deg, ${art.goldShimmer}, ${art.goldShimmerMid}, ${art.goldShimmer})`,
                         backgroundSize: '200% auto',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
@@ -1063,8 +1065,10 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                         fontWeight: 700,
                         fontSize: '0.85rem',
                         mb: 0.75,
-                        background: 'linear-gradient(135deg, #7c4dff, #651fff)',
-                        '&:hover': { background: 'linear-gradient(135deg, #651fff, #6200ea)' },
+                        background: `linear-gradient(135deg, ${art.button}, ${art.buttonEnd})`,
+                        '&:hover': {
+                          background: `linear-gradient(135deg, ${art.buttonEnd}, ${art.buttonHoverEnd})`,
+                        },
                       }}
                     >
                       Play Again
@@ -1077,8 +1081,8 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                       sx={{
                         borderRadius: `${radii.md}px`,
                         fontSize: '0.75rem',
-                        color: alpha('#fff', 0.7),
-                        borderColor: alpha('#fff', 0.2),
+                        color: alpha(colors.onColor, 0.7),
+                        borderColor: alpha(colors.onColor, 0.2),
                       }}
                     >
                       Back to Arcade
@@ -1094,8 +1098,10 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                       borderRadius: `${radii.md}px`,
                       fontWeight: 700,
                       fontSize: '0.85rem',
-                      background: 'linear-gradient(135deg, #7c4dff, #651fff)',
-                      '&:hover': { background: 'linear-gradient(135deg, #651fff, #6200ea)' },
+                      background: `linear-gradient(135deg, ${art.button}, ${art.buttonEnd})`,
+                      '&:hover': {
+                        background: `linear-gradient(135deg, ${art.buttonEnd}, ${art.buttonHoverEnd})`,
+                      },
                     }}
                   >
                     Continue to Question &rarr;
@@ -1109,10 +1115,10 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
 
       {/* ── Touch controls — left/right repeat on hold ──────────── */}
       {gameState === 'playing' && (
-        <Box sx={{ bgcolor: '#0a0a0a' }}>
+        <Box sx={{ bgcolor: art.well }}>
           <GamePad
             layout="bar"
-            accentColor="#5e35b1"
+            accentColor={art.gamepad}
             buttons={
               [
                 { id: 'left', label: '\u25C4', onPress: () => moveHorizontal(-1), repeat: true },
@@ -1130,7 +1136,13 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
         gameState === 'question' ||
         gameState === 'submitting' ||
         gameState === 'answered') && (
-        <Box sx={{ p: 2, bgcolor: '#f5f0ff', borderBottom: `1px solid ${alpha('#7c4dff', 0.15)}` }}>
+        <Box
+          sx={{
+            p: 2,
+            bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : art.questionPanel,
+            borderBottom: `1px solid ${alpha(art.frame, 0.15)}`,
+          }}
+        >
           {/* Multiplier chip + category */}
           <Box
             sx={{
@@ -1146,7 +1158,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                 py: 0.35,
                 borderRadius: 2,
                 bgcolor: resultColor,
-                color: '#fff',
+                color: colors.onColor,
                 fontWeight: 900,
                 fontSize: '0.85rem',
                 letterSpacing: 0.3,
@@ -1240,7 +1252,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                               ? alpha(theme.palette.error.main, 0.1)
                               : isSelected
                                 ? alpha(theme.palette.primary.main, 0.08)
-                                : '#fff',
+                                : 'background.paper',
                           color: isCorrect
                             ? theme.palette.success.dark
                             : isWrong

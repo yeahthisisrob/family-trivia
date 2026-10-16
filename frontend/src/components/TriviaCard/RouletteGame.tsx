@@ -15,6 +15,8 @@ import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { getCasinoBalance, updateCasinoBalance } from '../../api/modules/casino';
+import { colors } from '../../shared/design-system/tokens/colors';
+import { games } from '../../shared/design-system/tokens/games';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
@@ -23,9 +25,10 @@ const logger = createLogger('RouletteGame');
 
 // ── Theme ───────────────────────────────────────────────────────
 
-const gold = '#ffd700';
-const darkBg = '#1a1a2e';
-const frameBg = '#2c2c44';
+const art = games.roulette;
+const gold = art.gold;
+const darkBg = art.cabinet;
+const frameBg = art.frame;
 
 // ── Roulette data ───────────────────────────────────────────────
 
@@ -37,8 +40,8 @@ const WHEEL_ORDER = [
 const RED_NUMS = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
 
 function numColor(n: number): string {
-  if (n === 0) return '#2e7d32';
-  return RED_NUMS.has(n) ? '#c62828' : '#212121';
+  if (n === 0) return art.pocketZero;
+  return RED_NUMS.has(n) ? art.pocketRed : art.pocketBlack;
 }
 
 const POCKET_COUNT = WHEEL_ORDER.length; // 37
@@ -102,7 +105,7 @@ function drawWheel(ctx: CanvasRenderingContext2D, size: number, rotation: number
   // Outer rim
   ctx.beginPath();
   ctx.arc(cx, cy, outerR + 2, 0, Math.PI * 2);
-  ctx.fillStyle = '#5d4037';
+  ctx.fillStyle = art.wheelRim;
   ctx.fill();
 
   // Pockets
@@ -115,13 +118,13 @@ function drawWheel(ctx: CanvasRenderingContext2D, size: number, rotation: number
     ctx.closePath();
     ctx.fillStyle = numColor(WHEEL_ORDER[i]);
     ctx.fill();
-    ctx.strokeStyle = alpha('#fff', 0.15);
+    ctx.strokeStyle = alpha(colors.onColor, 0.15);
     ctx.lineWidth = 0.5;
     ctx.stroke();
   }
 
   // Numbers
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = colors.onColor;
   ctx.font = `bold ${Math.round(size * 0.036)}px sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -138,7 +141,7 @@ function drawWheel(ctx: CanvasRenderingContext2D, size: number, rotation: number
   // Center hub
   ctx.beginPath();
   ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
-  ctx.fillStyle = '#3e2723';
+  ctx.fillStyle = art.hub;
   ctx.fill();
   ctx.beginPath();
   ctx.arc(cx, cy, innerR * 0.4, 0, Math.PI * 2);
@@ -153,15 +156,15 @@ function drawBall(ctx: CanvasRenderingContext2D, size: number, angle: number, ra
   const y = cy + Math.sin(angle) * radius;
   ctx.beginPath();
   ctx.arc(x, y, 5, 0, Math.PI * 2);
-  ctx.fillStyle = '#e0e0e0';
+  ctx.fillStyle = art.ball;
   ctx.fill();
-  ctx.strokeStyle = '#bdbdbd';
+  ctx.strokeStyle = art.ballEdge;
   ctx.lineWidth = 1;
   ctx.stroke();
   // Shine
   ctx.beginPath();
   ctx.arc(x - 1.5, y - 1.5, 1.5, 0, Math.PI * 2);
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = art.ballHighlight;
   ctx.fill();
 }
 
@@ -174,7 +177,7 @@ function drawPointer(ctx: CanvasRenderingContext2D, size: number) {
   ctx.closePath();
   ctx.fillStyle = gold;
   ctx.fill();
-  ctx.strokeStyle = '#b8860b';
+  ctx.strokeStyle = art.pointerEdge;
   ctx.lineWidth = 1;
   ctx.stroke();
 }
@@ -336,7 +339,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
           borderRadius: 3,
           border: `3px solid ${gold}`,
           overflow: 'hidden',
-          boxShadow: `0 10px 40px rgba(0,0,0,0.6), inset 0 1px 0 ${alpha(gold, 0.2)}`,
+          boxShadow: `0 10px 40px ${alpha(colors.scrim, 0.6)}, inset 0 1px 0 ${alpha(gold, 0.2)}`,
         }}
       >
         {/* Header */}
@@ -351,7 +354,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
           }}
         >
           <Box sx={{ flex: 1 }}>
-            <Typography sx={{ fontSize: '0.72rem', color: alpha('#fff', 0.55) }}>
+            <Typography sx={{ fontSize: '0.72rem', color: alpha(colors.onColor, 0.55) }}>
               CREDITS{' '}
               <Box
                 component="span"
@@ -379,7 +382,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
             <IconButton
               size="small"
               onClick={endSession}
-              sx={{ color: alpha('#fff', 0.4), '&:hover': { color: '#fff' } }}
+              sx={{ color: alpha(colors.onColor, 0.4), '&:hover': { color: colors.onColor } }}
             >
               <CloseIcon sx={{ fontSize: 18 }} />
             </IconButton>
@@ -392,7 +395,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
             display: 'flex',
             justifyContent: 'center',
             py: 2,
-            bgcolor: '#0d1b0e',
+            bgcolor: art.table,
             borderLeft: `6px solid ${frameBg}`,
             borderRight: `6px solid ${frameBg}`,
           }}
@@ -417,7 +420,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
             sx={{
               textAlign: 'center',
               py: 1.5,
-              bgcolor: isWin ? alpha(gold, 0.12) : alpha('#ef5350', 0.1),
+              bgcolor: isWin ? alpha(gold, 0.12) : alpha(art.loss, 0.1),
               borderTop: `1px solid ${alpha(gold, 0.15)}`,
               animation: `${resultPop} 0.4s ease-out`,
             }}
@@ -435,7 +438,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
                 mb: 0.75,
               }}
             >
-              <Typography sx={{ color: '#fff', fontWeight: 900, fontSize: '1.1rem' }}>
+              <Typography sx={{ color: colors.onColor, fontWeight: 900, fontSize: '1.1rem' }}>
                 {result}
               </Typography>
             </Box>
@@ -443,7 +446,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
               sx={{
                 fontWeight: 900,
                 fontSize: '1rem',
-                color: isWin ? gold : '#ef5350',
+                color: isWin ? gold : art.loss,
               }}
             >
               {isWin ? `Win! +${payout}` : 'No luck this time'}
@@ -452,10 +455,10 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
         )}
 
         {/* Betting controls */}
-        <Box sx={{ px: 2, py: 1.5, bgcolor: alpha('#000', 0.2) }}>
+        <Box sx={{ px: 2, py: 1.5, bgcolor: alpha(colors.scrim, 0.2) }}>
           {isBusted ? (
             <Box sx={{ textAlign: 'center', py: 2 }}>
-              <Typography sx={{ fontSize: '1.1rem', fontWeight: 900, color: '#ef5350', mb: 1 }}>
+              <Typography sx={{ fontSize: '1.1rem', fontWeight: 900, color: art.loss, mb: 1 }}>
                 Out of credits!
               </Typography>
               <Button
@@ -477,7 +480,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
               <Typography
                 sx={{
                   fontSize: '0.6rem',
-                  color: alpha('#fff', 0.4),
+                  color: alpha(colors.onColor, 0.4),
                   textTransform: 'uppercase',
                   letterSpacing: 1.5,
                   fontWeight: 700,
@@ -488,8 +491,8 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
               </Typography>
               <Box sx={{ display: 'flex', gap: 0.5, mb: 1.5, flexWrap: 'wrap' }}>
                 {[
-                  { type: 'red' as BetType, label: 'Red', color: '#c62828' },
-                  { type: 'black' as BetType, label: 'Black', color: '#212121' },
+                  { type: 'red' as BetType, label: 'Red', color: art.pocketRed },
+                  { type: 'black' as BetType, label: 'Black', color: art.pocketBlack },
                   { type: 'odd' as BetType, label: 'Odd', color: frameBg },
                   { type: 'even' as BetType, label: 'Even', color: frameBg },
                   { type: 'number' as BetType, label: `#${betNumber}`, color: numColor(betNumber) },
@@ -506,9 +509,9 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
                         px: 1.25,
                         py: 0.5,
                         borderRadius: `${radii.md}px`,
-                        bgcolor: active ? opt.color : alpha('#fff', 0.06),
-                        border: `2px solid ${active ? gold : alpha('#fff', 0.12)}`,
-                        color: '#fff',
+                        bgcolor: active ? opt.color : alpha(colors.onColor, 0.06),
+                        border: `2px solid ${active ? gold : alpha(colors.onColor, 0.12)}`,
+                        color: colors.onColor,
                         fontSize: '0.75rem',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -548,12 +551,15 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
                           alignItems: 'center',
                           justifyContent: 'center',
                           bgcolor: betNumber === i ? gold : numColor(i),
-                          color: betNumber === i ? darkBg : '#fff',
+                          color: betNumber === i ? darkBg : colors.onColor,
                           fontSize: '0.55rem',
                           fontWeight: 800,
                           cursor: 'pointer',
                           transition: 'all 0.1s',
-                          border: betNumber === i ? `1px solid #fff` : '1px solid transparent',
+                          border:
+                            betNumber === i
+                              ? `1px solid ${colors.onColor}`
+                              : '1px solid transparent',
                         }}
                       >
                         {i}
@@ -581,12 +587,12 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
                       justifyContent: 'center',
                       background:
                         betAmount === a
-                          ? `radial-gradient(circle at 35% 35%, #ffe066, ${gold}, #c9a400)`
-                          : `radial-gradient(circle at 35% 35%, #555, #333, #222)`,
-                      color: betAmount === a ? darkBg : alpha('#fff', 0.7),
+                          ? `radial-gradient(circle at 35% 35%, ${art.chipGoldLight}, ${gold}, ${art.chipGoldDark})`
+                          : `radial-gradient(circle at 35% 35%, ${art.chipIdleLight}, ${art.chipIdle}, ${art.chipIdleDark})`,
+                      color: betAmount === a ? darkBg : alpha(colors.onColor, 0.7),
                       fontWeight: 900,
                       fontSize: '0.8rem',
-                      border: `2px solid ${betAmount === a ? '#fff' : alpha('#fff', 0.12)}`,
+                      border: `2px solid ${betAmount === a ? colors.onColor : alpha(colors.onColor, 0.12)}`,
                       cursor: 'pointer',
                       transition: 'all 0.12s',
                       boxShadow: betAmount === a ? `0 0 10px ${alpha(gold, 0.5)}` : 'none',
@@ -611,7 +617,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
                   textTransform: 'none',
                   fontSize: '0.95rem',
                   boxShadow: `0 3px 10px ${alpha(gold, 0.3)}`,
-                  '&:hover': { bgcolor: '#ffca28' },
+                  '&:hover': { bgcolor: art.goldHover },
                   '&.Mui-disabled': { bgcolor: alpha(gold, 0.3), color: darkBg },
                 }}
               >
@@ -628,7 +634,7 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
         {/* Footer */}
         <Box
           sx={{
-            bgcolor: alpha('#000', 0.3),
+            bgcolor: alpha(colors.scrim, 0.3),
             borderTop: `1px solid ${alpha(gold, 0.15)}`,
             px: 2,
             py: 0.5,
@@ -636,16 +642,16 @@ const RouletteGame: React.FC<RouletteGameProps> = ({ userId, onClose }) => {
             justifyContent: 'space-between',
           }}
         >
-          <Typography sx={{ fontSize: '0.6rem', color: alpha('#fff', 0.35) }}>
+          <Typography sx={{ fontSize: '0.6rem', color: alpha(colors.onColor, 0.35) }}>
             BET:{' '}
             <Box component="span" sx={{ color: gold, fontWeight: 800 }}>
               {betAmount}
             </Box>
           </Typography>
-          <Typography sx={{ fontSize: '0.6rem', color: alpha('#fff', 0.35) }}>
+          <Typography sx={{ fontSize: '0.6rem', color: alpha(colors.onColor, 0.35) }}>
             {betType === 'number' ? `#${betNumber} (35:1)` : `${betType} (1:1)`}
           </Typography>
-          <Typography sx={{ fontSize: '0.6rem', color: alpha('#fff', 0.35) }}>
+          <Typography sx={{ fontSize: '0.6rem', color: alpha(colors.onColor, 0.35) }}>
             FLOOR:{' '}
             <Box component="span" sx={{ color: gold, fontWeight: 800 }}>
               {floorVal}

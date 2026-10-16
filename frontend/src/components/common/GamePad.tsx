@@ -17,6 +17,8 @@ import { Box, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useCallback, useRef, useState } from 'react';
+import { colors } from '../../shared/design-system/tokens/colors';
+import { games } from '../../shared/design-system/tokens/games';
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -131,8 +133,8 @@ const PadButton: React.FC<PadButtonProps> = ({
         justifyContent: 'center',
         bgcolor: pressed ? accent : alpha(accent, 0.85),
         boxShadow: pressed
-          ? `inset 0 2px 4px ${alpha('#000', 0.3)}`
-          : `0 3px 0 ${alpha('#000', 0.25)}, 0 4px 8px ${alpha('#000', 0.15)}`,
+          ? `inset 0 2px 4px ${alpha(colors.scrim, 0.3)}`
+          : `0 3px 0 ${alpha(colors.scrim, 0.25)}, 0 4px 8px ${alpha(colors.scrim, 0.15)}`,
         transform: pressed ? 'scale(0.94) translateY(1px)' : 'scale(1)',
         transition: 'transform 60ms, box-shadow 60ms, background-color 60ms',
         cursor: disabled ? 'default' : 'pointer',
@@ -146,9 +148,9 @@ const PadButton: React.FC<PadButtonProps> = ({
         sx={{
           fontSize,
           fontWeight: 900,
-          color: '#fff',
+          color: colors.onColor,
           lineHeight: 1,
-          textShadow: `0 1px 2px ${alpha('#000', 0.3)}`,
+          textShadow: `0 1px 2px ${alpha(colors.scrim, 0.3)}`,
           pointerEvents: 'none',
         }}
       >
@@ -255,7 +257,7 @@ const BarLayout: React.FC<{ buttons: GamePadButton[]; accent: string; disabled?:
 const GamePad: React.FC<GamePadProps> = ({
   buttons,
   layout,
-  accentColor = '#2e7d32',
+  accentColor = games.gamepad.button,
   disabled = false,
 }) => {
   if (layout === 'dpad') {

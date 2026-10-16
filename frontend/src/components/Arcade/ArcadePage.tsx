@@ -15,6 +15,7 @@ import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getArcadeLeaderboard } from '../../api/modules/arcade';
 import { colors } from '../../shared/design-system/tokens/colors';
+import { games } from '../../shared/design-system/tokens/games';
 import { shadows } from '../../shared/design-system/tokens/shadows';
 import { getUserColor, getUserInitials } from '../../utils';
 import { createLogger } from '../../utils/logger';
@@ -53,8 +54,8 @@ const GAMES: GameConfig[] = [
     id: 'casino' as ArcadeGameId,
     label: 'Casino',
     description: 'Slots + Blackjack — shared credit pool',
-    gradient: 'linear-gradient(135deg, #1a1a2e 0%, #2c2c44 50%, #0f3460 100%)',
-    accentColor: '#ffd700',
+    gradient: games.casino.arcadeTile,
+    accentColor: games.casino.gold,
     badge: 'SLOTS · 21',
     icon: <CasinoIcon />,
   },
@@ -181,7 +182,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
           overflow: 'hidden',
           border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
           borderRadius: 3,
-          background: `linear-gradient(135deg, ${alpha('#7b1fa2', 0.08)}, ${alpha('#1976d2', 0.06)})`,
+          background: `linear-gradient(135deg, ${alpha(games.arcade.headerFrom, 0.08)}, ${alpha(games.arcade.headerTo, 0.06)})`,
         }}
       >
         <Box sx={{ px: 2, py: 1.25, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -317,7 +318,9 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
                   </Box>
                   <Box sx={{ flex: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.25 }}>
-                      <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: '#fff' }}>
+                      <Typography
+                        sx={{ fontWeight: 800, fontSize: '1.05rem', color: colors.onColor }}
+                      >
                         {game.label}
                       </Typography>
                       <Box
@@ -325,7 +328,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
                           px: 0.75,
                           py: 0.15,
                           borderRadius: 1,
-                          bgcolor: alpha('#000', 0.25),
+                          bgcolor: alpha(colors.scrim, 0.25),
                           fontSize: '0.5rem',
                           fontWeight: 800,
                           color: game.accentColor,
@@ -335,7 +338,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
                         {game.badge}
                       </Box>
                     </Box>
-                    <Typography sx={{ fontSize: '0.68rem', color: alpha('#fff', 0.85) }}>
+                    <Typography sx={{ fontSize: '0.68rem', color: alpha(colors.onColor, 0.85) }}>
                       {game.description}
                     </Typography>
                   </Box>

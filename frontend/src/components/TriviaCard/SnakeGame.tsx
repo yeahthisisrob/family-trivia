@@ -11,6 +11,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { submitArcadeScore } from '../../api/modules/arcade';
 import { apiService } from '../../services/ApiService';
 import { colors } from '../../shared/design-system/tokens/colors';
+import { games } from '../../shared/design-system/tokens/games';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../utils/logger';
@@ -140,8 +141,10 @@ const pulse = keyframes`
   100% { opacity: 0.7; transform: scale(1); }
 `;
 
+const art = games.snake;
+
 const flashIn = keyframes`
-  0%   { background-color: #fff; }
+  0%   { background-color: ${colors.onColor}; }
   100% { background-color: transparent; }
 `;
 
@@ -714,14 +717,14 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
             width: '100%',
             px: 1.5,
             py: 0.75,
-            bgcolor: '#1a1a1a',
-            borderBottom: '1px solid #333',
+            bgcolor: art.hud,
+            borderBottom: `1px solid ${art.hudRule}`,
           }}
         >
           <Typography
             sx={{
               fontSize: '0.75rem',
-              color: 'rgba(255,255,255,0.7)',
+              color: alpha(colors.onColor, 0.7),
               mb: 0.5,
               lineHeight: 1.3,
               overflow: 'hidden',
@@ -740,7 +743,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
                     fontFamily: 'monospace',
                     fontWeight: 700,
                     fontSize: '0.9rem',
-                    color: pl.collected ? colors.brand.primaryLight : 'rgba(255,255,255,0.3)',
+                    color: pl.collected ? colors.brand.primaryLight : alpha(colors.onColor, 0.3),
                     transition: `color ${motion.duration.fast} ${motion.ease.smooth}`,
                   }}
                 >
@@ -751,7 +754,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
             <Typography
               sx={{
                 fontSize: '0.65rem',
-                color: 'rgba(255,255,255,0.5)',
+                color: alpha(colors.onColor, 0.5),
                 fontFamily: 'monospace',
               }}
             >
@@ -768,10 +771,10 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
           position: 'relative',
           width: GRID_PX,
           height: GRID_PX,
-          backgroundColor: '#111',
+          backgroundColor: art.board,
           backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), ' +
-            'linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
+            `linear-gradient(${alpha(colors.onColor, 0.03)} 1px, transparent 1px), ` +
+            `linear-gradient(90deg, ${alpha(colors.onColor, 0.03)} 1px, transparent 1px)`,
           backgroundSize: `${CELL_SIZE}px ${CELL_SIZE}px`,
           contain: 'layout style paint',
         }}
@@ -786,7 +789,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
               top: c.row * CELL_SIZE,
               width: CELL_SIZE,
               height: CELL_SIZE,
-              backgroundColor: '#4caf50',
+              backgroundColor: art.body,
               borderRadius: 2,
             }}
           />
@@ -806,7 +809,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
                   top: h.row * CELL_SIZE,
                   width: CELL_SIZE,
                   height: CELL_SIZE,
-                  backgroundColor: '#2e7d32',
+                  backgroundColor: art.head,
                   borderRadius: 3,
                 }}
               >
@@ -816,7 +819,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
                     width: 3,
                     height: 3,
                     borderRadius: '50%',
-                    backgroundColor: '#fff',
+                    backgroundColor: art.eye,
                     top: 3,
                     left: d === 'left' ? 2 : d === 'right' ? undefined : 3,
                     right: d === 'right' ? 2 : undefined,
@@ -828,7 +831,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
                     width: 3,
                     height: 3,
                     borderRadius: '50%',
-                    backgroundColor: '#fff',
+                    backgroundColor: art.eye,
                     bottom: 3,
                     left: d === 'left' ? 2 : d === 'right' ? undefined : 3,
                     right: d === 'right' ? 2 : undefined,
@@ -842,10 +845,10 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
         {snapshot.letters.map((lc, i) => {
           const isTarget = lc.isTarget;
           const bg = isTarget
-            ? 'rgba(255,235,59,0.9)'
+            ? alpha(art.targetTile, 0.9)
             : lc.isDecoy
-              ? 'rgba(244,67,54,0.3)'
-              : 'rgba(158,158,158,0.3)';
+              ? alpha(art.decoy, 0.3)
+              : alpha(art.neutralTile, 0.3);
           return (
             <div
               key={`l${i}`}
@@ -869,7 +872,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
                   fontWeight: 800,
                   fontFamily: 'monospace',
                   lineHeight: 1,
-                  color: isTarget ? '#000' : lc.isDecoy ? '#f44336' : '#ccc',
+                  color: isTarget ? art.targetLetter : lc.isDecoy ? art.decoy : art.neutralLetter,
                 }}
               >
                 {lc.letter}
@@ -922,7 +925,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
                 fontSize: '1.5rem',
                 fontWeight: 900,
                 color: colors.medal.gold,
-                textShadow: '0 0 10px rgba(255,215,0,0.5)',
+                textShadow: `0 0 10px ${alpha(colors.medal.gold, 0.5)}`,
                 fontFamily: 'monospace',
               }}
             >
@@ -939,7 +942,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
               bottom: 8,
               left: '50%',
               transform: 'translateX(-50%)',
-              bgcolor: alpha('#ff9800', 0.9),
+              bgcolor: alpha(art.speedNotice, 0.9),
               px: 1.5,
               py: 0.5,
               borderRadius: `${radii.md}px`,
@@ -947,7 +950,12 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
             }}
           >
             <Typography
-              sx={{ fontSize: '0.7rem', fontWeight: 700, color: '#fff', fontFamily: 'monospace' }}
+              sx={{
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                color: colors.onColor,
+                fontFamily: 'monospace',
+              }}
             >
               SPEED UP!
             </Typography>
@@ -964,7 +972,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              bgcolor: alpha('#000', 0.85),
+              bgcolor: alpha(colors.scrim, 0.85),
               zIndex: 20,
               gap: 2,
             }}
@@ -1006,7 +1014,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
                 <Typography
                   sx={{
                     fontSize: '0.7rem',
-                    color: 'rgba(255,255,255,0.6)',
+                    color: alpha(colors.onColor, 0.6),
                     textAlign: 'center',
                     px: 2,
                     lineHeight: 1.4,
@@ -1042,13 +1050,13 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              bgcolor: alpha('#000', 0.85),
+              bgcolor: alpha(colors.scrim, 0.85),
               zIndex: 20,
               gap: 2,
             }}
           >
             <LoadingDots />
-            <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem' }}>
+            <Typography sx={{ color: alpha(colors.onColor, 0.6), fontSize: '0.75rem' }}>
               Loading questions...
             </Typography>
           </Box>
@@ -1064,7 +1072,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              bgcolor: alpha('#000', 0.9),
+              bgcolor: alpha(colors.scrim, 0.9),
               zIndex: 20,
               gap: 1.5,
               animation: `${resultPop} ${motion.duration.slow} ${motion.ease.bounce}`,
@@ -1094,7 +1102,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
             <Typography
               sx={{
                 fontSize: '0.75rem',
-                color: 'rgba(255,255,255,0.6)',
+                color: alpha(colors.onColor, 0.6),
                 fontFamily: 'monospace',
               }}
             >
@@ -1118,10 +1126,10 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
                 size="small"
                 onClick={onClose}
                 sx={{
-                  borderColor: 'rgba(255,255,255,0.3)',
-                  color: '#fff',
+                  borderColor: alpha(colors.onColor, 0.3),
+                  color: colors.onColor,
                   fontWeight: 700,
-                  '&:hover': { borderColor: 'rgba(255,255,255,0.5)' },
+                  '&:hover': { borderColor: alpha(colors.onColor, 0.5) },
                 }}
               >
                 Back to Arcade
@@ -1133,10 +1141,10 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
 
       {/* D-pad controls — GamePad validates opposite-direction presses */}
       {gameState === 'playing' && (
-        <Box sx={{ bgcolor: '#0a0a0a' }}>
+        <Box sx={{ bgcolor: art.controls }}>
           <GamePad
             layout="dpad"
-            accentColor="#1b5e20"
+            accentColor={art.gamepad}
             buttons={
               [
                 { id: 'up', label: '▲', onPress: () => queueDirection('up') },

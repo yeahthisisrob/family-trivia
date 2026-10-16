@@ -27,6 +27,7 @@ import { submitArcadeScore } from '../../api/modules/arcade';
 import { getCurlingAIMove } from '../../api/modules/gameAI';
 import { lockCurling, submitCurlingAnswer } from '../../api/modules/games';
 import { colors } from '../../shared/design-system/tokens/colors';
+import { games } from '../../shared/design-system/tokens/games';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../utils/logger';
@@ -34,6 +35,7 @@ import { LoadingDots } from '../ui/feedback';
 import { CurlingSimulation, OFF_SHEET_MARGIN } from './curlingPhysics';
 
 const logger = createLogger('CurlingGame');
+const art = games.curling;
 
 // ── Constants ──────────────────────────────────────────────────────
 
@@ -846,15 +848,15 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
       sx={{
         overflow: 'hidden',
         borderRadius: 3,
-        border: `2px solid ${alpha('#64b5f6', 0.5)}`,
-        boxShadow: `0 0 20px ${alpha('#64b5f6', 0.15)}`,
+        border: `2px solid ${alpha(art.trim, 0.5)}`,
+        boxShadow: `0 0 20px ${alpha(art.trim, 0.15)}`,
         scrollMarginTop: 16,
       }}
     >
       {/* Header */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)',
+          background: `linear-gradient(135deg, ${art.headerTop} 0%, ${art.headerBottom} 100%)`,
           color: 'white',
           px: 2,
           py: 1.25,
@@ -886,12 +888,14 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerCancel}
           onClick={handleSweep}
+          // The ice and house are drawn light on purpose, in both schemes.
+          data-light-surface
           sx={{
             position: 'relative',
             height: SHEET_HEIGHT,
             maxWidth: SHEET_WIDTH,
             mx: 'auto',
-            background: 'linear-gradient(180deg, #e3f2fd 0%, #bbdefb 50%, #90caf9 100%)',
+            background: `linear-gradient(180deg, ${art.iceTop} 0%, ${art.iceMid} 50%, ${art.iceBottom} 100%)`,
             cursor:
               state === 'idle'
                 ? 'grab'
@@ -910,8 +914,7 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
             sx={{
               position: 'absolute',
               inset: 0,
-              background:
-                'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%)',
+              background: `linear-gradient(105deg, transparent 40%, ${alpha(colors.onColor, 0.4)} 50%, transparent 60%)`,
               animation: `${iceShine} 6s ease-in-out infinite`,
               pointerEvents: 'none',
             }}
@@ -920,8 +923,6 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
           {/* The house — 4 concentric rings: 12ft(blue), 8ft(white),
             4ft(red), button(blue). Proportions match real curling. */}
           <Box
-            // The ice and house are drawn light on purpose, in both schemes.
-            data-light-surface
             sx={{
               position: 'absolute',
               left: '50%',
@@ -930,12 +931,12 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
               width: TWELVE_FOOT_R * 2,
               height: TWELVE_FOOT_R * 2,
               borderRadius: '50%',
-              bgcolor: '#1565c0',
+              bgcolor: art.houseRing,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               overflow: 'hidden',
-              boxShadow: `inset 0 0 20px ${alpha('#0d47a1', 0.3)}`,
+              boxShadow: `inset 0 0 20px ${alpha(art.houseShadow, 0.3)}`,
             }}
           >
             <Box
@@ -944,8 +945,8 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                 width: EIGHT_FOOT_R * 2,
                 height: EIGHT_FOOT_R * 2,
                 borderRadius: '50%',
-                bgcolor: '#fff',
-                boxShadow: `inset 0 0 8px ${alpha('#000', 0.06)}`,
+                bgcolor: art.eightFoot,
+                boxShadow: `inset 0 0 8px ${alpha(colors.scrim, 0.06)}`,
               }}
             />
             <Box
@@ -954,8 +955,8 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                 width: FOUR_FOOT_R * 2,
                 height: FOUR_FOOT_R * 2,
                 borderRadius: '50%',
-                bgcolor: '#d32f2f',
-                boxShadow: `inset 0 0 10px ${alpha('#b71c1c', 0.3)}`,
+                bgcolor: art.fourFoot,
+                boxShadow: `inset 0 0 10px ${alpha(art.fourFootShadow, 0.3)}`,
               }}
             />
             <Box
@@ -964,15 +965,25 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                 width: BULLSEYE_R * 2,
                 height: BULLSEYE_R * 2,
                 borderRadius: '50%',
-                bgcolor: '#1565c0',
+                bgcolor: art.houseRing,
               }}
             />
             {/* Crosshair lines — clipped to the circle by overflow:hidden */}
             <Box
-              sx={{ position: 'absolute', width: '100%', height: 1, bgcolor: alpha('#000', 0.12) }}
+              sx={{
+                position: 'absolute',
+                width: '100%',
+                height: 1,
+                bgcolor: alpha(colors.scrim, 0.12),
+              }}
             />
             <Box
-              sx={{ position: 'absolute', width: 1, height: '100%', bgcolor: alpha('#000', 0.12) }}
+              sx={{
+                position: 'absolute',
+                width: 1,
+                height: '100%',
+                bgcolor: alpha(colors.scrim, 0.12),
+              }}
             />
           </Box>
 
@@ -990,10 +1001,10 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
             }}
           >
             {[
-              { color: '#1565c0', label: '3×', desc: 'Button' },
-              { color: '#d32f2f', label: '2×', desc: '4ft' },
-              { color: '#e0e0e0', label: '1.5×', desc: '8ft' },
-              { color: '#1565c0', label: '1×', desc: '12ft' },
+              { color: art.houseRing, label: '3×', desc: 'Button' },
+              { color: art.fourFoot, label: '2×', desc: '4ft' },
+              { color: art.eightFootLegend, label: '1.5×', desc: '8ft' },
+              { color: art.houseRing, label: '1×', desc: '12ft' },
             ].map((ring) => (
               <Box key={ring.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
                 <Box
@@ -1002,14 +1013,17 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                     height: 7,
                     borderRadius: '50%',
                     bgcolor: ring.color,
-                    border: ring.color === '#e0e0e0' ? `1px solid ${alpha('#000', 0.2)}` : 'none',
+                    border:
+                      ring.color === art.eightFootLegend
+                        ? `1px solid ${alpha(colors.scrim, 0.2)}`
+                        : 'none',
                   }}
                 />
                 <Typography
                   sx={{
                     fontSize: '0.5rem',
                     fontWeight: 700,
-                    color: alpha('#000', 0.45),
+                    color: alpha(colors.scrim, 0.45),
                     letterSpacing: 0.3,
                   }}
                 >
@@ -1027,7 +1041,7 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
               right: 0,
               top: HOUSE_CENTER_Y,
               height: 1,
-              bgcolor: alpha('#000', 0.08),
+              bgcolor: alpha(colors.scrim, 0.08),
               pointerEvents: 'none',
             }}
           />
@@ -1040,7 +1054,7 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
               right: 0,
               top: HOUSE_CENTER_Y - TWELVE_FOOT_R - 12,
               height: 2,
-              bgcolor: alpha('#c62828', 0.35),
+              bgcolor: alpha(art.sheetLine, 0.35),
               pointerEvents: 'none',
             }}
           />
@@ -1053,7 +1067,7 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
               right: 0,
               top: HOUSE_CENTER_Y + TWELVE_FOOT_R + 50,
               height: 2,
-              bgcolor: alpha('#c62828', 0.35),
+              bgcolor: alpha(art.sheetLine, 0.35),
               pointerEvents: 'none',
             }}
           />
@@ -1076,12 +1090,17 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                 y1={stoneY}
                 x2={trajectoryEnd.x}
                 y2={trajectoryEnd.y}
-                stroke="rgba(0,0,0,0.35)"
+                stroke={alpha(colors.scrim, 0.35)}
                 strokeWidth={2}
                 strokeDasharray="6,4"
               />
               {/* Endpoint dot */}
-              <circle cx={trajectoryEnd.x} cy={trajectoryEnd.y} r={4} fill="rgba(0,0,0,0.3)" />
+              <circle
+                cx={trajectoryEnd.x}
+                cy={trajectoryEnd.y}
+                r={4}
+                fill={alpha(colors.scrim, 0.3)}
+              />
             </svg>
           )}
 
@@ -1100,8 +1119,13 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                 sx={{
                   fontSize: '0.75rem',
                   fontWeight: 800,
-                  color: dragPower < 40 ? '#2196f3' : dragPower < 75 ? '#4caf50' : '#f44336',
-                  textShadow: '0 1px 2px rgba(255,255,255,0.8)',
+                  color:
+                    dragPower < 40
+                      ? art.power.low
+                      : dragPower < 75
+                        ? art.power.mid
+                        : art.power.high,
+                  textShadow: `0 1px 2px ${alpha(colors.onColor, 0.8)}`,
                 }}
               >
                 {Math.round(dragPower)}%
@@ -1114,9 +1138,11 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
             const owner = isArcade && sheetStones[i] ? sheetStones[i].owner : 'opponent';
             const isPlayer = owner === 'player';
             const stoneGradient = isPlayer
-              ? 'radial-gradient(circle at 30% 30%, #6d4c41, #3e2723)' // brown (matches player)
-              : 'radial-gradient(circle at 30% 30%, #ffd54f, #f9a825, #e65100)'; // gold (opponent/computer)
-            const stoneBorder = isPlayer ? '2px solid #fff3e0' : '2px solid #fff8e1';
+              ? `radial-gradient(circle at 30% 30%, ${art.playerStoneLight}, ${art.playerStoneDark})` // brown (matches player)
+              : `radial-gradient(circle at 30% 30%, ${art.opponentStoneLight}, ${art.opponentStoneMid}, ${art.opponentStoneDark})`; // gold (opponent/computer)
+            const stoneBorder = isPlayer
+              ? `2px solid ${art.playerStoneEdge}`
+              : `2px solid ${art.opponentStoneEdge}`;
             return (
               <React.Fragment key={i}>
                 <Box
@@ -1128,7 +1154,7 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                     width: OPPONENT_STONE_SIZE,
                     height: OPPONENT_STONE_SIZE,
                     borderRadius: '50%',
-                    bgcolor: alpha('#000', 0.15),
+                    bgcolor: alpha(colors.scrim, 0.15),
                     pointerEvents: 'none',
                     filter: 'blur(2px)',
                   }}
@@ -1144,7 +1170,7 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                     borderRadius: '50%',
                     background: stoneGradient,
                     border: stoneBorder,
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.3), inset 0 -2px 3px rgba(0,0,0,0.2)',
+                    boxShadow: `0 2px 4px ${alpha(colors.scrim, 0.3)}, inset 0 -2px 3px ${alpha(colors.scrim, 0.2)}`,
                     pointerEvents: 'none',
                     zIndex: 2,
                   }}
@@ -1164,8 +1190,8 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                 transform: 'translate(-50%, -50%)',
                 fontSize: '0.7rem',
                 fontWeight: 900,
-                color: '#ff6f00',
-                textShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                color: art.knockout,
+                textShadow: `0 1px 3px ${alpha(colors.scrim, 0.3)}`,
                 pointerEvents: 'none',
                 animation: `${knockoutPop} 1.2s ease-out forwards`,
                 zIndex: 20,
@@ -1186,7 +1212,7 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                 top: mark.y,
                 width: 16,
                 height: 2,
-                bgcolor: alpha('#fff', mark.opacity * 0.9),
+                bgcolor: alpha(colors.onColor, mark.opacity * 0.9),
                 borderRadius: 1,
                 pointerEvents: 'none',
                 zIndex: 1,
@@ -1204,7 +1230,7 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
               width: STONE_SIZE,
               height: STONE_SIZE,
               borderRadius: '50%',
-              bgcolor: alpha('#000', 0.2),
+              bgcolor: alpha(colors.scrim, 0.2),
               pointerEvents: 'none',
               filter: 'blur(2px)',
             }}
@@ -1220,9 +1246,9 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
               width: STONE_SIZE,
               height: STONE_SIZE,
               borderRadius: '50%',
-              background: 'radial-gradient(circle at 30% 30%, #6d4c41, #3e2723)',
-              boxShadow: `0 2px 4px rgba(0,0,0,0.4), inset 0 -2px 4px rgba(0,0,0,0.3)`,
-              border: '2px solid #fff3e0',
+              background: `radial-gradient(circle at 30% 30%, ${art.playerStoneLight}, ${art.playerStoneDark})`,
+              boxShadow: `0 2px 4px ${alpha(colors.scrim, 0.4)}, inset 0 -2px 4px ${alpha(colors.scrim, 0.3)}`,
+              border: `2px solid ${art.playerStoneEdge}`,
               zIndex: 3,
               // Handle (little red knob on top)
               '&::before': {
@@ -1234,16 +1260,16 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                 width: 10,
                 height: 6,
                 borderRadius: '3px 3px 0 0',
-                bgcolor: '#c62828',
+                bgcolor: art.handle,
               },
               // Sweep trail when sweeping
               ...(state === 'sliding' &&
                 sweepCount > 0 && {
-                  boxShadow: `0 2px 4px rgba(0,0,0,0.4), inset 0 -2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.6)`,
+                  boxShadow: `0 2px 4px ${alpha(colors.scrim, 0.4)}, inset 0 -2px 4px ${alpha(colors.scrim, 0.3)}, 0 0 20px ${alpha(colors.onColor, 0.6)}`,
                 }),
               // Glow when being dragged
               ...(state === 'charging' && {
-                boxShadow: `0 2px 4px rgba(0,0,0,0.4), inset 0 -2px 4px rgba(0,0,0,0.3), 0 0 12px rgba(33,150,243,0.5)`,
+                boxShadow: `0 2px 4px ${alpha(colors.scrim, 0.4)}, inset 0 -2px 4px ${alpha(colors.scrim, 0.3)}, 0 0 12px ${alpha(art.aimGlow, 0.5)}`,
               }),
             }}
           />
@@ -1259,14 +1285,14 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
               const inHouse = dist <= OUTER_R;
               const scoreColor =
                 dist <= BULLSEYE_R
-                  ? '#4caf50'
+                  ? art.distance.button
                   : dist <= INNER_R
-                    ? '#8bc34a'
+                    ? art.distance.fourFoot
                     : dist <= OUTER_R
-                      ? '#ffeb3b'
+                      ? art.distance.house
                       : dist <= 120
-                        ? '#ff9800'
-                        : '#f44336';
+                        ? art.distance.near
+                        : art.distance.far;
 
               return (
                 <>
@@ -1278,8 +1304,8 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                       bottom: 50,
                       pointerEvents: 'none',
                       textAlign: 'center',
-                      bgcolor: alpha('#000', 0.65),
-                      color: '#fff',
+                      bgcolor: alpha(colors.scrim, 0.65),
+                      color: colors.onColor,
                       px: 1.5,
                       py: 0.5,
                       borderRadius: 2,
@@ -1357,8 +1383,8 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                       transform: 'translateX(-50%)',
                       fontSize: '0.72rem',
                       fontWeight: 600,
-                      color: alpha('#000', 0.6),
-                      bgcolor: alpha('#fff', 0.7),
+                      color: alpha(colors.scrim, 0.6),
+                      bgcolor: alpha(colors.onColor, 0.7),
                       px: 1.5,
                       py: 0.5,
                       borderRadius: 2,
@@ -1394,8 +1420,8 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                 transform: 'translate(-50%, -50%)',
                 fontSize: '1.5rem',
                 fontWeight: 900,
-                color: '#ffd700',
-                textShadow: '0 0 10px rgba(255,215,0,0.8), 0 2px 4px rgba(0,0,0,0.5)',
+                color: art.bullseye,
+                textShadow: `0 0 10px ${alpha(art.bullseye, 0.8)}, 0 2px 4px ${alpha(colors.scrim, 0.5)}`,
                 animation: `${bullseyeCelebrate} 1.5s ease-out forwards`,
                 pointerEvents: 'none',
                 zIndex: 15,
@@ -1416,7 +1442,7 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                 right: 0,
                 px: 2,
                 py: 1.25,
-                background: `linear-gradient(180deg, transparent, ${alpha('#000', 0.7)} 20%)`,
+                background: `linear-gradient(180deg, transparent, ${alpha(colors.scrim, 0.7)} 20%)`,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1.5,
@@ -1436,18 +1462,18 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                   boxShadow: `0 0 16px ${alpha(resultColor, 0.5)}`,
                   flexShrink: 0,
                   ...(result.multiplier >= 3 && {
-                    background: 'linear-gradient(135deg, #ffd700, #ffa000, #ffd700)',
+                    background: `linear-gradient(135deg, ${art.bullseye}, ${art.bullseyeDeep}, ${art.bullseye})`,
                     backgroundSize: '200% auto',
                     animation: `${shimmer} 2s linear infinite`,
                   }),
                 }}
               >
-                <Typography sx={{ fontSize: '1.2rem', fontWeight: 900, color: '#fff' }}>
+                <Typography sx={{ fontSize: '1.2rem', fontWeight: 900, color: colors.onColor }}>
                   {result.multiplier}×
                 </Typography>
               </Box>
               <Box>
-                <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#fff' }}>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: colors.onColor }}>
                   {result.zone}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1457,21 +1483,23 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                       fontWeight: 600,
                       color:
                         result.precisionScore >= 80
-                          ? '#81c784'
+                          ? art.precisionGood
                           : result.precisionScore >= 50
-                            ? '#ffb74d'
-                            : alpha('#fff', 0.6),
+                            ? art.precisionFair
+                            : alpha(colors.onColor, 0.6),
                     }}
                   >
                     Precision {result.precisionScore}
                   </Typography>
                   {result.knockouts > 0 && (
-                    <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, color: '#ffb74d' }}>
+                    <Typography
+                      sx={{ fontSize: '0.68rem', fontWeight: 700, color: art.precisionFair }}
+                    >
                       {result.knockouts} KO
                     </Typography>
                   )}
                   {sweepCount > 0 && (
-                    <Typography sx={{ fontSize: '0.6rem', color: alpha('#fff', 0.4) }}>
+                    <Typography sx={{ fontSize: '0.6rem', color: alpha(colors.onColor, 0.4) }}>
                       {sweepCount} sweeps
                     </Typography>
                   )}
@@ -1487,7 +1515,13 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
         state === 'question' ||
         state === 'submitting' ||
         state === 'answered') && (
-        <Box sx={{ p: 2, bgcolor: '#f5fafd', borderBottom: `1px solid ${alpha('#64b5f6', 0.15)}` }}>
+        <Box
+          sx={{
+            p: 2,
+            bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : art.questionPanel,
+            borderBottom: `1px solid ${alpha(art.trim, 0.15)}`,
+          }}
+        >
           {/* Multiplier chip + category */}
           {result && (
             <Box
@@ -1504,7 +1538,7 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                   py: 0.35,
                   borderRadius: 2,
                   bgcolor: resultColor,
-                  color: '#fff',
+                  color: colors.onColor,
                   fontWeight: 900,
                   fontSize: '0.85rem',
                   letterSpacing: 0.3,
@@ -1585,7 +1619,7 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
                             ? alpha(theme.palette.error.main, 0.1)
                             : isSelected
                               ? alpha(theme.palette.primary.main, 0.08)
-                              : '#fff',
+                              : theme.palette.background.paper,
                         color: isCorrect
                           ? theme.palette.success.dark
                           : isWrong
@@ -1682,7 +1716,11 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
               fontWeight: 700,
             }}
           >
-            <Box sx={{ color: '#3e2723' }}>Score: {arcadeScore}</Box>
+            <Box
+              sx={{ color: theme.palette.mode === 'dark' ? 'text.primary' : art.playerStoneDark }}
+            >
+              Score: {arcadeScore}
+            </Box>
             <Box sx={{ color: 'text.disabled' }}>
               End {currentEnd}/{TOTAL_ENDS}
             </Box>
