@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import * as api from '../api';
-import type { EndOfSeasonStatus } from '../api/modules/celebrations';
+import type { EndOfSeasonStatus } from '../api/modules/seasons';
 import { useFamilyData } from '../contexts/FamilyDataContext';
 import { useUserStatus } from '../contexts/UserStatusContext';
 import { cacheService } from '../services/CacheService';

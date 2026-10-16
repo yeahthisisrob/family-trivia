@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { HttpResponse, http } from 'msw';
 import { expect, within } from 'storybook/test';
-import { StoryProviders } from '../../test/storyContexts';
-import UpcomingDates from './index';
+import { StoryProviders } from '../../../test/storyContexts';
+import UpcomingDates from './UpcomingDates';
 
 const day = (offset: number) => {
   const d = new Date();

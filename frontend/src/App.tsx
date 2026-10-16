@@ -1,7 +1,7 @@
 // File: src/App.tsx
 import { Box, Container, Typography } from '@mui/material';
 import React from 'react';
-import { markSeasonLetterSeen } from './api/modules/celebrations';
+import { markSeasonLetterSeen } from './api/modules/seasons';
 import { AppHeader } from './components/AppShell';
 import { TriviaTabs } from './components/AppShell/TriviaTabs';
 import { DailyFactCard } from './components/DailyFact';
@@ -11,11 +11,11 @@ import { SeasonLetter } from './components/SeasonLetter/SeasonLetter';
 import StatusGridToggle from './components/StatusGridToggle';
 import TimelineBoard from './components/TimelineBoard';
 import TriviaTab from './components/TriviaCard';
-import UpcomingDates from './components/UpcomingDates';
 import { LeaderboardProvider } from './contexts/LeaderboardContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { appearanceApi } from './entities/appearance';
 import { useFeatures } from './entities/settings';
+import { UpcomingDates } from './features/celebrations';
 import { ROUTES, useApp } from './hooks/useApp';
 import { colors, tint, useAppearance } from './shared/design-system';
 import { createLogger } from './utils/logger';

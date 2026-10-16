@@ -1,4 +1,6 @@
 // File: frontend/src/components/UpcomingDates/index.tsx
+
+import type { Birthday } from '@family-trivia/shared';
 import AddIcon from '@mui/icons-material/Add';
 import CakeIcon from '@mui/icons-material/Cake';
 import CelebrationIcon from '@mui/icons-material/Celebration';
@@ -24,11 +26,11 @@ import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import ConfettiExplosion from 'react-confetti-explosion';
-import { type Birthday, getUpcomingBirthdays } from '../../api/modules/celebrations';
-import { loadSession } from '../../session';
-import { colors } from '../../shared/design-system';
-import { createLogger } from '../../utils/logger';
-import { LoadingDots } from '../ui/feedback';
+import { LoadingDots } from '../../../components/ui/feedback';
+import { loadSession } from '../../../session';
+import { colors } from '../../../shared/design-system';
+import { createLogger } from '../../../utils/logger';
+import { celebrationsApi } from '../api/celebrationsApi';
 import AddCelebrationDialog from './AddCelebrationDialog';
 import AllCelebrationsDialog from './AllCelebrationsDialog';
 
@@ -201,7 +203,7 @@ const UpcomingDates: React.FC = () => {
         setError(false);
       }
       // Request one extra to detect if there are more
-      const response = await getUpcomingBirthdays(limit + 1);
+      const response = await celebrationsApi.upcoming(limit + 1);
       const upcoming = response.birthdays;
       setHasMore(upcoming.length > limit);
       setBirthdays(upcoming.slice(0, limit));
@@ -589,7 +591,6 @@ const UpcomingDates: React.FC = () => {
           setRefreshAllDialog((p) => p + 1);
           dismissCta();
         }}
-        currentUserId={currentUserId}
       />
       <AllCelebrationsDialog
         open={showAllDialog}

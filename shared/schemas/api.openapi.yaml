@@ -1258,7 +1258,7 @@ paths:
 
   /celebrations:
     post:
-      summary: Create a celebration
+      summary: Add a date to the family's calendar, as the caller
       operationId: createCelebration
       tags: [Celebrations]
       requestBody:
@@ -1267,19 +1267,20 @@ paths:
           application/json:
             schema:
               type: object
-              required: [type, name, date, addedBy]
+              required: [type, name, date]
               properties:
                 type:
                   type: string
                   enum: [birthday, anniversary, holiday, other]
                 name:
                   type: string
+                  maxLength: 80
                 date:
                   type: string
+                  description: MM/DD, a real day of the year
                 description:
                   type: string
-                addedBy:
-                  type: string
+                  maxLength: 300
                 recurring:
                   type: boolean
                 year:
@@ -1315,16 +1316,11 @@ paths:
                   lastUpdated:
                     type: string
     delete:
-      summary: Delete a celebration
+      summary: Delete a celebration the caller added
       operationId: deleteCelebration
       tags: [Celebrations]
       parameters:
         - name: id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: userId
           in: query
           required: true
           schema:
@@ -3806,6 +3802,18 @@ components:
           type: string
         recurring:
           type: boolean
+        year:
+          type: integer
+        addedByName:
+          type: string
+        isFromFacts:
+          type: boolean
+          description: Someone's birthday, from the family or their own answer
+        isManual:
+          type: boolean
+        remembered:
+          type: boolean
+          description: The birthday of someone the family remembers
 
     PhotoAlbum:
       type: object

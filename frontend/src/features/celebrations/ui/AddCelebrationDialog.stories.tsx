@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
-import { StoryProviders } from '../../test/storyContexts';
+import { StoryProviders } from '../../../test/storyContexts';
 import AddCelebrationDialog from './AddCelebrationDialog';
 
 const meta: Meta<typeof AddCelebrationDialog> = {
@@ -11,7 +11,6 @@ const meta: Meta<typeof AddCelebrationDialog> = {
     open: true,
     onClose: fn(),
     onSuccess: fn(),
-    currentUserId: 'alice',
   },
   decorators: [
     (Story) => (
