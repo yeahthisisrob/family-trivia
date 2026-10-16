@@ -10,6 +10,7 @@ const SUBJECT = { userId: 'subject' } as const;
 import { appearanceRoutes } from './features/appearance/routes';
 import { archiveRoutes } from './features/archive/routes';
 import { backupsRoutes } from './features/backups/routes';
+import { commentsRoutes } from './features/comments/routes';
 import { familyRoutes } from './features/family/routes';
 import { fillInRoutes } from './features/fill-in/routes';
 import { graphRoutes } from './features/graph/routes';
@@ -33,8 +34,6 @@ import { getCasinoBalance, updateCasinoBalance } from './routes/casino';
 import { getCatchupStatus } from './routes/catchupStatus';
 // Celebrations endpoints
 import { addCelebration, deleteCelebration, getCelebrations } from './routes/celebrations';
-// Unified comments endpoints
-import { addCommentHandler, getCommentCountsHandler, getCommentsHandler } from './routes/comments';
 // Consolidated leaderboard endpoint
 import { getConsolidatedLeaderboard } from './routes/consolidatedLeaderboard';
 // Custom category endpoints
@@ -160,6 +159,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...fillInRoutes,
   ...backupsRoutes,
   ...knowledgeRoutes,
+  ...commentsRoutes,
 
   // ── Public (no auth) ─────────────────────────────────────────
   'POST /auth/google': authGoogle,
@@ -207,14 +207,6 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   'GET /consolidated-leaderboard': requireAuth(getConsolidatedLeaderboard),
   'GET /answer-grid': requireAuth(getAnswerGrid),
   'GET /fact-grid': requireAuth(getFactGrid),
-  'GET /comments': requireAuth(getCommentsHandler),
-  'GET /comments/counts': requireAuth(getCommentCountsHandler),
-  'POST /comments': requireAuth(addCommentHandler),
-  // Legacy aliases (backwards compat during migration)
-  'GET /fact-comments': requireAuth(getCommentsHandler),
-  'POST /fact-comments': requireAuth(addCommentHandler),
-  'GET /trivia-comments': requireAuth(getCommentsHandler),
-  'POST /trivia-comments': requireAuth(addCommentHandler),
   'POST /casino-rush/start': requireAuth(casinoRushStartGame),
   'POST /casino-rush/answer': requireAuth(casinoRushSubmitAnswer),
   'GET /casino-rush/status': requireAuth(casinoRushStatus),

@@ -1050,110 +1050,6 @@ paths:
   # Comments
   # ──────────────────────────────────────────────
 
-  /fact-comments:
-    get:
-      summary: Get fact comments
-      operationId: getFactComments
-      tags: [Comments]
-      parameters:
-        - name: factId
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: getAll
-          in: query
-          required: false
-          schema:
-            type: boolean
-      responses:
-        "200":
-          description: Comment threads
-          content:
-            application/json:
-              schema:
-                type: object
-    post:
-      summary: Add a fact comment
-      operationId: addFactComment
-      tags: [Comments]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [userId, factId, text]
-              properties:
-                userId:
-                  type: string
-                factId:
-                  type: string
-                text:
-                  type: string
-      responses:
-        "200":
-          description: Created comment
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  comment:
-                    $ref: "#/components/schemas/FactComment"
-
-  /trivia-comments:
-    get:
-      summary: Get trivia comments
-      operationId: getTriviaComments
-      tags: [Comments]
-      parameters:
-        - name: triviaId
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: getAll
-          in: query
-          required: false
-          schema:
-            type: boolean
-      responses:
-        "200":
-          description: Comment threads
-          content:
-            application/json:
-              schema:
-                type: object
-    post:
-      summary: Add a trivia comment
-      operationId: addTriviaComment
-      tags: [Comments]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [userId, triviaId, text]
-              properties:
-                userId:
-                  type: string
-                triviaId:
-                  type: string
-                text:
-                  type: string
-      responses:
-        "200":
-          description: Created comment
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  comment:
-                    $ref: "#/components/schemas/TriviaComment"
-
   # ──────────────────────────────────────────────
   # Casino Rush
   # ──────────────────────────────────────────────
@@ -1943,8 +1839,7 @@ paths:
           in: query
           required: true
           schema:
-            type: string
-            enum: [fact, trivia]
+            $ref: "#/components/schemas/CommentContentType"
         - name: contentId
           in: query
           required: true
@@ -1952,11 +1847,15 @@ paths:
             type: string
       responses:
         "200":
-          description: The comment thread
+          description: The comment thread (empty when nobody has commented)
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommentThread"
+                type: object
+                required: [thread]
+                properties:
+                  thread:
+                    $ref: "#/components/schemas/CommentThread"
     post:
       summary: Add a new comment to a content item
       operationId: addCommentUnified
@@ -1967,26 +1866,30 @@ paths:
           application/json:
             schema:
               type: object
-              required: [contentType, contentId, userId, text]
+              required: [contentType, contentId, text]
               properties:
                 contentType:
-                  type: string
-                  enum: [fact, trivia]
+                  $ref: "#/components/schemas/CommentContentType"
                 contentId:
-                  type: string
-                userId:
                   type: string
                 text:
                   type: string
+                  maxLength: 2000
                 parentId:
                   type: string
       responses:
-        "200":
-          description: Updated thread with the new comment
+        "201":
+          description: The new comment, by the caller
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommentThread"
+                type: object
+                required: [comment, success]
+                properties:
+                  comment:
+                    $ref: "#/components/schemas/Comment"
+                  success:
+                    type: boolean
 
   /comments/counts:
     get:
@@ -1998,8 +1901,7 @@ paths:
           in: query
           required: true
           schema:
-            type: string
-            enum: [fact, trivia]
+            $ref: "#/components/schemas/CommentContentType"
         - name: ids
           in: query
           required: true
@@ -3999,13 +3901,16 @@ components:
         parentId:
           type: string
 
+    CommentContentType:
+      type: string
+      enum: [fact, trivia, album, arcade]
+
     CommentThread:
       type: object
       required: [contentType, contentId, comments, lastUpdated]
       properties:
         contentType:
-          type: string
-          enum: [fact, trivia]
+          $ref: "#/components/schemas/CommentContentType"
         contentId:
           type: string
         comments:

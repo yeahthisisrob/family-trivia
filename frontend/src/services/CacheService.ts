@@ -144,7 +144,7 @@ export class CacheService {
     const baseEndpoint = endpoint.split('?')[0];
 
     // Never circuit break comment-related endpoints
-    if (baseEndpoint === '/fact-comments') {
+    if (baseEndpoint?.startsWith('/comments')) {
       return false;
     }
 

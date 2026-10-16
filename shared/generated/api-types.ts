@@ -549,42 +549,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/fact-comments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get fact comments */
-        get: operations["getFactComments"];
-        put?: never;
-        /** Add a fact comment */
-        post: operations["addFactComment"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/trivia-comments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get trivia comments */
-        get: operations["getTriviaComments"];
-        put?: never;
-        /** Add a trivia comment */
-        post: operations["addTriviaComment"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/casino-rush/start": {
         parameters: {
             query?: never;
@@ -2014,9 +1978,10 @@ export interface components {
             timestamp: string;
             parentId?: string;
         };
+        /** @enum {string} */
+        CommentContentType: "fact" | "trivia" | "album" | "arcade";
         CommentThread: {
-            /** @enum {string} */
-            contentType: "fact" | "trivia";
+            contentType: components["schemas"]["CommentContentType"];
             contentId: string;
             comments: components["schemas"]["Comment"][];
             lastUpdated: string;
@@ -3204,112 +3169,6 @@ export interface operations {
             };
         };
     };
-    getFactComments: {
-        parameters: {
-            query?: {
-                factId?: string;
-                getAll?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Comment threads */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": Record<string, never>;
-                };
-            };
-        };
-    };
-    addFactComment: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    userId: string;
-                    factId: string;
-                    text: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Created comment */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        comment?: components["schemas"]["FactComment"];
-                    };
-                };
-            };
-        };
-    };
-    getTriviaComments: {
-        parameters: {
-            query?: {
-                triviaId?: string;
-                getAll?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Comment threads */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": Record<string, never>;
-                };
-            };
-        };
-    };
-    addTriviaComment: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    userId: string;
-                    triviaId: string;
-                    text: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Created comment */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        comment?: components["schemas"]["TriviaComment"];
-                    };
-                };
-            };
-        };
-    };
     startCasinoRush: {
         parameters: {
             query?: never;
@@ -4163,7 +4022,7 @@ export interface operations {
     getCommentsUnified: {
         parameters: {
             query: {
-                contentType: "fact" | "trivia";
+                contentType: components["schemas"]["CommentContentType"];
                 contentId: string;
             };
             header?: never;
@@ -4172,13 +4031,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description The comment thread */
+            /** @description The comment thread (empty when nobody has commented) */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CommentThread"];
+                    "application/json": {
+                        thread: components["schemas"]["CommentThread"];
+                    };
                 };
             };
         };
@@ -4193,23 +4054,24 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** @enum {string} */
-                    contentType: "fact" | "trivia";
+                    contentType: components["schemas"]["CommentContentType"];
                     contentId: string;
-                    userId: string;
                     text: string;
                     parentId?: string;
                 };
             };
         };
         responses: {
-            /** @description Updated thread with the new comment */
-            200: {
+            /** @description The new comment, by the caller */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CommentThread"];
+                    "application/json": {
+                        comment: components["schemas"]["Comment"];
+                        success: boolean;
+                    };
                 };
             };
         };
@@ -4217,7 +4079,7 @@ export interface operations {
     getCommentCountsUnified: {
         parameters: {
             query: {
-                contentType: "fact" | "trivia";
+                contentType: components["schemas"]["CommentContentType"];
                 /** @description Comma-separated list of content IDs */
                 ids: string;
             };

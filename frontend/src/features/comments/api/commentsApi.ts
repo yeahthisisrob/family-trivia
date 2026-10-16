@@ -1,4 +1,4 @@
-// Module: social — Unified comments API
+// Comments on facts, trivia, albums and arcade games: GET/POST /comments.
 
 import type {
   AddCommentResponse,
@@ -7,8 +7,8 @@ import type {
   CommentCounts,
   CommentThread,
 } from '@family-trivia/shared';
-import { apiService } from '../../services/ApiService';
-import { createLogger } from '../../utils/logger';
+import { apiService } from '../../../services/ApiService';
+import { createLogger } from '../../../utils/logger';
 
 export type {
   AddCommentResponse,
@@ -63,30 +63,6 @@ export async function getCommentCounts(
 }
 
 /**
- * Fetch all comment threads for a content type. Used by the "Comments" tab.
- */
-export async function getAllCommentThreads(
-  contentType: CommentContentType,
-): Promise<CommentThread[]> {
-  try {
-    const response = await apiService.request<{ threads: CommentThread[] }>(
-      `/comments?contentType=${contentType}&getAll=true`,
-      { method: 'GET' },
-      `all_${contentType}_comments`,
-      true, // forceFresh
-    );
-    if (response?.threads && Array.isArray(response.threads)) {
-      logger.info(`Retrieved ${response.threads.length} ${contentType} comment threads`);
-      return response.threads;
-    }
-    return [];
-  } catch (error) {
-    logger.error(`Error getting all ${contentType} comment threads:`, error);
-    return [];
-  }
-}
-
-/**
  * Add a comment to a content item. Returns the created comment.
  */
 export async function addComment(
@@ -100,7 +76,7 @@ export async function addComment(
     logger.debug(`Adding comment to ${contentType}/${contentId} by ${userId}`);
     const response = await apiService.request<AddCommentResponse>('/comments', {
       method: 'POST',
-      body: JSON.stringify({ contentType, contentId, userId, text, parentId }),
+      body: JSON.stringify({ contentType, contentId, text, parentId }),
     });
     return response.comment;
   } catch (error) {

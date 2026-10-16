@@ -5,12 +5,11 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { alpha, Box, Card, Chip, Typography, useTheme } from '@mui/material';
 import type React from 'react';
-
+import { CommentsThread } from '../../features/comments';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { shadows } from '../../shared/design-system/tokens/shadows';
 import { getUserColor, getUserInitials } from '../../utils';
-import CommentsThread from '../common/CommentsThread';
 
 interface HistoryCardProps {
   userId: string;

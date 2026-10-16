@@ -9,7 +9,6 @@ export * from './modules/family';
 export * from './modules/games';
 export * from './modules/init';
 export * from './modules/leaderboard';
-export * from './modules/social';
 export * from './modules/timeline';
 export * from './modules/trivia';
 export * from './modules/user';
