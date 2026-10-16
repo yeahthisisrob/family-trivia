@@ -1,5 +1,5 @@
 /**
- * Remembering someone: their page once the family has lost them. Top to
+ * PersonStory someone: their page once the family has lost them. Top to
  * bottom by what the family comes for: who they were and the last things
  * they told us, what the family loved of theirs, the family's memories, and
  * then everything they shared, month by month. All of it can be saved as a
@@ -10,8 +10,8 @@ import {
   type Comment,
   type FamilyPerson,
   LAST_WORDS,
-  type RememberedWord,
-  type Remembering,
+  type PersonStory,
+  type StoryWord,
   spanLabel,
 } from '@family-trivia/shared';
 import CloseIcon from '@mui/icons-material/Close';
@@ -29,6 +29,7 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
+import { storyApi } from '../../../entities/family';
 import { paper } from '../../../shared/design-system';
 import { rememberingApi } from '../api/rememberingApi';
 import { saveKeepsake } from '../model/keepsake';
@@ -68,7 +69,7 @@ const Heading: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </Typography>
 );
 
-const Word: React.FC<{ w: RememberedWord; showDate?: boolean; note?: string }> = ({
+const Word: React.FC<{ w: StoryWord; showDate?: boolean; note?: string }> = ({
   w,
   showDate,
   note,
@@ -101,7 +102,7 @@ export const RememberingPage: React.FC<{
   nameOf: (id: string) => string;
   onClose: () => void;
 }> = ({ person, photo, topics = [], nameOf, onClose }) => {
-  const [data, setData] = useState<Remembering | null>(null);
+  const [data, setData] = useState<PersonStory | null>(null);
   const [failed, setFailed] = useState(false);
   const [memories, setMemories] = useState<Comment[] | null>(null);
   const [all, setAll] = useState(false);
@@ -110,7 +111,7 @@ export const RememberingPage: React.FC<{
   const dedication = person.memorial?.dedication;
 
   useEffect(() => {
-    rememberingApi
+    storyApi
       .get(person.id)
       .then(setData)
       .catch(() => setFailed(true));

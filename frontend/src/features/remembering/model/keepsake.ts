@@ -3,14 +3,14 @@
  * with everything they told the family and the family's memories of them.
  * It opens in any browser, prints cleanly, and needs nothing from the app.
  */
-import { byMonth, type Comment, type Remembering, spanLabel } from '@family-trivia/shared';
+import { byMonth, type Comment, type PersonStory, spanLabel } from '@family-trivia/shared';
 import { paper } from '../../../shared/design-system';
 
 export interface KeepsakeInput {
   name: string;
   years: string | null;
   dedication?: string;
-  remembering: Remembering;
+  remembering: PersonStory;
   memories: Comment[];
   nameOf: (id: string) => string;
 }

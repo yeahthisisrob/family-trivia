@@ -2959,10 +2959,10 @@ paths:
         "503":
           description: The AI model could not write it right now
 
-  /family/remembering:
+  /family/person-story:
     get:
-      summary: A remembered person's page, everything they told the family and what it loved most
-      operationId: getRemembering
+      summary: Someone's story, everything they told the family and what it loved most
+      operationId: getPersonStory
       tags: [Family]
       parameters:
         - name: personId
@@ -2976,9 +2976,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Remembering"
+                $ref: "#/components/schemas/PersonStory"
         "404":
-          description: Not someone the family remembers
+          description: Not someone the family can see
 
   /family/words:
     get:
@@ -3922,7 +3922,7 @@ components:
         parentId:
           type: string
 
-    Remembering:
+    PersonStory:
       type: object
       required: [personId, words, last, loved, trivia, span]
       properties:

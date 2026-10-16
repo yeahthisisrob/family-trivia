@@ -27,7 +27,6 @@ import { peopleFor, rememberedOf, sortForMe, spotlightOf } from '../model/people
 import { FamilyHero } from './FamilyHero';
 import { InMemory } from './InMemory';
 import { PeopleSection } from './PeopleSection';
-import { PersonPage } from './PersonPage';
 import { SpotlightCard } from './SpotlightCard';
 import { WhatWeShare } from './WhatWeShare';
 
@@ -43,10 +42,10 @@ export interface FamilyDoor {
 export const FamilyHome: React.FC<{
   meId: string | null;
   doors?: FamilyDoor[];
-  /** The reader tapped themselves: their own profile, where filling in lives. */
-  onOpenMe?: () => void;
+  /** Someone was tapped: their profile, where their story is told. */
+  onOpenPerson?: (id: string) => void;
   footer?: React.ReactNode;
-}> = ({ meId, doors = [], onOpenMe, footer }) => {
+}> = ({ meId, doors = [], onOpenPerson, footer }) => {
   const { family, photoUrls, error } = useFamily();
   const [graph, setGraph] = useState<GraphData | null>(null);
   const [story, setStory] = useState<FamilyStory | null>(null);
@@ -81,8 +80,9 @@ export const FamilyHome: React.FC<{
   if (!family || !graph) return <Skeleton variant="rounded" height={320} />;
 
   const nameOf = (id: string) => family.people[id]?.name ?? id;
-  const open = (id: string) => (id === meId && onOpenMe ? onOpenMe() : setOpenId(id));
-  const opened = people.find((p) => p.id === openId) ?? null;
+  // The family's lost open here, on their Remembering page; everyone else on their profile.
+  const open = (id: string) =>
+    family.people[id]?.memorial || !onOpenPerson ? setOpenId(id) : onOpenPerson(id);
   const openedPerson = openId ? family.people[openId] : undefined;
   const remembering = openedPerson?.memorial ? openedPerson : null;
 
@@ -163,18 +163,6 @@ export const FamilyHome: React.FC<{
           photo={photos[remembering.id]}
           topics={knowledge?.people[remembering.id]?.top.map((t) => t.name)}
           nameOf={nameOf}
-          onClose={() => setOpenId(null)}
-        />
-      )}
-
-      {opened && !remembering && (
-        <PersonPage
-          person={opened}
-          meId={meId}
-          photo={photos[opened.id]}
-          dedication={family.people[opened.id]?.memorial?.dedication}
-          likenesses={graph.likenesses}
-          known={knowledge?.people[opened.id]}
           onClose={() => setOpenId(null)}
         />
       )}

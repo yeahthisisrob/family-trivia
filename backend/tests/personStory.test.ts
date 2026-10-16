@@ -2,7 +2,7 @@ vi.mock('../services/s3', async () => (await import('./helpers/s3Mock')).s3MockM
 
 import type { FactAnswerEntry, Family } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent } from 'aws-lambda';
-import { getRemembering } from '../features/remembering/handlers';
+import { getPersonStory } from '../features/person-story/handlers';
 import { invalidateFactHistoryCache } from '../services/factHistoryService';
 import { resetS3Mock, seedRaw } from './helpers/s3Mock';
 
@@ -42,7 +42,7 @@ const answer = (
 };
 
 const ask = (personId: string) =>
-  getRemembering({ queryStringParameters: { personId } } as unknown as APIGatewayProxyEvent).then(
+  getPersonStory({ queryStringParameters: { personId } } as unknown as APIGatewayProxyEvent).then(
     (r) => ({ status: r.statusCode, data: JSON.parse(r.body).data }),
   );
 
@@ -100,7 +100,12 @@ test('trivia and the whole span they took part in', async () => {
   expect(data.span).toEqual({ first: '2023-12-30', last: '2024-02-01' });
 });
 
-test('only for someone the family remembers', async () => {
-  expect((await ask('alice')).status).toBe(404);
+test('anyone the family can see, here or remembered', async () => {
+  expect((await ask('alice')).status).toBe(200);
   expect((await ask('nobody')).status).toBe(404);
+});
+
+test('not someone who never joined', async () => {
+  seedRaw('config/member-activation.json', { bob: true });
+  expect((await ask('alice')).status).toBe(404);
 });

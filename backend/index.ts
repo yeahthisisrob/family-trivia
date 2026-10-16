@@ -15,8 +15,8 @@ import { familyRoutes } from './features/family/routes';
 import { fillInRoutes } from './features/fill-in/routes';
 import { graphRoutes } from './features/graph/routes';
 import { knowledgeRoutes } from './features/knowledge/routes';
+import { personStoryRoutes } from './features/person-story/routes';
 import { reactionsRoutes } from './features/reactions/routes';
-import { rememberingRoutes } from './features/remembering/routes';
 import { settingsRoutes } from './features/settings/routes';
 import * as adminHandlers from './routes/admin';
 // Answer grid for trivia status matrix
@@ -161,7 +161,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...backupsRoutes,
   ...knowledgeRoutes,
   ...commentsRoutes,
-  ...rememberingRoutes,
+  ...personStoryRoutes,
 
   // ── Public (no auth) ─────────────────────────────────────────
   'POST /auth/google': authGoogle,

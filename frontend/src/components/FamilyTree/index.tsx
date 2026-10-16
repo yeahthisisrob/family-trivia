@@ -84,7 +84,7 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, isAdmin, onViewProfile 
         <FamilyHome
           meId={userId}
           doors={doors}
-          onOpenMe={() => onViewProfile(userId)}
+          onOpenPerson={onViewProfile}
           footer={
             <Box sx={{ textAlign: 'center' }}>
               <Button startIcon={<DownloadIcon />} onClick={() => setArchiveOpen(true)}>
