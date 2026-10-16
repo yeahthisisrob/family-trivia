@@ -11,6 +11,7 @@ import { AppBar, Avatar, Box, IconButton, Toolbar, Typography, useTheme } from '
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { ROUTES } from '../../hooks/useApp';
+import { ColorModeToggle } from '../../shared/design-system/components/ColorModeToggle';
 import { getUserColor, getUserInitials } from '../../utils';
 import { NotificationBell } from '../Notifications';
 import { LoadingDots } from '../ui/feedback';
@@ -91,6 +92,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             {getUserInitials(selectedUser)}
           </Avatar>
           <NotificationBell onNotificationClick={onNotificationClick} />
+          <ColorModeToggle sx={{ color: inactiveText, '&:hover': { color: '#fff' } }} />
           {isAdmin && (
             <IconButton
               size="small"

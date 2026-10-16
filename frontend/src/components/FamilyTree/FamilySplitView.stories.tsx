@@ -83,7 +83,7 @@ const meta: Meta<typeof FamilySplitView> = {
         style={{
           maxWidth: 420,
           margin: '0 auto',
-          background: '#f9f9f9',
+          background: 'var(--story-surface, transparent)',
           padding: 8,
           borderRadius: 12,
           minHeight: 300,
