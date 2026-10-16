@@ -18,7 +18,7 @@ import { chromium } from 'playwright';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const DIR = join(ROOT, 'frontend/storybook-static');
-const PORT = 6013;
+
 const args = process.argv.slice(2);
 const filter = args.includes('--filter') ? args[args.indexOf('--filter') + 1] : '';
 const jsonOut = args.includes('--json') ? args[args.indexOf('--json') + 1] : null;
@@ -49,81 +49,88 @@ const server = http.createServer((req, res) => {
   }
 });
 
-server.listen(PORT, async () => {
+// Any free port, so parallel runs (or other servers) don't collide.
+server.listen(0, async () => {
+  const PORT = server.address().port;
   const browser = await chromium.launch();
   const ctx = await browser.newContext({
     viewport: { width: 420, height: 820 },
     colorScheme: 'dark',
   });
   const findings = [];
-  for (const s of stories) {
-    const page = await ctx.newPage();
-    try {
-      await page.goto(
-        `http://localhost:${PORT}/iframe.html?id=${s.id}&viewMode=story&globals=scheme:dark`,
-        {
-          waitUntil: 'networkidle',
-          timeout: 15000,
-        },
-      );
-      await page.waitForTimeout(400);
-      const hits = await page.evaluate(() => {
-        const vw = window.innerWidth * window.innerHeight;
-        const lum = (c) => {
-          const m = c.match(/rgba?\(([^)]+)\)/);
-          if (!m) return null;
-          const [r, g, b, a = 1] = m[1]
-            .split(/[ ,/]+/)
-            .filter(Boolean)
-            .map(Number);
-          if (a < 0.6) return null;
-          const f = (v) => {
-            v /= 255;
-            return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  // Several pages at once: the audit is IO-bound, and one at a time took ~8 minutes in CI.
+  const queue = [...stories];
+  const worker = async () => {
+    for (let s = queue.shift(); s; s = queue.shift()) {
+      const page = await ctx.newPage();
+      try {
+        await page.goto(
+          `http://localhost:${PORT}/iframe.html?id=${s.id}&viewMode=story&globals=scheme:dark`,
+          {
+            waitUntil: 'networkidle',
+            timeout: 15000,
+          },
+        );
+        await page.waitForTimeout(400);
+        const hits = await page.evaluate(() => {
+          const vw = window.innerWidth * window.innerHeight;
+          const lum = (c) => {
+            const m = c.match(/rgba?\(([^)]+)\)/);
+            if (!m) return null;
+            const [r, g, b, a = 1] = m[1]
+              .split(/[ ,/]+/)
+              .filter(Boolean)
+              .map(Number);
+            if (a < 0.6) return null;
+            const f = (v) => {
+              v /= 255;
+              return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+            };
+            return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
           };
-          return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
-        };
-        const out = [];
-        for (const el of document.querySelectorAll('#storybook-root *')) {
-          if (el.closest('[data-light-surface]')) continue;
-          const r = el.getBoundingClientRect();
-          const area = r.width * r.height;
-          if (area < vw * 0.02 || r.width < 60) continue;
-          const st = getComputedStyle(el);
-          if (Number(st.opacity) === 0 || st.visibility === 'hidden') continue;
-          const bg = st.backgroundColor;
-          const img = st.backgroundImage;
-          let light = (lum(bg) ?? 0) > 0.75;
-          if (!light && img && img !== 'none') {
-            const stops = [...img.matchAll(/rgba?\([^)]+\)/g)].map((m) => lum(m[0]) ?? 0);
-            light = stops.length > 0 && stops.every((l) => l > 0.75);
+          const out = [];
+          for (const el of document.querySelectorAll('#storybook-root *')) {
+            if (el.closest('[data-light-surface]')) continue;
+            const r = el.getBoundingClientRect();
+            const area = r.width * r.height;
+            if (area < vw * 0.02 || r.width < 60) continue;
+            const st = getComputedStyle(el);
+            if (Number(st.opacity) === 0 || st.visibility === 'hidden') continue;
+            const bg = st.backgroundColor;
+            const img = st.backgroundImage;
+            let light = (lum(bg) ?? 0) > 0.75;
+            if (!light && img && img !== 'none') {
+              const stops = [...img.matchAll(/rgba?\([^)]+\)/g)].map((m) => lum(m[0]) ?? 0);
+              light = stops.length > 0 && stops.every((l) => l > 0.75);
+            }
+            if (light) {
+              const cls = [...el.classList]
+                .filter((c) => c.startsWith('Mui'))
+                .slice(0, 2)
+                .join('.');
+              out.push({
+                tag: el.tagName.toLowerCase(),
+                cls,
+                bg: bg !== 'rgba(0, 0, 0, 0)' ? bg : img.slice(0, 60),
+                text: (el.textContent || '').trim().slice(0, 40),
+              });
+            }
           }
-          if (light) {
-            const cls = [...el.classList]
-              .filter((c) => c.startsWith('Mui'))
-              .slice(0, 2)
-              .join('.');
-            out.push({
-              tag: el.tagName.toLowerCase(),
-              cls,
-              bg: bg !== 'rgba(0, 0, 0, 0)' ? bg : img.slice(0, 60),
-              text: (el.textContent || '').trim().slice(0, 40),
-            });
-          }
-        }
-        // Report the outermost light element per branch only.
-        return out.slice(0, 5);
-      });
-      if (hits.length) findings.push({ id: s.id, title: `${s.title} › ${s.name}`, hits });
-    } catch (err) {
-      findings.push({
-        id: s.id,
-        title: `${s.title} › ${s.name}`,
-        error: String(err.message).slice(0, 80),
-      });
+          // Report the outermost light element per branch only.
+          return out.slice(0, 5);
+        });
+        if (hits.length) findings.push({ id: s.id, title: `${s.title} › ${s.name}`, hits });
+      } catch (err) {
+        findings.push({
+          id: s.id,
+          title: `${s.title} › ${s.name}`,
+          error: String(err.message).slice(0, 80),
+        });
+      }
+      await page.close();
     }
-    await page.close();
-  }
+  };
+  await Promise.all(Array.from({ length: Number(process.env.AUDIT_CONCURRENCY ?? 6) }, worker));
   await browser.close();
   server.close();
   const bad = findings.filter((f) => f.hits);
