@@ -57,11 +57,6 @@ const stories = [
     viewport: { width: 520, height: 420 },
   },
   {
-    id: 'timelineboard-triviacomments--default',
-    name: '06-comments',
-    viewport: { width: 520, height: 700 },
-  },
-  {
     id: 'familytree-familysplitview--full-tree',
     name: '07-family-tree',
     viewport: { width: 520, height: 720 },
