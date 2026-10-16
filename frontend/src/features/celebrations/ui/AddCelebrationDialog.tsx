@@ -27,9 +27,8 @@ import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import type React from 'react';
 import { useState } from 'react';
-
-import { addCelebration } from '../../api/modules/celebrations';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../../utils/logger';
+import { celebrationsApi } from '../api/celebrationsApi';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -40,7 +39,6 @@ interface AddCelebrationDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  currentUserId: string;
 }
 
 const TYPES = [
@@ -74,7 +72,6 @@ const AddCelebrationDialog: React.FC<AddCelebrationDialogProps> = ({
   open,
   onClose,
   onSuccess,
-  currentUserId,
 }) => {
   const theme = useTheme();
   const [type, setType] = useState<'birthday' | 'anniversary' | 'holiday' | 'other'>('birthday');
@@ -101,12 +98,11 @@ const AddCelebrationDialog: React.FC<AddCelebrationDialogProps> = ({
     try {
       const month = String(date.month() + 1).padStart(2, '0');
       const day = String(date.date()).padStart(2, '0');
-      await addCelebration({
+      await celebrationsApi.add({
         type,
         name: name.trim(),
         date: `${month}/${day}`,
         description: description.trim(),
-        addedBy: currentUserId,
         recurring,
         year: year ? parseInt(year, 10) : undefined,
       });

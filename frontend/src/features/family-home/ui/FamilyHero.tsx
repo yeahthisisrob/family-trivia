@@ -5,12 +5,10 @@
  */
 
 import type { FamilyKnowledge } from '@family-trivia/shared';
-import { Box, ButtonBase, Card, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Card, Skeleton, Stack, Typography } from '@mui/material';
 import type React from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { FamilyStory } from '../api/familyHomeApi';
-import type { PersonView } from '../model/people';
-import { Face } from './Face';
 
 const Stat: React.FC<{ value: string | number; label: string }> = ({ value, label }) => (
   <Box>
@@ -24,13 +22,10 @@ const Stat: React.FC<{ value: string | number; label: string }> = ({ value, labe
 export const FamilyHero: React.FC<{
   familyName: string;
   story: FamilyStory | null;
-  people: PersonView[];
-  photos: Record<string, string | undefined>;
   /** Counted numbers from the family's index: words, busiest day, longest answer. */
   numbers?: FamilyKnowledge['stats'];
   nameOf: (id: string) => string;
-  onOpen: (id: string) => void;
-}> = ({ familyName, story, people, photos, numbers, nameOf, onOpen }) => {
+}> = ({ familyName, story, numbers, nameOf }) => {
   const stats = story?.stats;
   const since = stats?.since?.slice(0, 4);
   // About 300 words to a printed page.
@@ -96,29 +91,6 @@ export const FamilyHero: React.FC<{
         <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1.25 }}>
           {highlights.join(' · ')}
         </Typography>
-      )}
-
-      {people.length > 0 && (
-        <Stack direction="row" sx={{ mt: 2.5, gap: 0.75, overflowX: 'auto', pb: 0.5 }}>
-          {people.map((p) => (
-            <Tooltip key={p.id} title={p.name} arrow>
-              <ButtonBase
-                onClick={() => onOpen(p.id)}
-                aria-label={p.name}
-                sx={{ borderRadius: '50%', flexShrink: 0 }}
-              >
-                <Face
-                  id={p.id}
-                  name={p.name}
-                  size={40}
-                  photo={photos[p.id]}
-                  remembered={p.remembered}
-                  dim={p.notPlaying}
-                />
-              </ButtonBase>
-            </Tooltip>
-          ))}
-        </Stack>
       )}
     </Card>
   );

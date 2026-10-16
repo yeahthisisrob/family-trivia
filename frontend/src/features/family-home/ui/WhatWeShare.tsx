@@ -3,19 +3,19 @@
  * index: the thing, who, and a few of their own words.
  */
 import { type FamilyTheme, KNOWLEDGE_KINDS } from '@family-trivia/shared';
-import { AvatarGroup, Box, ButtonBase, Card, Typography } from '@mui/material';
+import { Box, ButtonBase, Card, Typography } from '@mui/material';
 import type React from 'react';
-import { Face } from './Face';
 
 const kindLabel = (k: string) => KNOWLEDGE_KINDS.find((x) => x.id === k)?.label ?? '';
+/** How many names a theme lists before "+N more". */
+const NAMED = 4;
 const title = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export const WhatWeShare: React.FC<{
   themes: FamilyTheme[];
   nameOf: (id: string) => string;
-  photos: Record<string, string | undefined>;
   onOpen: (id: string) => void;
-}> = ({ themes, nameOf, photos, onOpen }) => {
+}> = ({ themes, nameOf, onOpen }) => {
   if (!themes.length) return null;
   return (
     <Box>
@@ -44,24 +44,21 @@ export const WhatWeShare: React.FC<{
                 {kindLabel(t.kind)}
               </Typography>
               <Typography sx={{ fontWeight: 800, lineHeight: 1.2 }}>{title(t.name)}</Typography>
-              <AvatarGroup
-                max={5}
-                sx={{
-                  justifyContent: 'flex-end',
-                  '& .MuiAvatar-root': { width: 26, height: 26, fontSize: '0.65rem' },
-                }}
-              >
-                {t.people.map((id) => (
-                  <ButtonBase
-                    key={id}
-                    onClick={() => onOpen(id)}
-                    aria-label={nameOf(id)}
-                    sx={{ borderRadius: '50%' }}
-                  >
-                    <Face id={id} name={nameOf(id)} size={26} photo={photos[id]} />
-                  </ButtonBase>
+              {/* Names, not a row of look-alike initials */}
+              <Typography variant="body2">
+                {t.people.slice(0, NAMED).map((id, i, shown) => (
+                  <span key={id}>
+                    <ButtonBase
+                      onClick={() => onOpen(id)}
+                      sx={{ fontWeight: 700, verticalAlign: 'baseline', font: 'inherit' }}
+                    >
+                      {nameOf(id)}
+                    </ButtonBase>
+                    {i < shown.length - 2 ? ', ' : i === shown.length - 2 ? ' and ' : ''}
+                  </span>
                 ))}
-              </AvatarGroup>
+                {t.people.length > NAMED && ` +${t.people.length - NAMED} more`}
+              </Typography>
               {quote && (
                 <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
                   “{quote.says}” · {nameOf(quote.personId)}

@@ -10,6 +10,7 @@ const SUBJECT = { userId: 'subject' } as const;
 import { appearanceRoutes } from './features/appearance/routes';
 import { archiveRoutes } from './features/archive/routes';
 import { backupsRoutes } from './features/backups/routes';
+import { celebrationsRoutes } from './features/celebrations/routes';
 import { commentsRoutes } from './features/comments/routes';
 import { familyRoutes } from './features/family/routes';
 import { fillInRoutes } from './features/fill-in/routes';
@@ -34,8 +35,6 @@ import { getCasinoBalance, updateCasinoBalance } from './routes/casino';
 
 // New catchup status endpoint
 import { getCatchupStatus } from './routes/catchupStatus';
-// Celebrations endpoints
-import { addCelebration, deleteCelebration, getCelebrations } from './routes/celebrations';
 // Consolidated leaderboard endpoint
 import { getConsolidatedLeaderboard } from './routes/consolidatedLeaderboard';
 // Custom category endpoints
@@ -137,8 +136,6 @@ import {
   triviaBankImport,
   triviaBankStats,
 } from './routes/triviaBankAdmin';
-// Upcoming birthdays endpoint
-import { getUpcomingBirthdays } from './routes/upcomingBirthdays';
 import { userProfile } from './routes/userProfile';
 import { getWeeklyFactSummary } from './routes/weeklyFactSummary';
 import { loadModelChoices } from './services/bedrock/core/models';
@@ -164,6 +161,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...commentsRoutes,
   ...personStoryRoutes,
   ...lookBackRoutes,
+  ...celebrationsRoutes,
 
   // ── Public (no auth) ─────────────────────────────────────────
   'POST /auth/google': authGoogle,
@@ -235,10 +233,6 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   'POST /family-feud/answer': requireAuth(familyFeudAnswer),
   'POST /family-feud/guess': requireAuth(familyFeudGuess),
   'POST /family-feud/pass': requireAuth(familyFeudPass),
-  'GET /upcoming-birthdays': requireAuth(getUpcomingBirthdays),
-  'POST /celebrations': requireAuth(addCelebration),
-  'GET /celebrations': requireAuth(getCelebrations),
-  'DELETE /celebrations': requireAuth(deleteCelebration),
   'POST /game-ai/move': requireAuth(gameAIMove),
   'GET /casino/balance': requireAuth(getCasinoBalance),
   'POST /casino/balance': requireAuth(updateCasinoBalance),

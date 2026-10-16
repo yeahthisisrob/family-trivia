@@ -43,10 +43,8 @@ const PersonCard: React.FC<{
             {p.name}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {relationLabel(p.relation, p.id === meId)}
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }} noWrap>
-            {status ?? (p.facts ? `${p.facts} answers shared` : 'No answers yet')}
+            {relationLabel(p.relation, p.id === meId)} ·{' '}
+            {status ?? (p.facts ? `${p.facts} answers` : 'no answers yet')}
           </Typography>
         </Box>
       </CardActionArea>
@@ -90,7 +88,7 @@ export const PeopleSection: React.FC<{
         sx={{
           display: 'grid',
           gap: 1.25,
-          gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(3, 1fr)' },
+          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' },
         }}
       >
         {shown.map((p) => (
