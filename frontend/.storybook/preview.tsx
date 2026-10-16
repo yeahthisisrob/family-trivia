@@ -3,7 +3,7 @@ import { setupWorker } from 'msw/browser';
 import { mswLoader } from 'msw-storybook-addon/csf3';
 import { MemoryRouter } from 'react-router-dom';
 import { apiService } from '../src/services/ApiService';
-import { ColorModeProvider } from '../src/shared/design-system';
+import { AppearanceProvider, THEMES } from '../src/shared/design-system';
 import { allHandlers } from './mocks/handlers';
 import { MockAppProviders } from './mocks/providers';
 
@@ -17,7 +17,7 @@ async function startWorker() {
 }
 
 const preview: Preview = {
-  initialGlobals: { scheme: 'light' },
+  initialGlobals: { scheme: 'light', theme: 'classic' },
   globalTypes: {
     scheme: {
       description: 'Color scheme',
@@ -28,6 +28,15 @@ const preview: Preview = {
           { value: 'light', title: 'Light', icon: 'sun' },
           { value: 'dark', title: 'Dark', icon: 'moon' },
         ],
+        dynamicTitle: true,
+      },
+    },
+    theme: {
+      description: 'Theme',
+      toolbar: {
+        title: 'Theme',
+        icon: 'paintbrush',
+        items: THEMES.map((t) => ({ value: t.id, title: t.name })),
         dynamicTitle: true,
       },
     },
@@ -61,16 +70,19 @@ const preview: Preview = {
   },
   decorators: [
     (Story, context) => (
-      <ColorModeProvider
-        key={context.globals.scheme}
-        initialMode={context.globals.scheme === 'dark' ? 'dark' : 'light'}
+      <AppearanceProvider
+        key={`${context.globals.theme}-${context.globals.scheme}`}
+        initial={{
+          themeId: context.globals.theme,
+          mode: context.globals.scheme === 'dark' ? 'dark' : 'light',
+        }}
       >
         <MemoryRouter>
           <MockAppProviders>
             <Story />
           </MockAppProviders>
         </MemoryRouter>
-      </ColorModeProvider>
+      </AppearanceProvider>
     ),
   ],
 };

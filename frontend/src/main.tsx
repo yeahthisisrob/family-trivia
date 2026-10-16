@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import AppProvider from './AppProvider';
-import { ColorModeProvider } from './shared/design-system';
+import { AppearanceProvider } from './shared/design-system';
 
 const container = document.getElementById('root');
 if (!container) {
@@ -14,10 +14,10 @@ const root = createRoot(container);
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      {/* Light or dark: follows the device until someone picks one (ColorModeToggle). */}
-      <ColorModeProvider>
+      {/* Theme and light/dark: the person's choice, then the family's default (AppearanceProvider). */}
+      <AppearanceProvider>
         <AppProvider />
-      </ColorModeProvider>
+      </AppearanceProvider>
     </BrowserRouter>
   </React.StrictMode>,
 );

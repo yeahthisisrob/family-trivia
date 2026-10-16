@@ -1,3 +1,4 @@
+import { tint } from '../../shared/design-system/tint';
 // File: src/components/TriviaCard/TriviaFlow.tsx
 //
 // Trivia question flow — carousel's active card.
@@ -666,8 +667,8 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
             py: 0.6,
             px: 2,
             borderRadius: `${radii.md}px`,
-            bgcolor: alpha(colors.brand.primary, 0.05),
-            border: `1px solid ${alpha(colors.brand.primary, 0.12)}`,
+            bgcolor: tint(colors.brand.primary, 0.05),
+            border: `1px solid ${tint(colors.brand.primary, 0.12)}`,
           }}
         >
           <AccessTimeIcon sx={{ fontSize: 15, color: colors.text.secondary }} />
@@ -808,8 +809,8 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
                     py: 0.6,
                     px: 2,
                     borderRadius: `${radii.md}px`,
-                    bgcolor: alpha(colors.brand.primary, 0.05),
-                    border: `1px solid ${alpha(colors.brand.primary, 0.12)}`,
+                    bgcolor: tint(colors.brand.primary, 0.05),
+                    border: `1px solid ${tint(colors.brand.primary, 0.12)}`,
                   }}
                 >
                   <AccessTimeIcon sx={{ fontSize: 15, color: colors.text.secondary }} />
@@ -849,7 +850,7 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
                     background:
                       state === 'result'
                         ? `linear-gradient(135deg, ${alpha(resultAccent, 0.07)}, transparent)`
-                        : `linear-gradient(135deg, ${alpha(colors.brand.primary, 0.06)}, transparent)`,
+                        : `linear-gradient(135deg, ${tint(colors.brand.primary, 0.06)}, transparent)`,
                     borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
                     animation:
                       state === 'result' && result && !result.correct
@@ -917,7 +918,7 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
                           borderColor = alpha(colors.result.incorrect, 0.35);
                         }
                       } else if (isSelected) {
-                        bgcolor = alpha(colors.brand.primary, 0.08);
+                        bgcolor = tint(colors.brand.primary, 0.08);
                         borderColor = colors.brand.primary;
                       }
 
@@ -941,7 +942,7 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
                               // sticky :hover on mobile after tapping through screens
                               '@media (hover: hover)': {
                                 '&:hover': {
-                                  bgcolor: alpha(colors.brand.primary, 0.04),
+                                  bgcolor: tint(colors.brand.primary, 0.04),
                                   borderColor: colors.brand.primary,
                                 },
                               },

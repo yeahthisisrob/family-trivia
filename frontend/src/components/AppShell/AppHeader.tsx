@@ -10,8 +10,10 @@ import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import { AppBar, Avatar, Box, IconButton, Toolbar, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
+import { appearanceApi } from '../../entities/appearance';
 import { ROUTES } from '../../hooks/useApp';
-import { ColorModeToggle } from '../../shared/design-system/components/ColorModeToggle';
+import { colors, tint } from '../../shared/design-system';
+import { AppearanceMenu } from '../../shared/design-system/components/AppearanceMenu';
 import { getUserColor, getUserInitials } from '../../utils';
 import { NotificationBell } from '../Notifications';
 import { LoadingDots } from '../ui/feedback';
@@ -49,15 +51,17 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const theme = useTheme();
   const userColor = getUserColor(selectedUser);
 
-  // Use the green palette for consistent tones
-  const headerBg = theme.palette.primary.dark;
-  const activeBg = alpha('#fff', 0.15);
-  const activeText = '#fff';
-  const inactiveText = alpha('#c8e6c9', 0.85); // light green — readable but clearly inactive
-  const inactiveIcon = alpha('#a5d6a7', 0.75); // soft green — not washed out
+  // The app bar takes its colors from the active theme (themes/registry.ts):
+  // the header may be a gradient, and text on it is the theme's onHeader.
+  const headerBg = colors.surface.header;
+  const onHeader = 'var(--ft-on-header, #fff)';
+  const activeBg = tint(onHeader, 0.15);
+  const activeText = onHeader;
+  const inactiveText = tint(onHeader, 0.78);
+  const inactiveIcon = tint(onHeader, 0.68);
 
   return (
-    <AppBar position="sticky" elevation={0} sx={{ bgcolor: headerBg }}>
+    <AppBar position="sticky" elevation={0} sx={{ background: headerBg, color: onHeader }}>
       {/* Top bar */}
       <Toolbar sx={{ minHeight: { xs: 48, sm: 54 }, px: { xs: 1.5, sm: 2 } }}>
         <Typography
@@ -66,7 +70,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             fontSize: { xs: '1.05rem', sm: '1.15rem' },
             letterSpacing: 0.3,
             flex: 1,
-            color: '#fff',
+            color: onHeader,
           }}
         >
           Family Trivia
@@ -82,22 +86,31 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               fontSize: '0.75rem',
               fontWeight: 700,
               cursor: onAvatarClick ? 'pointer' : 'default',
-              border: `2px solid ${alpha('#fff', 0.25)}`,
+              border: `2px solid ${tint(onHeader, 0.25)}`,
               transition: 'all 0.15s',
               '&:hover': onAvatarClick
-                ? { transform: 'scale(1.1)', borderColor: alpha('#fff', 0.5) }
+                ? { transform: 'scale(1.1)', borderColor: tint(onHeader, 0.5) }
                 : {},
             }}
           >
             {getUserInitials(selectedUser)}
           </Avatar>
           <NotificationBell onNotificationClick={onNotificationClick} />
-          <ColorModeToggle sx={{ color: inactiveText, '&:hover': { color: '#fff' } }} />
+          <AppearanceMenu
+            sx={{ color: inactiveText, '&:hover': { color: onHeader } }}
+            onSetFamilyDefault={
+              isAdmin
+                ? async (themeId) => {
+                    await appearanceApi.setFamilyTheme(themeId);
+                  }
+                : undefined
+            }
+          />
           {isAdmin && (
             <IconButton
               size="small"
               onClick={() => onNavigate(ROUTES.ADMIN)}
-              sx={{ color: inactiveText, '&:hover': { color: '#fff' } }}
+              sx={{ color: inactiveText, '&:hover': { color: onHeader } }}
             >
               <SettingsIcon sx={{ fontSize: 19 }} />
             </IconButton>
@@ -105,7 +118,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           <IconButton
             size="small"
             onClick={onLogout}
-            sx={{ color: alpha(inactiveText, 0.6), '&:hover': { color: '#fff' } }}
+            sx={{ color: tint(onHeader, 0.5), '&:hover': { color: onHeader } }}
           >
             <LogoutIcon sx={{ fontSize: 17 }} />
           </IconButton>
@@ -119,7 +132,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           px: { xs: 0.75, sm: 1.5 },
           pb: 0.75,
           gap: { xs: 0.5, sm: 0.75 },
-          bgcolor: alpha('#000', 0.08),
+          bgcolor: alpha(colors.scrim, 0.08),
         }}
       >
         {NAV_ITEMS.map(({ label, icon: Icon, path }) => {
@@ -140,7 +153,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 bgcolor: isActive ? activeBg : 'transparent',
-                '&:hover': !isActive ? { bgcolor: alpha('#fff', 0.07) } : {},
+                '&:hover': !isActive ? { bgcolor: tint(onHeader, 0.07) } : {},
               }}
             >
               <Icon

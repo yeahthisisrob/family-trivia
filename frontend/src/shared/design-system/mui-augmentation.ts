@@ -1,4 +1,4 @@
-import type { night } from './tokens/schemes';
+import type { night } from './themes/night';
 
 // The night surface is part of the palette so components read it from the
 // theme like any other color: `theme.palette.night.sky`.

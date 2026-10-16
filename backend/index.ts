@@ -7,6 +7,7 @@ import { requireAuth } from './middleware/requireAuth';
 const SUBJECT = { userId: 'subject' } as const;
 
 // Admin endpoints
+import { appearanceRoutes } from './features/appearance/routes';
 import { familyRoutes } from './features/family/routes';
 import * as adminHandlers from './routes/admin';
 // Answer grid for trivia status matrix
@@ -142,6 +143,7 @@ import { invalidateS3ReadCache } from './services/s3';
 const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   // ── Feature slices (backend/features/*) ─────────────────────
   ...familyRoutes,
+  ...appearanceRoutes,
 
   // ── Public (no auth) ─────────────────────────────────────────
   'POST /auth/google': authGoogle,

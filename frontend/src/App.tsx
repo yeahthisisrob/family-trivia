@@ -13,7 +13,9 @@ import TriviaTab from './components/TriviaCard';
 import UpcomingDates from './components/UpcomingDates';
 import { LeaderboardProvider } from './contexts/LeaderboardContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { appearanceApi } from './entities/appearance';
 import { ROUTES, useApp } from './hooks/useApp';
+import { useAppearance } from './shared/design-system';
 import { createLogger } from './utils/logger';
 
 // Lazy-loaded: these chunks are deferred until the route is first visited
@@ -80,6 +82,16 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
     isSeasonActive,
     isAppReady,
   } = useApp({ onUserChange, onAuthChange });
+
+  // The family's default theme applies to everyone who hasn't picked their own.
+  const { setFamilyTheme } = useAppearance();
+  React.useEffect(() => {
+    if (!authValid) return;
+    appearanceApi
+      .get()
+      .then((a) => setFamilyTheme(a.themeId))
+      .catch(() => undefined);
+  }, [authValid, setFamilyTheme]);
 
   // Lazy-mount heavy tabs: only mount on first visit, keep mounted after
   React.useEffect(() => {

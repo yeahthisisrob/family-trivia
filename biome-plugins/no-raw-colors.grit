@@ -1,0 +1,13 @@
+// Colors come from the design system (frontend/src/shared/design-system):
+// theme palette keys ('primary.main', 'text.secondary'), theme.palette.*, or
+// the tokens in colors.ts. A raw hex or rgb() in a component can't follow the
+// theme or dark mode (docs/decisions/0012).
+language js
+
+JsStringLiteralExpression() as $s where {
+  or {
+    $s <: r"[\"'][^\"']*#[0-9a-fA-F]{3,8}[^\"']*[\"']",
+    $s <: r"[\"'][^\"']*rgba?\([^\"']*[\"']"
+  },
+  register_diagnostic(span=$s, message="Raw color in a component: use a theme palette key, theme.palette.*, or a design-system token (docs/decisions/0012).", severity="warn")
+}

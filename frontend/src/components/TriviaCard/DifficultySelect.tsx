@@ -1,3 +1,4 @@
+import { tint } from '../../shared/design-system/tint';
 // File: src/components/TriviaCard/DifficultySelect.tsx
 // Compact difficulty picker — shows after category select.
 
@@ -74,7 +75,7 @@ const DifficultySelect: React.FC<DifficultySelectProps> = ({ category, onSelect,
           display: 'flex',
           alignItems: 'center',
           gap: 0.5,
-          background: `linear-gradient(135deg, ${alpha(colors.brand.primary, 0.06)}, transparent)`,
+          background: `linear-gradient(135deg, ${tint(colors.brand.primary, 0.06)}, transparent)`,
           borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
         }}
       >
