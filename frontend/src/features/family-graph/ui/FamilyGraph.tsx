@@ -36,6 +36,10 @@ import {
   type LinkKind,
   likenessesOf,
 } from '../model/buildGraph';
+import { RING } from '../model/buildMap';
+import { drawNebula, drawStars, starfield } from '../model/sky';
+
+const STARS = starfield(500, RING.rx * 3, RING.ry * 3);
 
 type Placed = GraphNode & { x?: number; y?: number };
 type Drawn = Omit<GraphLink, 'source' | 'target'> & {
@@ -239,6 +243,22 @@ export const FamilyGraph: React.FC<FamilyGraphProps> = ({
           backgroundColor={night.sky}
           cooldownTicks={160}
           onEngineStop={() => fg.current?.zoomToFit(400, 56)}
+          onRenderFramePre={(ctx, scale) => {
+            drawStars(ctx, STARS, night.text, scale);
+            // Each person's own light, added where people gather.
+            drawNebula(
+              ctx,
+              (graph.nodes as Placed[])
+                .filter((n) => n.kind === 'person' && Number.isFinite(n.x))
+                .map((n) => ({
+                  x: n.x as number,
+                  y: n.y as number,
+                  r: 70,
+                  color: n.person?.remembered ? night.remembered : identityColor(n.id),
+                  a: active && !lit(n.id) ? 0.015 : 0.07,
+                })),
+            );
+          }}
           d3VelocityDecay={0.3}
           onNodeClick={(n) => {
             const node = n as Placed;
