@@ -3,6 +3,7 @@
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 import { MODEL_ID, REGION } from '../../../config';
 import { logger } from '../../logger';
+import { recordUsage, usageFromBody } from './usage';
 
 /**
  * Initializes and returns a BedrockRuntimeClient instance
@@ -197,6 +198,8 @@ export async function invokeBedrockPrompt(
     }
 
     logger.info('Received response from Bedrock');
+    const used = usageFromBody(response.body);
+    if (used) recordUsage(String(context.task ?? 'other'), activeModelId, used.input, used.output);
     return response.body;
   } catch (err: any) {
     // Special handling for the inference profile error

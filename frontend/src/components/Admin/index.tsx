@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AdminProvider, useAdmin } from '../../contexts/AdminContext';
 import { FamilyEditor } from '../../features/family-editor';
+import { SettingsPage } from '../../features/settings';
 import { LoadingDots } from '../ui/feedback';
 import DailyQuestionsTab from './DailyQuestionsTab';
 import DataTab from './DataTab';
@@ -18,6 +19,7 @@ import TriviaBankTab from './TriviaBankTab';
 /** Admin sub-route definitions — order matches visual tab order */
 const ADMIN_TABS = [
   { label: 'Family', path: 'family' },
+  { label: 'Settings', path: 'settings' },
   { label: 'Players', path: 'players' },
   { label: 'Groups', path: 'groups' },
   { label: 'Family Tree', path: 'tree' },
@@ -98,6 +100,7 @@ const AdminPageInner: React.FC<AdminPageInnerProps> = () => {
       <Box>
         <Routes>
           <Route path="/admin/family" element={<FamilyEditor adminUserId={admin.adminUserId} />} />
+          <Route path="/admin/settings" element={<SettingsPage />} />
           <Route path="/admin/players" element={<PlayersTab />} />
           <Route path="/admin/groups" element={<GroupsTab />} />
           <Route path="/admin/tree" element={<FamilyTreeTab />} />

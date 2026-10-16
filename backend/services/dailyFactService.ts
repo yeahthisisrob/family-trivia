@@ -1,3 +1,4 @@
+import { modelFor } from './bedrock/core/models';
 // File: lambda/services/dailyFactService.ts
 // Purpose: Daily fact question generation service.
 // Loads ALL previous questions for dedup, uses best model, stores metadata.
@@ -127,12 +128,18 @@ ${previousList}
 Return ONLY the question text. No quotes, no prefix, no explanation.`;
 
   // Use Sonnet for quality
-  const modelId = MODELS.WRITER;
+  const modelId = modelFor('familyQuestions');
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const temp = 0.8 + attempt * 0.1;
-      const stream = await invokeBedrockPrompt(prompt, 128, temp, {}, modelId);
+      const stream = await invokeBedrockPrompt(
+        prompt,
+        128,
+        temp,
+        { task: 'familyQuestions' },
+        modelId,
+      );
       const buf = await collectResponseBody(stream);
       const text = extractTextContent(buf, modelId, 'question');
 
@@ -231,8 +238,14 @@ Return ONLY a JSON array of 3 objects: [{"question": "...", "category": "..."}]
 Categories: ${FACT_CATEGORIES.join(', ')}`;
 
   try {
-    const modelId = MODELS.WRITER;
-    const stream = await invokeBedrockPrompt(prompt, 512, 0.9, {}, modelId);
+    const modelId = modelFor('familyQuestions');
+    const stream = await invokeBedrockPrompt(
+      prompt,
+      512,
+      0.9,
+      { task: 'familyQuestions' },
+      modelId,
+    );
     const buf = await collectResponseBody(stream);
     const text = (buf as any).rawText || JSON.stringify(buf);
 

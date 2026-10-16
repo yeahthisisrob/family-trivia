@@ -1,7 +1,7 @@
+import { modelFor } from '../core/models';
 // File: services/bedrock/questions/funFact.ts
 // Purpose: Generate fun facts based on user answers
 
-import { getModelForService } from '../../../config';
 import { logger } from '../../logger';
 import { invokeBedrockPrompt } from '../core/bedrockClient';
 import { collectResponseBody } from '../core/responseParser';
@@ -19,8 +19,14 @@ export async function generateFunFact(
   const prompt = buildFunFactPrompt(question, answer);
 
   try {
-    const funFactModel = getModelForService('FUN_FACTS');
-    const bodyStream = await invokeBedrockPrompt(prompt, 512, 0.7, {}, funFactModel);
+    const funFactModel = modelFor('familyQuestions');
+    const bodyStream = await invokeBedrockPrompt(
+      prompt,
+      512,
+      0.7,
+      { task: 'familyQuestions' },
+      funFactModel,
+    );
 
     // Collect response and extract content
     const responseBuffer = await collectResponseBody(bodyStream);

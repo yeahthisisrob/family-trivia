@@ -14,6 +14,7 @@ import UpcomingDates from './components/UpcomingDates';
 import { LeaderboardProvider } from './contexts/LeaderboardContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { appearanceApi } from './entities/appearance';
+import { useFeatures } from './entities/settings';
 import { ROUTES, useApp } from './hooks/useApp';
 import { colors, tint, useAppearance } from './shared/design-system';
 import { createLogger } from './utils/logger';
@@ -85,6 +86,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
 
   // The family's default theme applies to everyone who hasn't picked their own.
   const { setFamilyTheme } = useAppearance();
+  const features = useFeatures();
   React.useEffect(() => {
     if (!authValid) return;
     appearanceApi
@@ -160,7 +162,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
       <StatusGridToggle userId={user} />
 
       {/* Family Feud asks questions too, so it also waits for a season */}
-      {isSeasonActive && <FamilyFeud userId={user} />}
+      {isSeasonActive && features.familyFeud && <FamilyFeud userId={user} />}
 
       <UpcomingDates />
 

@@ -11,6 +11,7 @@ import { AppBar, Avatar, Box, IconButton, Toolbar, Typography, useTheme } from '
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { appearanceApi } from '../../entities/appearance';
+import { useFeatures } from '../../entities/settings';
 import { ROUTES } from '../../hooks/useApp';
 import { colors, tint } from '../../shared/design-system';
 import { AppearanceMenu } from '../../shared/design-system/components/AppearanceMenu';
@@ -49,6 +50,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onNotificationClick,
 }) => {
   const theme = useTheme();
+  const features = useFeatures();
   const userColor = getUserColor(selectedUser);
 
   // The app bar takes its colors from the active theme (themes/registry.ts):
@@ -135,7 +137,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           bgcolor: alpha(colors.scrim, 0.08),
         }}
       >
-        {NAV_ITEMS.map(({ label, icon: Icon, path }) => {
+        {NAV_ITEMS.filter(
+          (n) =>
+            (n.path !== ROUTES.PHOTOS || features.photos) &&
+            (n.path !== ROUTES.ARCADE || features.arcade),
+        ).map(({ label, icon: Icon, path }) => {
           const isActive = currentPath === path;
           return (
             <Box

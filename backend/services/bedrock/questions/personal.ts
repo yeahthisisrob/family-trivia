@@ -1,7 +1,7 @@
+import { modelFor } from '../core/models';
 // File: services/bedrock/questions/personal.ts
 // Purpose: Generate personalized questions based on user facts
 
-import { getModelForService } from '../../../config';
 import { logger } from '../../../services/logger';
 import { getAllFactHistories, getFactHistory } from '../../factHistoryService';
 import { getJson, listObjects } from '../../s3';
@@ -91,12 +91,12 @@ export async function generateUniqueQuestion(
       const temperature = Math.min(0.7 + (attempts - 1) * 0.1, 1.0);
 
       // Call Bedrock API
-      const personalQuestionsModel = getModelForService('PERSONAL_QUESTIONS');
+      const personalQuestionsModel = modelFor('familyQuestions');
       const bodyStream = await invokeBedrockPrompt(
         prompt,
         128,
         temperature,
-        {},
+        { task: 'familyQuestions' },
         personalQuestionsModel,
       );
 

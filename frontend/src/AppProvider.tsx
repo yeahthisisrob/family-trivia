@@ -12,6 +12,7 @@ import { FamilyDataProvider } from './contexts/FamilyDataContext';
 import { TimelineProvider } from './contexts/TimelineContext';
 import { TriviaProvider } from './contexts/TriviaContext';
 import { UserStatusProvider } from './contexts/UserStatusContext';
+import { FeaturesProvider } from './entities/settings';
 import { apiService } from './services/ApiService';
 import { loadSession, onSessionExpired, saveSession } from './session';
 import { createLogger, LogLevel } from './utils/logger';
@@ -98,7 +99,9 @@ const AppProvider: React.FC = () => {
       <TriviaProvider>
         <TimelineProvider>
           <UserStatusProvider userId={userId} authValid={authValid}>
-            <App onUserChange={handleUserChange} onAuthChange={handleAuthChange} />
+            <FeaturesProvider>
+              <App onUserChange={handleUserChange} onAuthChange={handleAuthChange} />
+            </FeaturesProvider>
           </UserStatusProvider>
         </TimelineProvider>
       </TriviaProvider>

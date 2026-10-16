@@ -77,7 +77,8 @@ const preview: Preview = {
           mode: context.globals.scheme === 'dark' ? 'dark' : 'light',
         }}
       >
-        <MemoryRouter>
+        {/* A story can start on a URL with parameters.route, e.g. '/admin/settings?section=ai'. */}
+        <MemoryRouter initialEntries={[context.parameters.route ?? '/']}>
           <MockAppProviders>
             <Story />
           </MockAppProviders>

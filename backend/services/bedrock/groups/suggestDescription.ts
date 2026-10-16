@@ -1,6 +1,6 @@
+import { modelFor } from '../core/models';
 // File: lambda/services/bedrock/groups/suggestDescription.ts
 
-import { getModelForService } from '../../../config';
 import { logger } from '../../logger';
 import { invokeBedrockPrompt } from '../core/bedrockClient';
 import { collectResponseBody } from '../core/responseParser';
@@ -66,8 +66,14 @@ export async function generateGroupDescription(groupData: GroupData): Promise<st
     });
 
     // Send to Bedrock with a small token limit since we only need a short description
-    const groupDescModel = getModelForService('GROUP_DESCRIPTIONS');
-    const response = await invokeBedrockPrompt(prompt, 256, 0.8, {}, groupDescModel);
+    const groupDescModel = modelFor('summaries');
+    const response = await invokeBedrockPrompt(
+      prompt,
+      256,
+      0.8,
+      { task: 'summaries' },
+      groupDescModel,
+    );
 
     // Parse the response
     const responseBuffer = await collectResponseBody(response);

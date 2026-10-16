@@ -1,3 +1,4 @@
+import { modelFor } from '../services/bedrock/core/models';
 // File: lambda/routes/familyFeud.ts
 // Purpose: Family Feud round-robin game mode endpoints.
 
@@ -89,7 +90,7 @@ ${previousList}
 
 Return ONLY the question text, nothing else. No quotes, no prefix.`;
 
-  const stream = await invokeBedrockPrompt(prompt, 128, 0.9);
+  const stream = await invokeBedrockPrompt(prompt, 128, 0.9, { task: 'feud' }, modelFor('feud'));
   const buf = await collectResponseBody(stream);
   const parsed = extractJsonFromResponse(buf);
   const text = (parsed.rawText || '').trim().replace(/^["']|["']$/g, '');
@@ -177,8 +178,8 @@ Return ONLY: {"wrong1": "...", "wrong2": "...", "wrong3": "..."}`;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       // Step 1: Generate with Sonnet
-      const genModel = attempt < 2 ? MODELS.WRITER : MODELS.FAST;
-      const stream = await invokeBedrockPrompt(genPrompt, 128, 0.7, {}, genModel);
+      const genModel = attempt < 2 ? modelFor('feud') : MODELS.FAST;
+      const stream = await invokeBedrockPrompt(genPrompt, 128, 0.7, { task: 'feud' }, genModel);
       const buf = await collectResponseBody(stream);
       const parsed = extractJsonFromResponse(buf, genModel);
       const wrongs = extractWrongs(parsed, realAnswer);
@@ -189,7 +190,7 @@ Return ONLY: {"wrong1": "...", "wrong2": "...", "wrong3": "..."}`;
       }
 
       // Step 2: Validate with a different model
-      const valModel = attempt < 2 ? MODELS.FAST : MODELS.WRITER;
+      const valModel = attempt < 2 ? MODELS.FAST : modelFor('feud');
       const valPrompt = `A family trivia game asked: "${question}"
 The real answer is: "${realAnswer}"
 The proposed wrong choices are: "${wrongs[0]}", "${wrongs[1]}", "${wrongs[2]}"
@@ -200,7 +201,7 @@ They must be the SAME TYPE of thing as "${realAnswer}" (not generic filler like 
 Return ONLY: {"valid": true} or {"valid": false, "reason": "why"}`;
 
       try {
-        const valStream = await invokeBedrockPrompt(valPrompt, 64, 0.1, {}, valModel);
+        const valStream = await invokeBedrockPrompt(valPrompt, 64, 0.1, { task: 'feud' }, valModel);
         const valBuf = await collectResponseBody(valStream);
         const valParsed = extractJsonFromResponse(valBuf, valModel);
 

@@ -1,3 +1,4 @@
+import { modelFor } from './bedrock/core/models';
 // File: lambda/services/questionPipeline.ts
 // Purpose: Multi-model question generation pipeline.
 // Generates candidates from trivia bank + Sonnet + Haiku in parallel,
@@ -82,7 +83,7 @@ async function generateWithModel(
   temperature = 0.8,
 ): Promise<{ question: Question | null; calls: number }> {
   try {
-    const stream = await invokeBedrockPrompt(prompt, 512, temperature, {}, modelId);
+    const stream = await invokeBedrockPrompt(prompt, 512, temperature, { task: 'trivia' }, modelId);
     const buf = await collectResponseBody(stream);
     const parsed = extractJsonFromResponse(buf, modelId);
 
@@ -159,8 +160,8 @@ Return ONLY: {
 }`;
 
     try {
-      const modelId = MODELS.FAST;
-      const stream = await invokeBedrockPrompt(prompt, 256, 0.1, {}, modelId);
+      const modelId = modelFor('factCheck');
+      const stream = await invokeBedrockPrompt(prompt, 256, 0.1, { task: 'factCheck' }, modelId);
       const buf = await collectResponseBody(stream);
       const parsed = extractJsonFromResponse(buf, modelId);
 
@@ -223,8 +224,8 @@ Return ONLY: {
 }`;
 
   try {
-    const modelId = MODELS.WRITER;
-    const stream = await invokeBedrockPrompt(prompt, 256, 0.2, {}, modelId);
+    const modelId = modelFor('factCheck');
+    const stream = await invokeBedrockPrompt(prompt, 256, 0.2, { task: 'factCheck' }, modelId);
     const buf = await collectResponseBody(stream);
     const parsed = extractJsonFromResponse(buf, modelId);
 
@@ -323,16 +324,16 @@ export async function generateBestQuestion(options: PipelineOptions): Promise<Pi
     );
   }
 
-  // Sonnet 4 — always generate
+  // The trivia model always writes a candidate
   candidatePromises.push(
-    generateWithModel(MODELS.WRITER, prompt, category, difficulty, history).then((r) => ({
+    generateWithModel(modelFor('trivia'), prompt, category, difficulty, history).then((r) => ({
       question: r.question,
       source: 'sonnet',
       calls: r.calls,
     })),
   );
 
-  // Haiku 4.5 — generate for ALL modes (including custom, was skipping before)
+  // The fast model writes a second candidate for every mode, for variety
   candidatePromises.push(
     generateWithModel(MODELS.FAST, prompt, category, difficulty, history).then((r) => ({
       question: r.question,
@@ -360,7 +361,7 @@ export async function generateBestQuestion(options: PipelineOptions): Promise<Pi
   if (validCandidates.length === 0) {
     logger.warn('No valid candidates, retrying with higher temperature');
     const retry = await generateWithModel(
-      MODELS.WRITER,
+      modelFor('trivia'),
       prompt,
       category,
       difficulty,
