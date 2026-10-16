@@ -1,6 +1,7 @@
 // Module: admin
 // Admin CRUD endpoints for players, groups, family tree, and seasons
 
+import type { Season } from '@family-trivia/shared';
 import { apiService } from '../../services/ApiService';
 
 // ── Types ────────────────────────────────────────────────────────
@@ -37,6 +38,7 @@ export interface SeasonConfig {
   endDate: string | null;
   status: string;
   message?: string | null;
+  notes?: Season['notes'];
 }
 
 // ── Player APIs ──────────────────────────────────────────────────
@@ -191,6 +193,7 @@ export async function updateSeason(
     status?: string;
     message?: string;
     currentSeasonNumber?: number | null;
+    notes?: Season['notes'];
   },
 ): Promise<void> {
   await apiService.request('/admin/seasons', {
@@ -363,4 +366,41 @@ export async function deleteDailyQuestion(adminUserId: string, date: string): Pr
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ adminUserId, date }),
   });
+}
+
+// ── Media ────────────────────────────────────────────────────────
+
+/**
+ * Upload one image to the family's private storage and return its key.
+ * The browser sends the file straight to S3 with a short-lived URL.
+ */
+export async function uploadImage(
+  adminUserId: string,
+  file: File,
+  folder: string,
+): Promise<string> {
+  const { key, url } = await apiService.request<{ key: string; url: string }>(
+    '/admin/media/upload-url',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminUserId, contentType: file.type, folder }),
+    },
+  );
+  const put = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type },
+    body: file,
+  });
+  if (!put.ok) throw new Error(`Upload failed (${put.status})`);
+  return key;
+}
+
+/** A short-lived URL to show an uploaded image. */
+export async function getMediaUrl(adminUserId: string, key: string): Promise<string> {
+  const { url } = await apiService.request<{ url: string }>(
+    `/admin/media/url?adminUserId=${encodeURIComponent(adminUserId)}&key=${encodeURIComponent(key)}`,
+    { method: 'GET' },
+  );
+  return url;
 }

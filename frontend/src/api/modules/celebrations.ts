@@ -81,6 +81,18 @@ export async function deleteCelebration(id: string, userId: string): Promise<{ s
 
 // ─── End of Season ───────────────────────────────────────────────────
 
+/** Remember that this person read a season letter, so it isn't shown again. */
+export async function markSeasonLetterSeen(
+  seasonNumber: number,
+  kind: 'start' | 'end',
+): Promise<void> {
+  await apiService.request('/season-letters/seen', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ seasonNumber, kind }),
+  });
+}
+
 export async function getEndOfSeasonStatus(): Promise<EndOfSeasonStatus> {
   return apiService.request<EndOfSeasonStatus>('/end-of-season-status', {
     method: 'GET',

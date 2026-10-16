@@ -40,6 +40,16 @@ export class FamilyTriviaStack extends Stack {
       encryption: s3.BucketEncryption.S3_MANAGED,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       enforceSSL: true,
+      // The browser uploads family photos straight to the bucket with a
+      // presigned PUT (backend/services/media.ts); the bucket stays private.
+      cors: [
+        {
+          allowedMethods: [s3.HttpMethods.PUT, s3.HttpMethods.GET],
+          allowedOrigins: [`https://${config.customDomain}`, 'http://localhost:3000'],
+          allowedHeaders: ['content-type'],
+          maxAge: 3600,
+        },
+      ],
     });
 
     const siteBucket = new s3.Bucket(this, 'SiteBucket', {

@@ -137,7 +137,7 @@ export async function appInit(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     ] = await Promise.all([
       getJson<UserConfigData>(S3_PATHS.USERS_CONFIG),
       getJson<HierarchyData>(S3_PATHS.FAMILY_HIERARCHY),
-      getSeasonStatusResponse(),
+      getSeasonStatusResponse(userId ?? undefined),
       getJson<Record<string, GroupDescriptionData>>(S3_PATHS.GROUP_DESCRIPTIONS),
       getJson<any[]>(S3_PATHS.CATEGORIES).catch(() => null),
       userId

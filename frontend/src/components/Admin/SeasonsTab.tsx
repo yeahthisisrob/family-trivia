@@ -1,3 +1,4 @@
+import MailOutlineIcon from '@mui/icons-material/MailOutlined';
 // File: frontend/src/components/Admin/SeasonsTab.tsx
 // Season management — hero card for active season, card list for others.
 
@@ -25,6 +26,7 @@ import {
 import type React from 'react';
 import { useState } from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
+import { SeasonLetterEditor } from './SeasonLetterEditor';
 import AdminCard from './shared/AdminCard';
 import ConfirmDialog from './shared/ConfirmDialog';
 import EmptyState from './shared/EmptyState';
@@ -60,6 +62,7 @@ const SeasonsTab: React.FC = () => {
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState<SeasonForm>(EMPTY_FORM);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [letters, setLetters] = useState<(typeof admin.seasons)[0] | null>(null);
 
   const openAdd = () => {
     const next =
@@ -157,9 +160,19 @@ const SeasonsTab: React.FC = () => {
             />
           }
           actions={
-            <IconButton size="small" onClick={() => openEdit(active)}>
-              <EditIcon sx={{ fontSize: 18 }} />
-            </IconButton>
+            <>
+              <Button
+                size="small"
+                startIcon={<MailOutlineIcon sx={{ fontSize: 14 }} />}
+                onClick={() => setLetters(active)}
+                sx={{ fontSize: '0.7rem', textTransform: 'none', minHeight: 0, py: 0.25 }}
+              >
+                Letters
+              </Button>
+              <IconButton size="small" onClick={() => openEdit(active)}>
+                <EditIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </>
           }
         >
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -219,6 +232,14 @@ const SeasonsTab: React.FC = () => {
                   >
                     Activate
                   </Button>
+                  <Button
+                    size="small"
+                    startIcon={<MailOutlineIcon sx={{ fontSize: 14 }} />}
+                    onClick={() => setLetters(s)}
+                    sx={{ fontSize: '0.7rem', textTransform: 'none', minHeight: 0, py: 0.25 }}
+                  >
+                    Letters
+                  </Button>
                   <IconButton size="small" onClick={() => openEdit(s)}>
                     <EditIcon sx={{ fontSize: 16 }} />
                   </IconButton>
@@ -249,6 +270,8 @@ const SeasonsTab: React.FC = () => {
       )}
 
       {admin.seasons.length === 0 && <EmptyState message="No seasons configured yet" />}
+
+      {letters && <SeasonLetterEditor season={letters} onClose={() => setLetters(null)} />}
 
       {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="xs" fullWidth>

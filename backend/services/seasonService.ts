@@ -23,37 +23,27 @@
  * When currentSeasonNumber points to a season with status "active", season is live.
  */
 
+import type {
+  Season,
+  SeasonLetter,
+  EndOfSeasonStatus as SeasonStatusResponse,
+  SeasonsConfig,
+} from '@family-trivia/shared';
 import { S3_PATHS } from '../constants';
 import { logger } from './logger';
-import { getJson, listObjects } from './s3';
+import { readUrl } from './media';
+import { getJson, listObjects, putJson } from './s3';
 
 // ── Types ────────────────────────────────────────────────────────
 
-export type SeasonStatus = 'active' | 'concluded' | 'upcoming';
-
-export interface Season {
-  seasonNumber: number;
-  name: string;
-  status: SeasonStatus;
-  startDate: string; // YYYY-MM-DD
-  endDate: string | null; // YYYY-MM-DD or null if still active
-  message: string | null; // Message shown to users (e.g. end-of-season thank you)
-}
-
-export interface SeasonsConfig {
-  currentSeasonNumber: number | null; // null = between seasons
-  seasons: Season[];
-}
-
-export interface SeasonStatusResponse {
-  isEndOfSeason: boolean; // true when no active season
-  isBetweenSeasons: boolean; // true when last season concluded, no new one started
-  currentSeason: Season | null; // the active season, if any
-  lastSeason: Season | null; // the most recent concluded season
-  personalMessage: string | null;
-  seasonEndDate: string | null;
-  nextSeasonStart: string | null;
-}
+export type {
+  EndOfSeasonStatus as SeasonStatusResponse,
+  Season,
+  SeasonLetter,
+  SeasonNote,
+  SeasonStatus,
+  SeasonsConfig,
+} from '@family-trivia/shared';
 
 // ── In-memory cache (per Lambda invocation cold start) ───────────
 
@@ -189,7 +179,7 @@ async function computeSeasonDatesFromHistory(): Promise<{
  * Build the full status response for the frontend.
  * Enriches season dates from actual answer history data.
  */
-export async function getSeasonStatusResponse(): Promise<SeasonStatusResponse> {
+export async function getSeasonStatusResponse(userId?: string): Promise<SeasonStatusResponse> {
   const config = await getSeasonsConfig();
   const currentSeason = await getCurrentSeason();
   let lastSeason = await getLastConcludedSeason();
@@ -231,6 +221,7 @@ export async function getSeasonStatusResponse(): Promise<SeasonStatusResponse> {
     currentSeason,
     lastSeason,
     personalMessage: ended ? lastSeason?.message || null : null,
+    letter: await unseenLetter(userId, ended ? lastSeason : currentSeason, ended ? 'end' : 'start'),
     seasonEndDate: lastSeason?.endDate || null,
     nextSeasonStart: upcoming?.startDate || null,
   };
@@ -247,4 +238,47 @@ export async function getSeasonNumberForData(): Promise<number | null> {
 
   const last = await getLastConcludedSeason();
   return last?.seasonNumber || null;
+}
+
+// ── Season letters ───────────────────────────────────────────────
+
+const SEEN_KEY = (userId: string) => `seasons/seen/${userId}.json`;
+type Seen = { letters: string[] };
+const letterId = (seasonNumber: number, kind: 'start' | 'end') => `${seasonNumber}:${kind}`;
+
+/** The season's letter if this person hasn't dismissed it yet. Shown once, on every device. */
+async function unseenLetter(
+  userId: string | undefined,
+  season: Season | null,
+  kind: 'start' | 'end',
+): Promise<SeasonLetter | null> {
+  if (!userId || !season) return null;
+  const note =
+    season.notes?.[kind] ??
+    (kind === 'end' && season.message ? { markdown: season.message } : undefined);
+  if (!note?.markdown.trim()) return null;
+  const seen = await getJson<Seen>(SEEN_KEY(userId));
+  if (seen?.letters.includes(letterId(season.seasonNumber, kind))) return null;
+  const imageUrl = note.image ? await readUrl(note.image) : null;
+  return {
+    seasonNumber: season.seasonNumber,
+    kind,
+    ...('title' in note && note.title ? { title: note.title } : {}),
+    markdown: note.markdown,
+    ...(imageUrl ? { imageUrl } : {}),
+  };
+}
+
+/** Remember that this person has read a season letter. */
+export async function markLetterSeen(
+  userId: string,
+  seasonNumber: number,
+  kind: 'start' | 'end',
+): Promise<void> {
+  const seen = (await getJson<Seen>(SEEN_KEY(userId))) ?? { letters: [] };
+  const id = letterId(seasonNumber, kind);
+  if (!seen.letters.includes(id)) {
+    seen.letters.push(id);
+    await putJson(SEEN_KEY(userId), seen);
+  }
 }
