@@ -40,3 +40,8 @@ tmp/
 .claude/worktrees/
 .claude/plans/
 .claude/settings.local.json
+
+# Local scratch scripts and previews: never committed
+.*.cts
+.*.mts
+*.local.test.ts

@@ -1,16 +1,18 @@
 /**
  * A memory a day, on the Home tab: one past question and everyone's answers,
- * set on paper like a page from the family's book. Asked on this day in an
+ * a card like the rest of Home (light or dark), with the book's serif for
+ * the question and the answers. Asked on this day in an
  * earlier year when there is one, else a day from our pages; the same for
  * the whole family all day. Anyone can react to an answer, or tap a name to
  * open that person's page.
  */
 import type { DailyMemory as Memory } from '@family-trivia/shared';
-import { Box, Button, ButtonBase, Stack, Typography } from '@mui/material';
+import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
+import { Box, Button, ButtonBase, Paper, Stack, Typography } from '@mui/material';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { apiService } from '../../../services/ApiService';
-import { paper } from '../../../shared/design-system';
+import { identityColor, paper } from '../../../shared/design-system';
 import { ReactionBar } from '../../reactions';
 
 /** Answers shown before "Read all". */
@@ -50,80 +52,64 @@ export const DailyMemory: React.FC<{
   const shown = all ? memory.answers : memory.answers.slice(0, FIRST);
 
   return (
-    <Box
+    <Paper
       component="section"
       aria-label="A memory from our pages"
-      data-light-surface
-      sx={{
-        bgcolor: paper.paper,
-        color: paper.ink,
-        borderRadius: 2,
-        p: { xs: 2.25, sm: 3 },
-        mb: 2,
-        boxShadow: `0 6px 18px ${paper.shadow}`,
-      }}
+      sx={{ p: { xs: 2, sm: 2.5 }, mb: 2, borderRadius: 3 }}
     >
-      <Typography
-        sx={{
-          fontFamily: paper.serif,
-          fontSize: '0.78rem',
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          color: paper.inkSoft,
-        }}
-      >
-        {kicker} · {day(memory.asked)}
-      </Typography>
+      <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', color: 'primary.main' }}>
+        <AutoStoriesOutlinedIcon sx={{ fontSize: 18 }} />
+        <Typography
+          sx={{
+            fontSize: '0.72rem',
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+          }}
+        >
+          {kicker}
+        </Typography>
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          · {day(memory.asked)}
+        </Typography>
+      </Stack>
       <Typography
         component="h2"
         sx={{
           fontFamily: paper.serif,
           fontWeight: 700,
-          fontSize: '1.3rem',
+          fontSize: '1.25rem',
           lineHeight: 1.3,
-          mt: 0.75,
+          mt: 1,
         }}
       >
         {memory.question}
       </Typography>
-      <Stack spacing={1.25} sx={{ mt: 1.75 }}>
+      <Stack spacing={1.25} sx={{ mt: 1.5 }}>
         {shown.map((a) => (
-          <Box key={a.id}>
+          <Box key={a.id} sx={{ borderLeft: 3, borderColor: identityColor(a.personId), pl: 1.5 }}>
             <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
               <ButtonBase
                 disabled={!onOpenPerson}
                 onClick={() => onOpenPerson?.(a.personId)}
-                sx={{
-                  fontFamily: paper.serif,
-                  fontSize: '0.8rem',
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  color: paper.inkSoft,
-                }}
+                sx={{ fontSize: '0.8rem', fontWeight: 700, color: 'text.secondary' }}
               >
                 {nameOf(a.personId)}
               </ButtonBase>
               <Box sx={{ flex: 1 }} />
-              <Box
-                sx={{ '& .MuiButtonBase-root, & .MuiIconButton-root': { color: paper.inkSoft } }}
-              >
-                <ReactionBar contentType="fact" contentId={a.id} me={me} nameOf={nameOf} />
-              </Box>
+              <ReactionBar contentType="fact" contentId={a.id} me={me} nameOf={nameOf} />
             </Stack>
-            <Typography sx={{ fontFamily: paper.serif, fontSize: '1.08rem', lineHeight: 1.45 }}>
+            <Typography sx={{ fontFamily: paper.serif, fontSize: '1.05rem', lineHeight: 1.45 }}>
               {a.answer}
             </Typography>
           </Box>
         ))}
       </Stack>
       {!all && memory.answers.length > FIRST && (
-        <Button
-          onClick={() => setAll(true)}
-          sx={{ mt: 1, ml: -1, color: paper.ink, fontFamily: paper.serif }}
-        >
+        <Button onClick={() => setAll(true)} size="small" sx={{ mt: 1, ml: -0.5 }}>
           Read all {memory.answers.length} answers
         </Button>
       )}
-    </Box>
+    </Paper>
   );
 };
