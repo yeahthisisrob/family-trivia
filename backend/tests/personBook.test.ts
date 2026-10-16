@@ -61,6 +61,9 @@ test('their words and the family’s memories, as a book kept with what it was m
   expect(status).toBe(200);
   expect(data).toMatchObject({ made: true });
   expect(data.pages % 2).toBe(0);
+  // Its cover, made for its page count, beside it.
+  expect(data.coverUrl).toMatch(/books\/people\/grace\/.+\.cover\.pdf$/);
+  expect(listStored('books/people/grace/').filter((k) => k.endsWith('.cover.pdf'))).toHaveLength(1);
   const kept = getStored<{ input: { years: string; memories: unknown[]; dedication: string } }>(
     listStored('books/people/grace/').find((k) => k.endsWith('.input.json')) ?? '',
   );

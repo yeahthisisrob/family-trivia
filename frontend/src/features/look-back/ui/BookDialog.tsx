@@ -179,12 +179,23 @@ export const BookDialog: React.FC<{
               target="_blank"
               rel="noopener"
             >
-              Download the PDF
+              Download the book
             </Button>
+            {book.coverUrl && (
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                href={book.coverUrl}
+                target="_blank"
+                rel="noopener"
+              >
+                Download its cover
+              </Button>
+            )}
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              To print it, upload the PDF to a print-on-demand press such as Lulu, Blurb or Amazon
-              KDP as the inside of a 6 × 9 inch book. The type is embedded and the margins leave
-              room for any binding; the press will help you make a cover.
+              To print it, upload both to a print-on-demand press such as Amazon KDP or Lulu: the
+              book as the inside of a 6 × 9 inch paperback, the cover as its cover (back, spine and
+              front, sized for {book.pages} pages on cream paper).
             </Typography>
             <Button onClick={() => setStep('choose')}>Make another version</Button>
           </Stack>
@@ -210,8 +221,13 @@ export const BookDialog: React.FC<{
                     })}
                   </Typography>
                   <Button size="small" href={v.url} target="_blank" rel="noopener">
-                    Download
+                    Book
                   </Button>
+                  {v.coverUrl && (
+                    <Button size="small" href={v.coverUrl} target="_blank" rel="noopener">
+                      Cover
+                    </Button>
+                  )}
                 </Stack>
               ))}
             </Stack>

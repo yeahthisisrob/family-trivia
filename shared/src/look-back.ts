@@ -116,6 +116,8 @@ export interface SeasonBook {
   madeAt: string;
   /** False when the kept copy was still current and nothing was made. */
   made: boolean;
+  /** Its wraparound cover (back, spine and front), sized for its page count. */
+  coverUrl?: string;
 }
 
 /** One book that was made. Every version is kept; none is replaced. */
@@ -126,4 +128,5 @@ export interface BookVersion {
   /** When its writing was written; null for just our words. */
   writtenAt: string | null;
   url: string;
+  coverUrl?: string;
 }

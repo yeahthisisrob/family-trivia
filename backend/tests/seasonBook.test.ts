@@ -183,6 +183,7 @@ test('the book is made once and kept until something changes', async () => {
 test('just our words needs no writing', async () => {
   const { data } = await post(makeSeasonBook, { season: 1, tone: 'plain' });
   expect(data).toMatchObject({ made: true, tone: 'plain' });
+  expect(data.coverUrl).toMatch(/\.cover\.pdf$/);
   expect(ai.calls).toBe(0);
 });
 
@@ -193,8 +194,12 @@ test('nothing is replaced: every book and every earlier writing is kept', async 
   await post(makeSeasonBook, { season: 1, tone: 'warm' });
   await post(makeSeasonBook, { season: 1, tone: 'plain' });
 
-  const pdfs = listStored('books/season-1/').filter((k) => k.endsWith('.pdf'));
+  const pdfs = listStored('books/season-1/').filter(
+    (k) => k.endsWith('.pdf') && !k.endsWith('.cover.pdf'),
+  );
   expect(pdfs).toHaveLength(3);
+  // And each with its own cover.
+  expect(listStored('books/season-1/').filter((k) => k.endsWith('.cover.pdf'))).toHaveLength(3);
   // Each book beside what it was made from.
   for (const pdf of pdfs) {
     const kept = getStored<{ input: { layout: number; review: unknown } }>(

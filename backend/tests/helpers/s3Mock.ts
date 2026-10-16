@@ -125,6 +125,10 @@ export const s3MockModule = {
   putBytes: async (key: string, body: Uint8Array) => {
     store.set(key, body);
   },
+  getBytes: async (key: string) => {
+    const v = store.get(key);
+    return v instanceof Uint8Array ? v : null;
+  },
   deleteObject,
   fileExists,
   putJsonIfNotExists,

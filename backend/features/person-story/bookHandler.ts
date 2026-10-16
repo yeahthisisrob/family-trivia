@@ -11,7 +11,10 @@ import { errorResponse, successResponse } from '../../config';
 import { getCommentThread } from '../../services/commentsService';
 import { loadJoined } from '../../services/family/joined';
 import { logger } from '../../services/logger';
+import { isMediaKey } from '../../services/media';
+import { bookCover } from '../../services/press/cover';
 import { keepBook, keptVersions } from '../../services/press/keep';
+import { getBytes } from '../../services/s3';
 import { personBook } from './book';
 import { buildPersonStory } from './handlers';
 
@@ -59,6 +62,26 @@ export async function makePersonBook(event: APIGatewayProxyEvent): Promise<APIGa
     fileName: `${person.name} - in their own words.pdf`.replace(/[^\p{L}\p{N} .-]/gu, ''),
     fresh: body.fresh === true,
     make: (madeOn) => personBook({ ...input, madeOn }),
+    cover: async (pages) => {
+      const photoKey = person.memorial?.photo ?? person.photo;
+      return bookCover({
+        title: person.name,
+        family: visible.name,
+        subtitle: `in ${person.name}’s own words`,
+        dates: years,
+        blurb: [
+          person.memorial?.dedication,
+          person.memorial
+            ? `Every answer ${person.name} gave the family, the last things they told us, and the family’s memories of them.`
+            : `Every answer ${person.name} has given the family, in their own words.`,
+        ]
+          .filter(Boolean)
+          .join('\n\n'),
+        numbers: `${story.words.length} answers${memories.length ? ` · ${memories.length} memories` : ''}`,
+        photo: photoKey && isMediaKey(photoKey) ? await getBytes(photoKey) : null,
+        pages,
+      });
+    },
   });
   if (kept.made) logger.info('Person book made', { personId: id, pages: kept.pages });
   return successResponse(kept);
@@ -74,6 +97,11 @@ export async function listPersonBooks(event: APIGatewayProxyEvent): Promise<APIG
     (v) => `${person.name} - ${v.madeAt.slice(0, 10)}.pdf`,
   );
   return successResponse({
-    versions: versions.map((v) => ({ madeAt: v.madeAt, pages: v.pages, url: v.url })),
+    versions: versions.map((v) => ({
+      madeAt: v.madeAt,
+      pages: v.pages,
+      url: v.url,
+      ...(v.coverUrl ? { coverUrl: v.coverUrl } : {}),
+    })),
   });
 }

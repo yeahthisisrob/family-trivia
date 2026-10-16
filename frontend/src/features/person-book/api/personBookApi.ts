@@ -6,6 +6,7 @@ export interface PersonBook {
   madeAt: string;
   /** False when the kept copy was still current. */
   made: boolean;
+  coverUrl?: string;
 }
 
 export const personBookApi = {
@@ -24,7 +25,7 @@ export const personBookApi = {
       }),
   versions: (personId: string) =>
     apiService
-      .request<{ versions: { madeAt: string; pages: number; url: string }[] }>(
+      .request<{ versions: { madeAt: string; pages: number; url: string; coverUrl?: string }[] }>(
         `/family/person-book/versions?personId=${encodeURIComponent(personId)}`,
         { method: 'GET' },
         undefined,
