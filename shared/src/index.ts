@@ -16,6 +16,7 @@ export * from './group';
 export * from './history';
 export * from './knowledge';
 export * from './leaderboard';
+export * from './look-back';
 export * from './member-summary';
 export * from './notifications';
 export * from './people';

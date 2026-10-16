@@ -1506,6 +1506,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/seasons/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Look back on a season, the family's answers gathered to read together */
+        get: operations["getSeasonReview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/family/person-story": {
         parameters: {
             query?: never;
@@ -1994,6 +2011,54 @@ export interface components {
             text: string;
             timestamp: string;
             parentId?: string;
+        };
+        SaidBy: {
+            personId: string;
+            answer: string;
+        };
+        BookPage: {
+            date: string;
+            question: string;
+            answers: components["schemas"]["SaidBy"][];
+        };
+        SeasonReview: {
+            season: {
+                number: number;
+                name: string;
+                startDate: string;
+                endDate: string | null;
+            };
+            seasons: {
+                number: number;
+                name: string;
+            }[];
+            numbers: {
+                people: number;
+                answers: number;
+                words: number;
+                trivia: number;
+                comments: number;
+                reactions: number;
+                days: number;
+            };
+            together: components["schemas"]["BookPage"][];
+            loved: {
+                id: string;
+                personId: string;
+                question: string;
+                answer: string;
+                reactions: number;
+                comments: number;
+            }[];
+            people: {
+                personId: string;
+                answers: number;
+                words: number;
+                trivia: number;
+                right: number;
+                points: number;
+            }[];
+            book: components["schemas"]["BookPage"][];
         };
         PersonStory: {
             personId: string;
@@ -5243,6 +5308,36 @@ export interface operations {
             };
             /** @description The AI model could not write it right now */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getSeasonReview: {
+        parameters: {
+            query?: {
+                /** @description Season number; the latest that has started when left out */
+                season?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The season's numbers, the questions most of us answered, what we loved, everyone's season and the book */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeasonReview"];
+                };
+            };
+            /** @description No such season, or none has started */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -5,6 +5,7 @@
  * albums behind its doors, and the archive at the foot.
  */
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import DownloadIcon from '@mui/icons-material/Download';
 import HubIcon from '@mui/icons-material/Hub';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
@@ -15,6 +16,7 @@ import { useFeatures } from '../../entities/settings';
 import { ArchiveDialog } from '../../features/family-archive';
 import { FamilyGraph } from '../../features/family-graph';
 import { type FamilyDoor, FamilyHome } from '../../features/family-home';
+import { SeasonLookBack } from '../../features/look-back';
 import FamilySplitView from './FamilySplitView';
 
 const PhotosPage = React.lazy(() => import('../Photos'));
@@ -63,6 +65,13 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, isAdmin, onViewProfile 
     render: (graph, openPerson) => (
       <FamilyGraph data={graph} meId={userId} height={640} onOpenProfile={openPerson} />
     ),
+  });
+  doors.push({
+    id: 'look-back',
+    title: 'Look back',
+    caption: 'Every season, in our own words',
+    icon: <AutoStoriesIcon />,
+    render: (_graph, openPerson) => <SeasonLookBack onOpenPerson={openPerson} />,
   });
   if (features.photos) {
     doors.push({

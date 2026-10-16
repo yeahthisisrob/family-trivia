@@ -15,6 +15,7 @@ import { familyRoutes } from './features/family/routes';
 import { fillInRoutes } from './features/fill-in/routes';
 import { graphRoutes } from './features/graph/routes';
 import { knowledgeRoutes } from './features/knowledge/routes';
+import { lookBackRoutes } from './features/look-back/routes';
 import { personStoryRoutes } from './features/person-story/routes';
 import { reactionsRoutes } from './features/reactions/routes';
 import { settingsRoutes } from './features/settings/routes';
@@ -162,6 +163,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...knowledgeRoutes,
   ...commentsRoutes,
   ...personStoryRoutes,
+  ...lookBackRoutes,
 
   // ── Public (no auth) ─────────────────────────────────────────
   'POST /auth/google': authGoogle,
