@@ -1574,6 +1574,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/family/person-book": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Someone's words (and, for someone the family has lost, the family's memories) as a print-ready book; kept, never replaced */
+        post: operations["makePersonBook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/family/person-book/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every book made of someone's words, newest first */
+        get: operations["listPersonBooks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/family/person-story": {
         parameters: {
             query?: never;
@@ -2069,6 +2103,13 @@ export interface components {
             text: string;
             timestamp: string;
             parentId?: string;
+        };
+        KeptBook: {
+            url: string;
+            pages: number;
+            madeAt: string;
+            /** @description False when the kept copy was still current */
+            made: boolean;
         };
         /** @enum {string} */
         BookTone: "plain" | "warm" | "playful";
@@ -5508,6 +5549,68 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    makePersonBook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    personId: string;
+                    fresh?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description A download link to the book */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeptBook"];
+                };
+            };
+            /** @description Unknown person, or nothing of theirs to print yet */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listPersonBooks: {
+        parameters: {
+            query: {
+                personId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Each version with a download link */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        versions: {
+                            madeAt: string;
+                            pages: number;
+                            url: string;
+                        }[];
+                    };
+                };
             };
         };
     };

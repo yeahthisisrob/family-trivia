@@ -1,5 +1,5 @@
 import type { SeasonReview } from '@family-trivia/shared';
-import { monthName } from '../../../shared/keepsake';
+import { monthName } from '../../../shared/dates';
 
 /** "May 2025 to July 2025", or the start alone while a season runs. */
 export function seasonDates(s: SeasonReview['season']): string {

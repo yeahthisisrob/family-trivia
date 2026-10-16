@@ -46,6 +46,8 @@ Everyone has one profile, told as a story from their own answers
 shows their Remembering page instead (`features/remembering`), read from the
 same story: the last things they told the family,
 what it loved most, the family's memories (comments of type `memorial` on
-their id), every answer by month, and a keepsake page to save or print.
+their id), every answer by month, and a printed book of their words with
+the family's memories (`features/person-story/book.ts`, on the shared press
+in `services/press/`, kept like every book: never replaced).
 The admin and the family tree move to this model next; the version 1 tree
 view keeps reading the hierarchy until then.

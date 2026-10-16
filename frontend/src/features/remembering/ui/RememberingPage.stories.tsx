@@ -58,7 +58,7 @@ export const ReadEverything: Story = {
   },
 };
 
-/** No date of birth: the day she died, written out. No answers: no keepsake button. */
+/** No date of birth: the day she died, written out. No answers: no book to make. */
 export const OnlyTheDay: Story = {
   args: { person: { ...grace, born: undefined }, topics: [] },
   parameters: {
@@ -80,6 +80,6 @@ export const OnlyTheDay: Story = {
     const page = within(document.body);
     await expect(await page.findByText('March 1, 2024')).toBeInTheDocument();
     await expect(await page.findByText('No one has shared a memory yet.')).toBeInTheDocument();
-    await expect(page.queryByRole('button', { name: /keepsake/ })).toBeNull();
+    await expect(page.queryByRole('button', { name: /book/ })).toBeNull();
   },
 };

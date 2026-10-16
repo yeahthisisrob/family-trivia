@@ -3085,6 +3085,63 @@ paths:
         "404":
           description: No such season, or none has started
 
+  /family/person-book:
+    post:
+      summary: Someone's words (and, for someone the family has lost, the family's memories) as a print-ready book; kept, never replaced
+      operationId: makePersonBook
+      tags: [Family]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [personId]
+              properties:
+                personId:
+                  type: string
+                fresh:
+                  type: boolean
+      responses:
+        "200":
+          description: A download link to the book
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KeptBook"
+        "404":
+          description: Unknown person, or nothing of theirs to print yet
+
+  /family/person-book/versions:
+    get:
+      summary: Every book made of someone's words, newest first
+      operationId: listPersonBooks
+      tags: [Family]
+      parameters:
+        - name: personId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Each version with a download link
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [versions]
+                properties:
+                  versions:
+                    type: array
+                    items:
+                      type: object
+                      required: [madeAt, pages, url]
+                      properties:
+                        madeAt: { type: string }
+                        pages: { type: integer }
+                        url: { type: string }
+
   /family/person-story:
     get:
       summary: Someone's story, everything they told the family and what it loved most
@@ -4059,6 +4116,20 @@ components:
           type: string
         parentId:
           type: string
+
+    KeptBook:
+      type: object
+      required: [url, pages, madeAt, made]
+      properties:
+        url:
+          type: string
+        pages:
+          type: integer
+        madeAt:
+          type: string
+        made:
+          type: boolean
+          description: False when the kept copy was still current
 
     BookTone:
       type: string

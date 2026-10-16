@@ -2,8 +2,8 @@
  * PersonStory someone: their page once the family has lost them. Top to
  * bottom by what the family comes for: who they were and the last things
  * they told us, what the family loved of theirs, the family's memories, and
- * then everything they shared, month by month. All of it can be saved as a
- * keepsake page that prints.
+ * then everything they shared, month by month. All of it can be made into a
+ * printed book (features/person-book).
  */
 import {
   byMonth,
@@ -15,7 +15,6 @@ import {
   spanLabel,
 } from '@family-trivia/shared';
 import CloseIcon from '@mui/icons-material/Close';
-import SaveAltIcon from '@mui/icons-material/SaveAlt';
 import {
   Avatar,
   Box,
@@ -31,8 +30,8 @@ import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { storyApi } from '../../../entities/family';
 import { paper } from '../../../shared/design-system';
+import { PersonBookButton } from '../../person-book';
 import { rememberingApi } from '../api/rememberingApi';
-import { saveKeepsake } from '../model/keepsake';
 import { Memories } from './Memories';
 
 const day = (d: string) =>
@@ -196,22 +195,12 @@ export const RememberingPage: React.FC<{
               </Typography>
             )}
             {data && data.words.length > 0 && (
-              <Button
-                startIcon={<SaveAltIcon />}
-                onClick={() =>
-                  saveKeepsake({
-                    name,
-                    years,
-                    dedication,
-                    remembering: data,
-                    memories: memories ?? [],
-                    nameOf,
-                  })
-                }
-                sx={{ color: paper.ink, fontFamily: paper.serif }}
-              >
-                Save a keepsake
-              </Button>
+              <PersonBookButton
+                personId={person.id}
+                name={name}
+                label="Make a book of their words"
+                buttonSx={{ color: paper.ink, fontFamily: paper.serif }}
+              />
             )}
           </Stack>
 
