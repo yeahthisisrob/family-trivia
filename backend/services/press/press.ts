@@ -6,7 +6,12 @@
  * the left, the chapter on the right) and page numbers at the foot, nothing
  * on a chapter's first page but its number, and an even number of pages.
  * No half title, no copyright page, and no blank pages to land chapters on
- * the right: the family reads these on phones far more than on paper.
+ * the right: the family reads these on phones far more than on paper. A
+ * chapter that begins with most of a page still empty begins there.
+ *
+ * A book is fitted, not just set: fitted() lays it out at a few sizes (the
+ * type, spacing and margins scaled together, on the same 6 × 9 page) and
+ * keeps the one that leaves the fewest pages with almost nothing on them.
  * Emoji are drawn from Noto Emoji (OFL), since Garamond has none.
  *
  * A book is written top to bottom with the helpers below, then finish()
@@ -18,7 +23,6 @@ import PDFDocument from 'pdfkit';
 
 export const TRIM = { width: BOOK_PAGE.width, height: BOOK_PAGE.height };
 export const MARGIN = BOOK_PAGE.margin;
-export const MEASURE = TRIM.width - MARGIN.inside - MARGIN.outside;
 export const INK = '#1d1a16';
 export const SOFT = '#5a5148';
 
@@ -112,21 +116,72 @@ export interface Press {
   rule(): void;
   /** Leaves a page for the contents; fill it with contents(). */
   reserveContents(): number;
-  /** Opens a chapter on the next page. Its body pages carry `title` as their head. */
+  /**
+   * Opens a chapter: on the next page, or lower on this one when most of it
+   * is still empty. Its body pages carry `title` as their head.
+   */
   chapter(title: string, opts?: { kicker?: string; note?: string; noteFace?: Face }): number;
   contents(at: number, entries: { label: string; at: number }[]): void;
-  finish(): Promise<{ pdf: Buffer; pages: number }>;
+  finish(): Promise<Laid>;
+  /** The page as this layout sees it: 6 × 9 inches divided by its scale. */
+  trim: { width: number; height: number };
+  /** The text block's width on that page. */
+  measure: number;
 }
 
-export function press(info: { title: string; author: string }): Press {
+export interface Laid {
+  pdf: Buffer;
+  pages: number;
+  /** Pages with almost nothing on them (title and blank pages aside). */
+  sparse: number;
+  /** The size it was set at: 1 as designed, above 1 larger. */
+  scale: number;
+  /** Whether it took a blank last page to end on a left-hand page. */
+  padded: boolean;
+}
+
+/** A page this empty or emptier, as a share of its text block, is sparse. */
+const SPARSE = 0.33;
+/** A chapter begins on the same page when at least this much of it is free. */
+const RUN_ON = 0.5;
+/** The sizes fitted() tries, nearest the design first. */
+const SCALES = [1, 0.94, 1.06, 0.89, 1.12];
+
+/** How far a layout is from right: near-empty pages most, then a blank last page. */
+const misfit = (l: Laid) => l.sparse * 2 + (l.padded ? 1 : 0);
+
+/** The book laid out at each size in turn; the first that fits best wins. */
+export async function fitted(make: (scale: number) => Promise<Laid>): Promise<Laid> {
+  let best: Laid | null = null;
+  for (const scale of SCALES) {
+    const laid = await make(scale);
+    if (!best || misfit(laid) < misfit(best)) best = laid;
+    if (misfit(best) === 0) break;
+  }
+  return best as Laid;
+}
+
+export function press(info: { title: string; author: string; scale?: number }): Press {
+  // Laid out on a page 1/scale the size, then drawn scaled to the real page:
+  // type, spacing and margins all grow or shrink together.
+  const scale = info.scale ?? 1;
+  const trim = { width: TRIM.width / scale, height: TRIM.height / scale };
+  const measure = trim.width - MARGIN.inside - MARGIN.outside;
+  const block = trim.height - MARGIN.top - MARGIN.bottom;
   const doc = new PDFDocument({
-    size: [TRIM.width, TRIM.height],
+    size: [trim.width, trim.height],
     margins: { top: MARGIN.top, bottom: MARGIN.bottom, left: MARGIN.inside, right: MARGIN.outside },
     // Starting on an embedded font keeps pdfkit from loading its built-in ones.
     font: font('Regular'),
     bufferPages: true,
     autoFirstPage: false,
-    info: { Title: info.title, Author: info.author, Creator: 'Family Trivia' },
+    // The app reads the scale back to find the words on a page (frontend book-reader).
+    info: {
+      Title: info.title,
+      Author: info.author,
+      Creator: 'Family Trivia',
+      Keywords: `press-scale:${scale}`,
+    },
   });
   doc.registerFont('body', font('Regular'));
   doc.registerFont('italic', font('Italic'));
@@ -145,27 +200,41 @@ export function press(info: { title: string; author: string }): Press {
   let chapters = 0;
   let bodyFrom = -1;
 
+  /** How far down each page its words reach. */
+  const reach = new Map<number, number>();
+  const current = () => doc.bufferedPageRange().count - 1;
+
   let finishing = false;
   doc.on('pageAdded', () => {
     doc.x = MARGIN.inside;
-    if (bodyFrom >= 0 && !finishing) heads.set(doc.bufferedPageRange().count - 1, chapterTitle);
+    // pdfkit flips each page to put y = 0 at the top of the page it was made
+    // with; scaling about that top, then lifting by the difference in height,
+    // lands the top of the laid-out page on the top of the real one.
+    if (scale !== 1) doc.transform(scale, 0, 0, scale, 0, trim.height - TRIM.height);
+    const at = current();
+    // A page the text ran off the bottom of is full.
+    if (at > 0 && !reach.has(at - 1)) reach.set(at - 1, trim.height - MARGIN.bottom);
+    if (bodyFrom >= 0 && !finishing) heads.set(at, chapterTitle);
   });
 
   const p: Press = {
     doc,
+    trim,
+    measure,
     page() {
+      if (doc.bufferedPageRange().count) reach.set(current(), doc.y);
       doc.addPage();
       doc.x = MARGIN.inside;
       doc.y = MARGIN.top;
       return doc.bufferedPageRange().count - 1;
     },
-    room: () => TRIM.height - MARGIN.bottom - doc.y,
+    room: () => trim.height - MARGIN.bottom - doc.y,
     need(height) {
       if (p.room() < height) p.page();
     },
     center(text, size, face = 'body', opts = {}) {
       doc.fontSize(size).fillColor(INK);
-      p.say(curly(text), face, MARGIN.inside, doc.y, { width: MEASURE, align: 'center', ...opts });
+      p.say(curly(text), face, MARGIN.inside, doc.y, { width: measure, align: 'center', ...opts });
     },
     say(text, face, x, y, opts = {}) {
       const runs = emojiRuns(text);
@@ -189,15 +258,15 @@ export function press(info: { title: string; author: string }): Press {
         .map((t) => t.trim())
         .filter(Boolean)) {
         doc.fontSize(size).fillColor(INK);
-        p.say(para, face, MARGIN.inside, doc.y, { width: MEASURE, align: 'justify', lineGap: 2 });
+        p.say(para, face, MARGIN.inside, doc.y, { width: measure, align: 'justify', lineGap: 2 });
         doc.moveDown(0.7);
       }
     },
     rule() {
       const y = doc.y + 4;
       doc
-        .moveTo(TRIM.width / 2 - 24, y)
-        .lineTo(TRIM.width / 2 + 24, y)
+        .moveTo(trim.width / 2 - 24, y)
+        .lineTo(trim.width / 2 + 24, y)
         .lineWidth(0.6)
         .strokeColor(SOFT)
         .stroke();
@@ -209,11 +278,29 @@ export function press(info: { title: string; author: string }): Press {
       const first = chapters === 0;
       chapters += 1;
       if (bodyFrom < 0) bodyFrom = Number.POSITIVE_INFINITY; // heads start with this chapter
+      if (!first && p.room() >= block * RUN_ON) {
+        // Most of the page is free: the chapter begins here, below a little air.
+        doc.y += 36;
+        const at = current();
+        if (opts.kicker) {
+          p.center(opts.kicker, 9, 'body', { features: ['smcp'], characterSpacing: 2 });
+          doc.moveDown(0.3);
+        }
+        p.center(title, 22, 'body');
+        doc.moveDown(0.3);
+        p.rule();
+        doc.moveDown(1);
+        if (opts.note?.trim()) {
+          p.paragraphs(opts.note, 11.5, opts.noteFace ?? 'italic');
+          doc.moveDown(0.6);
+        }
+        return at;
+      }
       const at = p.page();
       if (first) bodyFrom = at;
       heads.set(at, title);
       openers.add(at);
-      doc.y = TRIM.height * 0.22;
+      doc.y = trim.height * 0.14;
       if (opts.kicker) {
         p.center(opts.kicker, 10, 'body', { features: ['smcp'], characterSpacing: 2 });
         doc.moveDown(0.5);
@@ -221,18 +308,18 @@ export function press(info: { title: string; author: string }): Press {
       p.center(title, 26, 'body');
       doc.moveDown(0.4);
       p.rule();
-      doc.moveDown(1.5);
+      doc.moveDown(1.2);
       if (opts.note?.trim()) {
         p.paragraphs(opts.note, 11.5, opts.noteFace ?? 'italic');
-        doc.moveDown(0.8);
+        doc.moveDown(0.6);
         p.rule();
-        doc.moveDown(1.2);
-      } else doc.moveDown(0.5);
+        doc.moveDown(1);
+      }
       return at;
     },
     contents(at, entries) {
       doc.switchToPage(at);
-      doc.y = TRIM.height * 0.18;
+      doc.y = trim.height * 0.18;
       p.center('Contents', 18, 'body');
       doc.moveDown(1.5);
       for (const e of entries) {
@@ -241,14 +328,19 @@ export function press(info: { title: string; author: string }): Press {
           .font('body')
           .fontSize(12)
           .fillColor(INK)
-          .text(curly(e.label), MARGIN.inside, y, { width: MEASURE - 40 });
-        doc.text(String(e.at - bodyFrom + 1), MARGIN.inside, y, { width: MEASURE, align: 'right' });
+          .text(curly(e.label), MARGIN.inside, y, { width: measure - 40 });
+        doc.text(String(e.at - bodyFrom + 1), MARGIN.inside, y, { width: measure, align: 'right' });
         doc.moveDown(0.6);
       }
     },
     async finish() {
+      reach.set(current(), doc.y);
+      const sparse = [...reach].filter(
+        ([at, y]) => at >= bodyFrom && (y - MARGIN.top) / block < SPARSE,
+      ).length;
       // A book ends on a left-hand page.
-      if (doc.bufferedPageRange().count % 2 === 1) blanks.add(p.page());
+      const padded = doc.bufferedPageRange().count % 2 === 1;
+      if (padded) blanks.add(p.page());
       const book = info.title;
       finishing = true; // heads and numbers go on pages that exist; nothing new is recorded
       for (const [at, chapter] of [...heads]) {
@@ -266,7 +358,7 @@ export function press(info: { title: string; author: string }): Press {
             .fontSize(9)
             .fillColor(SOFT)
             .text(curly(head), MARGIN.inside, MARGIN.top - 30, {
-              width: MEASURE,
+              width: measure,
               align: 'center',
               lineBreak: false,
             });
@@ -274,16 +366,24 @@ export function press(info: { title: string; author: string }): Press {
           .font('body')
           .fontSize(9.5)
           .fillColor(SOFT)
-          .text(String(at - bodyFrom + 1), MARGIN.inside, TRIM.height - MARGIN.bottom + 24, {
-            width: MEASURE,
+          .text(String(at - bodyFrom + 1), MARGIN.inside, trim.height - MARGIN.bottom + 24, {
+            width: measure,
             align: 'center',
             lineBreak: false,
           });
         doc.page.margins = margins;
       }
       const pages = doc.bufferedPageRange().count;
+      if (scale !== 1)
+        // Laid out on the smaller or larger page, drawn scaled: every page is 6 × 9.
+        for (let at = 0; at < pages; at++) {
+          doc.switchToPage(at);
+          (
+            doc.page as unknown as { dictionary: { data: { MediaBox: number[] } } }
+          ).dictionary.data.MediaBox = [0, 0, TRIM.width, TRIM.height];
+        }
       doc.end();
-      return { pdf: await done, pages };
+      return { pdf: await done, pages, sparse, scale, padded };
     },
   };
   return p;

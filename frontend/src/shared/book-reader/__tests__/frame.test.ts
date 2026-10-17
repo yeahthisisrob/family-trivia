@@ -1,6 +1,14 @@
 import { BOOK_PAGE } from '@family-trivia/shared';
 import { describe, expect, it } from 'vitest';
-import { IMAGE_WIDTH, imageFrame, inkBands, pageFileName, rgb } from '../frame';
+import {
+  IMAGE_WIDTH,
+  imageFrame,
+  inkBands,
+  pageFileName,
+  pressScale,
+  rgb,
+  spreads,
+} from '../frame';
 
 describe('imageFrame', () => {
   it('sets the text block, not the page, across the image', () => {
@@ -8,6 +16,30 @@ describe('imageFrame', () => {
     expect(f.block.width * f.scale + f.pad * 2).toBeCloseTo(IMAGE_WIDTH, 5);
     expect(f.block.x).toBeLessThan(BOOK_PAGE.margin.inside);
     expect(f.block.y).toBe(BOOK_PAGE.margin.top);
+  });
+
+  it('follows a book set smaller: narrower margins, a wider block', () => {
+    const small = imageFrame(0.9);
+    expect(small.block.y).toBeCloseTo(BOOK_PAGE.margin.top * 0.9, 5);
+    expect(small.block.width).toBeGreaterThan(imageFrame().block.width);
+  });
+});
+
+describe('pressScale', () => {
+  it('reads the size from the book’s keywords, and is 1 when it can’t', () => {
+    expect(pressScale('press-scale:0.94')).toBe(0.94);
+    expect(pressScale(undefined)).toBe(1);
+    expect(pressScale('press-scale:40')).toBe(1);
+  });
+});
+
+describe('spreads', () => {
+  it('pairs pages as an open book does: the first alone on the right, then facing pages', () => {
+    expect(spreads([1, 2, 3, 4, 5, 6])).toEqual([[1], [2, 3], [4, 5], [6]]);
+  });
+
+  it('leaves a page alone when the page it faces was a skipped blank', () => {
+    expect(spreads([1, 3, 4, 5])).toEqual([[1], [3], [4, 5]]);
   });
 });
 

@@ -32,10 +32,50 @@ test('page numbers never add pages: a short book is only as long as its pages', 
   const { press } = await import('../services/press/press');
   const p = press({ title: 'T', author: 'F' });
   p.page(); // the title page
-  p.chapter('One'); // page 2: no blank to land it on the right
-  p.chapter('Two'); // page 3
+  p.chapter('One'); // page 2
+  p.chapter('Two'); // begins lower on page 2: most of it is still empty
   const { pages } = await p.finish();
-  expect(pages).toBe(4); // and one blank, so the book ends on a left-hand page
+  expect(pages).toBe(2);
+});
+
+test('a book set smaller or larger still prints on a 6 × 9 page', async () => {
+  const { press } = await import('../services/press/press');
+  const p = press({ title: 'T', author: 'F', scale: 0.9 });
+  p.chapter('One');
+  p.paragraphs('Words. '.repeat(400), 12);
+  const { pdf, scale } = await p.finish();
+  expect(scale).toBe(0.9);
+  const boxes = pdf.toString('latin1').match(/\/MediaBox \[[^\]]*\]/g) ?? [];
+  expect(boxes.length).toBeGreaterThan(1);
+  for (const b of boxes) expect(b).toBe('/MediaBox [0 0 432 648]');
+});
+
+test('fitted keeps the size with the fewest near-empty pages, then no blank last page', async () => {
+  const { fitted } = await import('../services/press/press');
+  const tried: number[] = [];
+  const laid = (scale: number, sparse: number, padded: boolean) => ({
+    pdf: Buffer.alloc(0),
+    pages: 10,
+    scale,
+    sparse,
+    padded,
+  });
+  const got = await fitted(async (scale) => {
+    tried.push(scale);
+    if (scale === 1) return laid(scale, 2, false);
+    if (scale === 0.94) return laid(scale, 1, true);
+    if (scale === 1.06) return laid(scale, 1, false);
+    return laid(scale, 3, false);
+  });
+  expect(got.scale).toBe(1.06); // as few near-empty pages as 0.94, and no blank
+  expect(tried).toEqual([1, 0.94, 1.06, 0.89, 1.12]);
+  // A perfect fit stops the search.
+  tried.length = 0;
+  await fitted(async (scale) => {
+    tried.push(scale);
+    return laid(scale, 0, false);
+  });
+  expect(tried).toEqual([1]);
 });
 
 test('emoji print from the emoji font instead of as empty boxes', async () => {

@@ -13,14 +13,14 @@ import { type BookPage, type BookWriting, pageKey, type SeasonReview } from '@fa
 import {
   curly,
   dayName,
+  fitted,
   INK,
+  type Laid,
   MARGIN,
-  MEASURE,
   monthName,
   numberWord,
   press,
   SOFT,
-  TRIM,
 } from '../../services/press/press';
 
 /** The column the names sit in, beside the answers. */
@@ -45,21 +45,25 @@ export interface BookInput {
 export { curly };
 
 /** The book's pages as a PDF, and how many there are. */
-export async function seasonBook(input: BookInput): Promise<{ pdf: Buffer; pages: number }> {
+/** The book at the size that leaves the fewest near-empty pages. */
+export const seasonBook = (input: BookInput): Promise<Laid> =>
+  fitted((scale) => layOut(input, scale));
+
+async function layOut(input: BookInput, scale: number): Promise<Laid> {
   const { review, familyName, people, writing } = input;
   const title = review.season.name;
   const nameOf = (id: string) => people[id]?.name ?? id;
-  const p = press({ title, author: familyName });
+  const p = press({ title, author: familyName, scale });
   const { doc } = p;
 
   p.page();
-  doc.y = TRIM.height * 0.24;
+  doc.y = p.trim.height * 0.24;
   p.center(title, 34);
   doc.moveDown(0.6);
   p.center(familyName, 15, 'italic', { characterSpacing: 0.3 });
   doc.moveDown(0.3);
   p.center('in our own words', 12, 'italic');
-  doc.y = TRIM.height * 0.62;
+  doc.y = p.trim.height * 0.62;
   p.center(seasonSpan(review), 11, 'body', { features: ['smcp'], characterSpacing: 1 });
   doc.moveDown(0.4);
   const n = review.numbers;
@@ -74,7 +78,7 @@ export async function seasonBook(input: BookInput): Promise<{ pdf: Buffer; pages
   );
   if (remembered.length) {
     p.page();
-    doc.y = TRIM.height * 0.3;
+    doc.y = p.trim.height * 0.3;
     p.center('In memory of', 13, 'italic');
     doc.moveDown(1);
     for (const x of remembered) {
@@ -88,7 +92,7 @@ export async function seasonBook(input: BookInput): Promise<{ pdf: Buffer; pages
 
   if (writing?.foreword.trim()) {
     p.page();
-    doc.y = TRIM.height * 0.18;
+    doc.y = p.trim.height * 0.18;
     p.center('Foreword', 18);
     doc.moveDown(1.5);
     p.paragraphs(writing.foreword, 11.5);
@@ -123,7 +127,7 @@ export async function seasonBook(input: BookInput): Promise<{ pdf: Buffer; pages
       // Keep a question with at least its first answer.
       const first = page.answers[0];
       p.need(
-        doc.font('bold').fontSize(12.5).heightOfString(page.question, { width: MEASURE }) +
+        doc.font('bold').fontSize(12.5).heightOfString(page.question, { width: p.measure }) +
           30 +
           (first ? answerHeight(nameOf(first.personId), first.answer) : 0),
       );
@@ -131,12 +135,12 @@ export async function seasonBook(input: BookInput): Promise<{ pdf: Buffer; pages
         .font('bold')
         .fontSize(12.5)
         .fillColor(INK)
-        .text(curly(page.question), MARGIN.inside, doc.y, { width: MEASURE });
+        .text(curly(page.question), MARGIN.inside, doc.y, { width: p.measure });
       doc
         .font('italic')
         .fontSize(9.5)
         .fillColor(SOFT)
-        .text(dayName(page.date, true), { width: MEASURE });
+        .text(dayName(page.date, true), { width: p.measure });
       doc.moveDown(0.5);
       for (const a of page.answers) {
         const name = nameOf(a.personId);
@@ -184,7 +188,7 @@ export async function seasonBook(input: BookInput): Promise<{ pdf: Buffer; pages
     const textH = doc
       .font('body')
       .fontSize(11.5)
-      .heightOfString(text, { width: MEASURE - NAME_COL });
+      .heightOfString(text, { width: p.measure - NAME_COL });
     return Math.max(nameH, textH) + 6;
   }
   /** A name in small caps on the left, the answer beside it. */
@@ -202,7 +206,7 @@ export async function seasonBook(input: BookInput): Promise<{ pdf: Buffer; pages
     const nameEnd = doc.y;
     doc.fontSize(11.5).fillColor(INK);
     p.say(curly(text), 'body', MARGIN.inside + NAME_COL, y, {
-      width: MEASURE - NAME_COL,
+      width: p.measure - NAME_COL,
       lineGap: 1,
     });
     // A long answer may have turned the page; otherwise go below the taller column.

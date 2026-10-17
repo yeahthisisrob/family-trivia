@@ -1,7 +1,9 @@
 /**
- * Reading a book in the app: one page at a time on cream paper, turned with
- * a swipe, the arrows or the keyboard, with the press's blank pages left
- * out. Any page, or all of them, can be saved or sent as images of its words.
+ * Reading a book in the app on cream paper: two facing pages at a time on
+ * a wide screen, one on a phone, turned with a swipe, the arrows or the
+ * keyboard, with the press's blank pages left out. The pages in view, or
+ * the whole book, can be saved or sent as images: two pages to an image,
+ * each only its words.
  */
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -17,11 +19,12 @@ import {
   IconButton,
   Stack,
   Typography,
+  useMediaQuery,
 } from '@mui/material';
 import type React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { paper, usePaper } from '../design-system';
-import { pageFileName } from './frame';
+import { pageFileName, spreads } from './frame';
 import { type OpenBook, openBook } from './pdf';
 import { shareImages } from './share';
 
@@ -36,9 +39,12 @@ export const BookReader: React.FC<{ url: string; title: string; onClose: () => v
   const room = usePaper();
   const [book, setBook] = useState<OpenBook | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+  /** The first page in view, as an index into the reading pages. */
   const [at, setAt] = useState(0);
   const [sharing, setSharing] = useState<string | null>(null);
-  const canvas = useRef<HTMLCanvasElement>(null);
+  const wide = useMediaQuery('(min-width: 720px) and (min-aspect-ratio: 5/4)');
+  const left = useRef<HTMLCanvasElement>(null);
+  const right = useRef<HTMLCanvasElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const swipe = useRef<number | null>(null);
 
@@ -59,19 +65,42 @@ export const BookReader: React.FC<{ url: string; title: string; onClose: () => v
   }, [url]);
 
   const count = book?.pages.length ?? 0;
+  const pairs = useMemo(() => spreads(book?.pages ?? []), [book]);
+  // What's on screen: the spread on a wide screen, the one page on a phone.
+  const views = useMemo(
+    () => (wide ? pairs : (book?.pages ?? []).map((n) => [n])),
+    [wide, pairs, book],
+  );
+  const view = Math.max(
+    0,
+    views.findIndex((v) => v.includes(book?.pages[at] ?? -1)),
+  );
+  const inView = views[view] ?? [];
+  const first = book ? book.pages.indexOf(inView[0] ?? -1) : 0;
   const turn = useCallback(
-    (by: number) => setAt((a) => Math.max(0, Math.min(count - 1, a + by))),
-    [count],
+    (by: number) => {
+      const next = views[Math.max(0, Math.min(views.length - 1, view + by))];
+      if (next?.[0] !== undefined && book) setAt(book.pages.indexOf(next[0]));
+    },
+    [views, view, book],
   );
 
-  // Draw the page as wide as the room allows, keeping its 6 × 9 shape.
+  // Draw the pages as large as the room allows, keeping their 6 × 9 shape.
+  const shown = inView.join(',');
   useEffect(() => {
-    const n = book?.pages[at];
     const box = stage.current;
-    if (!book || !n || !canvas.current || !box) return;
-    const width = Math.min(box.clientWidth - 24, ((box.clientHeight - 24) * 2) / 3, 640);
-    book.draw(n, canvas.current, Math.max(200, width), paper.paper).catch(() => undefined);
-  }, [book, at]);
+    if (!book || !box || !shown) return;
+    const pages = shown.split(',').map(Number);
+    const width = Math.min(
+      (box.clientWidth - 24) / pages.length - 8,
+      ((box.clientHeight - 24) * 2) / 3,
+      640,
+    );
+    pages.forEach((n, i) => {
+      const canvas = (i ? right : left).current;
+      if (canvas) book.draw(n, canvas, Math.max(160, width), paper.paper).catch(() => undefined);
+    });
+  }, [book, shown]);
 
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
@@ -82,16 +111,17 @@ export const BookReader: React.FC<{ url: string; title: string; onClose: () => v
     return () => window.removeEventListener('keydown', key);
   }, [turn]);
 
-  const share = async (which: number[]) => {
+  /** Each group of pages becomes one image, named by its first page. */
+  const share = async (groups: number[][]) => {
     if (!book) return;
     try {
       const files: File[] = [];
-      for (const [i, n] of which.entries()) {
+      for (const [i, pages] of groups.entries()) {
         setSharing(
-          which.length > 1 ? `Making page ${i + 1} of ${which.length}…` : 'Making the image…',
+          groups.length > 1 ? `Making image ${i + 1} of ${groups.length}…` : 'Making the image…',
         );
-        const blob = await book.image(n, paper.paper);
-        const number = book.pages.indexOf(n) + 1;
+        const blob = await book.image(pages, { paper: paper.paper, fold: paper.rule });
+        const number = book.pages.indexOf(pages[0] ?? 0) + 1;
         files.push(new File([blob], pageFileName(title, number, count), { type: 'image/png' }));
       }
       setSharing(null);
@@ -149,15 +179,20 @@ export const BookReader: React.FC<{ url: string; title: string; onClose: () => v
           {!book && !problem && <CircularProgress sx={{ color: room.inkSoft }} />}
           {book && (
             <>
-              <canvas
-                ref={canvas}
-                aria-label={`Page ${at + 1} of ${count}`}
-                style={{ boxShadow: `0 10px 30px ${room.shadow}`, borderRadius: 2 }}
-              />
+              <Stack direction="row" sx={{ gap: 0.5 }}>
+                {inView.map((n, i) => (
+                  <canvas
+                    key={n}
+                    ref={i ? right : left}
+                    aria-label={`Page ${first + i + 1} of ${count}`}
+                    style={{ boxShadow: `0 10px 30px ${room.shadow}`, borderRadius: 2 }}
+                  />
+                ))}
+              </Stack>
               <IconButton
                 aria-label="Previous page"
                 onClick={() => turn(-1)}
-                disabled={at === 0}
+                disabled={view === 0}
                 sx={{ position: 'absolute', left: 4, color: room.ink }}
               >
                 <ChevronLeftIcon fontSize="large" />
@@ -165,7 +200,7 @@ export const BookReader: React.FC<{ url: string; title: string; onClose: () => v
               <IconButton
                 aria-label="Next page"
                 onClick={() => turn(1)}
-                disabled={at >= count - 1}
+                disabled={view >= views.length - 1}
                 sx={{ position: 'absolute', right: 4, color: room.ink }}
               >
                 <ChevronRightIcon fontSize="large" />
@@ -180,7 +215,7 @@ export const BookReader: React.FC<{ url: string; title: string; onClose: () => v
         >
           {book && (
             <Typography sx={{ color: room.inkSoft, mr: 1 }}>
-              {at + 1} of {count}
+              {inView.length > 1 ? `${first + 1}–${first + 2}` : first + 1} of {count}
             </Typography>
           )}
           {sharing ? (
@@ -190,19 +225,23 @@ export const BookReader: React.FC<{ url: string; title: string; onClose: () => v
               <Button
                 startIcon={<IosShareIcon />}
                 disabled={!book}
-                onClick={() => book?.pages[at] && share([book.pages[at]])}
+                onClick={() => {
+                  // The image holds the page in view and the one it faces.
+                  const pair = pairs.find((p) => p.includes(inView[0] ?? -1));
+                  if (pair) share([pair]);
+                }}
                 sx={{ color: room.ink }}
               >
-                Share this page
+                Share these pages
               </Button>
               <Button
                 variant="outlined"
                 startIcon={<CollectionsIcon />}
                 disabled={!book}
-                onClick={() => book && share(book.pages)}
+                onClick={() => share(pairs)}
                 sx={{ color: room.ink, borderColor: room.rule }}
               >
-                All {count || ''} pages as images
+                {count ? `All ${count} pages, ${pairs.length} images` : 'All the pages'}
               </Button>
             </>
           )}
