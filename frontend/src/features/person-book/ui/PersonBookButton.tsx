@@ -5,6 +5,7 @@
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import CloseIcon from '@mui/icons-material/Close';
 import DownloadIcon from '@mui/icons-material/Download';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import {
   Alert,
   Button,
@@ -18,6 +19,7 @@ import {
 import type React from 'react';
 import { useState } from 'react';
 import { ApiError } from '../../../services/ApiService';
+import { BookReader } from '../../../shared/book-reader';
 import { type PersonBook, personBookApi } from '../api/personBookApi';
 
 export const PersonBookButton: React.FC<{
@@ -30,6 +32,7 @@ export const PersonBookButton: React.FC<{
   const [busy, setBusy] = useState(false);
   const [book, setBook] = useState<PersonBook | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+  const [reading, setReading] = useState(false);
   const [versions, setVersions] = useState<
     { madeAt: string; pages: number; url: string; coverUrl?: string }[]
   >([]);
@@ -79,6 +82,13 @@ export const PersonBookButton: React.FC<{
                 <Button
                   variant="contained"
                   size="large"
+                  startIcon={<MenuBookIcon />}
+                  onClick={() => setReading(true)}
+                >
+                  Read it here
+                </Button>
+                <Button
+                  variant="outlined"
                   startIcon={<DownloadIcon />}
                   href={book.url}
                   target="_blank"
@@ -132,6 +142,13 @@ export const PersonBookButton: React.FC<{
             )}
           </Stack>
         </Dialog>
+      )}
+      {reading && book && (
+        <BookReader
+          url={book.url}
+          title={`${name}, in their own words`}
+          onClose={() => setReading(false)}
+        />
       )}
     </>
   );
