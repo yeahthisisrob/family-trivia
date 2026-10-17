@@ -27,7 +27,8 @@ async function pdfjs() {
 
 export async function openBook(url: string): Promise<OpenBook> {
   const lib = await pdfjs();
-  const task = lib.getDocument({ url });
+  // One plain GET: the bucket's CORS allows no Range header, and a book is small.
+  const task = lib.getDocument({ url, disableRange: true, disableStream: true });
   const doc: PDFDocumentProxy = await task.promise;
   const pages: number[] = [];
   for (let n = 1; n <= doc.numPages; n++) {
