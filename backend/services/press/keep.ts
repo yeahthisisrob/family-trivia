@@ -52,7 +52,7 @@ export async function keepBook(opts: {
   fileName: string;
   fresh?: boolean;
   about?: KeptVersion['about'];
-  make: (madeOn: Date) => Promise<{ pdf: Buffer; pages: number }>;
+  make: () => Promise<{ pdf: Buffer; pages: number }>;
   /** The cover, made for the book's page count. */
   cover?: (pages: number) => Promise<Buffer>;
 }): Promise<KeptBook> {
@@ -76,9 +76,8 @@ export async function keepBook(opts: {
         : {}),
     };
 
-  const madeOn = new Date();
-  const madeAt = madeOn.toISOString();
-  const { pdf, pages } = await opts.make(madeOn);
+  const madeAt = new Date().toISOString();
+  const { pdf, pages } = await opts.make();
   const key = `${opts.prefix}/${stamp(madeAt)}.pdf`;
   const inputKey = `${opts.prefix}/${stamp(madeAt)}.input.json`;
   await putJson(inputKey, { madeAt, input: opts.input });

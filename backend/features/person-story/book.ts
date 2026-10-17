@@ -1,8 +1,8 @@
 /**
  * One person in their own words, as a printed book (services/press/press.ts):
  *
- *   half title · title page (name, years, the family's dedication) · colophon
- *   · contents · for someone the family has lost, the last things they told
+ *   title page (name, years, the family's dedication) · for someone the
+ *   family has lost, the last things they told
  *   us and the family's memories of them · what the family said about them,
  *   and what we wrote back under their answers · then a chapter a year,
  *   every answer under the question it answered, month by month.
@@ -30,15 +30,12 @@ export interface PersonBookInput {
   story: PersonStory;
   memories: Comment[];
   nameOf: Record<string, string>;
-  madeOn: Date;
 }
 
 export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pages: number }> {
   const p = press({ title: b.name, author: b.familyName });
   const { doc } = p;
   const byId = new Map(b.story.words.map((w) => [w.id, w]));
-
-  p.halfTitle(b.name);
 
   p.page();
   doc.y = TRIM.height * 0.24;
@@ -56,20 +53,9 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
   doc.moveDown(0.3);
   p.center(b.familyName, 11, 'body', { features: ['smcp'], characterSpacing: 1 });
 
-  p.page();
-  p.colophon([
-    `© ${b.madeOn.getUTCFullYear()} ${b.familyName}. Every word here is ${b.name}’s, or the family’s.`,
-    'Gathered with Family Trivia, a game for staying close.',
-    'Set in EB Garamond.',
-    `Made ${b.madeOn.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}.`,
-  ]);
-
-  const contents = p.reserveContents();
-  const entries: { label: string; at: number }[] = [];
-
   if (b.remembered && b.story.last.length) {
     const title = `The last things ${b.name} told us`;
-    entries.push({ label: title, at: p.chapter(title) });
+    p.chapter(title);
     for (const id of b.story.last.slice(0, LAST_WORDS)) {
       const w = byId.get(id);
       if (w) said(w, true);
@@ -78,7 +64,7 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
 
   if (b.memories.length) {
     const title = `Memories of ${b.name}`;
-    entries.push({ label: title, at: p.chapter(title) });
+    p.chapter(title);
     for (const m of b.memories) {
       p.need(doc.font('body').fontSize(12).heightOfString(m.text, { width: MEASURE }) + 30);
       p.paragraphs(m.text, 12);
@@ -99,7 +85,7 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
   const mentions = b.story.mentions ?? [];
   if (mentions.length) {
     const title = `What the family said about ${b.name}`;
-    entries.push({ label: title, at: p.chapter(title) });
+    p.chapter(title);
     for (const m of mentions) {
       p.need(70);
       doc
@@ -118,7 +104,7 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
   const replies = (b.story.replies ?? []).filter((r) => byId.has(r.on));
   if (replies.length) {
     const title = 'What we wrote back';
-    entries.push({ label: title, at: p.chapter(title) });
+    p.chapter(title);
     for (const r of replies) {
       const w = byId.get(r.on);
       if (!w) continue;
@@ -134,11 +120,8 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
             features: ['smcp'],
             characterSpacing: 0.5,
           });
-        doc
-          .font('italic')
-          .fontSize(11.5)
-          .fillColor(INK)
-          .text(curly(c.text), MARGIN.inside + 14, doc.y, { width: MEASURE - 14 });
+        doc.fontSize(11.5).fillColor(INK);
+        p.say(curly(c.text), 'italic', MARGIN.inside + 14, doc.y, { width: MEASURE - 14 });
         doc.moveDown(0.6);
       }
       doc.moveDown(0.6);
@@ -146,7 +129,7 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
   }
 
   for (const [year, words] of byYear(b.story.words)) {
-    entries.push({ label: year, at: p.chapter(year, { kicker: `In ${b.name}’s own words` }) });
+    p.chapter(year, { kicker: `In ${b.name}’s own words` });
     let month = '';
     for (const w of words) {
       if (w.date.slice(0, 7) !== month) {
@@ -169,7 +152,6 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
     }
   }
 
-  p.contents(contents, entries);
   return p.finish();
 
   /** A question, then the answer in its own words. */
@@ -183,11 +165,8 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
       .fillColor(SOFT)
       .text(curly(w.question), MARGIN.inside, doc.y, { width: MEASURE });
     doc.moveDown(0.2);
-    doc
-      .font('body')
-      .fontSize(13)
-      .fillColor(INK)
-      .text(curly(w.answer), MARGIN.inside, doc.y, { width: MEASURE, lineGap: 1.5 });
+    doc.fontSize(13).fillColor(INK);
+    p.say(curly(w.answer), 'body', MARGIN.inside, doc.y, { width: MEASURE, lineGap: 1.5 });
     if (withDate)
       doc
         .font('italic')
