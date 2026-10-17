@@ -8,7 +8,7 @@
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CloseIcon from '@mui/icons-material/Close';
-import CollectionsIcon from '@mui/icons-material/Collections';
+import DownloadIcon from '@mui/icons-material/Download';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import {
   Alert,
@@ -24,9 +24,9 @@ import {
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { paper, usePaper } from '../design-system';
-import { pageFileName, spreads } from './frame';
+import { fileSlug, pageFileName, spreads } from './frame';
 import { type OpenBook, openBook } from './pdf';
-import { shareImages } from './share';
+import { canShareImages, saveImages, shareImages } from './share';
 
 /** How far a swipe goes before it turns the page. */
 const SWIPE = 50;
@@ -112,7 +112,7 @@ export const BookReader: React.FC<{ url: string; title: string; onClose: () => v
   }, [turn]);
 
   /** Each group of pages becomes one image, named by its first page. */
-  const share = async (groups: number[][]) => {
+  const share = async (groups: number[][], how: 'share' | 'save') => {
     if (!book) return;
     try {
       const files: File[] = [];
@@ -125,7 +125,8 @@ export const BookReader: React.FC<{ url: string; title: string; onClose: () => v
         files.push(new File([blob], pageFileName(title, number, count), { type: 'image/png' }));
       }
       setSharing(null);
-      await shareImages(files, title);
+      if (how === 'share') await shareImages(files, fileSlug(title));
+      else await saveImages(files, fileSlug(title));
     } catch {
       setProblem('The images didn’t come together. Try again.');
     } finally {
@@ -228,7 +229,7 @@ export const BookReader: React.FC<{ url: string; title: string; onClose: () => v
                 onClick={() => {
                   // The image holds the page in view and the one it faces.
                   const pair = pairs.find((p) => p.includes(inView[0] ?? -1));
-                  if (pair) share([pair]);
+                  if (pair) share([pair], 'share');
                 }}
                 sx={{ color: room.ink }}
               >
@@ -236,13 +237,23 @@ export const BookReader: React.FC<{ url: string; title: string; onClose: () => v
               </Button>
               <Button
                 variant="outlined"
-                startIcon={<CollectionsIcon />}
+                startIcon={<DownloadIcon />}
                 disabled={!book}
-                onClick={() => share(pairs)}
+                onClick={() => share(pairs, 'save')}
                 sx={{ color: room.ink, borderColor: room.rule }}
               >
-                {count ? `All ${count} pages, ${pairs.length} images` : 'All the pages'}
+                {count ? `Download all ${pairs.length} images (zip)` : 'Download all (zip)'}
               </Button>
+              {canShareImages() && (
+                <Button
+                  startIcon={<IosShareIcon />}
+                  disabled={!book}
+                  onClick={() => share(pairs, 'share')}
+                  sx={{ color: room.ink }}
+                >
+                  Share all
+                </Button>
+              )}
             </>
           )}
         </Stack>
