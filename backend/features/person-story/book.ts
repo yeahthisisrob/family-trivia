@@ -87,7 +87,8 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
     const title = `What the family said about ${b.name}`;
     p.chapter(title);
     for (const m of mentions) {
-      p.need(70);
+      // The name stays on the page with what they said.
+      p.need(20 + heightOf({ id: m.id, question: m.question, answer: m.answer, date: m.date }));
       doc
         .font('body')
         .fontSize(9.5)
@@ -154,11 +155,16 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
 
   return p.finish();
 
-  /** A question, then the answer in its own words. */
-  function said(w: StoryWord, withDate: boolean) {
+  /** Room a question needs with the start of its answer. */
+  function heightOf(w: StoryWord) {
     const qH = doc.font('italic').fontSize(10.5).heightOfString(w.question, { width: MEASURE });
     const aH = doc.font('body').fontSize(13).heightOfString(w.answer, { width: MEASURE });
-    p.need(qH + Math.min(aH, 90) + 24);
+    return qH + Math.min(aH, 90) + 24;
+  }
+
+  /** A question, then the answer in its own words. */
+  function said(w: StoryWord, withDate: boolean) {
+    p.need(heightOf(w));
     doc
       .font('italic')
       .fontSize(10.5)

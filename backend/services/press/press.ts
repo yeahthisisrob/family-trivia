@@ -13,16 +13,11 @@
  * fills in the heads and numbers and hands back the PDF.
  */
 import path from 'node:path';
+import { BOOK_PAGE } from '@family-trivia/shared';
 import PDFDocument from 'pdfkit';
 
-const INCH = 72;
-export const TRIM = { width: 6 * INCH, height: 9 * INCH };
-export const MARGIN = {
-  top: 0.85 * INCH,
-  bottom: 0.9 * INCH,
-  inside: 0.8 * INCH,
-  outside: 0.8 * INCH,
-};
+export const TRIM = { width: BOOK_PAGE.width, height: BOOK_PAGE.height };
+export const MARGIN = BOOK_PAGE.margin;
 export const MEASURE = TRIM.width - MARGIN.inside - MARGIN.outside;
 export const INK = '#1d1a16';
 export const SOFT = '#5a5148';

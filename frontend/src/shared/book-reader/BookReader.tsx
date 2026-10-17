@@ -1,7 +1,7 @@
 /**
  * Reading a book in the app: one page at a time on cream paper, turned with
  * a swipe, the arrows or the keyboard, with the press's blank pages left
- * out. Any page, or all of them, can be shared as images sized for a feed.
+ * out. Any page, or all of them, can be saved or sent as images of its words.
  */
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -84,14 +84,13 @@ export const BookReader: React.FC<{ url: string; title: string; onClose: () => v
 
   const share = async (which: number[]) => {
     if (!book) return;
-    const colors = { paper: paper.paper, table: paper.edge, shadow: paper.shadow };
     try {
       const files: File[] = [];
       for (const [i, n] of which.entries()) {
         setSharing(
           which.length > 1 ? `Making page ${i + 1} of ${which.length}…` : 'Making the image…',
         );
-        const blob = await book.image(n, colors);
+        const blob = await book.image(n, paper.paper);
         const number = book.pages.indexOf(n) + 1;
         files.push(new File([blob], pageFileName(title, number, count), { type: 'image/png' }));
       }
