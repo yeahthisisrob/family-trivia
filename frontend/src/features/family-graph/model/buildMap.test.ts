@@ -34,15 +34,39 @@ describe('buildMap', () => {
     expect(map.regions.map((r) => r.kind)).toEqual(['place', 'food', 'activity']);
   });
 
-  test('topics on the ring; people inside it, near what they talk about', () => {
+  test('topics on the ring; people inside it, drawn hardest to what few others share', () => {
     for (const t of map.topics)
       expect((t.x / RING.rx) ** 2 + (t.y / RING.ry) ** 2).toBeLessThan(1.05);
     const carol = map.people.find((p) => p.id === 'carol');
-    const beach = map.topics.find((t) => t.name === 'the beach');
+    const gardening = map.topics.find((t) => t.name === 'gardening');
     const pie = map.topics.find((t) => t.name === 'apple pie');
     const d = (a: { x: number; y: number }, b: { x: number; y: number }) =>
       Math.hypot(a.x - b.x, a.y - b.y);
-    expect(carol && beach && pie && d(carol.home, beach) < d(carol.home, pie)).toBe(true);
+    // Gardening is Carol's alone; apple pie isn't hers at all.
+    expect(carol && gardening && pie && d(carol.home, gardening) < d(carol.home, pie)).toBe(true);
+  });
+
+  test('people are stars, not topics; a name filed under two kinds appears once', () => {
+    const k = {
+      ...knowledge,
+      themes: [
+        ...knowledge.themes,
+        { name: 'grandma', kind: 'person', people: ['carol', 'jo'], quotes: [] },
+        { name: 'hanukkah', kind: 'value', people: ['carol', 'jo', 'bob'], quotes: [] },
+        { name: 'hanukkah', kind: 'activity', people: ['alice', 'jo'], quotes: [] },
+        { name: 'cats', kind: 'pet', people: ['carol', 'jo', 'bob'], quotes: [] },
+        { name: 'cat', kind: 'pet', people: ['alice', 'ivy'], quotes: [] },
+      ],
+    } as unknown as FamilyKnowledge;
+    const m = buildMap(k, visible);
+    expect(m.topics.some((t) => t.name === 'grandma')).toBe(false);
+    const hanukkah = m.topics.filter((t) => t.name === 'hanukkah');
+    expect(hanukkah).toHaveLength(1);
+    expect(hanukkah[0]).toMatchObject({ kind: 'value' });
+    expect(hanukkah[0]?.people.sort()).toEqual(['alice', 'bob', 'carol', 'jo']);
+    const cats = m.topics.filter((t) => t.name === 'cats' || t.name === 'cat');
+    expect(cats.map((t) => t.name)).toEqual(['cats']);
+    expect(cats[0]?.people).toHaveLength(5);
   });
 
   test('someone with nothing on the map yet waits near the middle', () => {
