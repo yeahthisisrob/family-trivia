@@ -39,7 +39,7 @@ import { buildSeasonReview } from './review';
 import { advanceWriting, readWriting } from './writing';
 
 /** Bump when the layout in book.ts changes, so a kept input says which layout it was set in. */
-export const LAYOUT = 4;
+export const LAYOUT = 5;
 
 const prefixOf = (season: number, tone: BookTone) => `books/season-${season}/${tone}`;
 const TONES: readonly BookTone[] = ['plain', 'warm', 'playful'];

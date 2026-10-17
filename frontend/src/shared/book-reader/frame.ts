@@ -1,5 +1,5 @@
 /**
- * A book page as an image: only its words. The page's margins, running
+ * Book pages as images: two facing pages to an image, each only its words. The page's margins, running
  * head and number are left behind, the text block is cut down to the
  * lines that hold ink, and long empty stretches between them close up, so
  * a short page makes a short image.
@@ -14,16 +14,43 @@ export const MAX_GAP = 72;
 /** Room beside the text block for italics and quotes that lean past it, in points. */
 const BLEED = 4;
 
-/** The scale that sets the text block across the image, and the block in page points. */
-export function imageFrame() {
+/**
+ * The scale that sets the text block across the image, and the block in
+ * page points, for a book set at `size` (the press fits each book; its
+ * margins grow and shrink with it).
+ */
+export function imageFrame(size = 1) {
   const m = BOOK_PAGE.margin;
   const block = {
-    x: m.inside - BLEED,
-    y: m.top,
-    width: BOOK_PAGE.width - m.inside - m.outside + BLEED * 2,
-    height: BOOK_PAGE.height - m.top - m.bottom,
+    x: m.inside * size - BLEED,
+    y: m.top * size,
+    width: BOOK_PAGE.width - (m.inside + m.outside) * size + BLEED * 2,
+    height: BOOK_PAGE.height - (m.top + m.bottom) * size,
   };
   return { scale: (IMAGE_WIDTH - PAD * 2) / block.width, block, pad: PAD };
+}
+
+/** The size the press set a book at, from its keywords ("press-scale:0.94"). */
+export const pressScale = (keywords: unknown): number => {
+  const m = typeof keywords === 'string' ? keywords.match(/press-scale:([\d.]+)/) : null;
+  const n = m ? Number(m[1]) : 1;
+  return Number.isFinite(n) && n > 0.5 && n < 2 ? n : 1;
+};
+
+/**
+ * Pages (1-based page numbers, in order) as an open book shows them: the
+ * first page alone on the right, then each left-hand page with the
+ * right-hand page it faces.
+ */
+export function spreads(pages: number[]): number[][] {
+  const out: number[][] = [];
+  for (const n of pages) {
+    const last = out.at(-1);
+    const [prev] = last?.slice(-1) ?? [];
+    if (last && prev !== undefined && Math.floor(prev / 2) === Math.floor(n / 2)) last.push(n);
+    else out.push([n]);
+  }
+  return out;
 }
 
 /**

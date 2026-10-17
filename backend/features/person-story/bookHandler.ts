@@ -19,7 +19,7 @@ import { personBook } from './book';
 import { buildPersonStory } from './handlers';
 
 /** Bump when the layout in book.ts changes. */
-const LAYOUT = 4;
+const LAYOUT = 5;
 const prefixOf = (personId: string) => `books/people/${personId}`;
 
 export async function makePersonBook(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {

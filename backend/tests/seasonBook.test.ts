@@ -97,7 +97,7 @@ test('printers’ quotes', () => {
   expect(curly(`She said "don't" and 'yes'`)).toBe('She said “don’t” and ‘yes’');
 });
 
-test('a book: a PDF with an even number of pages, longer with a foreword', async () => {
+test('a book: a PDF with an even number of pages, with more in it with a foreword', async () => {
   const review = {
     season: { number: 1, name: 'Winter', startDate: '2024-01-01', endDate: '2024-02-28' },
     seasons: [],
@@ -128,7 +128,8 @@ test('a book: a PDF with an even number of pages, longer with a foreword', async
   });
   expect(plain.pdf.subarray(0, 5).toString()).toBe('%PDF-');
   expect(plain.pages % 2).toBe(0);
-  expect(written.pages).toBeGreaterThan(plain.pages);
+  // Fitting may set both on as many pages; the foreword is still more book.
+  expect(written.pdf.length).toBeGreaterThan(plain.pdf.length);
 });
 
 /** Every step of the writing, until no chapter is left. */
@@ -204,7 +205,7 @@ test('nothing is replaced: every book and every earlier writing is kept', async 
     const kept = getStored<{ input: { layout: number; review: unknown } }>(
       pdf.replace(/\.pdf$/, '.input.json'),
     );
-    expect(kept?.input.layout).toBe(4);
+    expect(kept?.input.layout).toBe(5);
     expect(kept?.input.review).toBeTruthy();
   }
   // The writing that was replaced, and every AI call word for word.

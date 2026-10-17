@@ -11,13 +11,13 @@ import { type Comment, LAST_WORDS, type PersonStory, type StoryWord } from '@fam
 import {
   curly,
   dayName,
+  fitted,
   INK,
+  type Laid,
   MARGIN,
-  MEASURE,
   monthName,
   press,
   SOFT,
-  TRIM,
 } from '../../services/press/press';
 
 export interface PersonBookInput {
@@ -32,13 +32,17 @@ export interface PersonBookInput {
   nameOf: Record<string, string>;
 }
 
-export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pages: number }> {
-  const p = press({ title: b.name, author: b.familyName });
+/** The book at the size that leaves the fewest near-empty pages. */
+export const personBook = (b: PersonBookInput): Promise<Laid> =>
+  fitted((scale) => layOut(b, scale));
+
+async function layOut(b: PersonBookInput, scale: number): Promise<Laid> {
+  const p = press({ title: b.name, author: b.familyName, scale });
   const { doc } = p;
   const byId = new Map(b.story.words.map((w) => [w.id, w]));
 
   p.page();
-  doc.y = TRIM.height * 0.24;
+  doc.y = p.trim.height * 0.24;
   p.center(b.name, 34);
   if (b.years) {
     doc.moveDown(0.4);
@@ -48,7 +52,7 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
     doc.moveDown(1.2);
     p.center(b.dedication, 13, 'italic');
   }
-  doc.y = TRIM.height * 0.66;
+  doc.y = p.trim.height * 0.66;
   p.center(`in ${b.name}’s own words`, 12, 'italic');
   doc.moveDown(0.3);
   p.center(b.familyName, 11, 'body', { features: ['smcp'], characterSpacing: 1 });
@@ -66,14 +70,14 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
     const title = `Memories of ${b.name}`;
     p.chapter(title);
     for (const m of b.memories) {
-      p.need(doc.font('body').fontSize(12).heightOfString(m.text, { width: MEASURE }) + 30);
+      p.need(doc.font('body').fontSize(12).heightOfString(m.text, { width: p.measure }) + 30);
       p.paragraphs(m.text, 12);
       doc
         .font('body')
         .fontSize(9.5)
         .fillColor(SOFT)
         .text(b.nameOf[m.userId] ?? m.userId, MARGIN.inside, doc.y - 6, {
-          width: MEASURE,
+          width: p.measure,
           align: 'right',
           features: ['smcp'],
           characterSpacing: 0.5,
@@ -94,7 +98,7 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
         .fontSize(9.5)
         .fillColor(SOFT)
         .text(b.nameOf[m.personId] ?? m.personId, MARGIN.inside, doc.y, {
-          width: MEASURE,
+          width: p.measure,
           features: ['smcp'],
           characterSpacing: 0.5,
         });
@@ -117,12 +121,12 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
           .fontSize(9.5)
           .fillColor(SOFT)
           .text(b.nameOf[c.userId] ?? c.userId, MARGIN.inside + 14, doc.y - 4, {
-            width: MEASURE - 14,
+            width: p.measure - 14,
             features: ['smcp'],
             characterSpacing: 0.5,
           });
         doc.fontSize(11.5).fillColor(INK);
-        p.say(curly(c.text), 'italic', MARGIN.inside + 14, doc.y, { width: MEASURE - 14 });
+        p.say(curly(c.text), 'italic', MARGIN.inside + 14, doc.y, { width: p.measure - 14 });
         doc.moveDown(0.6);
       }
       doc.moveDown(0.6);
@@ -135,15 +139,15 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
     for (const w of words) {
       if (w.date.slice(0, 7) !== month) {
         month = w.date.slice(0, 7);
-        // A month's name never sits alone at the foot of a page.
-        p.need(150);
+        // A month's name never sits alone at the foot of a page: it keeps its first answer.
+        p.need(36 + heightOf(w));
         doc.moveDown(0.4);
         doc
           .font('body')
           .fontSize(10)
           .fillColor(SOFT)
           .text(monthName(month), MARGIN.inside, doc.y, {
-            width: MEASURE,
+            width: p.measure,
             features: ['smcp'],
             characterSpacing: 1.5,
           });
@@ -157,8 +161,8 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
 
   /** Room a question needs with the start of its answer. */
   function heightOf(w: StoryWord) {
-    const qH = doc.font('italic').fontSize(10.5).heightOfString(w.question, { width: MEASURE });
-    const aH = doc.font('body').fontSize(13).heightOfString(w.answer, { width: MEASURE });
+    const qH = doc.font('italic').fontSize(10.5).heightOfString(w.question, { width: p.measure });
+    const aH = doc.font('body').fontSize(13).heightOfString(w.answer, { width: p.measure });
     return qH + Math.min(aH, 90) + 24;
   }
 
@@ -169,16 +173,16 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
       .font('italic')
       .fontSize(10.5)
       .fillColor(SOFT)
-      .text(curly(w.question), MARGIN.inside, doc.y, { width: MEASURE });
+      .text(curly(w.question), MARGIN.inside, doc.y, { width: p.measure });
     doc.moveDown(0.2);
     doc.fontSize(13).fillColor(INK);
-    p.say(curly(w.answer), 'body', MARGIN.inside, doc.y, { width: MEASURE, lineGap: 1.5 });
+    p.say(curly(w.answer), 'body', MARGIN.inside, doc.y, { width: p.measure, lineGap: 1.5 });
     if (withDate)
       doc
         .font('italic')
         .fontSize(9)
         .fillColor(SOFT)
-        .text(dayName(w.date, true), MARGIN.inside, doc.y + 2, { width: MEASURE });
+        .text(dayName(w.date, true), MARGIN.inside, doc.y + 2, { width: p.measure });
     doc.moveDown(1);
   }
 }
