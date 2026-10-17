@@ -27,3 +27,13 @@ test('a photo that won’t open leaves the cover plain, not broken', async () =>
   const pdf = await bookCover({ ...base, pages: 40, photo: new Uint8Array([1, 2, 3]) });
   expect(pdf.subarray(0, 5).toString()).toBe('%PDF-');
 });
+
+test('page numbers never add pages: a short book is only as long as its pages', async () => {
+  const { press } = await import('../services/press/press');
+  const p = press({ title: 'T', author: 'F' });
+  p.halfTitle('T'); // 2 pages
+  p.chapter('One'); // recto: page 3
+  p.chapter('Two'); // page 4
+  const { pages } = await p.finish();
+  expect(pages).toBe(4);
+});

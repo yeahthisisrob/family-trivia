@@ -256,6 +256,10 @@ export function press(info: { title: string; author: string }): Press {
       for (const [at, chapter] of [...heads]) {
         if (at < bodyFrom || blanks.has(at)) continue;
         doc.switchToPage(at);
+        // Heads and numbers sit in the margins; with the margins open, writing
+        // there never turns the page (it used to, leaving blank pages behind).
+        const margins = { ...doc.page.margins };
+        doc.page.margins = { ...margins, top: 0, bottom: 0 };
         const left = at % 2 === 1; // index 1 is page 2, a left-hand page
         const head = openers.has(at) ? '' : left ? book : chapter;
         if (head)
@@ -277,6 +281,7 @@ export function press(info: { title: string; author: string }): Press {
             align: 'center',
             lineBreak: false,
           });
+        doc.page.margins = margins;
       }
       const pages = doc.bufferedPageRange().count;
       doc.end();
