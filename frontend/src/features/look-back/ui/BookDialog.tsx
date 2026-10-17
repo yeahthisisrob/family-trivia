@@ -13,6 +13,7 @@ import {
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import CloseIcon from '@mui/icons-material/Close';
 import DownloadIcon from '@mui/icons-material/Download';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import {
   Alert,
   Box,
@@ -31,6 +32,7 @@ import {
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { ApiError } from '../../../services/ApiService';
+import { BookReader } from '../../../shared/book-reader';
 import { lookBackApi } from '../api/lookBackApi';
 
 type Step = 'choose' | 'writing' | 'setting' | 'ready';
@@ -48,6 +50,7 @@ export const BookDialog: React.FC<{
   const [problem, setProblem] = useState<string | null>(null);
   const [progress, setProgress] = useState('');
   const [versions, setVersions] = useState<BookVersion[]>([]);
+  const [reading, setReading] = useState(false);
 
   const loadVersions = useCallback(() => {
     lookBackApi
@@ -174,6 +177,13 @@ export const BookDialog: React.FC<{
             <Button
               variant="contained"
               size="large"
+              startIcon={<MenuBookIcon />}
+              onClick={() => setReading(true)}
+            >
+              Read it here
+            </Button>
+            <Button
+              variant="outlined"
               startIcon={<DownloadIcon />}
               href={book.url}
               target="_blank"
@@ -234,6 +244,9 @@ export const BookDialog: React.FC<{
           </Box>
         )}
       </Stack>
+      {reading && book && (
+        <BookReader url={book.url} title={season.name} onClose={() => setReading(false)} />
+      )}
     </Dialog>
   );
 };
