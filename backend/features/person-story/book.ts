@@ -101,7 +101,8 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
     for (const w of words) {
       if (w.date.slice(0, 7) !== month) {
         month = w.date.slice(0, 7);
-        p.need(80);
+        // A month's name never sits alone at the foot of a page.
+        p.need(150);
         doc.moveDown(0.4);
         doc
           .font('body')
