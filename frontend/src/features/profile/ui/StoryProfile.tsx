@@ -54,6 +54,8 @@ const emptyStory = (personId: string): PersonStory => ({
   loved: [],
   trivia: { played: 0, right: 0 },
   span: { first: null, last: null },
+  mentions: [],
+  replies: [],
 });
 const FIRST_MONTHS = 2;
 
@@ -319,6 +321,26 @@ export const StoryProfile: React.FC<{
                 .join(', ');
               return <Said key={l.id} w={w} color={color} note={note} />;
             })}
+          </Stack>
+        </Section>
+      )}
+
+      {story && story.mentions.length > 0 && (
+        <Section
+          title={isMe ? 'What the family says about you' : `What the family says about ${name}`}
+        >
+          <Stack spacing={2}>
+            {story.mentions
+              .slice(-LATELY)
+              .reverse()
+              .map((m) => (
+                <Said
+                  key={m.id}
+                  w={{ id: m.id, question: m.question, answer: m.answer, date: m.date }}
+                  color={identityColor(m.personId)}
+                  note={`${family.people[m.personId]?.name ?? m.personId} · ${day(m.date)}`}
+                />
+              ))}
           </Stack>
         </Section>
       )}

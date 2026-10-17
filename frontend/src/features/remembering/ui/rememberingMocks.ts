@@ -35,6 +35,34 @@ export const GRACE: PersonStory = {
   ],
   trivia: { played: 88, right: 51 },
   span: { first: '2023-05-02', last: '2024-02-18' },
+  mentions: [
+    {
+      id: 'bob_2023-09-10T13:00:00.000Z',
+      personId: 'bob',
+      question: 'What’s a smell that takes you back?',
+      answer: 'Mom’s kitchen on a Sunday, apple pie in the oven',
+      date: '2023-09-10',
+    },
+    {
+      id: 'carol_2023-12-01T13:00:00.000Z',
+      personId: 'carol',
+      question: 'Who taught you something you still use?',
+      answer: 'Grandma Grace taught me to plant tomatoes',
+      date: '2023-12-01',
+    },
+  ],
+  replies: [
+    {
+      on: 'grace_2024-01-14T13:00:00.000Z',
+      comments: [
+        {
+          userId: 'carol',
+          text: 'We did, Grandma. Every Sunday.',
+          timestamp: '2024-01-15T09:00:00.000Z',
+        },
+      ],
+    },
+  ],
 };
 
 export const MEMORIES: Comment[] = [

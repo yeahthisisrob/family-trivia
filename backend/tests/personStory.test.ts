@@ -109,3 +109,52 @@ test('not someone who never joined', async () => {
   seedRaw('config/member-activation.json', { bob: true });
   expect((await ask('alice')).status).toBe(404);
 });
+
+test('what the family said about them, and what they wrote back', async () => {
+  seedRaw('facts/answers/alice.json', [
+    {
+      date: '2024-01-20',
+      question: 'Who taught you to cook?',
+      answer: 'Grandma, standing on a chair',
+      fact: '',
+      answered: true,
+      skipped: false,
+      timestamp: '2024-01-20T13:00:00.000Z',
+      questionType: 'shared',
+    },
+  ]);
+  seedRaw('knowledge/people/alice.json', {
+    personId: 'alice',
+    read: [],
+    items: [
+      {
+        kind: 'person',
+        name: 'grandma',
+        says: 'Grandma',
+        from: '2024-01-20T13:00:00.000Z',
+        about: 'grace',
+      },
+    ],
+    persona: null,
+    updatedAt: '',
+  });
+  const { data } = await ask('grace');
+  expect(data.mentions).toEqual([
+    {
+      id: 'alice_2024-01-20T13:00:00.000Z',
+      personId: 'alice',
+      question: 'Who taught you to cook?',
+      answer: 'Grandma, standing on a chair',
+      date: '2024-01-20',
+    },
+  ]);
+  expect(data.replies).toEqual([
+    {
+      on: 'grace_2024-01-05T13:00:00.000Z',
+      comments: [
+        expect.objectContaining({ userId: 'alice', text: 'yes' }),
+        expect.objectContaining({ text: 'so' }),
+      ],
+    },
+  ]);
+});

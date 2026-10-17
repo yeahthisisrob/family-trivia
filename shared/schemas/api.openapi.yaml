@@ -4290,7 +4290,7 @@ components:
 
     PersonStory:
       type: object
-      required: [personId, words, last, loved, trivia, span]
+      required: [personId, words, last, loved, trivia, span, mentions, replies]
       properties:
         personId:
           type: string
@@ -4343,6 +4343,35 @@ components:
             last:
               type: string
               nullable: true
+        mentions:
+          type: array
+          description: Others' answers that talk about them (linked by the knowledge index)
+          items:
+            type: object
+            required: [id, personId, question, answer, date]
+            properties:
+              id: { type: string }
+              personId: { type: string }
+              question: { type: string }
+              answer: { type: string }
+              date: { type: string }
+        replies:
+          type: array
+          description: Comments the family left under their answers
+          items:
+            type: object
+            required: [on, comments]
+            properties:
+              on: { type: string }
+              comments:
+                type: array
+                items:
+                  type: object
+                  required: [userId, text, timestamp]
+                  properties:
+                    userId: { type: string }
+                    text: { type: string }
+                    timestamp: { type: string }
 
     CommentContentType:
       type: string

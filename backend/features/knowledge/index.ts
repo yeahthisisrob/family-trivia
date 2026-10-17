@@ -10,17 +10,19 @@ import {
   type Family,
   type FamilyKnowledge,
   familyThemes,
+  mentionableRelations,
   type PersonKnowledge,
   topItems,
   wordsIn,
 } from '@family-trivia/shared';
 import { getAllFactHistories } from '../../services/factHistoryService';
 import { loadJoined } from '../../services/family/joined';
+import { knowledgeKey, readKnowledge } from '../../services/knowledge';
 import { logger } from '../../services/logger';
 import { getJson, putJson } from '../../services/s3';
 import { readAnswers, type Said, writePersona } from './ai';
 
-const personKey = (id: string) => `knowledge/people/${id}.json`;
+const personKey = knowledgeKey;
 const META_KEY = 'knowledge/meta.json';
 const BATCH = 30;
 /** Rewrite a persona once the index has grown this much since the last one. */
@@ -28,16 +30,7 @@ const PERSONA_GROWTH = 8;
 
 const real = (e: FactAnswerEntry) => e.answered && !e.skipped && !!e.answer?.trim();
 
-const empty = (personId: string): PersonKnowledge => ({
-  personId,
-  read: [],
-  items: [],
-  persona: null,
-  updatedAt: new Date(0).toISOString(),
-});
-
-export const readPerson = async (id: string) =>
-  (await getJson<PersonKnowledge>(personKey(id))) ?? empty(id);
+export const readPerson = readKnowledge;
 
 function indexable(family: Family, joined: Set<string>) {
   return Object.values(family.people).filter((p) => joined.has(p.id) && !p.noAiMentions);
@@ -70,7 +63,7 @@ export async function buildSome(budgetMs = 12_000) {
     try {
       if (unread.length) {
         const batch = unread.slice(0, BATCH);
-        const items = await readAnswers(p.name, batch);
+        const items = await readAnswers(p.name, batch, mentionableRelations(family, p.id));
         const edited = new Set(batch.map((b) => b.at));
         // An answer added to is read again; its older items give way.
         k.items = [...k.items.filter((i) => !edited.has(i.from)), ...items];
