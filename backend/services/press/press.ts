@@ -4,8 +4,10 @@
  * margins wide enough for any binding, and the conventions of a book: front
  * matter without numbers, chapters with running heads (the book's title on
  * the left, the chapter on the right) and page numbers at the foot, nothing
- * on a chapter's first page but its number, nothing at all on a blank, and
- * an even number of pages.
+ * on a chapter's first page but its number, and an even number of pages.
+ * No half title, no copyright page, and no blank pages to land chapters on
+ * the right: the family reads these on phones far more than on paper.
+ * Emoji are drawn from Noto Emoji (OFL), since Garamond has none.
  *
  * A book is written top to bottom with the helpers below, then finish()
  * fills in the heads and numbers and hands back the PDF.
@@ -28,6 +30,29 @@ export const SOFT = '#5a5148';
 // In the Lambda the fonts sit beside the bundle (infra copies them there).
 const FONTS = process.env.BOOK_FONTS_DIR ?? path.join(__dirname, 'fonts');
 const font = (f: string) => path.join(FONTS, `EBGaramond-${f}.ttf`);
+
+/** Emoji, but not the © ® ™ Garamond already has. */
+const PICTO = /(?![©®™])\p{Extended_Pictographic}+/gu;
+
+/**
+ * Text as runs of letters and of emoji. Noto's plain emoji draws each
+ * symbol on its own, so what joins or tints them (variation selectors, skin
+ * tones, the joiner and what it joins, as in a shrug's ♀) is dropped.
+ */
+export function emojiRuns(text: string): { text: string; emoji: boolean }[] {
+  const s = text
+    .replace(/[\uFE0E\uFE0F\u{1F3FB}-\u{1F3FF}]/gu, '')
+    .replace(/\u200D\p{Extended_Pictographic}?/gu, '');
+  const runs: { text: string; emoji: boolean }[] = [];
+  let last = 0;
+  for (const m of s.matchAll(PICTO)) {
+    if (m.index > last) runs.push({ text: s.slice(last, m.index), emoji: false });
+    runs.push({ text: m[0], emoji: true });
+    last = m.index + m[0].length;
+  }
+  if (last < s.length) runs.push({ text: s.slice(last), emoji: false });
+  return runs;
+}
 
 const NUMBER_WORDS = [
   'One',
@@ -82,28 +107,18 @@ export interface Press {
   doc: PDFKit.PDFDocument;
   /** A new page; returns its index. */
   page(): number;
-  /** The next right-hand page, leaving a blank behind if needed. */
-  recto(): number;
   room(): number;
   /** Turn the page if less than `height` is left. */
   need(height: number): void;
   center(text: string, size: number, face?: Face, opts?: PDFKit.Mixins.TextOptions): void;
   paragraphs(text: string, size: number, face?: Face): void;
+  /** Text that may hold emoji, at (x, y) or where the last text ended. */
+  say(text: string, face: Face, x: number, y: number, opts?: PDFKit.Mixins.TextOptions): void;
   rule(): void;
-  /** A half title and its blank back. */
-  halfTitle(title: string): void;
-  /** Small print at the foot of a page. */
-  colophon(lines: string[]): void;
-  /** Leaves a right-hand page for the contents; fill it with contents(). */
+  /** Leaves a page for the contents; fill it with contents(). */
   reserveContents(): number;
-  /**
-   * Opens a chapter: the first opens on a right-hand page, the rest on the
-   * next page unless `recto`. Its body pages carry `title` as their head.
-   */
-  chapter(
-    title: string,
-    opts?: { kicker?: string; note?: string; noteFace?: Face; recto?: boolean },
-  ): number;
+  /** Opens a chapter on the next page. Its body pages carry `title` as their head. */
+  chapter(title: string, opts?: { kicker?: string; note?: string; noteFace?: Face }): number;
   contents(at: number, entries: { label: string; at: number }[]): void;
   finish(): Promise<{ pdf: Buffer; pages: number }>;
 }
@@ -121,6 +136,7 @@ export function press(info: { title: string; author: string }): Press {
   doc.registerFont('body', font('Regular'));
   doc.registerFont('italic', font('Italic'));
   doc.registerFont('bold', font('SemiBold'));
+  doc.registerFont('emoji', path.join(FONTS, 'NotoEmoji-Regular.ttf'));
   const chunks: Buffer[] = [];
   doc.on('data', (c: Buffer) => chunks.push(c));
   const done = new Promise<Buffer>((resolve) =>
@@ -148,35 +164,37 @@ export function press(info: { title: string; author: string }): Press {
       doc.y = MARGIN.top;
       return doc.bufferedPageRange().count - 1;
     },
-    recto() {
-      let at = p.page();
-      if (at % 2 === 1) {
-        blanks.add(at);
-        at = p.page();
-      }
-      return at;
-    },
     room: () => TRIM.height - MARGIN.bottom - doc.y,
     need(height) {
       if (p.room() < height) p.page();
     },
     center(text, size, face = 'body', opts = {}) {
-      doc
-        .font(face)
-        .fontSize(size)
-        .fillColor(INK)
-        .text(curly(text), MARGIN.inside, doc.y, { width: MEASURE, align: 'center', ...opts });
+      doc.fontSize(size).fillColor(INK);
+      p.say(curly(text), face, MARGIN.inside, doc.y, { width: MEASURE, align: 'center', ...opts });
+    },
+    say(text, face, x, y, opts = {}) {
+      const runs = emojiRuns(text);
+      if (!runs.some((r) => r.emoji)) {
+        doc.font(face).text(text, x, y, opts);
+        return;
+      }
+      // pdfkit can't justify a line made of several runs; such a paragraph sits flush left.
+      const o = { ...opts, align: opts.align === 'justify' ? 'left' : opts.align };
+      runs.forEach((r, i) => {
+        doc.font(r.emoji ? 'emoji' : face);
+        const more = { ...o, continued: i < runs.length - 1 };
+        if (i === 0) doc.text(r.text, x, y, more);
+        else doc.text(r.text, more);
+      });
+      doc.font(face);
     },
     paragraphs(text, size, face = 'body') {
       for (const para of curly(text)
         .split(/\n\s*\n/)
         .map((t) => t.trim())
         .filter(Boolean)) {
-        doc.font(face).fontSize(size).fillColor(INK).text(para, MARGIN.inside, doc.y, {
-          width: MEASURE,
-          align: 'justify',
-          lineGap: 2,
-        });
+        doc.fontSize(size).fillColor(INK);
+        p.say(para, face, MARGIN.inside, doc.y, { width: MEASURE, align: 'justify', lineGap: 2 });
         doc.moveDown(0.7);
       }
     },
@@ -190,28 +208,13 @@ export function press(info: { title: string; author: string }): Press {
         .stroke();
       doc.y = y + 4;
     },
-    halfTitle(title) {
-      p.page();
-      doc.y = TRIM.height * 0.32;
-      p.center(title, 22, 'italic');
-      blanks.add(p.page());
-    },
-    colophon(lines) {
-      doc.y = TRIM.height - MARGIN.bottom - 24 * lines.length;
-      for (const line of lines)
-        doc
-          .font('body')
-          .fontSize(8.5)
-          .fillColor(SOFT)
-          .text(line, MARGIN.inside, doc.y, { width: MEASURE });
-    },
-    reserveContents: () => p.recto(),
+    reserveContents: () => p.page(),
     chapter(title, opts = {}) {
       chapterTitle = title;
       const first = chapters === 0;
       chapters += 1;
       if (bodyFrom < 0) bodyFrom = Number.POSITIVE_INFINITY; // heads start with this chapter
-      const at = first || opts.recto ? p.recto() : p.page();
+      const at = p.page();
       if (first) bodyFrom = at;
       heads.set(at, title);
       openers.add(at);

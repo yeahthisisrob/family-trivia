@@ -1,7 +1,7 @@
 /**
  * A season as a printed book, set on the press (services/press/press.ts).
  *
- *   half title · title page · colophon · in memory of (when the season has
+ *   title page · in memory of (when the season has
  *   someone to remember) · contents · foreword · chapters by theme, each
  *   opened by a few paragraphs telling its story (a chapter a month when the
  *   book is just our words) · the people in this book
@@ -38,8 +38,6 @@ export interface BookInput {
   review: SeasonReview;
   familyName: string;
   people: Record<string, BookPerson>;
-  /** For the colophon. */
-  madeOn: Date;
   /** The foreword and chapter openings, when the book has them. */
   writing?: BookWriting | null;
 }
@@ -53,8 +51,6 @@ export async function seasonBook(input: BookInput): Promise<{ pdf: Buffer; pages
   const nameOf = (id: string) => people[id]?.name ?? id;
   const p = press({ title, author: familyName });
   const { doc } = p;
-
-  p.halfTitle(title);
 
   p.page();
   doc.y = TRIM.height * 0.24;
@@ -73,19 +69,11 @@ export async function seasonBook(input: BookInput): Promise<{ pdf: Buffer; pages
     'italic',
   );
 
-  p.page();
-  p.colophon([
-    `© ${input.madeOn.getUTCFullYear()} ${familyName}. Every answer belongs to the person who gave it.`,
-    'Gathered with Family Trivia, a game for staying close.',
-    'Set in EB Garamond.',
-    `Made ${input.madeOn.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}.`,
-  ]);
-
   const remembered = Object.values(people).filter(
     (x) => x.remembered && review.people.some((r) => r.personId === x.id),
   );
   if (remembered.length) {
-    p.recto();
+    p.page();
     doc.y = TRIM.height * 0.3;
     p.center('In memory of', 13, 'italic');
     doc.moveDown(1);
@@ -99,7 +87,7 @@ export async function seasonBook(input: BookInput): Promise<{ pdf: Buffer; pages
   const contents = p.reserveContents();
 
   if (writing?.foreword.trim()) {
-    p.recto();
+    p.page();
     doc.y = TRIM.height * 0.18;
     p.center('Foreword', 18);
     doc.moveDown(1.5);
@@ -160,7 +148,7 @@ export async function seasonBook(input: BookInput): Promise<{ pdf: Buffer; pages
   });
 
   const peopleTitle = 'The people in this book';
-  entries.push({ label: peopleTitle, at: p.chapter(peopleTitle, { recto: true }) });
+  entries.push({ label: peopleTitle, at: p.chapter(peopleTitle) });
   for (const r of review.people) {
     p.need(32);
     const who = people[r.personId];
@@ -212,11 +200,11 @@ export async function seasonBook(input: BookInput): Promise<{ pdf: Buffer; pages
         characterSpacing: 0.5,
       });
     const nameEnd = doc.y;
-    doc
-      .font('body')
-      .fontSize(11.5)
-      .fillColor(INK)
-      .text(curly(text), MARGIN.inside + NAME_COL, y, { width: MEASURE - NAME_COL, lineGap: 1 });
+    doc.fontSize(11.5).fillColor(INK);
+    p.say(curly(text), 'body', MARGIN.inside + NAME_COL, y, {
+      width: MEASURE - NAME_COL,
+      lineGap: 1,
+    });
     // A long answer may have turned the page; otherwise go below the taller column.
     if (doc.y >= y) doc.y = Math.max(doc.y, nameEnd);
     doc.moveDown(0.45);

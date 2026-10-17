@@ -19,7 +19,7 @@ import { personBook } from './book';
 import { buildPersonStory } from './handlers';
 
 /** Bump when the layout in book.ts changes. */
-const LAYOUT = 2;
+const LAYOUT = 3;
 const prefixOf = (personId: string) => `books/people/${personId}`;
 
 export async function makePersonBook(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
@@ -61,7 +61,7 @@ export async function makePersonBook(event: APIGatewayProxyEvent): Promise<APIGa
     input: { layout: LAYOUT, ...input },
     fileName: `${person.name} - in their own words.pdf`.replace(/[^\p{L}\p{N} .-]/gu, ''),
     fresh: body.fresh === true,
-    make: (madeOn) => personBook({ ...input, madeOn }),
+    make: () => personBook(input),
     cover: async (pages) => {
       const photoKey = person.memorial?.photo ?? person.photo;
       return bookCover({

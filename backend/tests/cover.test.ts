@@ -31,9 +31,28 @@ test('a photo that won’t open leaves the cover plain, not broken', async () =>
 test('page numbers never add pages: a short book is only as long as its pages', async () => {
   const { press } = await import('../services/press/press');
   const p = press({ title: 'T', author: 'F' });
-  p.halfTitle('T'); // 2 pages
-  p.chapter('One'); // recto: page 3
-  p.chapter('Two'); // page 4
+  p.page(); // the title page
+  p.chapter('One'); // page 2: no blank to land it on the right
+  p.chapter('Two'); // page 3
   const { pages } = await p.finish();
-  expect(pages).toBe(4);
+  expect(pages).toBe(4); // and one blank, so the book ends on a left-hand page
+});
+
+test('emoji print from the emoji font instead of as empty boxes', async () => {
+  const { emojiRuns, press } = await import('../services/press/press');
+  expect(emojiRuns('Pay all debts ❤️')).toEqual([
+    { text: 'Pay all debts ', emoji: false },
+    { text: '❤', emoji: true },
+  ]);
+  // A shrug with a skin tone and a joined ♀ is drawn as the shrug alone.
+  expect(emojiRuns('🤷🏼‍♀️ lol')).toEqual([
+    { text: '🤷', emoji: true },
+    { text: ' lol', emoji: false },
+  ]);
+  expect(emojiRuns('© 2026')).toEqual([{ text: '© 2026', emoji: false }]);
+  const p = press({ title: 'T', author: 'F' });
+  p.chapter('One');
+  p.paragraphs('So good 😂 and ❤️', 12);
+  const { pdf } = await p.finish();
+  expect(pdf.includes('NotoEmoji')).toBe(true);
 });

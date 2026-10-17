@@ -114,12 +114,11 @@ test('a book: a PDF with an even number of pages, longer with a foreword', async
     ],
   } satisfies SeasonReview;
   const people = { alice: { id: 'alice', name: 'Alice' } };
-  const plain = await seasonBook({ review, familyName: 'F', people, madeOn: new Date() });
+  const plain = await seasonBook({ review, familyName: 'F', people });
   const written = await seasonBook({
     review,
     familyName: 'F',
     people,
-    madeOn: new Date(),
     writing: {
       tone: 'warm',
       foreword: 'A long foreword.\n\nTwo paragraphs.',
@@ -205,7 +204,7 @@ test('nothing is replaced: every book and every earlier writing is kept', async 
     const kept = getStored<{ input: { layout: number; review: unknown } }>(
       pdf.replace(/\.pdf$/, '.input.json'),
     );
-    expect(kept?.input.layout).toBe(3);
+    expect(kept?.input.layout).toBe(4);
     expect(kept?.input.review).toBeTruthy();
   }
   // The writing that was replaced, and every AI call word for word.

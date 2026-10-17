@@ -39,7 +39,7 @@ import { buildSeasonReview } from './review';
 import { advanceWriting, readWriting } from './writing';
 
 /** Bump when the layout in book.ts changes, so a kept input says which layout it was set in. */
-export const LAYOUT = 3;
+export const LAYOUT = 4;
 
 const prefixOf = (season: number, tone: BookTone) => `books/season-${season}/${tone}`;
 const TONES: readonly BookTone[] = ['plain', 'warm', 'playful'];
@@ -129,7 +129,7 @@ export async function makeSeasonBook(event: APIGatewayProxyEvent): Promise<APIGa
     fileName: `${familyName} - ${review.season.name}.pdf`.replace(/[^\p{L}\p{N} .-]/gu, ''),
     fresh,
     about: { tone, writtenAt: writing?.writtenAt ?? null },
-    make: (madeOn) => seasonBook({ review, familyName, people, madeOn, writing }),
+    make: () => seasonBook({ review, familyName, people, writing }),
     cover: async (pages) => {
       const image = seasonInfo.notes?.end?.image ?? seasonInfo.notes?.start?.image;
       const n = review.numbers;
