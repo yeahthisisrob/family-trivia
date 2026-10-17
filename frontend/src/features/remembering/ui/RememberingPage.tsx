@@ -1,7 +1,8 @@
 /**
  * PersonStory someone: their page once the family has lost them. Top to
  * bottom by what the family comes for: who they were and the last things
- * they told us, what the family loved of theirs, the family's memories, and
+ * they told us, what the family loved of theirs, what the family said about
+ * them and wrote under their answers, the family's memories, and
  * then everything they shared, month by month. All of it can be made into a
  * printed book (features/person-book).
  */
@@ -247,6 +248,75 @@ export const RememberingPage: React.FC<{
                     .filter(Boolean)
                     .join(', ');
                   return <Word key={l.id} w={w} note={note} />;
+                })}
+              </Stack>
+            </Box>
+          )}
+
+          {data && data.mentions.length > 0 && (
+            <Box>
+              <Heading>What the family said about {name}</Heading>
+              <Stack spacing={2.25}>
+                {data.mentions.map((m) => (
+                  <Box key={m.id}>
+                    <Typography
+                      sx={{
+                        fontFamily: paper.serif,
+                        fontSize: '0.8rem',
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        color: paper.inkSoft,
+                      }}
+                    >
+                      {nameOf(m.personId)}
+                    </Typography>
+                    <Word
+                      w={{ id: m.id, question: m.question, answer: m.answer, date: m.date }}
+                      showDate
+                    />
+                  </Box>
+                ))}
+              </Stack>
+            </Box>
+          )}
+
+          {data && data.replies.length > 0 && (
+            <Box>
+              <Heading>What we wrote back</Heading>
+              <Stack spacing={2.5}>
+                {data.replies.map((r) => {
+                  const w = byId.get(r.on);
+                  if (!w) return null;
+                  return (
+                    <Box key={r.on}>
+                      <Word w={w} showDate />
+                      <Stack
+                        spacing={0.75}
+                        sx={{ mt: 1, pl: 2, borderLeft: `2px solid ${paper.rule}` }}
+                      >
+                        {r.comments.map((c) => (
+                          <Typography
+                            key={`${c.userId}${c.timestamp}`}
+                            sx={{ fontFamily: paper.serif, fontSize: '1rem' }}
+                          >
+                            <Box
+                              component="span"
+                              sx={{
+                                fontSize: '0.78rem',
+                                letterSpacing: '0.08em',
+                                textTransform: 'uppercase',
+                                color: paper.inkSoft,
+                                mr: 1,
+                              }}
+                            >
+                              {nameOf(c.userId)}
+                            </Box>
+                            {c.text}
+                          </Typography>
+                        ))}
+                      </Stack>
+                    </Box>
+                  );
                 })}
               </Stack>
             </Box>

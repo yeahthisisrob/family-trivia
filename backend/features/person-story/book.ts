@@ -3,8 +3,9 @@
  *
  *   half title · title page (name, years, the family's dedication) · colophon
  *   · contents · for someone the family has lost, the last things they told
- *   us and the family's memories of them · then a chapter a year, every
- *   answer under the question it answered, month by month.
+ *   us and the family's memories of them · what the family said about them,
+ *   and what we wrote back under their answers · then a chapter a year,
+ *   every answer under the question it answered, month by month.
  */
 import { type Comment, LAST_WORDS, type PersonStory, type StoryWord } from '@family-trivia/shared';
 import {
@@ -92,6 +93,55 @@ export async function personBook(b: PersonBookInput): Promise<{ pdf: Buffer; pag
           characterSpacing: 0.5,
         });
       doc.moveDown(1.2);
+    }
+  }
+
+  const mentions = b.story.mentions ?? [];
+  if (mentions.length) {
+    const title = `What the family said about ${b.name}`;
+    entries.push({ label: title, at: p.chapter(title) });
+    for (const m of mentions) {
+      p.need(70);
+      doc
+        .font('body')
+        .fontSize(9.5)
+        .fillColor(SOFT)
+        .text(b.nameOf[m.personId] ?? m.personId, MARGIN.inside, doc.y, {
+          width: MEASURE,
+          features: ['smcp'],
+          characterSpacing: 0.5,
+        });
+      said({ id: m.id, question: m.question, answer: m.answer, date: m.date }, true);
+    }
+  }
+
+  const replies = (b.story.replies ?? []).filter((r) => byId.has(r.on));
+  if (replies.length) {
+    const title = 'What we wrote back';
+    entries.push({ label: title, at: p.chapter(title) });
+    for (const r of replies) {
+      const w = byId.get(r.on);
+      if (!w) continue;
+      said(w, true);
+      for (const c of r.comments) {
+        p.need(40);
+        doc
+          .font('body')
+          .fontSize(9.5)
+          .fillColor(SOFT)
+          .text(b.nameOf[c.userId] ?? c.userId, MARGIN.inside + 14, doc.y - 4, {
+            width: MEASURE - 14,
+            features: ['smcp'],
+            characterSpacing: 0.5,
+          });
+        doc
+          .font('italic')
+          .fontSize(11.5)
+          .fillColor(INK)
+          .text(curly(c.text), MARGIN.inside + 14, doc.y, { width: MEASURE - 14 });
+        doc.moveDown(0.6);
+      }
+      doc.moveDown(0.6);
     }
   }
 

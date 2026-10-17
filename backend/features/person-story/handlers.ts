@@ -8,23 +8,39 @@ import {
   type HistoryEntry,
   LAST_WORDS,
   type PersonStory,
+  type StoryMention,
   type StoryWord,
 } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
 import { S3_PATHS } from '../../constants';
-import { getCommentCounts } from '../../services/commentsService';
+import { getCommentCounts, getCommentThread } from '../../services/commentsService';
 import { getFactHistory } from '../../services/factHistoryService';
 import { loadJoined } from '../../services/family/joined';
+import { readKnowledge } from '../../services/knowledge';
 import { readRecord } from '../../services/reactions';
 import { getJson } from '../../services/s3';
 
 const LOVED = 3;
 
-export async function buildPersonStory(personId: string): Promise<PersonStory> {
-  const [facts, trivia] = await Promise.all([
+/** Most of what others said about someone to carry; the rest are on their pages. */
+const MENTIONS = 40;
+
+/**
+ * Someone's story. `others` are the people whose answers may mention them
+ * (the family that can be seen); none of them, and there are no mentions.
+ */
+export async function buildPersonStory(
+  personId: string,
+  others: string[] = [],
+): Promise<PersonStory> {
+  const [facts, trivia, mentions] = await Promise.all([
     getFactHistory(personId),
     getJson<HistoryEntry[]>(S3_PATHS.ANSWER_HISTORY(personId)).then((h) => h ?? []),
+    mentionsOf(
+      personId,
+      others.filter((o) => o !== personId),
+    ),
   ]);
 
   const words: StoryWord[] = facts
@@ -48,6 +64,22 @@ export async function buildPersonStory(personId: string): Promise<PersonStory> {
     .filter((l) => l.reactions + l.comments > 0)
     .sort((a, b) => b.reactions + b.comments - (a.reactions + a.comments))
     .slice(0, LOVED);
+  const replies = (
+    await Promise.all(
+      ids
+        .filter((id) => (counts[id] ?? 0) > 0)
+        .map(async (on) => ({
+          on,
+          comments: (
+            await getCommentThread('fact', on)
+          ).comments.map((c) => ({
+            userId: c.userId,
+            text: c.text,
+            timestamp: c.timestamp,
+          })),
+        })),
+    )
+  ).filter((r) => r.comments.length);
 
   const days = [
     ...words.map((w) => w.date),
@@ -61,7 +93,36 @@ export async function buildPersonStory(personId: string): Promise<PersonStory> {
     loved,
     trivia: { played: trivia.length, right: trivia.filter((t) => t.correct).length },
     span: { first: days[0] ?? null, last: days.at(-1) ?? null },
+    mentions,
+    replies,
   };
+}
+
+/**
+ * The answers where the rest of the family talks about them: the person
+ * items their readers linked to this person (knowledge index, `about`).
+ */
+async function mentionsOf(personId: string, others: string[]): Promise<StoryMention[]> {
+  const found = await Promise.all(
+    others.map(async (speaker) => {
+      const linked = (await readKnowledge(speaker)).items.filter((i) => i.about === personId);
+      if (!linked.length) return [];
+      const at = new Set(linked.map((i) => i.from));
+      return (await getFactHistory(speaker))
+        .filter((e) => at.has(e.timestamp) && e.answer?.trim())
+        .map((e) => ({
+          id: `${speaker}_${e.timestamp}`,
+          personId: speaker,
+          question: e.question,
+          answer: e.answer.trim(),
+          date: e.timestamp.slice(0, 10),
+        }));
+    }),
+  );
+  return found
+    .flat()
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-MENTIONS);
 }
 
 /** GET /family/person-story?personId=X */
@@ -69,5 +130,5 @@ export async function getPersonStory(event: APIGatewayProxyEvent): Promise<APIGa
   const id = event.queryStringParameters?.personId ?? '';
   const { visible } = await loadJoined();
   if (!visible.people[id]) return errorResponse('Unknown person', 404);
-  return successResponse(await buildPersonStory(id));
+  return successResponse(await buildPersonStory(id, Object.keys(visible.people)));
 }

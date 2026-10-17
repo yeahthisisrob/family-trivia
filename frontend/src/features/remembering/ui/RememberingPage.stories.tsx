@@ -33,6 +33,13 @@ export const Remembering: Story = {
     ).toBeInTheDocument();
     await expect(page.getByText(/7 answers shared · 88 trivia questions/)).toBeInTheDocument();
     await expect(page.getByText('6 reactions, 3 comments')).toBeInTheDocument();
+    // What the family said about her, and what they wrote under her answers.
+    await expect(
+      page.getByRole('heading', { name: 'What the family said about Grandma Grace' }),
+    ).toBeInTheDocument();
+    await expect(page.getByText(/apple pie in the oven/)).toBeInTheDocument();
+    await expect(page.getByRole('heading', { name: 'What we wrote back' })).toBeInTheDocument();
+    await expect(page.getByText('We did, Grandma. Every Sunday.')).toBeInTheDocument();
   },
 };
 
@@ -52,8 +59,8 @@ export const ReadEverything: Story = {
   play: async () => {
     const page = within(document.body);
     await userEvent.click(await page.findByRole('button', { name: 'Read all 7 answers' }));
-    // Her last words, what the family loved, and the month it was said in.
-    await expect(await page.findAllByText('“Call your sister more”')).toHaveLength(3);
+    // Her last words, what the family loved, what we wrote back, and the month it was said in.
+    await expect(await page.findAllByText('“Call your sister more”')).toHaveLength(4);
     await expect(page.getByRole('heading', { name: 'February 2024' })).toBeInTheDocument();
   },
 };
@@ -71,6 +78,8 @@ export const OnlyTheDay: Story = {
           loved: [],
           trivia: { played: 0, right: 0 },
           span: { first: null, last: null },
+          mentions: [],
+          replies: [],
         },
         [],
       ),

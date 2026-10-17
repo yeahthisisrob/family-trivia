@@ -24,6 +24,9 @@ export const SomeoneElse: Story = {
     ).toBeInTheDocument();
     await expect(canvas.getByText('5 reactions, 2 comments')).toBeInTheDocument();
     await expect(await canvas.findByRole('heading', { name: 'You & Jo' })).toBeInTheDocument();
+    await expect(
+      canvas.getByRole('heading', { name: 'What the family says about Jo' }),
+    ).toBeInTheDocument();
     await expect(canvas.getByText('64%')).toBeInTheDocument();
   },
 };

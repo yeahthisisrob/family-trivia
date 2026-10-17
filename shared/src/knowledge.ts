@@ -29,6 +29,8 @@ export interface KnowledgeItem {
   says: string;
   /** The answer it came from: its timestamp. */
   from: string;
+  /** For a person they mention: who it is in the family ("mom" from her son is her). */
+  about?: string;
 }
 
 /** As stored: knowledge/people/{personId}.json */

@@ -19,7 +19,7 @@ import { personBook } from './book';
 import { buildPersonStory } from './handlers';
 
 /** Bump when the layout in book.ts changes. */
-const LAYOUT = 1;
+const LAYOUT = 2;
 const prefixOf = (personId: string) => `books/people/${personId}`;
 
 export async function makePersonBook(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
@@ -35,7 +35,7 @@ export async function makePersonBook(event: APIGatewayProxyEvent): Promise<APIGa
   if (!person) return errorResponse('Unknown person', 404);
 
   const [story, thread] = await Promise.all([
-    buildPersonStory(id),
+    buildPersonStory(id, Object.keys(visible.people)),
     person.memorial ? getCommentThread('memorial', id) : Promise.resolve(null),
   ]);
   if (!story.words.length) return errorResponse(`${person.name} hasn’t shared anything yet`, 404);

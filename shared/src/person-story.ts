@@ -24,6 +24,28 @@ export interface PersonStory {
   trivia: { played: number; right: number };
   /** First and last day they took part (YYYY-MM-DD). */
   span: { first: string | null; last: string | null };
+  /** What the rest of the family said about them, in their own answers. */
+  mentions: StoryMention[];
+  /** What the family wrote under their answers. */
+  replies: StoryReply[];
+}
+
+/** Another person's answer that talks about them. */
+export interface StoryMention {
+  /** The answer's id ({speaker}_{timestamp}). */
+  id: string;
+  /** Who said it. */
+  personId: string;
+  question: string;
+  answer: string;
+  date: string;
+}
+
+/** Comments under one of their answers. */
+export interface StoryReply {
+  /** Their answer (a StoryWord id). */
+  on: string;
+  comments: { userId: string; text: string; timestamp: string }[];
 }
 
 /** How many of the latest answers lead the page. */

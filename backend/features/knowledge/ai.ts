@@ -24,15 +24,29 @@ async function ask(task: 'knowledge' | 'persona', prompt: string, maxTokens: num
   return extractTextContent(await collectResponseBody(stream), model, task);
 }
 
-/** What these answers say about the person, item by item. */
-export async function readAnswers(name: string, said: Said[]): Promise<KnowledgeItem[]> {
-  const prompt = `Here are answers ${name} gave to questions in their family's app. Note the specific things they talk about.
+/** Someone in the family, as the person answering knows them. */
+export interface Relative {
+  id: string;
+  name: string;
+  relation: string;
+}
 
+/** What these answers say about the person, item by item. */
+export async function readAnswers(
+  name: string,
+  said: Said[],
+  family: Relative[] = [],
+): Promise<KnowledgeItem[]> {
+  const known = family.length
+    ? `\n${name}'s family, as ${name} knows them: ${family.map((r) => `${r.name} (their ${r.relation}, id ${r.id})`).join('; ')}.\nWhen an answer mentions one of them, by name or as "mom", "dad", "grandma", "aunt ..." and so on, add "about": their id to that person item. Only when it's clearly them; otherwise leave it out.\n`
+    : '';
+  const prompt = `Here are answers ${name} gave to questions in their family's app. Note the specific things they talk about.
+${known}
 Kinds: ${KNOWLEDGE_KINDS.map((k) => `${k.id} (${k.label.toLowerCase()})`).join(', ')}.
 
 ${said.map((s, i) => `[${i}] Q: ${s.question}\n    A: ${s.answer}`).join('\n')}
 
-Return only JSON: {"items": [{"kind": "...", "name": "...", "says": "...", "answer": 0}]}
+Return only JSON: {"items": [{"kind": "...", "name": "...", "says": "...", "answer": 0, "about": "id, for a family member"}]}
 - name: short, plain, lower case, the thing itself ("the beach", "apple pie", "grandma's garden").
 - says: a few of their own words from the answer, at most 12, copied exactly.
 - answer: the [number] it came from.
@@ -45,11 +59,16 @@ Return only JSON: {"items": [{"kind": "...", "name": "...", "says": "...", "answ
     const source = said[Number(r.answer)];
     if (!source || !isKnowledgeKind(r.kind) || typeof r.name !== 'string' || !r.name.trim())
       continue;
+    const about =
+      r.kind === 'person' && typeof r.about === 'string' && family.some((f) => f.id === r.about)
+        ? r.about
+        : undefined;
     out.push({
       kind: r.kind,
       name: r.name.trim().slice(0, 60),
       says: typeof r.says === 'string' ? r.says.trim().slice(0, 120) : '',
       from: source.at,
+      ...(about ? { about } : {}),
     });
   }
   return out;

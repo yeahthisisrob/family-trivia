@@ -2209,6 +2209,23 @@ export interface components {
                 first: string | null;
                 last: string | null;
             };
+            /** @description Others' answers that talk about them (linked by the knowledge index) */
+            mentions: {
+                id: string;
+                personId: string;
+                question: string;
+                answer: string;
+                date: string;
+            }[];
+            /** @description Comments the family left under their answers */
+            replies: {
+                on: string;
+                comments: {
+                    userId: string;
+                    text: string;
+                    timestamp: string;
+                }[];
+            }[];
         };
         /** @enum {string} */
         CommentContentType: "fact" | "trivia" | "album" | "arcade" | "memorial";

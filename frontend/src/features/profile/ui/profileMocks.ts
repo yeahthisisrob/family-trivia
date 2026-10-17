@@ -32,6 +32,16 @@ export const JO: PersonStory = {
   loved: [{ id: 'jo_2026-04-04T15:00:00.000Z', reactions: 5, comments: 2 }],
   trivia: { played: 64, right: 41 },
   span: { first: '2025-06-02', last: '2026-04-04' },
+  mentions: [
+    {
+      id: 'carol_2026-03-01T15:00:00.000Z',
+      personId: 'carol',
+      question: 'Who always makes you laugh?',
+      answer: 'Jo, every single holiday',
+      date: '2026-03-01',
+    },
+  ],
+  replies: [],
 };
 
 export const profileHandlers = (story: PersonStory = JO) => [
