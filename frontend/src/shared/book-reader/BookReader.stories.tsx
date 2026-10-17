@@ -57,7 +57,7 @@ export const Reading: Story = {
     await waitFor(() => expect(page.getByText('1 of 3')).toBeVisible(), { timeout: 10_000 });
     await userEvent.click(page.getByRole('button', { name: 'Next page' }));
     await expect(page.getByText('2 of 3')).toBeVisible();
-    await expect(page.getByRole('button', { name: /All 3 pages, 3 images/ })).toBeEnabled();
+    await expect(page.getByRole('button', { name: /Download all 3 images \(zip\)/ })).toBeEnabled();
   },
 };
 

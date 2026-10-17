@@ -92,12 +92,13 @@ export const rgb = (hex: string): [number, number, number] => {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 };
 
+/** A title as a file name: "alice-in-her-own-words". */
+export const fileSlug = (title: string) =>
+  title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '') || 'book';
+
 /** A file name for page n of a book: "alice-book-03.png". */
-export const pageFileName = (title: string, n: number, of: number) => {
-  const slug =
-    title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '') || 'book';
-  return `${slug}-${String(n).padStart(String(of).length, '0')}.png`;
-};
+export const pageFileName = (title: string, n: number, of: number) =>
+  `${fileSlug(title)}-${String(n).padStart(String(of).length, '0')}.png`;
