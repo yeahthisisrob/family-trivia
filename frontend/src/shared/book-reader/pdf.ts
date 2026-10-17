@@ -4,15 +4,15 @@
  * prints right; on a screen they're skipped.
  */
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import { socialFrame } from './frame';
+import { IMAGE_WIDTH, imageFrame, inkBands, MAX_GAP, rgb } from './frame';
 
 export interface OpenBook {
   /** The pages worth reading, as pdf.js page numbers (1-based). */
   pages: number[];
   /** Draws a page onto a canvas `width` CSS pixels wide, on paper of `paper`. */
   draw(page: number, canvas: HTMLCanvasElement, width: number, paper: string): Promise<void>;
-  /** A page as a 4:5 image for sharing. */
-  image(page: number, colors: { paper: string; table: string; shadow: string }): Promise<Blob>;
+  /** A page's words as an image, cut down to the lines that hold them. */
+  image(page: number, paper: string): Promise<Blob>;
   close(): void;
 }
 
@@ -56,23 +56,31 @@ export async function openBook(url: string): Promise<OpenBook> {
       await render(n, canvas, (width / page.getViewport({ scale: 1 }).width) * ratio, paper);
       canvas.style.width = `${width}px`;
     },
-    async image(n, colors) {
-      const page = await doc.getPage(n);
-      const base = page.getViewport({ scale: 1 });
-      const frame = socialFrame(base.width, base.height);
+    async image(n, paper) {
+      const { scale, block, pad } = imageFrame();
       const sheet = document.createElement('canvas');
-      await render(n, sheet, frame.scale, colors.paper);
-      const out = document.createElement('canvas');
-      out.width = frame.width;
-      out.height = frame.height;
-      const ctx = out.getContext('2d');
+      await render(n, sheet, scale, paper);
+      const ctx = sheet.getContext('2d');
       if (!ctx) throw new Error('No canvas');
-      ctx.fillStyle = colors.table;
-      ctx.fillRect(0, 0, out.width, out.height);
-      ctx.shadowColor = colors.shadow;
-      ctx.shadowBlur = 28;
-      ctx.shadowOffsetY = 10;
-      ctx.drawImage(sheet, frame.page.x, frame.page.y, frame.page.width, frame.page.height);
+      const x0 = Math.max(0, Math.floor(block.x * scale));
+      const x1 = Math.min(sheet.width, Math.ceil((block.x + block.width) * scale));
+      const y0 = Math.floor(block.y * scale);
+      const y1 = Math.min(sheet.height, Math.ceil((block.y + block.height) * scale));
+      const pixels = ctx.getImageData(0, 0, sheet.width, sheet.height).data;
+      const bands = inkBands(pixels, sheet.width, [y0, y1], [x0, x1], rgb(paper), MAX_GAP);
+      const words = bands.reduce((h, [a, b]) => h + b - a + 1, 0);
+      const out = document.createElement('canvas');
+      out.width = IMAGE_WIDTH;
+      out.height = Math.max(1, words + MAX_GAP * Math.max(0, bands.length - 1)) + pad * 2;
+      const o = out.getContext('2d');
+      if (!o) throw new Error('No canvas');
+      o.fillStyle = paper;
+      o.fillRect(0, 0, out.width, out.height);
+      let y = pad;
+      for (const [a, b] of bands) {
+        o.drawImage(sheet, x0, a, x1 - x0, b - a + 1, pad, y, x1 - x0, b - a + 1);
+        y += b - a + 1 + MAX_GAP;
+      }
       return new Promise<Blob>((resolve, reject) =>
         out.toBlob((b) => (b ? resolve(b) : reject(new Error('No image'))), 'image/png'),
       );

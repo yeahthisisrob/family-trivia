@@ -1,6 +1,6 @@
 /**
- * Handing images to the phone's share sheet (Instagram, Messages, Photos),
- * or, where a browser can't share files, downloading them in one zip.
+ * Handing images to the phone's share sheet, or, where a browser can't
+ * share files, downloading them in one zip.
  */
 import { zipSync } from 'fflate';
 
