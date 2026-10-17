@@ -19,7 +19,7 @@ import {
 import type React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { paper } from '../../shared/design-system';
+import { usePaper } from '../../shared/design-system';
 
 interface SeasonLetterProps {
   letter: Letter;
@@ -32,90 +32,94 @@ export const LetterPaper: React.FC<{ heading: string; markdown: string; imageUrl
   heading,
   markdown,
   imageUrl,
-}) => (
-  <>
-    <Typography
-      id="season-letter-title"
-      component="h2"
-      sx={{
-        fontFamily: paper.serif,
-        fontSize: '0.95rem',
-        letterSpacing: '0.18em',
-        textTransform: 'uppercase',
-        color: paper.inkSoft,
-      }}
-    >
-      {heading}
-    </Typography>
-
-    {imageUrl && (
-      <Box
-        component="img"
-        src={imageUrl}
-        alt=""
+}) => {
+  const paper = usePaper();
+  return (
+    <>
+      <Typography
+        id="season-letter-title"
+        component="h2"
         sx={{
-          mt: 4,
-          width: '100%',
-          maxWidth: 520,
-          borderRadius: 0.5,
-          boxShadow: `0 12px 32px -12px ${paper.shadow}, 0 4px 10px -4px ${alpha(paper.ink, 0.25)}`,
-        }}
-      />
-    )}
-
-    <Box
-      aria-hidden
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 1.5,
-        my: 3,
-        color: paper.rule,
-        '&::before, &::after': {
-          content: '""',
-          flex: '0 1 90px',
-          height: '1px',
-          bgcolor: paper.rule,
-          opacity: 0.7,
-        },
-      }}
-    >
-      ❦
-    </Box>
-
-    <Box
-      sx={{
-        textAlign: 'left',
-        fontSize: { xs: '1.05rem', sm: '1.12rem' },
-        lineHeight: 1.65,
-        '& p': { my: 1.5 },
-        '& h1, & h2, & h3': {
           fontFamily: paper.serif,
-          fontWeight: 400,
-          textAlign: 'center',
-          my: 2,
-        },
-        // The line right under a heading (dates, a subtitle) sits centered with it.
-        '& h1 + p, & h2 + p, & h3 + p': { textAlign: 'center', mt: -1 },
-        '& blockquote': {
-          fontStyle: 'italic',
-          textAlign: 'center',
-          mx: 0,
-          my: 2.5,
-          color: paper.ink,
-        },
-        '& a': { color: paper.ink },
-        '& img': { maxWidth: '100%', borderRadius: 0.5 },
-        '& ul, & ol': { pl: 3 },
-      }}
-    >
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
-    </Box>
-  </>
-);
+          fontSize: '0.95rem',
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: paper.inkSoft,
+        }}
+      >
+        {heading}
+      </Typography>
+
+      {imageUrl && (
+        <Box
+          component="img"
+          src={imageUrl}
+          alt=""
+          sx={{
+            mt: 4,
+            width: '100%',
+            maxWidth: 520,
+            borderRadius: 0.5,
+            boxShadow: `0 12px 32px -12px ${paper.shadow}, 0 4px 10px -4px ${alpha(paper.ink, 0.25)}`,
+          }}
+        />
+      )}
+
+      <Box
+        aria-hidden
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 1.5,
+          my: 3,
+          color: paper.rule,
+          '&::before, &::after': {
+            content: '""',
+            flex: '0 1 90px',
+            height: '1px',
+            bgcolor: paper.rule,
+            opacity: 0.7,
+          },
+        }}
+      >
+        ❦
+      </Box>
+
+      <Box
+        sx={{
+          textAlign: 'left',
+          fontSize: { xs: '1.05rem', sm: '1.12rem' },
+          lineHeight: 1.65,
+          '& p': { my: 1.5 },
+          '& h1, & h2, & h3': {
+            fontFamily: paper.serif,
+            fontWeight: 400,
+            textAlign: 'center',
+            my: 2,
+          },
+          // The line right under a heading (dates, a subtitle) sits centered with it.
+          '& h1 + p, & h2 + p, & h3 + p': { textAlign: 'center', mt: -1 },
+          '& blockquote': {
+            fontStyle: 'italic',
+            textAlign: 'center',
+            mx: 0,
+            my: 2.5,
+            color: paper.ink,
+          },
+          '& a': { color: paper.ink },
+          '& img': { maxWidth: '100%', borderRadius: 0.5 },
+          '& ul, & ol': { pl: 3 },
+        }}
+      >
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
+      </Box>
+    </>
+  );
+};
 
 export const SeasonLetter: React.FC<SeasonLetterProps> = ({ letter, seasonName, onClose }) => {
+  const paper = usePaper();
   const fullScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
   const heading =
     letter.title ||

@@ -2,7 +2,7 @@
 import type { FamilyPerson } from '@family-trivia/shared';
 import { Box, ButtonBase, Typography } from '@mui/material';
 import type React from 'react';
-import { paper } from '../../../shared/design-system';
+import { usePaper } from '../../../shared/design-system';
 import { Face } from './Face';
 
 export const InMemory: React.FC<{
@@ -10,10 +10,11 @@ export const InMemory: React.FC<{
   photos: Record<string, string | undefined>;
   onOpen: (id: string) => void;
 }> = ({ people, photos, onOpen }) => {
+  const paper = usePaper();
   if (!people.length) return null;
   return (
     <Box
-      data-light-surface
+      data-light-surface={paper.light || undefined}
       sx={{
         bgcolor: paper.paper,
         color: paper.ink,

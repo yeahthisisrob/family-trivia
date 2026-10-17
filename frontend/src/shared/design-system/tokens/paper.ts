@@ -9,3 +9,15 @@ export const paper = {
   shadow: 'rgba(58, 46, 33, 0.35)',
   serif: '"Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif',
 } as const;
+
+/** The same paper in a dark room: warm brown, cream ink, for dark mode. */
+export const paperNight = {
+  paper: '#241e19',
+  edge: '#2f2721',
+  glow: '#2b241e',
+  ink: '#f0e5cd',
+  inkSoft: '#bba98a',
+  rule: '#5c4d3b',
+  shadow: 'rgba(0, 0, 0, 0.55)',
+  serif: paper.serif,
+} as const;

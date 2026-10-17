@@ -1,7 +1,7 @@
 /** A person's face: their photo if the family added one, else initials in their color. */
 import { Avatar } from '@mui/material';
 import type React from 'react';
-import { colors, identityColor, paper } from '../../../shared/design-system';
+import { colors, identityColor, usePaper } from '../../../shared/design-system';
 
 /** What the family calls someone before their name; never an initial. */
 const TITLES =
@@ -26,26 +26,29 @@ export const Face: React.FC<{
   dim?: boolean;
   /** A light ring, for a face set on its own color. */
   ring?: boolean;
-}> = ({ id, name, size = 48, photo, remembered, dim, ring }) => (
-  <Avatar
-    src={photo}
-    alt=""
-    sx={{
-      width: size,
-      height: size,
-      fontSize: size / 3.1,
-      fontWeight: 700,
-      bgcolor: remembered ? paper.paper : identityColor(id),
-      color: remembered ? paper.ink : colors.onColor,
-      border: remembered
-        ? `2px solid ${colors.medal.gold}`
-        : ring
-          ? `3px solid ${colors.onColor}`
-          : 'none',
-      fontFamily: remembered ? paper.serif : undefined,
-      opacity: dim ? 0.6 : 1,
-    }}
-  >
-    {initials(name)}
-  </Avatar>
-);
+}> = ({ id, name, size = 48, photo, remembered, dim, ring }) => {
+  const paper = usePaper();
+  return (
+    <Avatar
+      src={photo}
+      alt=""
+      sx={{
+        width: size,
+        height: size,
+        fontSize: size / 3.1,
+        fontWeight: 700,
+        bgcolor: remembered ? paper.paper : identityColor(id),
+        color: remembered ? paper.ink : colors.onColor,
+        border: remembered
+          ? `2px solid ${colors.medal.gold}`
+          : ring
+            ? `3px solid ${colors.onColor}`
+            : 'none',
+        fontFamily: remembered ? paper.serif : undefined,
+        opacity: dim ? 0.6 : 1,
+      }}
+    >
+      {initials(name)}
+    </Avatar>
+  );
+};
