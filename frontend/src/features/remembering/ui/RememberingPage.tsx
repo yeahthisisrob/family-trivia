@@ -29,7 +29,7 @@ import {
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { storyApi } from '../../../entities/family';
-import { paper } from '../../../shared/design-system';
+import { usePaper } from '../../../shared/design-system';
 import { PersonBookButton } from '../../person-book';
 import { rememberingApi } from '../api/rememberingApi';
 import { Memories } from './Memories';
@@ -52,41 +52,47 @@ export function yearsOf(p: FamilyPerson): string | null {
   return died.length === 10 ? day(died) : died;
 }
 
-const Heading: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <Typography
-    component="h2"
-    sx={{
-      fontFamily: paper.serif,
-      fontSize: '1.3rem',
-      fontWeight: 700,
-      borderBottom: `1px solid ${paper.rule}`,
-      pb: 0.75,
-      mb: 1.5,
-    }}
-  >
-    {children}
-  </Typography>
-);
+const Heading: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const paper = usePaper();
+  return (
+    <Typography
+      component="h2"
+      sx={{
+        fontFamily: paper.serif,
+        fontSize: '1.3rem',
+        fontWeight: 700,
+        borderBottom: `1px solid ${paper.rule}`,
+        pb: 0.75,
+        mb: 1.5,
+      }}
+    >
+      {children}
+    </Typography>
+  );
+};
 
 const Word: React.FC<{ w: StoryWord; showDate?: boolean; note?: string }> = ({
   w,
   showDate,
   note,
-}) => (
-  <Box sx={{ breakInside: 'avoid' }}>
-    <Typography sx={{ fontFamily: paper.serif, color: paper.inkSoft, fontSize: '0.95rem' }}>
-      {w.question}
-    </Typography>
-    <Typography sx={{ fontFamily: paper.serif, fontSize: '1.2rem', lineHeight: 1.45 }}>
-      “{w.answer}”
-    </Typography>
-    {(showDate || note) && (
-      <Typography sx={{ fontFamily: paper.serif, color: paper.inkSoft, fontSize: '0.85rem' }}>
-        {[showDate ? day(w.date) : null, note].filter(Boolean).join(' · ')}
+}) => {
+  const paper = usePaper();
+  return (
+    <Box sx={{ breakInside: 'avoid' }}>
+      <Typography sx={{ fontFamily: paper.serif, color: paper.inkSoft, fontSize: '0.95rem' }}>
+        {w.question}
       </Typography>
-    )}
-  </Box>
-);
+      <Typography sx={{ fontFamily: paper.serif, fontSize: '1.2rem', lineHeight: 1.45 }}>
+        “{w.answer}”
+      </Typography>
+      {(showDate || note) && (
+        <Typography sx={{ fontFamily: paper.serif, color: paper.inkSoft, fontSize: '0.85rem' }}>
+          {[showDate ? day(w.date) : null, note].filter(Boolean).join(' · ')}
+        </Typography>
+      )}
+    </Box>
+  );
+};
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
@@ -101,6 +107,7 @@ export const RememberingPage: React.FC<{
   nameOf: (id: string) => string;
   onClose: () => void;
 }> = ({ person, photo, topics = [], nameOf, onClose }) => {
+  const paper = usePaper();
   const [data, setData] = useState<PersonStory | null>(null);
   const [failed, setFailed] = useState(false);
   const [memories, setMemories] = useState<Comment[] | null>(null);
@@ -138,7 +145,10 @@ export const RememberingPage: React.FC<{
       aria-labelledby="remembering-name"
       slotProps={{ paper: { sx: { bgcolor: paper.paper, color: paper.ink } } }}
     >
-      <Box data-light-surface sx={{ bgcolor: paper.paper, color: paper.ink, minHeight: '100%' }}>
+      <Box
+        data-light-surface={paper.light || undefined}
+        sx={{ bgcolor: paper.paper, color: paper.ink, minHeight: '100%' }}
+      >
         <IconButton
           aria-label="Close"
           onClick={onClose}

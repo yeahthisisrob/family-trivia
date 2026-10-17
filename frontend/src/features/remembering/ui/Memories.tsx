@@ -3,7 +3,7 @@ import type { Comment } from '@family-trivia/shared';
 import { Box, Button, Stack, TextField, Typography } from '@mui/material';
 import type React from 'react';
 import { useState } from 'react';
-import { paper } from '../../../shared/design-system';
+import { usePaper } from '../../../shared/design-system';
 
 const MAX = 1000;
 
@@ -13,6 +13,7 @@ export const Memories: React.FC<{
   nameOf: (id: string) => string;
   onShare: (text: string) => Promise<void>;
 }> = ({ name, memories, nameOf, onShare }) => {
+  const paper = usePaper();
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
