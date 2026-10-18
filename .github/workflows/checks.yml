@@ -54,6 +54,9 @@ jobs:
           git diff --exit-code --stat shared/generated \
             || { echo "::error::shared/generated is stale: run 'just contract' and commit the result"; exit 1; }
 
+      - name: README screenshots are current
+        run: node scripts/check-screenshots.mjs
+
       - name: Build
         run: pnpm -r run build
 
@@ -90,3 +93,7 @@ jobs:
         run: |
           pnpm --filter @family-trivia/web run build-storybook
           node scripts/dark-audit.mjs
+
+      # Every README picture's story still exists in the built Storybook.
+      - name: README stories exist
+        run: node scripts/check-screenshots.mjs --stories

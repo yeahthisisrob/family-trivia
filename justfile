@@ -56,7 +56,7 @@ storybook:
 
 # Everything CI runs
 [group('check')]
-check: lint leaks deadcode typecheck test
+check: lint leaks deadcode typecheck test screenshots-current
     @echo "All checks passed."
 
 # Format and lint the whole repo (Biome)
@@ -78,6 +78,11 @@ leaks:
 [group('check')]
 deadcode:
     {{x}} pnpm exec knip --no-progress
+
+# The README's pictures match their stories (retake: just screenshots)
+[group('check')]
+screenshots-current:
+    {{x}} node scripts/check-screenshots.mjs
 
 # Typecheck every package
 [group('check')]
@@ -112,11 +117,12 @@ build:
 contract:
     {{x}} pnpm --filter @family-trivia/shared run contract
 
-# Regenerate the README screenshots from Storybook
+# Retake the README pictures from their stories (docs/screenshots/shots.json);
+# `just screenshots family-map` retakes the ones whose file starts with that
 [group('build')]
-screenshots:
+screenshots *only:
     {{x}} pnpm --filter @family-trivia/web run build-storybook
-    {{x}} node scripts/screenshot-stories.mjs
+    {{x}} node scripts/screenshots.mjs {{only}}
 
 # ── infra ──────────────────────────────────────────────────────────────────
 

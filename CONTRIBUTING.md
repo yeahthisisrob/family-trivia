@@ -45,6 +45,8 @@ just check
 - One concern per PR. Conventional commit messages (`feat:`, `fix:`,
   `docs:`); release-please builds the changelog from them.
 - New UI components ship with a Storybook story.
+- A change to a screen the README pictures retakes its picture: `just screenshots <file>`
+  (the list is `docs/screenshots/shots.json`; `just check` says which).
 - API changes update `shared/schemas/api.openapi.yaml`, then `just contract`.
 - **Use made-up people and places.** Never a real family's names, places,
   emails or photos, in code, fixtures, stories, screenshots or commit
