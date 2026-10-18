@@ -1,9 +1,14 @@
 # Family Trivia
 
+[![Checks](https://github.com/yeahthisisrob/family-trivia/actions/workflows/checks.yml/badge.svg)](https://github.com/yeahthisisrob/family-trivia/actions/workflows/checks.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 > _"Assume everyone is trying their best, and be kind to each other."_
 > — Christina Baker Kline
 
-AI-powered daily trivia, facts, and mini-games for families — built with React, AWS CDK, and Claude on Bedrock.
+A daily question for the whole family, and a place that keeps what everyone answers. Each morning everyone gets one question about themselves and one trivia question; the answers become the family's timeline, each person's story, a map of what the family talks about, and, at the end of a season, a book you can read in the app or send to a printer. Games earn trivia multipliers, an arcade keeps high scores, and a Remembering page holds the words of the people the family has lost. One CDK command deploys it into your own AWS account; the family's words never leave it.
+
+![The family's home: who we are, today's spotlight, and what we share](docs/screenshots/family-home.png)
 
 ---
 
@@ -32,38 +37,66 @@ Resources: [mhanational.org/may](https://mhanational.org/may)
 
 ## What it does
 
-- **Daily Trivia** — One AI-generated question per day per player, with catch-up mode for missed days.
-- **Daily Facts** — Share personal facts with the family. Weekly AI summaries.
-- **Game Modes** — Casino Rush, Slot Machine, Curling, Tetris. Each earns a trivia score multiplier.
-- **Arcade** — Same games, unlimited play, high-score leaderboards.
-- **Family Feud** — Rotating "how well do you know me?" rounds.
-- **Leaderboard** — Season-based scoring, individual + team rankings.
-- **Notifications** — Comments, high scores, leader changes, Family Feud results.
-- **Timeline** — Scrollable feed of everyone's answers and facts, with threaded comments.
+### A question a day
 
-## A look at it
+Everyone gets the same question about themselves each day ("What's a small everyday moment that always makes you smile?") and a trivia question in a category they pick. Missed days can be caught up. A season decides what's asked: general trivia, trivia about the family itself, both, or only the daily questions. Answers land on a shared timeline with comments, reactions and notifications, and the home page brings back a memory a day from the family's own pages.
+
+|  |  |  |
+|---|---|---|
+| ![Today's question, with a microphone hint for people who'd rather talk](docs/screenshots/daily-fact.png) | ![What do you want to play: special challenges and categories](docs/screenshots/trivia.png) | ![On this day, two years ago: everyone's answers to the same question](docs/screenshots/daily-memory.png) |
+| **Today's question.** Type it or say it. | **Trivia.** Pick a category or a special challenge. | **A memory a day.** What everyone said, on this day. |
+
+### Games that earn a multiplier
+
+Each game mode can be played once a week and multiplies that day's trivia score. The same games, plus Snake, Crossword, Blackjack and Roulette, run without limits in the Arcade, with high-score boards. The leaderboard ranks people and teams by season.
+
+|  |  |  |  |
+|---|---|---|---|
+| ![Casino Rush: triple or nothing](docs/screenshots/casino-rush.png) | ![Slot Machine](docs/screenshots/slot-machine.png) | ![Curling](docs/screenshots/curling.png) | ![Tetris](docs/screenshots/tetris.png) |
+| **Casino Rush.** 3 questions, 60s each, triple or bust. | **Slot Machine.** Spin for a category and a multiplier. | **Curling.** Land on the button. | **Tetris.** 60 seconds to clear lines. |
+
+![Top players: the season's podium](docs/screenshots/podium.png)
+
+### Everyone's story, told by the family
+
+The Family tab opens on who the family is, in the family's own numbers and words, written by the AI from the answers and edited by an admin. A spotlight introduces one person a day (or roasts them, gently). Everyone has a profile that reads as a story: what they've said lately, what the family has said about them, and the questions still waiting for them, which they can fill in flash-card style.
 
 |  |  |
 |---|---|
-| ![Daily trivia carousel — what do you want to play?](docs/screenshots/01-trivia-flow.png) | ![Top-players podium](docs/screenshots/02-leaderboard.png) |
-| **Daily trivia & game-mode carousel** — pick a category or jump into a special challenge. | **Top players** — season-based podium with score, accuracy, and streak. |
-| ![Casino Rush start screen](docs/screenshots/03-casino-rush.png) | ![Slot Machine](docs/screenshots/04-slot-machine.png) |
-| **Casino Rush** — 3 questions, 60s each. Triple-or-bust difficulty multipliers. | **Slot Machine** — spin a random category and multiplier. |
-| ![Daily fact card with AI fun-fact button](docs/screenshots/05-fact-card.png) | ![Notifications panel](docs/screenshots/08-notifications.png) |
-| **Daily Facts** — share something about yourself. AI generates a fun-fact follow-up. | **Notifications** — comments, leader changes, Family Feud results. |
+| ![A profile told as a story](docs/screenshots/profile.png) | ![Spotlight: one person a day](docs/screenshots/spotlight.png) |
+| **A profile.** What you've said lately, and how much of your story is filled in. | **Spotlight.** One person a day, from their answers. |
 
-![Family tree split view](docs/screenshots/07-family-tree.png)
+![Fill in your story: one more for the family's story](docs/screenshots/fill-in.png)
 
-_Screenshots are captured from Storybook stories — see [`scripts/screenshot-stories.mjs`](scripts/screenshot-stories.mjs) to regenerate._
+### Our map, and the family as a night sky
 
-## Game modes
+Our map lays out what the family talks about as territories (places, food, things we do), with each person pulled toward the topics they share. The night sky draws the family itself: who's tied to whom, households, and who answered alike, with the answers as evidence.
 
-| Mode | What it is | Cooldown |
-|------|------------|----------|
-| **Casino Rush** | 3 questions, 60s each — triple or bust | 1 week |
-| **Slot Machine** | Spin for a random category + multiplier | 1 week |
-| **Curling** | Hold and release — land on the button | 1 week |
-| **Tetris** | 60s to clear lines, score your multiplier | 1 week |
+![Our map: what the family talks about, as territories](docs/screenshots/family-map.png)
+
+![The family as a night sky: ties, partners and who answered alike](docs/screenshots/family-graph.png)
+
+### Look back, and keep it as a book
+
+When a season ends, Look back shows the questions most of the family answered and the answers people loved. Any season, and anyone's own words, can become a book: just the answers, or written warm or playful, with a foreword and chapters by theme. Books are fitted to their pages, open in the app as two-page spreads, download as page images, and come with a wraparound cover ready for a print-on-demand press. Every version is kept.
+
+![Look back on a season](docs/screenshots/look-back.png)
+
+![A season as a book: how it's written, and every version kept](docs/screenshots/book-dialog.png)
+
+### Remembering
+
+The people the family has lost keep a page: their years, the last things they told the family, and a book of their words. Families change, so people can be active, paused, or remembered, and relationships change over time.
+
+![Remembering: the last things they told us](docs/screenshots/remembering.png)
+
+### Run by the family, in its own account
+
+Admins set up people, households and relationships, start seasons, and choose features. Settings picks the AI model for each task and shows what it really costs, from the tokens each call used. Backups are made from Settings and checked, and the whole family's archive downloads as one folder per person.
+
+![Settings: an AI model per task, with real costs](docs/screenshots/settings.png)
+
+_Every picture here is taken from a Storybook story with made-up people, listed in [`docs/screenshots/shots.json`](docs/screenshots/shots.json). `just screenshots` retakes them, and `just check` fails when a pictured story has changed since its picture was taken._
 
 ## Architecture
 
@@ -71,16 +104,20 @@ _Screenshots are captured from Storybook stories — see [`scripts/screenshot-st
 CloudFront (CDN)
 ├── /*     → S3 (React frontend)
 └── /api/* → API Gateway → Lambda (Node.js/TS)
-                              ├── S3 (data storage — JSON, no DB)
-                              └── Bedrock (Claude Sonnet + Haiku)
+                              ├── S3 (data storage: JSON, no database)
+                              └── Bedrock (Claude)
 ```
 
-- **Frontend**: React + TypeScript + Material UI + Vite
-- **Backend**: Single Lambda function with route handlers
-- **Infrastructure**: AWS CDK (TypeScript)
-- **AI**: Amazon Bedrock — Claude Sonnet for generation, Claude Haiku for fact-checking
-- **Shared Types**: `shared/` package (`@family-trivia/shared`)
-- **Storage**: S3 JSON files — no database needed
+| Layer | Technology |
+|---|---|
+| Frontend | React + TypeScript + MUI + Vite on a token-based design system (light and dark, themes as data), organised by [Feature-Sliced Design](https://feature-sliced.design/), every component in Storybook |
+| Backend | One Node.js Lambda (TypeScript), organised by Vertical Slice Architecture |
+| Contract | OpenAPI first: `shared/schemas/api.openapi.yaml`, types generated into `@family-trivia/shared` |
+| AI | Amazon Bedrock, a Claude model per task (writing, fact checks, spotlights, books), chosen in Settings |
+| Books | pdfkit with EB Garamond, fitted to a 6 × 9 inch page; read in the app with pdf.js |
+| Storage | S3 JSON files, backed up to a second bucket |
+| Infrastructure | AWS CDK (TypeScript) |
+| Tooling | mise (pinned toolchain), pnpm workspace, just, Biome, Vitest, lefthook, gitleaks, release-please |
 
 ## Prerequisites
 
@@ -163,9 +200,10 @@ Passphrases are **one-time identification, not ongoing auth** — they exist so 
 ```bash
 just dev          # API on :3001 + web app on :3000 (needs backend/.env.local)
 just storybook    # component playground with MSW API mocks
-just check        # what CI runs: lint, privacy, dead code, typecheck, tests
+just check        # what CI runs: lint, privacy, dead code, typecheck, tests, screenshots
 just fix          # apply Biome's safe fixes
 just contract     # after editing the OpenAPI schema
+just screenshots  # retake the README pictures from their stories
 ```
 
 `just dev` runs the real Lambda handler on Node against a bucket you choose:
@@ -182,7 +220,7 @@ backend/                The API: one Lambda
 infra/                  AWS CDK stack
 shared/                 Types and the OpenAPI contract
 docs/decisions/         Why things are the way they are (start with 0001 and 0008)
-scripts/                Leak guard, screenshots
+scripts/                Leak guard, screenshots and their check
 ```
 
 ## Privacy
