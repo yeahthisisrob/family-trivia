@@ -54,6 +54,13 @@ just check
 - A decision that would surprise a newcomer gets a short record in
   [docs/decisions](docs/decisions/README.md).
 
+## How changes land
+
+`main` is protected: changes come through a pull request, squash-merged, with
+the checks green and a review from the maintainer. Force pushes and branch
+deletion are blocked. Found a security problem? See [SECURITY.md](SECURITY.md)
+and report it privately.
+
 ## Code of conduct
 
 Be kind. Assume everyone is trying their best.
