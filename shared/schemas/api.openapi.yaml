@@ -1891,6 +1891,85 @@ paths:
         "404":
           description: Not in this circle's people yet
 
+  /plans:
+    get:
+      summary: The weeks ahead for the caller — who's away, who's free, plans and who's in, the best days
+      operationId: getPlans
+      tags: [Plans]
+      responses:
+        "200":
+          description: Eight weeks from today
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlansView"
+    post:
+      summary: Drop in what you're doing, in your own words; the AI reads it into days
+      operationId: dropInPlan
+      tags: [Plans]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: { type: string, maxLength: 400 }
+      responses:
+        "200":
+          description: What was added (empty when no day was found in the words)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [added]
+                properties:
+                  added:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Drop"
+
+  /plans/remove:
+    post:
+      summary: Take back one of your own drops
+      operationId: removePlan
+      tags: [Plans]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string }
+      responses:
+        "200": { description: Removed }
+        "404": { description: Not one of yours }
+
+  /plans/rsvp:
+    post:
+      summary: I'm in, or I can't, for someone's plan or free day (null takes it back)
+      operationId: rsvpPlan
+      tags: [Plans]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, answer]
+              properties:
+                id: { type: string }
+                answer:
+                  type: string
+                  nullable: true
+                  enum: [in, out, null]
+      responses:
+        "200": { description: Saved }
+        "404": { description: No such plan }
+
   /threads/today:
     get:
       summary: Today's one "How do you know ...?" question (or none), and how many threads are tied
@@ -4199,6 +4278,53 @@ components:
         seed:
           type: string
           maxLength: 64
+
+    Drop:
+      type: object
+      required: [id, by, kind, title, start, createdAt]
+      properties:
+        id: { type: string }
+        by: { type: string }
+        kind: { type: string, enum: [busy, free, plan] }
+        title: { type: string }
+        start: { type: string, description: YYYY-MM-DD }
+        end: { type: string }
+        part: { type: string, enum: [morning, afternoon, evening, all-day] }
+        weekly:
+          type: object
+          properties:
+            until: { type: string }
+        said: { type: string }
+        createdAt: { type: string }
+
+    PlansView:
+      type: object
+      required: [days, drops, rsvps, best]
+      properties:
+        days:
+          type: array
+          items:
+            type: object
+            required: [date, busy, free, plans]
+            properties:
+              date: { type: string }
+              busy: { type: array, items: { type: string } }
+              free: { type: array, items: { type: string } }
+              plans: { type: array, items: { type: string } }
+        drops:
+          type: array
+          items:
+            $ref: "#/components/schemas/Drop"
+        rsvps:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: string
+              enum: [in, out]
+        best:
+          type: array
+          items: { type: string }
 
     ThreadChoice:
       type: object

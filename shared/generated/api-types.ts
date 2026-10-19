@@ -872,6 +872,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The weeks ahead for the caller — who's away, who's free, plans and who's in, the best days */
+        get: operations["getPlans"];
+        put?: never;
+        /** Drop in what you're doing, in your own words; the AI reads it into days */
+        post: operations["dropInPlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plans/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Take back one of your own drops */
+        post: operations["removePlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plans/rsvp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** I'm in, or I can't, for someone's plan or free day (null takes it back) */
+        post: operations["rsvpPlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/threads/today": {
         parameters: {
             query?: never;
@@ -2135,6 +2187,38 @@ export interface components {
             /** @enum {string} */
             style: "lorelei" | "notionists" | "open-peeps" | "thumbs" | "pixel-art" | "shapes";
             seed: string;
+        };
+        Drop: {
+            id: string;
+            by: string;
+            /** @enum {string} */
+            kind: "busy" | "free" | "plan";
+            title: string;
+            /** @description YYYY-MM-DD */
+            start: string;
+            end?: string;
+            /** @enum {string} */
+            part?: "morning" | "afternoon" | "evening" | "all-day";
+            weekly?: {
+                until?: string;
+            };
+            said?: string;
+            createdAt: string;
+        };
+        PlansView: {
+            days: {
+                date: string;
+                busy: string[];
+                free: string[];
+                plans: string[];
+            }[];
+            drops: components["schemas"]["Drop"][];
+            rsvps: {
+                [key: string]: {
+                    [key: string]: "in" | "out";
+                };
+            };
+            best: string[];
         };
         ThreadChoice: {
             id: string;
@@ -4661,6 +4745,118 @@ export interface operations {
                 content?: never;
             };
             /** @description Not in this circle's people yet */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getPlans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Eight weeks from today */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlansView"];
+                };
+            };
+        };
+    };
+    dropInPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    text: string;
+                };
+            };
+        };
+        responses: {
+            /** @description What was added (empty when no day was found in the words) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        added: components["schemas"]["Drop"][];
+                    };
+                };
+            };
+        };
+    };
+    removePlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Removed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not one of yours */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    rsvpPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    id: string;
+                    /** @enum {string|null} */
+                    answer: "in" | "out" | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such plan */
             404: {
                 headers: {
                     [name: string]: unknown;

@@ -27,7 +27,7 @@ when the decision is made, so the reason survives the people who made it.
 | [0014](0014-backups.md) | Backups: versioned data, checked copies, nightly only when asked | Accepted |
 | [0015](0015-circles.md) | Circles: one sign-in, many groups | Accepted |
 | [0016](0016-play-as-time-allows.md) | Play as time allows: nothing is lost by coming back late | Accepted |
-| [0017](0017-when-everyone-is-free.md) | When everyone's free: availability that leads back to the app | Accepted |
+| [0017](0017-when-everyone-is-free.md) | When everyone's free: availability that leads back to the app | Accepted (Google part superseded by 0026) |
 | [0018](0018-your-world.md) | Your world: joining circles, splitting them, and seeing across them | Accepted |
 | [0019](0019-membership-lives-in-each-circle.md) | Membership lives in each circle | Accepted |
 | [0020](0020-invites.md) | Invites: one link, a few choices, and passphrases are one of them | Accepted |
@@ -36,3 +36,4 @@ when the decision is made, so the reason survives the people who made it.
 | [0023](0023-one-ai-frame-per-circle.md) | One AI frame per kind of circle | Accepted |
 | [0024](0024-pictures-from-one-library.md) | Pictures from one shared library | Accepted |
 | [0025](0025-know-yourself.md) | Know yourself: what you love, kept and noted | Accepted |
+| [0026](0026-plans.md) | Plans: drop in what you're doing | Accepted |

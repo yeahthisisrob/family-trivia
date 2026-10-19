@@ -199,6 +199,12 @@ Friendships sit in the same people model as family: who's friends with whom and 
 
 ![A friend's connections: how and when they met each friend](docs/screenshots/friend-ties.png)
 
+## What's on
+
+Getting everyone in one place starts with knowing who's around. On Home, drop in what you're doing the way you'd text it: "beach weekend the 14th to the 16th", "busy Tuesday nights", "free Saturday, anyone up for a hike?". It lands on the right days, and the next two weeks show for the whole circle at a glance, with the best days to get together picked out. Tap a day to see who's free and what's planned, and say you're in. Busy times only ever show as busy. No calendar to connect.
+
+![What's on: the next two weeks, the best days, and a hike people are in for](docs/screenshots/plans.png)
+
 ## What you love
 
 Your profile starts with what you love, gathered from your own answers as you play: the places, food, music and shows you keep coming back to, in your words. Each comes with a short "did you know" and a way to go further, like tour dates for a band you love or the map for a place. The fun fact after every answer knows what you've said before, and it stays with the answer on your profile.

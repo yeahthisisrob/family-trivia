@@ -156,6 +156,13 @@ export const AI_TASKS = [
     usage: { callsPerPersonPerDay: 0.02, inputTokens: 600, outputTokens: 400 },
   },
   {
+    id: 'plans',
+    label: 'Plans',
+    description: 'Reads what someone dropped into Plans ("beach weekend Jul 12-14") into days.',
+    role: 'fast',
+    usage: { callsPerPersonPerDay: 0.1, inputTokens: 500, outputTokens: 200 },
+  },
+  {
     id: 'book',
     label: 'Season books',
     description:

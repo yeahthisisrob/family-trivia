@@ -25,6 +25,7 @@ export * from './member-summary';
 export * from './notifications';
 export * from './people';
 export * from './person-story';
+export * from './plans';
 export * from './profile';
 export * from './question';
 export * from './question-gen';
