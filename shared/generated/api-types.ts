@@ -2041,6 +2041,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/knowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Read my newest answers into the knowledge index (the app calls it after an answer) */
+        post: operations["buildMyKnowledge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/knowledge/build": {
         parameters: {
             query?: never;
@@ -2466,6 +2483,8 @@ export interface components {
                 question: string;
                 answer: string;
                 date: string;
+                /** @description The "did you know" that came back when they answered */
+                fact?: string;
             }[];
             last: string[];
             loved: {
@@ -2488,6 +2507,16 @@ export interface components {
                 question: string;
                 answer: string;
                 date: string;
+            }[];
+            /** @description What they love most, from the knowledge index, in their words, with a note */
+            loves: {
+                kind: string;
+                name: string;
+                count: number;
+                says: string[];
+                /** @enum {string} */
+                tag?: "band" | "song" | "show" | "movie" | "book" | "game" | "team";
+                note?: string;
             }[];
             /** @description Comments the family left under their answers */
             replies: {
@@ -6957,6 +6986,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FamilyKnowledge"];
+                };
+            };
+        };
+    };
+    buildMyKnowledge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description How many answers were read, and whether the persona was rewritten */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        read: number;
+                        persona: boolean;
+                    };
                 };
             };
         };

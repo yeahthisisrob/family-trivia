@@ -5,4 +5,11 @@ import { apiService } from '../../../services/ApiService';
 export const knowledgeApi = {
   get: () =>
     apiService.request<FamilyKnowledge>('/family/knowledge', { method: 'GET' }, 'family_knowledge'),
+  /**
+   * After an answer: read my newest answers into the index, quietly, so my
+   * page and the map keep up with no button (docs/decisions/0025).
+   */
+  refreshMine: () => {
+    apiService.request('/me/knowledge', { method: 'POST' }).catch(() => undefined);
+  },
 };

@@ -10,17 +10,19 @@ import {
   type Family,
   type FamilyKnowledge,
   familyThemes,
+  itemKey,
+  lovesOf,
   mentionableRelations,
   type PersonKnowledge,
   topItems,
   wordsIn,
 } from '@family-trivia/shared';
-import { getAllFactHistories } from '../../services/factHistoryService';
+import { getAllFactHistories, getFactHistory } from '../../services/factHistoryService';
 import { loadJoined } from '../../services/family/joined';
 import { knowledgeKey, readKnowledge } from '../../services/knowledge';
 import { logger } from '../../services/logger';
 import { getJson, putJson } from '../../services/s3';
-import { readAnswers, type Said, writePersona } from './ai';
+import { readAnswers, type Said, writeNotes, writePersona } from './ai';
 
 const personKey = knowledgeKey;
 const META_KEY = 'knowledge/meta.json';
@@ -43,6 +45,48 @@ function unreadOf(k: PersonKnowledge, answers: FactAnswerEntry[]): Said[] {
     .map((e) => ({ at: e.timestamp, question: e.question, answer: e.answer }));
 }
 
+/** How many loves get a note, and how many notes are written at a time. */
+const NOTED = 6;
+const NOTES_AT_ONCE = 3;
+
+type Person = Family['people'][string];
+
+/**
+ * One person's step: read a batch of their new answers, refresh their
+ * persona if it grew, and note a few of the things they love. Returns how
+ * many answers were read.
+ */
+async function buildPerson(p: Person, family: Family, answers: FactAnswerEntry[]) {
+  const k = await readPerson(p.id);
+  const unread = unreadOf(k, answers);
+  let read = 0;
+  let persona = false;
+  if (unread.length) {
+    const batch = unread.slice(0, BATCH);
+    const items = await readAnswers(p.name, batch, mentionableRelations(family, p.id));
+    const edited = new Set(batch.map((b) => b.at));
+    // An answer added to is read again; its older items give way.
+    k.items = [...k.items.filter((i) => !edited.has(i.from)), ...items];
+    const byAt = new Map(answers.map((e) => [e.timestamp, e]));
+    k.read = [...k.read, ...batch.map((b) => byAt.get(b.at)?.editedAt ?? b.at)];
+    read = batch.length;
+  }
+  if (k.items.length && (!k.persona || k.items.length - k.persona.items >= PERSONA_GROWTH)) {
+    k.persona = await writePersona(p.name, k, !!p.memorial);
+    persona = true;
+  }
+  const noted = new Set((k.notes ?? []).map((n) => n.key));
+  const unnoted = lovesOf(k, NOTED)
+    .filter((l) => !noted.has(itemKey(l.kind, l.name)) && l.kind !== 'memory' && l.kind !== 'value')
+    .slice(0, NOTES_AT_ONCE);
+  if (unnoted.length) k.notes = [...(k.notes ?? []), ...(await writeNotes(p.name, unnoted))];
+  if (read || persona || unnoted.length) {
+    k.updatedAt = new Date().toISOString();
+    await putJson(personKey(p.id), k);
+  }
+  return { read, persona };
+}
+
 /**
  * Read up to one batch of new answers for each person, then refresh the
  * personas that grew. Stops starting new people after `budgetMs`.
@@ -57,26 +101,10 @@ export async function buildSome(budgetMs = 12_000) {
 
   for (const p of people) {
     if (Date.now() - started > budgetMs) break;
-    const answers = histories.get(p.id) ?? [];
-    const k = await readPerson(p.id);
-    const unread = unreadOf(k, answers);
     try {
-      if (unread.length) {
-        const batch = unread.slice(0, BATCH);
-        const items = await readAnswers(p.name, batch, mentionableRelations(family, p.id));
-        const edited = new Set(batch.map((b) => b.at));
-        // An answer added to is read again; its older items give way.
-        k.items = [...k.items.filter((i) => !edited.has(i.from)), ...items];
-        const byAt = new Map(answers.map((e) => [e.timestamp, e]));
-        k.read = [...k.read, ...batch.map((b) => byAt.get(b.at)?.editedAt ?? b.at)];
-        readNow += batch.length;
-      }
-      if (k.items.length && (!k.persona || k.items.length - k.persona.items >= PERSONA_GROWTH)) {
-        k.persona = await writePersona(p.name, k, !!p.memorial);
-        personas++;
-      }
-      k.updatedAt = new Date().toISOString();
-      await putJson(personKey(p.id), k);
+      const r = await buildPerson(p, family, histories.get(p.id) ?? []);
+      readNow += r.read;
+      if (r.persona) personas++;
     } catch (err) {
       failures.push(p.id);
       logger.error('Knowledge index step failed', {
@@ -89,6 +117,18 @@ export async function buildSome(budgetMs = 12_000) {
   const left = await unreadCount(family, joined, histories);
   await putJson(META_KEY, { builtAt: new Date().toISOString() });
   return { read: readNow, personas, left, failures };
+}
+
+/**
+ * After someone answers: read their new answers into the index, so their
+ * page and the circle's map keep up on their own. Nothing for people who
+ * opted out of AI mentions.
+ */
+export async function buildMine(userId: string) {
+  const [{ family, joined }, answers] = await Promise.all([loadJoined(), getFactHistory(userId)]);
+  const me = indexable(family, joined).find((p) => p.id === userId);
+  if (!me) return { read: 0, persona: false };
+  return buildPerson(me, family, answers);
 }
 
 async function unreadCount(

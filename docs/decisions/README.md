@@ -35,3 +35,4 @@ when the decision is made, so the reason survives the people who made it.
 | [0022](0022-threads.md) | Threads: connections come from one tap a day | Accepted |
 | [0023](0023-one-ai-frame-per-circle.md) | One AI frame per kind of circle | Accepted |
 | [0024](0024-pictures-from-one-library.md) | Pictures from one shared library | Accepted |
+| [0025](0025-know-yourself.md) | Know yourself: what you love, kept and noted | Accepted |

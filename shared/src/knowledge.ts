@@ -31,6 +31,50 @@ export interface KnowledgeItem {
   from: string;
   /** For a person they mention: who it is in the family ("mom" from her son is her). */
   about?: string;
+  /** What a music, book or show item is, when it's clear: a band gets tour dates. */
+  tag?: MediaTag;
+}
+
+export const MEDIA_TAGS = ['band', 'song', 'show', 'movie', 'book', 'game', 'team'] as const;
+export type MediaTag = (typeof MEDIA_TAGS)[number];
+export const isMediaTag = (v: unknown): v is MediaTag =>
+  typeof v === 'string' && (MEDIA_TAGS as readonly string[]).includes(v);
+
+/** A short "did you know" about something they love, written once and kept. */
+export interface KnowledgeNote {
+  /** `${kind}:${normalizeName(name)}`, the same key topItems counts by. */
+  key: string;
+  text: string;
+  at: string;
+}
+
+/** Something they love, for their profile: counted, in their words, with a note. */
+export interface Love {
+  kind: KnowledgeKind;
+  name: string;
+  count: number;
+  /** Up to two things they said about it, newest first. */
+  says: string[];
+  tag?: MediaTag;
+  note?: string;
+}
+
+/** The key items are counted and noted by. */
+export const itemKey = (kind: KnowledgeKind, name: string) => `${kind}:${normalizeName(name)}`;
+
+/** What they love most, in their own words, with any note kept for it. */
+export function lovesOf(p: PersonKnowledge, n = 12): Love[] {
+  const notes = new Map((p.notes ?? []).map((x) => [x.key, x.text]));
+  return topItems(p, n)
+    .filter((t) => t.kind !== 'person')
+    .map((t) => {
+      const key = itemKey(t.kind, t.name);
+      const mine = p.items.filter((i) => itemKey(i.kind, i.name) === key);
+      const tag = mine.find((i) => i.tag)?.tag;
+      const says = [...new Set(mine.map((i) => i.says).filter(Boolean))].reverse().slice(0, 2);
+      const note = notes.get(key);
+      return { ...t, says, ...(tag ? { tag } : {}), ...(note ? { note } : {}) };
+    });
 }
 
 /** As stored: knowledge/people/{personId}.json */
@@ -40,6 +84,8 @@ export interface PersonKnowledge {
   read: string[];
   items: KnowledgeItem[];
   persona: { text: string; traits: string[]; at: string; items: number } | null;
+  /** Notes on the things they love most. */
+  notes?: KnowledgeNote[];
   updatedAt: string;
 }
 

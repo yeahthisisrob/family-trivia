@@ -199,6 +199,12 @@ Friendships sit in the same people model as family: who's friends with whom and 
 
 ![A friend's connections: how and when they met each friend](docs/screenshots/friend-ties.png)
 
+## What you love
+
+Your profile starts with what you love, gathered from your own answers as you play: the places, food, music and shows you keep coming back to, in your words. Each comes with a short "did you know" and a way to go further, like tour dates for a band you love or the map for a place. The fun fact after every answer knows what you've said before, and it stays with the answer on your profile.
+
+![A profile: what you love, in your own words, with a did-you-know](docs/screenshots/profile.png)
+
 ## Your picture
 
 Everyone starts with their initials. Tap your face on your profile to pick a picture instead: six drawn styles, nine to choose from in each, as many more as you like. They're public-domain drawings made on your phone, so nothing is uploaded, and your pick shows everywhere in the circle at once.

@@ -2,6 +2,8 @@ import { modelFor } from '../core/models';
 // File: services/bedrock/questions/funFact.ts
 // Purpose: Generate fun facts based on user answers
 
+import { topItems } from '@family-trivia/shared';
+import { readKnowledge } from '../../knowledge';
 import { logger } from '../../logger';
 import { invokeBedrockPrompt } from '../core/bedrockClient';
 import { collectResponseBody } from '../core/responseParser';
@@ -16,7 +18,10 @@ export async function generateFunFact(
   question: string,
   answer: string,
 ): Promise<string> {
-  const prompt = buildFunFactPrompt(question, answer);
+  const loves = topItems(await readKnowledge(userId), 6)
+    .filter((t) => t.kind !== 'person')
+    .map((t) => t.name);
+  const prompt = buildFunFactPrompt(question, answer, loves);
 
   try {
     const funFactModel = modelFor('familyQuestions');

@@ -80,6 +80,7 @@ export const OnlyTheDay: Story = {
           span: { first: null, last: null },
           mentions: [],
           replies: [],
+          loves: [],
         },
         [],
       ),

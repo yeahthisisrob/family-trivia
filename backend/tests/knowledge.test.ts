@@ -1,5 +1,5 @@
 vi.mock('../services/s3', async () => (await import('./helpers/s3Mock')).s3MockModule);
-const ai = vi.hoisted(() => ({ reads: [] as string[][], personas: 0 }));
+const ai = vi.hoisted(() => ({ reads: [] as string[][], personas: 0, noted: [] as string[] }));
 vi.mock('../features/knowledge/ai', () => ({
   readAnswers: async (_name: string, said: { at: string; answer: string }[]) => {
     ai.reads.push(said.map((s) => s.answer));
@@ -10,6 +10,10 @@ vi.mock('../features/knowledge/ai', () => ({
       from: s.at,
     }));
   },
+  writeNotes: async (_n: string, loves: { kind: string; name: string }[]) => {
+    ai.noted.push(...loves.map((l) => l.name));
+    return loves.map((l) => ({ key: `${l.kind}:${l.name}`, text: `About ${l.name}.`, at: 'now' }));
+  },
   writePersona: async (_n: string, k: { items: unknown[] }) => {
     ai.personas++;
     return { text: 'Loves the water.', traits: ['outdoorsy'], at: 'now', items: k.items.length };
@@ -17,8 +21,9 @@ vi.mock('../features/knowledge/ai', () => ({
 }));
 
 import { bestStreak, familyThemes, normalizeName } from '@family-trivia/shared';
-import { buildSome, familyKnowledge } from '../features/knowledge/index';
+import { buildMine, buildSome, familyKnowledge } from '../features/knowledge/index';
 import { invalidateFactHistoryCache } from '../services/factHistoryService';
+import { readKnowledge } from '../services/knowledge';
 import { resetS3Mock, seedRaw } from './helpers/s3Mock';
 
 const answer = (date: string, text: string) => ({
@@ -37,6 +42,7 @@ beforeEach(() => {
   invalidateFactHistoryCache();
   ai.reads = [];
   ai.personas = 0;
+  ai.noted = [];
   seedRaw('family/family.json', {
     version: 2,
     name: 'The Example Family',
@@ -89,4 +95,24 @@ test('names, themes and streaks', () => {
     3,
   );
   expect(familyThemes([])).toEqual([]);
+});
+
+describe('filling itself in', () => {
+  test('after someone answers, only their new answers are read, and what they love gets a note once', async () => {
+    expect((await buildMine('alice')).read).toBe(2);
+    expect(ai.reads).toEqual([['the beach at sunrise', 'Italy']]);
+    const k = await readKnowledge('alice');
+    expect(k.notes?.map((n) => n.text).sort()).toEqual(['About beach.', 'About italy.']);
+
+    // Nothing new: nothing read, nothing noted again.
+    ai.noted = [];
+    expect((await buildMine('alice')).read).toBe(0);
+    expect(ai.noted).toEqual([]);
+  });
+
+  test('never for someone who opted out of AI mentions', async () => {
+    seedRaw('facts/answers/quiet.json', [answer('2026-01-01', 'my garden')]);
+    expect(await buildMine('quiet')).toEqual({ read: 0, persona: false });
+    expect(ai.reads).toEqual([]);
+  });
 });

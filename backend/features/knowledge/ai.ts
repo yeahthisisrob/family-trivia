@@ -1,8 +1,13 @@
 /** The two AI steps of the knowledge index: read answers, write a persona. */
 import {
   isKnowledgeKind,
+  isMediaTag,
+  itemKey,
   KNOWLEDGE_KINDS,
   type KnowledgeItem,
+  type KnowledgeNote,
+  type Love,
+  MEDIA_TAGS,
   type PersonKnowledge,
   topItems,
 } from '@family-trivia/shared';
@@ -18,7 +23,7 @@ export interface Said {
   answer: string;
 }
 
-async function ask(task: 'knowledge' | 'persona', prompt: string, maxTokens: number) {
+async function ask(task: 'knowledge' | 'persona' | 'notes', prompt: string, maxTokens: number) {
   const model = modelFor(task);
   const stream = await invokeBedrockPrompt(prompt, maxTokens, 0.2, { task }, model);
   return extractTextContent(await collectResponseBody(stream), model, task);
@@ -46,10 +51,11 @@ Kinds: ${KNOWLEDGE_KINDS.map((k) => `${k.id} (${k.label.toLowerCase()})`).join('
 
 ${said.map((s, i) => `[${i}] Q: ${s.question}\n    A: ${s.answer}`).join('\n')}
 
-Return only JSON: {"items": [{"kind": "...", "name": "...", "says": "...", "answer": 0, "about": "id, for a family member"}]}
+Return only JSON: {"items": [{"kind": "...", "name": "...", "says": "...", "answer": 0, "about": "id, for a family member", "tag": "for media only"}]}
 - name: short, plain, lower case, the thing itself ("the beach", "apple pie", "grandma's garden").
 - says: a few of their own words from the answer, at most 12, copied exactly.
 - answer: the [number] it came from.
+- tag (media only, when it's clear): ${MEDIA_TAGS.join(', ')}. A band or artist is "band".
 - Only what the answers actually say. Skip jokes with nothing in them, and skip answers that say nothing about them.`;
   const text = await ask('knowledge', prompt, 1500);
   const found = findJsonWithKey<{ items?: unknown[] }>(text, 'items');
@@ -69,6 +75,7 @@ Return only JSON: {"items": [{"kind": "...", "name": "...", "says": "...", "answ
       says: typeof r.says === 'string' ? r.says.trim().slice(0, 120) : '',
       from: source.at,
       ...(about ? { about } : {}),
+      ...(r.kind === 'media' && isMediaTag(r.tag) ? { tag: r.tag } : {}),
     });
   }
   return out;
@@ -105,4 +112,31 @@ Return only JSON: {"persona": "...", "traits": ["...", "..."]}
     ? found.value.traits.filter((t): t is string => typeof t === 'string').slice(0, 5)
     : [];
   return { text: persona, traits, at: new Date().toISOString(), items: k.items.length };
+}
+
+/**
+ * A short "did you know" for each of a few things they love: the band, the
+ * place, the dish. Only what's well known; anything unsure is left out.
+ */
+export async function writeNotes(name: string, loves: Love[]): Promise<KnowledgeNote[]> {
+  if (!loves.length) return [];
+  const prompt = `${name} loves these, in their own words. For each, write one short, surprising, true "did you know" fact about the thing itself (not about ${name}), the kind a friend would enjoy hearing.
+
+${loves.map((l, i) => `[${i}] ${l.kind}${l.tag ? ` (${l.tag})` : ''}: ${l.name}${l.says[0] ? `, they said "${l.says[0]}"` : ''}`).join('\n')}
+
+Return only JSON: {"notes": [{"n": 0, "text": "..."}]}
+- One or two sentences each, plain words, no emojis.
+- Only facts you are sure of and that are widely known. If you aren't sure what it is, or it's personal ("my mom's lasagna"), skip it.
+- Never invent dates, numbers or tour plans.`;
+  const text = await ask('notes', prompt, 700);
+  const found = findJsonWithKey<{ notes?: unknown[] }>(text, 'notes');
+  const at = new Date().toISOString();
+  const out: KnowledgeNote[] = [];
+  for (const raw of found?.value.notes ?? []) {
+    const r = raw as Record<string, unknown>;
+    const love = loves[Number(r.n)];
+    if (love && typeof r.text === 'string' && r.text.trim())
+      out.push({ key: itemKey(love.kind, love.name), text: r.text.trim().slice(0, 300), at });
+  }
+  return out;
 }

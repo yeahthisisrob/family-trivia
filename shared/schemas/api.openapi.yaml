@@ -4040,6 +4040,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/FamilyKnowledge"
 
+  /me/knowledge:
+    post:
+      summary: Read my newest answers into the knowledge index (the app calls it after an answer)
+      operationId: buildMyKnowledge
+      tags: [Knowledge]
+      responses:
+        "200":
+          description: How many answers were read, and whether the persona was rewritten
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [read, persona]
+                properties:
+                  read: { type: integer }
+                  persona: { type: boolean }
+
   /admin/knowledge/build:
     post:
       summary: Read the next batch of new answers into the index and refresh personas (admins). Call again while left > 0.
@@ -4882,7 +4899,7 @@ components:
 
     PersonStory:
       type: object
-      required: [personId, words, last, loved, trivia, span, mentions, replies]
+      required: [personId, words, last, loved, trivia, span, mentions, replies, loves]
       properties:
         personId:
           type: string
@@ -4901,6 +4918,9 @@ components:
                 type: string
               date:
                 type: string
+              fact:
+                type: string
+                description: The "did you know" that came back when they answered
         last:
           type: array
           items:
@@ -4947,6 +4967,23 @@ components:
               question: { type: string }
               answer: { type: string }
               date: { type: string }
+        loves:
+          type: array
+          description: What they love most, from the knowledge index, in their words, with a note
+          items:
+            type: object
+            required: [kind, name, count, says]
+            properties:
+              kind: { type: string }
+              name: { type: string }
+              count: { type: integer }
+              says:
+                type: array
+                items: { type: string }
+              tag:
+                type: string
+                enum: [band, song, show, movie, book, game, team]
+              note: { type: string }
         replies:
           type: array
           description: Comments the family left under their answers

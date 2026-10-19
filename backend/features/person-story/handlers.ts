@@ -7,6 +7,7 @@
 import {
   type HistoryEntry,
   LAST_WORDS,
+  lovesOf,
   type PersonStory,
   type StoryMention,
   type StoryWord,
@@ -26,6 +27,9 @@ const LOVED = 3;
 /** Most of what others said about someone to carry; the rest are on their pages. */
 const MENTIONS = 40;
 
+/** What the fun fact falls back to when the AI fails: not worth keeping. */
+const GENERIC_FACTS = new Set(["That's a neat answer!"]);
+
 /**
  * Someone's story. `others` are the people whose answers may mention them
  * (the family that can be seen); none of them, and there are no mentions.
@@ -34,13 +38,14 @@ export async function buildPersonStory(
   personId: string,
   others: string[] = [],
 ): Promise<PersonStory> {
-  const [facts, trivia, mentions] = await Promise.all([
+  const [facts, trivia, mentions, knowledge] = await Promise.all([
     getFactHistory(personId),
     getJson<HistoryEntry[]>(S3_PATHS.ANSWER_HISTORY(personId)).then((h) => h ?? []),
     mentionsOf(
       personId,
       others.filter((o) => o !== personId),
     ),
+    readKnowledge(personId),
   ]);
 
   const words: StoryWord[] = facts
@@ -52,6 +57,7 @@ export async function buildPersonStory(
       answer: f.answer.trim(),
       // When they said it: an old question answered late belongs to the day it was answered.
       date: f.timestamp.slice(0, 10),
+      ...(f.fact && !GENERIC_FACTS.has(f.fact) ? { fact: f.fact } : {}),
     }));
 
   const ids = words.map((w) => w.id);
@@ -95,6 +101,7 @@ export async function buildPersonStory(
     span: { first: days[0] ?? null, last: days.at(-1) ?? null },
     mentions,
     replies,
+    loves: lovesOf(knowledge),
   };
 }
 
