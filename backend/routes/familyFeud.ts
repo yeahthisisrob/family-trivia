@@ -6,6 +6,7 @@ import { playingPeople } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, MODELS, successResponse } from '../config';
 import { invokeBedrockPrompt } from '../services/bedrock/core/bedrockClient';
+import { circleFrame } from '../services/bedrock/core/frame';
 import {
   collectResponseBody,
   extractJsonFromResponse,
@@ -58,11 +59,13 @@ async function generateFeudQuestion(targetUserName: string): Promise<string> {
       ? previousQuestions.map((q, i) => `${i + 1}. "${q}"`).join('\n')
       : 'None yet';
 
-  const prompt = `Generate ONE fun personal trivia question for a family game called "Family Feud".
-The question is about ${targetUserName}. Other family members will try to guess their answer.
+  const frame = await circleFrame();
+  const prompt = `Generate ONE fun personal trivia question for a guessing game played by ${frame.audience}.
+The question is about ${targetUserName}. The other ${frame.members} will try to guess their answer.
 
 Requirements:
-- The question should be fun and something family members might be able to guess
+- The question should be fun and something the other ${frame.members} might be able to guess
+- ${frame.avoid}
 - It should have a SHORT answer (1-5 words), not a long story
 - It should NOT be too private or embarrassing
 - It should be interesting enough that people want to guess
@@ -148,7 +151,7 @@ async function generateChoicesFromAnswer(
   realAnswer: string,
   targetUserName: string,
 ): Promise<string[]> {
-  const genPrompt = `I need exactly 3 wrong answers for a Family Feud game.
+  const genPrompt = `I need exactly 3 wrong answers for a guessing game.
 
 Question asked to ${targetUserName}: "${question}"
 Their real answer: "${realAnswer}"
@@ -182,7 +185,7 @@ Return ONLY: {"wrong1": "...", "wrong2": "...", "wrong3": "..."}`;
 
       // Step 2: Validate with a different model
       const valModel = attempt < 2 ? MODELS.FAST : modelFor('feud');
-      const valPrompt = `A family trivia game asked: "${question}"
+      const valPrompt = `A trivia game asked: "${question}"
 The real answer is: "${realAnswer}"
 The proposed wrong choices are: "${wrongs[0]}", "${wrongs[1]}", "${wrongs[2]}"
 

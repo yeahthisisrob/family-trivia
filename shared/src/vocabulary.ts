@@ -84,3 +84,61 @@ export const relationWord = (relation: string, kind: CircleKind = 'family'): str
 /** What someone is to the viewer, as a line: "Your cousin", "In your crew". */
 export const yourRelation = (relation: string | null, kind: CircleKind = 'family'): string =>
   relation && relation !== 'family' ? `Your ${relation}` : WORDS[kind].inYours;
+
+// ── For the AI (docs/decisions/0023) ─────────────────────────────────────
+
+/** How every prompt names the people it writes for. One frame per kind; prompts never fork. */
+export interface AiFrame {
+  kind: CircleKind;
+  /** "a family", "a circle of close friends". */
+  audience: string;
+  /** One of them: "family member", "friend". */
+  member: string;
+  members: string;
+  /** The group as a whole, in a sentence: "the family", "the friends". */
+  group: string;
+  /** Possessive for "their own ...": "family", "friend group". */
+  own: string;
+  /** What to steer away from, beyond the usual. */
+  avoid: string;
+  /** Themes that belong to this kind of circle. */
+  themes: string;
+}
+
+const AI: Record<CircleKind, AiFrame> = {
+  family: {
+    kind: 'family',
+    audience: 'a family',
+    member: 'family member',
+    members: 'family members',
+    group: 'the family',
+    own: 'family',
+    avoid: 'Never say "our family".',
+    themes: 'family traditions, holidays, growing up, the people they come from',
+  },
+  friends: {
+    kind: 'friends',
+    audience: 'a circle of close friends',
+    member: 'friend',
+    members: 'friends',
+    group: 'the friends',
+    own: 'friend group',
+    avoid:
+      'They are friends, not family: no family framing (no parents, relatives, "our family" or family trees), and never "our group".',
+    themes:
+      'how they met, nights out and trips together, inside jokes, music and shows they share, where life has taken each of them',
+  },
+  mixed: {
+    kind: 'mixed',
+    audience: 'family and the close friends who are family to them',
+    member: 'person in the circle',
+    members: 'people in the circle',
+    group: 'everyone in the circle',
+    own: 'circle',
+    avoid:
+      'Some are family and some are friends: never assume anyone is related, and never say "our family".',
+    themes: 'traditions, shared memories, how they know each other, what each loves',
+  },
+};
+
+export const aiFrameFor = (kind: CircleKind = 'family'): AiFrame => AI[kind];

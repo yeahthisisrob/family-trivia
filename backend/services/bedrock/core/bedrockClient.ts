@@ -3,6 +3,7 @@
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 import { MODEL_ID, REGION } from '../../../config';
 import { logger } from '../../logger';
+import { framePrompt } from './frame';
 import { recordUsage, usageFromBody } from './usage';
 
 /**
@@ -131,13 +132,14 @@ function createRequestBody(
  * Sends a prompt to Bedrock and returns the raw response body stream
  */
 export async function invokeBedrockPrompt(
-  prompt: string,
+  unframed: string,
   maxTokens = 512,
   temperature = 0.7,
   context: Record<string, any> = {},
   overrideModelId?: string,
 ) {
   const activeModelId = overrideModelId || MODEL_ID;
+  const prompt = await framePrompt(unframed);
 
   logger.appendKeys({
     promptLength: prompt.length,

@@ -11,16 +11,21 @@
  *   own answers are never used: they'd know them.
  */
 import {
+  type AiFrame,
   FAMILY_CATEGORY,
   type FactAnswerEntry,
   type Family,
+  type Friendship,
   isRemembered,
+  MET_LABEL,
+  type MetHow,
   mentionableRelations,
   type Question,
   wordsIn,
 } from '@family-trivia/shared';
 import { invokeBedrockPrompt } from './bedrock/core/bedrockClient';
 import { POINT_MULTIPLIERS } from './bedrock/core/constants';
+import { circleFrame } from './bedrock/core/frame';
 import { modelFor } from './bedrock/core/models';
 import { collectResponseBody, extractJsonFromResponse } from './bedrock/core/responseParser';
 import type { DifficultyLevel } from './bedrock/core/types';
@@ -94,6 +99,46 @@ export function connectionQuestion(
       );
     }
   }
+  return friendQuestion(family, playerId, difficulty, rand);
+}
+
+/** "Who did Alice meet in college?", from how friends said they met (Threads, 0022). */
+function friendQuestion(
+  family: Family,
+  playerId: string,
+  difficulty: DifficultyLevel,
+  rand: () => number,
+): Question | null {
+  const ok = (id: string) => family.people[id] && !family.people[id].noAiMentions;
+  const met = family.ties.filter(
+    (t): t is Friendship => t.type === 'friend' && !!t.met?.how && ok(t.a) && ok(t.b),
+  );
+  for (const t of shuffle(met, rand)) {
+    const [subject, answer] = shuffle([t.a, t.b], rand);
+    if (subject === playerId) continue;
+    const how = t.met?.how as MetHow;
+    // Anyone else this person met the same way would also be right: leave them out.
+    const same = new Set(
+      met
+        .filter((x) => x.met?.how === how && (x.a === subject || x.b === subject))
+        .flatMap((x) => [x.a, x.b]),
+    );
+    const others = shuffle(
+      Object.values(family.people).filter((p) => ok(p.id) && !same.has(p.id)),
+      rand,
+    ).slice(0, 3);
+    if (others.length < 3) continue;
+    const name = (id: string) => family.people[id]?.name ?? id;
+    return finish(
+      {
+        question: `Who did ${name(subject)} meet ${MET_LABEL[how]}?`,
+        choices: shuffle([name(answer), ...others.map((o) => o.name)], rand),
+        answer: name(answer),
+        type: 'connection',
+      },
+      difficulty,
+    );
+  }
   return null;
 }
 
@@ -144,6 +189,7 @@ async function answerQuestion(
   sources: Source[],
   difficulty: DifficultyLevel,
   history: Question[],
+  frame: AiFrame,
 ): Promise<Question | null> {
   const names = Object.values(family.people)
     .filter((p) => !p.noAiMentions)
@@ -151,13 +197,14 @@ async function answerQuestion(
       (p) =>
         `${p.name}${isRemembered(p) ? ' (remembered; speak of them gently, in the past tense)' : ''}`,
     );
-  const prompt = `Write one multiple-choice trivia question for ${playerName} about their own family, using only these answers family members gave in the family app.
+  const prompt = `Write one multiple-choice trivia question for ${playerName} about their own ${frame.own}, ${frame.audience}, using only these answers ${frame.members} gave in the app.
 
 ${sources.map((s) => `[${s.n}] ${s.name} was asked "${s.question}" and said: "${s.answer}"`).join('\n')}
 
-Family members: ${names.join(', ')}
+${frame.members[0].toUpperCase()}${frame.members.slice(1)}: ${names.join(', ')}
 
-Good questions: "Who in the family said their happy place is the beach?" (choices are four family members' names), or "What did Grandma say she would miss the most?" (choices are four short answers, one of them what she said).
+Good questions: "Who said their happy place is the beach?" (choices are four of their names), or "What did ${names[0]?.split(' (')[0] ?? 'Sam'} say they would miss the most?" (choices are four short answers, one of them what was said).
+${frame.avoid}
 Difficulty: ${difficulty}.
 
 Return only JSON: {"question": "...", "choices": ["...", "...", "...", "..."], "answer": "...", "source": <the [number] it comes from>}
@@ -196,7 +243,11 @@ export async function familyQuestion(
   difficulty: DifficultyLevel,
   history: Question[],
 ): Promise<{ question: Question; calls: number } | null> {
-  const [{ visible: family }, histories] = await Promise.all([loadJoined(), getAllFactHistories()]);
+  const [{ visible: family }, histories, frame] = await Promise.all([
+    loadJoined(),
+    getAllFactHistories(),
+    circleFrame(),
+  ]);
   const connection = connectionQuestion(family, playerId, difficulty);
   if (connection && Math.random() < 0.25 && !isDuplicateQuestion(connection, history))
     return { question: connection, calls: 0 };
@@ -206,7 +257,9 @@ export async function familyQuestion(
     const playerName = family.people[playerId]?.name ?? 'the player';
     const tries = await Promise.all(
       [modelFor('trivia'), modelFor('factCheck')].map((m) =>
-        answerQuestion(m, family, playerName, sources, difficulty, history).catch(() => null),
+        answerQuestion(m, family, playerName, sources, difficulty, history, frame).catch(
+          () => null,
+        ),
       ),
     );
     const q = tries.find(Boolean);

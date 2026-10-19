@@ -33,3 +33,4 @@ when the decision is made, so the reason survives the people who made it.
 | [0020](0020-invites.md) | Invites: one link, a few choices, and passphrases are one of them | Accepted |
 | [0021](0021-one-tie-registry-and-circle-words.md) | One tie registry, and words per circle | Accepted |
 | [0022](0022-threads.md) | Threads: connections come from one tap a day | Accepted |
+| [0023](0023-one-ai-frame-per-circle.md) | One AI frame per kind of circle | Accepted |
