@@ -46,6 +46,7 @@ export type {
   SeasonsConfig,
 } from '@family-trivia/shared';
 
+import { currentCircleKind } from './circles';
 import { circleCache } from './scope';
 
 // ── In-memory cache (per Lambda invocation cold start) ───────────
@@ -285,5 +286,6 @@ export async function markLetterSeen(
 
 /** The categories the current season offers (shared/src/categories.ts categoriesFor). */
 export async function seasonCategories(system: SystemCategory[]): Promise<SystemCategory[]> {
-  return categoriesFor(system, seasonTriviaOf(await getCurrentSeason()));
+  const [season, kind] = await Promise.all([getCurrentSeason(), currentCircleKind()]);
+  return categoriesFor(system, seasonTriviaOf(season), kind);
 }

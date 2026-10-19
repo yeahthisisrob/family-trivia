@@ -92,6 +92,8 @@ describe('starting a circle', () => {
     expect(Object.keys(data.hierarchy.hierarchy.family.people)).toEqual(['alice']);
     expect(data.seasonStatus.isEndOfSeason).toBe(false);
     expect(data.categories.length).toBeGreaterThan(3);
+    // The circle's own category, named for friends.
+    expect(data.categories[0].name).toBe('Our Crew');
     // Nobody has played yet, so nobody is hidden from the circle.
     expect(await inCircle(scopeOf(crew), () => activatedIds())).toBeNull();
   });

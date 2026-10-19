@@ -195,7 +195,7 @@ Nobody has to draw the map. Once a day, Home asks one **Thread**: "How do you kn
 
 ![Threads: how do you know Bob? One tap](docs/screenshots/threads.png)
 
-Friendships sit in the same people model as family: who's friends with whom and how they met, when and where. The groups inside a circle are **crews**, the way a family has households, and every screen uses the circle's own words. The AI writes for whoever the circle is: friends get questions about the nights, trips and inside jokes they share, never about relatives, and trivia like "Who did Alice meet in college?" comes straight from the threads. Admins can fix anything in Admin › Family.
+Friendships sit in the same people model as family: who's friends with whom and how they met, when and where. The groups inside a circle are **crews**, the way a family has households, and every screen uses the circle's own words. The AI writes for whoever the circle is: friends get questions about the nights, trips and inside jokes they share, never about relatives, and trivia like "Who did Alice meet in college?" comes straight from the threads. New people start with five easy questions, one a day (a birthday to celebrate, where they live, what's on repeat), and the trivia about the circle itself is called Our Crew for friends, Our Family for a family. Admins can fix anything in Admin › Family.
 
 ![A friend's connections: how and when they met each friend](docs/screenshots/friend-ties.png)
 

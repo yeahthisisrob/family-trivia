@@ -2,14 +2,14 @@
 // Purpose: Step 3 — Fact-check the question using a secondary AI validation.
 
 import type { Step3Request, Step3Response } from '@family-trivia/shared';
-import { FAMILY_CATEGORY } from '@family-trivia/shared';
+import { CIRCLE_CATEGORY_NAMES } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
 import { factCheckQuestion } from '../../services/bedrock/questions/factChecker';
 import { logger } from '../../services/logger';
 
 // Our Family is checked against the family's own answers when written (services/familyTrivia).
-const SKIP_CATEGORIES = ['personal', 'group', 'Fun Facts & Oddities', FAMILY_CATEGORY.name];
+const SKIP_CATEGORIES = ['personal', 'group', 'Fun Facts & Oddities', ...CIRCLE_CATEGORY_NAMES];
 
 export async function step3FactCheck(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   try {
