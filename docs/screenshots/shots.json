@@ -136,7 +136,7 @@
       "story": "appshell-appheader--in-several-circles",
       "size": "phone",
       "height": 300,
-      "source": "a79725b7f809",
+      "source": "2c99f08a0d03",
       "storyFile": "frontend/src/components/AppShell/AppHeader.stories.tsx"
     }
   ]
