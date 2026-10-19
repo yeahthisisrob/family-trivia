@@ -153,7 +153,8 @@ export function useDailyFactFlow({
           missed.push({ question: sq.question, date: sq.date, daysAgo: diff });
         }
       }
-      missed.sort((a, b) => a.daysAgo - b.daysAgo);
+      // Oldest first: one queue that works back to now (docs/decisions/0016).
+      missed.sort((a, b) => b.daysAgo - a.daysAgo);
 
       const basics: CatchupItem[] = [];
       history.basicQuestions.forEach((q: string, i: number) => {

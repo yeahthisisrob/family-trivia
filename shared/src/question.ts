@@ -44,12 +44,19 @@ export interface QuestionWithProgress {
   retriesNeeded: number;
 }
 
-/** Represents a user's status regarding catchup questions */
+/**
+ * What's waiting for someone in the open season (docs/decisions/0016):
+ * trivia from days they didn't play, and past daily questions they haven't
+ * answered. Nothing expires while the season is open.
+ */
 export interface CatchupStatus {
+  /** Trivia waiting (one a day since their first play this season). */
   questionsBehind: number;
   userAnswerCount: number;
-  /** Total questions available in the season (= days in season) */
+  /** Trivia owed so far: answered plus waiting. */
   maxQuestionsAvailable: number;
+  /** Past daily questions this season they haven't answered. */
+  factsWaiting?: number;
 }
 
 /** Represents a user's question timing status */

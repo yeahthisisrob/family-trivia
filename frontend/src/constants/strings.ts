@@ -23,15 +23,10 @@ const strings = {
   createNewCategory: 'Create New Category',
   customTriviaCategory: 'Custom Trivia Category',
   yourCustomCategory: 'Your Custom Category',
-  catchUpMode: 'CATCH UP MODE',
-  catchUpBehind: (count: number, picks: number) => `You're ${count} behind → ${picks} picks/week`,
 
   // Question Status
   dailyLimitReached: "You have already answered today's question!",
   dailyQuestionComplete: "You've completed today's question!",
-  caughtUp: "You're all caught up!",
-  completedCatchUp:
-    "You've completed all your catch-up questions. Now you can answer today's question.",
   answerTodaysQuestion: "Answer Today's Question",
   todaysQuestionReady: "Today's question ready!",
   comeBackAfterMidnight: 'Come back after midnight for a new question.',
@@ -42,20 +37,6 @@ const strings = {
   lastQuestion: 'Last Question:',
   nextQuestionAvailable: 'Next question available:',
   questionReady: 'Question ready!',
-
-  // CatchUp Status
-  catchUpModeLabel: 'CATCH UP MODE',
-  catchUpWow: "Wow! You've got some catching up to do!",
-  catchUpFalling: "You're falling a bit behind in trivia questions.",
-  catchUpAlmost: "You're almost caught up with everyone!",
-  catchUpBehindCount: (count: number) =>
-    `You're ${count} question${count !== 1 ? 's' : ''} behind the most active member.`,
-  catchUpModeHelp: (count: number) =>
-    `Catch-up mode will help you answer ${count > 1 ? count - 1 : count} ${count - 1 !== 1 ? 'questions' : 'question'}, then allow you to answer today's question normally.`,
-  yourAnsweredCount: (count: number) => `You: ${count} answered`,
-  leaderAnsweredCount: (count: number) => `Available: ${count}`,
-  startCatchingUp: 'Start Catching Up',
-  skipForNow: 'Skip for Now',
 
   // Custom Category Form
   createYourCustomCategory: 'Create Your Custom Category',
@@ -109,7 +90,6 @@ const strings = {
     greatJob: '🎯 Great job! You got the right answer.',
     niceTry: "Nice try, but that wasn't right.",
     correctAnswerWas: 'The correct answer was:',
-    dayStreak: (streak: number) => `${streak} day streak`,
     points: (points: number) => `+${points} points`,
     nextQuestion: 'Next Question',
     done: 'Done',

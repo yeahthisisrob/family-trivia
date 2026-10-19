@@ -45,23 +45,23 @@ export const FreshUser: Story = {
   },
 };
 
-/** Catching up — banner at top shows count */
+/** What's waiting: the banner at the top says how many, oldest first */
 export const CatchingUp: Story = {
   args: { isCatchingUp: true, catchupBehind: 3 },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText(/Catching up — 3 questions remaining/)).toBeInTheDocument();
+    await expect(canvas.getByText(/3 waiting for you, oldest first/)).toBeInTheDocument();
     // Game modes still available during catch-up
     await expect(canvas.getByText('Special Challenges')).toBeInTheDocument();
   },
 };
 
-/** Catching up with 1 question left */
+/** One left waiting */
 export const CatchUpLastOne: Story = {
   args: { isCatchingUp: true, catchupBehind: 1 },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText(/1 question remaining/)).toBeInTheDocument();
+    await expect(canvas.getByText(/1 waiting for you/)).toBeInTheDocument();
   },
 };
 

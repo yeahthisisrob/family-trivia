@@ -492,30 +492,6 @@ const TimelineCard: React.FC<TimelineCardProps> = ({
           </Box>
 
           {/* Badges/chips */}
-          {entry.streak && entry.streak > 1 && (
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                mt: 1.5,
-                gap: 0.5,
-                flexWrap: 'wrap',
-              }}
-            >
-              <Chip
-                size="small"
-                label={`🔥 ${entry.streak} Day Streak`}
-                sx={{
-                  height: 24,
-                  fontSize: '0.7rem',
-                  bgcolor: alpha(theme.palette.warning.main, 0.12),
-                  color: theme.palette.warning.main,
-                  fontWeight: 600,
-                  px: 1,
-                }}
-              />
-            </Box>
-          )}
           {children}
         </Box>
       </Box>
@@ -533,7 +509,6 @@ const TimelineCard: React.FC<TimelineCardProps> = ({
         }}
         selected={entry.selectedAnswer}
         isCorrect={entry.correct}
-        streak={entry.streak}
         pointsEarned={entry.pointsEarned}
       />
     </>

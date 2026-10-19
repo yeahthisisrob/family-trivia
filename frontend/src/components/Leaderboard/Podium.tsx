@@ -1,5 +1,3 @@
-// File: frontend/src/components/Leaderboard/Podium.tsx
-import BoltIcon from '@mui/icons-material/Bolt';
 import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { motion } from 'framer-motion';
@@ -176,16 +174,6 @@ const PodiumStep: React.FC<{
                 >
                   {player.accuracy}%
                 </Typography>
-              )}
-              {player.streak != null && player.streak > 0 && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.15 }}>
-                  <BoltIcon sx={{ fontSize: 12, color: theme.palette.warning.main }} />
-                  <Typography
-                    sx={{ fontSize: '0.6rem', fontWeight: 700, color: theme.palette.warning.dark }}
-                  >
-                    {player.streak}
-                  </Typography>
-                </Box>
               )}
             </Box>
           </Box>

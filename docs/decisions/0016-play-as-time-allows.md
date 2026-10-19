@@ -38,6 +38,17 @@ off to the side. And a circle of friends won't play daily at all.
   changes the result.
 - **After a season ends**, the unscored fill-in carries on as before.
 
+## As built (Oct 19, 2026)
+- Waiting trivia counts from each person's own first play this season: every
+  day before today owes one question, whatever anyone else did, and a late
+  start owes nothing for the days before. It no longer measures against the
+  most active player.
+- Home shows one "Waiting for you" line (trivia and past questions), the
+  daily question's backlog runs oldest first, the leaderboard shows "still
+  to play", and streak counts are gone from results, timelines, leaderboards
+  and profiles.
+- Pace (daily or weekly) and reminders are still to come.
+
 ## Consequences
 The catch-up mode and its slot benchmark go away and become the queue.
 Scoring no longer depends on dates. Admins see who has joined, who has

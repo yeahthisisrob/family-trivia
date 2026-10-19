@@ -154,13 +154,8 @@ describe('checkPlayEligibility', () => {
 
   test('allows catchup when user has gaps from prior days', async () => {
     seedDefaultActiveSeason();
-    seedHistory('alice', []); // 0 slots
-    // Leader answered on 3 prior days — those are real gaps for alice
-    seedHistory('leader', [
-      regular({ timestamp: daysAgoTimestamp(3) }),
-      regular({ timestamp: daysAgoTimestamp(2) }),
-      regular({ timestamp: yesterdayTimestamp() }),
-    ]);
+    // First played 4 days ago, nothing since → owes 4 days, filled 1 → 3 gaps
+    seedHistory('alice', [regular({ timestamp: daysAgoTimestamp(4) })]);
 
     const result = await checkPlayEligibility('alice', 'catchup');
     expect(result.canPlay).toBe(true);
@@ -182,18 +177,32 @@ describe('checkPlayEligibility', () => {
 
   test('blocks catchup when user has zero gaps', async () => {
     seedDefaultActiveSeason();
-    seedHistory('alice', [regular({ timestamp: yesterdayTimestamp() })]);
-    seedHistory('leader', [regular({ timestamp: yesterdayTimestamp() })]);
+    seedHistory('alice', [regular({ timestamp: yesterdayTimestamp() })]); // owes 1, filled 1
 
     const result = await checkPlayEligibility('alice', 'catchup');
     expect(result.canPlay).toBe(false);
     expect((result as PlayEligibility & { reason?: string }).reason).toBe('no_catchup_available');
   });
 
+  test('someone who starts late owes nothing for the days before', async () => {
+    seedDefaultActiveSeason();
+    // Leader played every day for 10 days; alice's first play is today
+    seedHistory('leader', [
+      ...Array.from({ length: 10 }, (_, i) => regular({ timestamp: daysAgoTimestamp(i + 1) })),
+      regular(),
+    ]);
+    seedHistory('alice', [regular()]);
+
+    const result = await checkPlayEligibility('alice', 'catchup');
+    expect(result.canPlay).toBe(false);
+    expect(result.reason).toBe('no_catchup_available');
+    expect(result.catchupAvailable).toBe(0);
+  });
+
   test('catchup allowed even after daily play — user can catch up in one session', async () => {
     seedDefaultActiveSeason();
-    seedHistory('alice', [regular()]); // played daily today
-    seedHistory('leader', [regular({ timestamp: yesterdayTimestamp() }), regular()]); // 2 slots
+    // First played 2 days ago, then today's daily → 1 gap (yesterday)
+    seedHistory('alice', [regular({ timestamp: daysAgoTimestamp(2) }), regular()]);
 
     const result = await checkPlayEligibility('alice', 'catchup');
     expect(result.canPlay).toBe(true);
@@ -211,8 +220,7 @@ describe('checkPlayEligibility', () => {
 
   test('blocks catchup when season has ended even if gaps exist', async () => {
     seedEndedSeason();
-    seedHistory('alice', []);
-    seedHistory('leader', [regular({ timestamp: yesterdayTimestamp() })]);
+    seedHistory('alice', [regular({ timestamp: daysAgoTimestamp(2) })]);
 
     const result = await checkPlayEligibility('alice', 'catchup');
     expect(result.canPlay).toBe(false);
@@ -222,7 +230,6 @@ describe('checkPlayEligibility', () => {
   test('catch-up does NOT count toward daily limit — regular still allowed after catch-up', async () => {
     seedDefaultActiveSeason();
     seedHistory('alice', [catchupAnswer()]); // catch-up today
-    seedHistory('leader', [regular(), regular()]);
 
     const result = await checkPlayEligibility('alice', 'regular');
     expect(result.canPlay).toBe(true);
@@ -254,8 +261,7 @@ describe('checkPlayEligibility', () => {
 describe('a season without trivia', () => {
   test('blocks the daily question and catch-up, and says why', async () => {
     seedDefaultActiveSeason('off');
-    seedHistory('alice', []);
-    seedHistory('leader', [regular({ timestamp: yesterdayTimestamp() })]);
+    seedHistory('alice', [regular({ timestamp: daysAgoTimestamp(2) })]);
 
     for (const mode of ['regular', 'catchup', 'slot-machine'] as const) {
       const result = await checkPlayEligibility('alice', mode);
@@ -332,9 +338,8 @@ describe('submitAnswer route', () => {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   test('BUG: rejects catchup submit when user has zero gaps', async () => {
     seedDefaultActiveSeason();
-    // Alice already answered today; leader has same count → no gaps
+    // Alice's first play is today → nothing owed, no gaps
     seedHistory('alice', [regular()]);
-    seedHistory('leader', [regular()]);
 
     const resp = parseResponse(
       await submitAnswer(
@@ -356,8 +361,7 @@ describe('submitAnswer route', () => {
 
   test('accepts catchup submit when user has gaps', async () => {
     seedDefaultActiveSeason();
-    seedHistory('alice', []);
-    seedHistory('leader', [regular({ timestamp: yesterdayTimestamp() }), regular()]);
+    seedHistory('alice', [regular({ timestamp: daysAgoTimestamp(2) })]); // 1 gap (yesterday)
 
     const resp = parseResponse(
       await submitAnswer(
@@ -372,8 +376,8 @@ describe('submitAnswer route', () => {
     );
 
     expect(resp.statusCode).toBe(200);
-    expect(getHistory('alice')).toHaveLength(1);
-    expect(getHistory('alice')[0].isCatchingUp).toBe(true);
+    expect(getHistory('alice')).toHaveLength(2);
+    expect(getHistory('alice')[1].isCatchingUp).toBe(true);
   });
 
   test('rejects regular answer when season ended', async () => {
@@ -397,8 +401,7 @@ describe('submitAnswer route', () => {
 
   test('blocks catchup answer when season ended', async () => {
     seedEndedSeason();
-    seedHistory('alice', []);
-    seedHistory('leader', [regular({ timestamp: yesterdayTimestamp() })]);
+    seedHistory('alice', [regular({ timestamp: daysAgoTimestamp(2) })]);
 
     const resp = parseResponse(
       await submitAnswer(
@@ -417,11 +420,7 @@ describe('submitAnswer route', () => {
 
   test('2 catchup gaps → answers 2 catchups → 3rd catchup rejected (no gaps left)', async () => {
     seedDefaultActiveSeason();
-    seedHistory('alice', []);
-    seedHistory('leader', [
-      regular({ timestamp: yesterdayTimestamp() }),
-      regular({ timestamp: yesterdayTimestamp() }),
-    ]);
+    seedHistory('alice', [regular({ timestamp: daysAgoTimestamp(3) })]); // owes 3, filled 1 → 2 gaps
 
     // 1st catchup
     invalidatePlayerStateCache();
@@ -467,13 +466,12 @@ describe('submitAnswer route', () => {
       ),
     );
     expect(resp.statusCode).toBe(403);
-    expect(getHistory('alice')).toHaveLength(2);
+    expect(getHistory('alice')).toHaveLength(3);
   });
 
   test('catch-up + daily in one session — both accepted', async () => {
     seedDefaultActiveSeason();
-    seedHistory('alice', []);
-    seedHistory('leader', [regular({ timestamp: yesterdayTimestamp() })]);
+    seedHistory('alice', [regular({ timestamp: daysAgoTimestamp(2) })]); // 1 gap (yesterday)
 
     // Catchup first
     invalidatePlayerStateCache();
@@ -504,7 +502,7 @@ describe('submitAnswer route', () => {
       ),
     );
     expect(resp.statusCode).toBe(200);
-    expect(getHistory('alice')).toHaveLength(2);
+    expect(getHistory('alice')).toHaveLength(3);
   });
 
   test('played Casino Rush today → regular answer blocked (daily limit)', async () => {
@@ -533,21 +531,15 @@ describe('submitAnswer route', () => {
     // This verifies the rule: Casino Rush session (3 sub-questions) = 1 slot.
     // If a user plays CR, their catchupBehind should go down by 1, not 3.
     seedDefaultActiveSeason();
-    // Leader: 3 regular answers
-    seedHistory('leader', [
-      regular({ timestamp: yesterdayTimestamp() }),
-      regular({ timestamp: yesterdayTimestamp() }),
-      regular({ timestamp: yesterdayTimestamp() }),
-    ]);
-    // Alice: 1 casino rush session (3 entries, same sessionId) = 1 slot
+    // Alice: 1 casino rush session 3 days ago (3 entries, same sessionId) = 1 slot
     seedHistory('alice', [
-      casinoRushEntry('cr_1', { timestamp: yesterdayTimestamp() }),
-      casinoRushEntry('cr_1', { timestamp: yesterdayTimestamp() }),
-      casinoRushEntry('cr_1', { timestamp: yesterdayTimestamp() }),
+      casinoRushEntry('cr_1', { timestamp: daysAgoTimestamp(3) }),
+      casinoRushEntry('cr_1', { timestamp: daysAgoTimestamp(3) }),
+      casinoRushEntry('cr_1', { timestamp: daysAgoTimestamp(3) }),
     ]);
 
     const result = await checkPlayEligibility('alice', 'catchup');
-    // Alice has 1 slot (the CR session), leader has 3, so Alice is 2 behind
+    // Owes 3 days, filled 1 slot (the CR session), so Alice is 2 behind
     expect(result.canPlay).toBe(true);
     expect(result.catchupAvailable).toBe(2);
   });
@@ -557,17 +549,13 @@ describe('submitAnswer route', () => {
     // This documents the contract — the writer MUST set casinoSessionId.
     seedDefaultActiveSeason();
     seedHistory('alice', [
-      casinoRushEntry('cr_1', { timestamp: yesterdayTimestamp() }),
-      casinoRushEntry('cr_1', { timestamp: yesterdayTimestamp() }),
-      casinoRushEntry('cr_1', { timestamp: yesterdayTimestamp() }),
-    ]);
-    seedHistory('leader', [
-      regular({ timestamp: yesterdayTimestamp() }),
-      regular({ timestamp: yesterdayTimestamp() }),
+      casinoRushEntry('cr_1', { timestamp: daysAgoTimestamp(2) }),
+      casinoRushEntry('cr_1', { timestamp: daysAgoTimestamp(2) }),
+      casinoRushEntry('cr_1', { timestamp: daysAgoTimestamp(2) }),
     ]);
 
     const result = await checkPlayEligibility('alice', 'catchup');
-    // 1 CR session = 1 slot. Leader has 2. So alice is 1 behind.
+    // 1 CR session = 1 slot. Owes 2 days. So alice is 1 behind.
     expect(result.catchupAvailable).toBe(1);
   });
 
@@ -592,18 +580,13 @@ describe('submitAnswer route', () => {
   });
 
   // ── THE SCENARIO: full catch-up session + daily ────────────────
-  // User is 3 behind, answers all 3 catch-up + today's daily = 4 questions.
+  // User is 3 behind, answers all 3 catch-up + today's daily = 4 more questions.
   // After that, ALL modes should be blocked (daily used, no gaps left).
 
   test('full catch-up session + daily → everything blocked after', async () => {
     seedDefaultActiveSeason();
-    seedHistory('alice', []);
-    seedHistory('leader', [
-      regular({ timestamp: daysAgoTimestamp(3) }),
-      regular({ timestamp: daysAgoTimestamp(2) }),
-      regular({ timestamp: yesterdayTimestamp() }),
-      regular(), // today
-    ]); // leader has 4 slots, alice has 0 → 4 gaps
+    // First played 4 days ago, nothing since → owes 4, filled 1 → 3 gaps
+    seedHistory('alice', [regular({ timestamp: daysAgoTimestamp(4) })]);
 
     // 3 catch-up answers (one per "missed day")
     for (let i = 0; i < 3; i++) {
@@ -636,7 +619,7 @@ describe('submitAnswer route', () => {
       ),
     );
     expect(resp.statusCode).toBe(200);
-    expect(getHistory('alice')).toHaveLength(4);
+    expect(getHistory('alice')).toHaveLength(5);
 
     // Now EVERYTHING should be blocked
     invalidatePlayerStateCache();
@@ -659,11 +642,7 @@ describe('submitAnswer route', () => {
 
   test('daily first, then catch-up → both allowed, then blocked', async () => {
     seedDefaultActiveSeason();
-    seedHistory('alice', []);
-    seedHistory('leader', [
-      regular({ timestamp: yesterdayTimestamp() }),
-      regular(), // today
-    ]); // 2 slots, alice has 0 → 2 gaps
+    seedHistory('alice', [regular({ timestamp: daysAgoTimestamp(2) })]); // 1 gap (yesterday)
 
     // Daily first
     invalidatePlayerStateCache();
@@ -680,7 +659,7 @@ describe('submitAnswer route', () => {
     );
     expect(resp.statusCode).toBe(200);
 
-    // Catch-up (1 gap remaining)
+    // Catch-up (today's daily doesn't fill the gap)
     invalidatePlayerStateCache();
     resp = parseResponse(
       await submitAnswer(

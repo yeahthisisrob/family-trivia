@@ -22,7 +22,6 @@ const meta: Meta<typeof AnswerResultDialog> = {
     question: sampleQuestion,
     selected: 'Saturn',
     isCorrect: true,
-    streak: 5,
     pointsEarned: 10,
     userId: 'alice',
     answerTimestamp: '2026-04-10T14:30:00.000Z',
@@ -41,13 +40,9 @@ type Story = StoryObj<typeof AnswerResultDialog>;
 export const Correct: Story = {};
 
 export const Incorrect: Story = {
-  args: { selected: 'Jupiter', isCorrect: false, pointsEarned: 0, streak: 0 },
+  args: { selected: 'Jupiter', isCorrect: false, pointsEarned: 0 },
 };
 
 export const CatchingUp: Story = {
   args: { isCatchingUp: true },
-};
-
-export const NoStreak: Story = {
-  args: { streak: 0 },
 };

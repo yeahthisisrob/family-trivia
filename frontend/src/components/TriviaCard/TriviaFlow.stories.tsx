@@ -103,7 +103,7 @@ export const DoneWrong: Story = {
   },
 };
 
-/** Catching up — user has 3 questions behind */
+/** Three waiting from days they didn't play */
 export const CatchingUp: Story = {
   parameters: {
     userStatus: {
@@ -114,7 +114,7 @@ export const CatchingUp: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(await canvas.findByText(/3 questions remaining/)).toBeInTheDocument();
+    await expect(await canvas.findByText(/3 waiting for you/)).toBeInTheDocument();
   },
 };
 
