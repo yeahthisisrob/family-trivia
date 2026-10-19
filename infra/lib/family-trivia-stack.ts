@@ -315,6 +315,14 @@ export class FamilyTriviaStack extends Stack {
     // ── Custom domain (from cdk.config.json) ──────────────────────
     const certificate = acm.Certificate.fromCertificateArn(this, 'SiteCert', config.certificateArn);
 
+    // Any path without a file extension is a route in the app: serve index.html.
+    const spaRoutes = new cloudfront.Function(this, 'SpaRoutes', {
+      runtime: cloudfront.FunctionRuntime.JS_2_0,
+      code: cloudfront.FunctionCode.fromInline(
+        "function handler(event){var r=event.request;if(r.uri.indexOf('.')===-1){r.uri='/index.html';}return r;}",
+      ),
+    });
+
     const distribution = new cloudfront.Distribution(this, 'SiteDistribution', {
       domainNames: [config.customDomain],
       certificate,
@@ -323,6 +331,10 @@ export class FamilyTriviaStack extends Stack {
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
         responseHeadersPolicy: securityHeaders,
+        // App routes (/join, /profile/x…) load the app; files load as they are.
+        functionAssociations: [
+          { function: spaRoutes, eventType: cloudfront.FunctionEventType.VIEWER_REQUEST },
+        ],
       },
       // API behavior — /api/* routes to API Gateway
       // Custom cache policy: no caching but forwards Authorization + query strings.
@@ -337,7 +349,8 @@ export class FamilyTriviaStack extends Stack {
             defaultTtl: Duration.seconds(0),
             maxTtl: Duration.seconds(1),
             minTtl: Duration.seconds(0),
-            headerBehavior: cloudfront.CacheHeaderBehavior.allowList('Authorization'),
+            // The circle is part of the key: one sign-in, a different circle, a different answer.
+            headerBehavior: cloudfront.CacheHeaderBehavior.allowList('Authorization', 'X-Circle'),
             queryStringBehavior: cloudfront.CacheQueryStringBehavior.all(),
             cookieBehavior: cloudfront.CacheCookieBehavior.none(),
           }),
@@ -347,10 +360,9 @@ export class FamilyTriviaStack extends Stack {
       defaultRootObject: 'index.html',
       minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
       webAclId: waf.attrArn,
-      errorResponses: [
-        { httpStatus: 403, responseHttpStatus: 200, responsePagePath: '/index.html' },
-        { httpStatus: 404, responseHttpStatus: 200, responsePagePath: '/index.html' },
-      ],
+      // No errorResponses: they apply to every behavior, so the API's own 403s
+      // and 404s ("not in this circle", "invite not found") reached the app as
+      // index.html with a 200. The app's routes are handled by spaRoutes above.
     });
     const siteUrl = distribution.distributionDomainName;
 
