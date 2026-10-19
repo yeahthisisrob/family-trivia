@@ -8,7 +8,8 @@ import type { AvatarChoice } from '@family-trivia/shared';
 import { Avatar } from '@mui/material';
 import type React from 'react';
 import { colors, identityColor, usePaper } from '../../../shared/design-system';
-import { useAvatarUri } from '../model/avatars';
+import { useAvatarLook } from '../model/avatars';
+import { lookSx } from './lookSx';
 
 /** What the family calls someone before their name; never an initial. */
 const TITLES =
@@ -37,27 +38,31 @@ export const Face: React.FC<{
   avatar?: AvatarChoice | null;
 }> = ({ id, name, size = 48, photo, remembered, dim, ring, avatar }) => {
   const paper = usePaper();
-  const chosen = useAvatarUri(id, avatar);
-  const src = photo ?? chosen;
+  const chosen = useAvatarLook(id, avatar);
+  const look = photo ? undefined : chosen;
+  const src = photo ?? look?.src;
   return (
     <Avatar
       src={src}
       alt=""
-      sx={{
-        width: size,
-        height: size,
-        fontSize: size / 3.1,
-        fontWeight: 700,
-        bgcolor: remembered ? paper.paper : src && !photo ? 'transparent' : identityColor(id),
-        color: remembered ? paper.ink : colors.onColor,
-        border: remembered
-          ? `2px solid ${colors.medal.gold}`
-          : ring
-            ? `3px solid ${colors.onColor}`
-            : 'none',
-        fontFamily: remembered ? paper.serif : undefined,
-        opacity: dim ? 0.6 : 1,
-      }}
+      sx={[
+        {
+          width: size,
+          height: size,
+          fontSize: size / 3.1,
+          fontWeight: 700,
+          bgcolor: remembered ? paper.paper : identityColor(id),
+          color: remembered ? paper.ink : colors.onColor,
+          border: remembered
+            ? `2px solid ${colors.medal.gold}`
+            : ring
+              ? `3px solid ${colors.onColor}`
+              : 'none',
+          fontFamily: remembered ? paper.serif : undefined,
+          opacity: dim ? 0.6 : 1,
+        },
+        ...(look ? [lookSx(look)] : []),
+      ]}
     >
       {initials(name)}
     </Avatar>

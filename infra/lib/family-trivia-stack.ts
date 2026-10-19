@@ -166,6 +166,14 @@ export class FamilyTriviaStack extends Stack {
         ],
       }),
     );
+    // Pictures made for people (docs/decisions/0024): one image model, invoked only.
+    apiLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['bedrock:InvokeModel'],
+        resources: ['arn:aws:bedrock:us-west-2::foundation-model/stability.stable-image-core-*'],
+      }),
+    );
 
     // ── API Gateway (HTTP API — lower latency, lower cost than REST API) ──
     // No CORS config needed — API is same-origin via CloudFront.

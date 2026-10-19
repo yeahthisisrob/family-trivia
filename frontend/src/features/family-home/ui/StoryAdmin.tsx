@@ -1,5 +1,5 @@
 /**
- * Admin › Family: the family's story as it reads on the Family tab, and a
+ * Admin › Family: the family's story as it reads on Us, and a
  * button to write it again from everyone's latest answers.
  */
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
@@ -44,8 +44,8 @@ export const StoryAdmin: React.FC = () => {
         </Button>
       </Stack>
       <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5 }}>
-        A few paragraphs at the top of the Family tab, written from everyone's answers. It leaves
-        out anyone who asked not to be named, and never mentions former partners.
+        A few paragraphs at the top of Us, written from everyone's answers. It leaves out anyone who
+        asked not to be named, and never mentions former partners.
         {story?.generatedAt && ` Last written ${new Date(story.generatedAt).toLocaleDateString()}.`}
       </Typography>
       {problem && (

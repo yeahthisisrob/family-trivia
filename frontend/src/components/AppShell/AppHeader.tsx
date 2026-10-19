@@ -33,7 +33,7 @@ interface AppHeaderProps {
 const NAV_ITEMS = [
   { label: 'Home', icon: HomeRoundedIcon, path: ROUTES.HOME },
   { label: 'Trivia', icon: QuizIcon, path: ROUTES.PLAY },
-  { label: 'Family', icon: Diversity3Icon, path: ROUTES.FAMILY },
+  { label: 'Us', icon: Diversity3Icon, path: ROUTES.FAMILY },
   { label: 'Arcade', icon: SportsEsportsIcon, path: ROUTES.ARCADE },
 ];
 

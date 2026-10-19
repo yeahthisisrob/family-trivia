@@ -13,6 +13,7 @@
       "**",
       "!**/generated/api-types.ts",
       "!**/public/mockServiceWorker.js",
+      "!**/public/avatars",
       "!**/storybook-static",
       "!**/cdk.out"
     ]

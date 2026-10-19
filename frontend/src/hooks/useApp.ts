@@ -21,7 +21,8 @@ export const ROUTES = {
   HOME: '/',
   PLAY: '/play',
   LEADERBOARD: '/leaderboard',
-  FAMILY: '/family',
+  /** Us: the circle's people, story and map (once called Family). */
+  FAMILY: '/us',
   ARCADE: '/arcade',
   PHOTOS: '/photos',
   ADMIN: '/admin',
@@ -40,9 +41,10 @@ export function useApp({ onUserChange, onAuthChange }: UseAppOptions) {
   const debugPromptFromUrl =
     isDebug && new URLSearchParams(window.location.search).get('debug-prompt') === 'true';
 
-  // Old links to the Photos tab land on Family, where albums live now.
+  // Old links (the Photos tab, the Family tab) land on Us, where all of that lives now.
   useEffect(() => {
-    if (location.pathname === ROUTES.PHOTOS) navigate(ROUTES.FAMILY, { replace: true });
+    if (location.pathname === ROUTES.PHOTOS || location.pathname === '/family')
+      navigate(ROUTES.FAMILY, { replace: true });
   }, [location.pathname, navigate]);
 
   // Derive profileUser from URL

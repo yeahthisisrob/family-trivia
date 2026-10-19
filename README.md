@@ -59,7 +59,7 @@ Each game mode can be played once a week and multiplies that day's trivia score.
 
 ### Everyone's story, told by the family
 
-The Family tab opens on who the family is, in the family's own numbers and words, written by the AI from the answers and edited by an admin. A spotlight introduces one person a day (or roasts them, gently). Everyone has a profile that reads as a story: what they've said lately, what the family has said about them, and the questions still waiting for them, which they can fill in flash-card style.
+**Us** (the tab, in every circle) opens on who you are together, in your own numbers and words, written by the AI from the answers and edited by an admin. A spotlight introduces one person a day (or roasts them, gently). Everyone has a profile that reads as a story: what they've said lately, what the family has said about them, and the questions still waiting for them, which they can fill in flash-card style.
 
 |  |  |
 |---|---|
@@ -219,9 +219,9 @@ Your profile starts with what you love, gathered from your own answers as you pl
 
 ## Your picture
 
-Everyone starts with their initials. Tap your face on your profile to pick a picture instead: six drawn styles, nine to choose from in each (as many more as you like), then your skin tone. They're drawn right on your phone, so nothing is uploaded, and your pick shows everywhere in the circle at once.
+Everyone starts with their initials. Tap your face on your profile and the AI makes a picture just for you, an animal or a thing that fits what you love; say a few words to steer it ("a fox with headphones") or make another. Or pick one of 58 animals and its color. Your pick shows everywhere in the circle at once.
 
-![Your picture: a style, then one of nine](docs/screenshots/avatar-picker.png)
+![Your picture: one made for you, or an animal and its color](docs/screenshots/avatar-picker.png)
 
 ## Configuration
 

@@ -1867,7 +1867,7 @@ paths:
 
   /me/avatar:
     put:
-      summary: Choose your picture from the shared library, or null for initials
+      summary: Choose your picture (one made for you, or an animal), or null for initials
       operationId: putMyAvatar
       tags: [Avatar]
       requestBody:
@@ -1890,6 +1890,34 @@ paths:
           description: Not one of the library's pictures
         "404":
           description: Not in this circle's people yet
+
+  /me/avatar/make:
+    post:
+      summary: Make a picture for me with AI, from what I love or a few words (a few a day); not used until chosen
+      operationId: makeMyPicture
+      tags: [Avatar]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hint: { type: string, maxLength: 160 }
+      responses:
+        "200":
+          description: The picture, a short-lived link to it, and how many more today
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [key, url, left]
+                properties:
+                  key: { type: string }
+                  url: { type: string }
+                  left: { type: integer }
+        "429": { description: That's today's pictures }
+        "502": { description: The picture didn't come out }
 
   /plans:
     get:
@@ -4409,21 +4437,19 @@ components:
         howWeMet:
           type: string
     AvatarChoice:
-      type: object
-      required: [library, style, seed]
-      properties:
-        library:
-          type: string
-          enum: [dicebear]
-        style:
-          type: string
-          enum: [micah, toon-head, avataaars, big-smile, personas, fun-emoji]
-        seed:
-          type: string
-          maxLength: 64
-        tone:
-          type: string
-          enum: [light, medium, tan, brown, dark]
+      description: A picture the AI made for this person (key in their media), or a bundled animal on a color
+      oneOf:
+        - type: object
+          required: [library, key]
+          properties:
+            library: { type: string, enum: [ai] }
+            key: { type: string, description: "media/avatars/{userId}/{uuid}.webp" }
+        - type: object
+          required: [library, animal, color]
+          properties:
+            library: { type: string, enum: [animal] }
+            animal: { type: string }
+            color: { type: string, enum: [sky, lilac, periwinkle, blush, peach, mint] }
 
     Drop:
       type: object

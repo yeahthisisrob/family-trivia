@@ -1,6 +1,7 @@
 import { requireAuth } from '../../middleware/requireAuth';
-import { putMyAvatar } from './handlers';
+import { postMakePicture, putMyAvatar } from './handlers';
 
 export const avatarRoutes = {
   'PUT /me/avatar': requireAuth(putMyAvatar),
+  'POST /me/avatar/make': requireAuth(postMakePicture),
 };

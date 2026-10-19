@@ -317,7 +317,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
               // Route to the tab that owns the content being discussed.
               // album_added notifications are also 'album' contentType.
               if (item.contentType === 'album') {
-                navigateTo(ROUTES.FAMILY); // albums live on the Family tab
+                navigateTo(ROUTES.FAMILY); // albums live on Us
                 return;
               }
               if (item.contentType === 'arcade') {

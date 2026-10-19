@@ -863,9 +863,26 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Choose your picture from the shared library, or null for initials */
+        /** Choose your picture (one made for you, or an animal), or null for initials */
         put: operations["putMyAvatar"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/avatar/make": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make a picture for me with AI, from what I love or a few words (a few a day); not used until chosen */
+        post: operations["makeMyPicture"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2268,14 +2285,18 @@ export interface components {
             name: string;
             howWeMet?: string;
         };
+        /** @description A picture the AI made for this person (key in their media), or a bundled animal on a color */
         AvatarChoice: {
             /** @enum {string} */
-            library: "dicebear";
+            library: "ai";
+            /** @description media/avatars/{userId}/{uuid}.webp */
+            key: string;
+        } | {
             /** @enum {string} */
-            style: "micah" | "toon-head" | "avataaars" | "big-smile" | "personas" | "fun-emoji";
-            seed: string;
+            library: "animal";
+            animal: string;
             /** @enum {string} */
-            tone?: "light" | "medium" | "tan" | "brown" | "dark";
+            color: "sky" | "lilac" | "periwinkle" | "blush" | "peach" | "mint";
         };
         Drop: {
             id: string;
@@ -4874,6 +4895,50 @@ export interface operations {
             };
             /** @description Not in this circle's people yet */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    makeMyPicture: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    hint?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The picture, a short-lived link to it, and how many more today */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        key: string;
+                        url: string;
+                        left: number;
+                    };
+                };
+            };
+            /** @description That's today's pictures */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The picture didn't come out */
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };

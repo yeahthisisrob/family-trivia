@@ -20,13 +20,6 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@dicebear/avataaars": "9.4.2",
-    "@dicebear/big-smile": "9.4.2",
-    "@dicebear/core": "9.4.2",
-    "@dicebear/fun-emoji": "9.4.2",
-    "@dicebear/micah": "9.4.2",
-    "@dicebear/personas": "9.4.2",
-    "@dicebear/toon-head": "9.4.2",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@family-trivia/shared": "workspace:*",
