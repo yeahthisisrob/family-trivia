@@ -177,6 +177,13 @@
       "selector": ".MuiDialog-paper",
       "storyFile": "frontend/src/features/avatar-picker/ui/AvatarPicker.stories.tsx",
       "source": "ca6a4abbf05c"
+    },
+    {
+      "file": "plans.png",
+      "story": "home-planscard--the-weeks-ahead",
+      "size": "phone",
+      "storyFile": "frontend/src/features/plans/ui/PlansCard.stories.tsx",
+      "source": "7be8f1dcdf18"
     }
   ]
 }

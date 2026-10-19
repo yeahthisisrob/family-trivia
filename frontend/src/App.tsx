@@ -17,6 +17,7 @@ import { appearanceApi } from './entities/appearance';
 import { useFeatures } from './entities/settings';
 import { UpcomingDates } from './features/celebrations';
 import { DailyMemory } from './features/daily-memory';
+import { PlansCard } from './features/plans';
 import { ThreadCard } from './features/threads';
 import { ROUTES, useApp } from './hooks/useApp';
 import { colors, tint, useAppearance } from './shared/design-system';
@@ -179,6 +180,12 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
         me={user}
         nameOf={(id) => familyData.members.find((m) => m.userId === id)?.name ?? id}
         onOpenPerson={navigateToProfile}
+      />
+
+      {/* What's on: plans keep running between seasons (docs/decisions/0026) */}
+      <PlansCard
+        me={user}
+        nameOf={(id) => familyData.members.find((m) => m.userId === id)?.name ?? id}
       />
 
       <StatusGridToggle userId={user} />
