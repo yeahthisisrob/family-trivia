@@ -56,7 +56,6 @@ interface FamilyDataContextType {
   seasonStatus: EndOfSeasonStatus | null;
   loadingSeasonStatus: boolean;
   appInitComplete: boolean;
-  isFirstRun: boolean;
 
   // Init data for other contexts to consume (loaded in single /app-init call)
   initTimelineData: InitTimelineData | null;
@@ -124,7 +123,6 @@ export const FamilyDataProvider: React.FC<{
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [appInitLoading, setAppInitLoading] = useState(true);
   const [appInitComplete, setAppInitComplete] = useState(false);
-  const [isFirstRun, setIsFirstRun] = useState(false);
   const [hierarchyData, setHierarchyData] = useState<ApiFamilyHierarchy | null>(null);
   const [groupDescriptions, setGroupDescriptions] = useState<Record<string, GroupDescription>>({});
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -215,11 +213,6 @@ export const FamilyDataProvider: React.FC<{
             isBetweenSeasons: initData.seasonStatus.isBetweenSeasons,
           });
         }
-        // --- First run detection ---
-        if (initData.isFirstRun) {
-          setIsFirstRun(true);
-        }
-
         // --- User config ---
         const userConfig = initData.userConfig || null;
         if (userConfig) {
@@ -440,7 +433,6 @@ export const FamilyDataProvider: React.FC<{
     seasonStatus,
     loadingSeasonStatus: appInitLoading,
     appInitComplete,
-    isFirstRun,
     initTimelineData,
     initCatchupStatus,
     initQuestionAvailability,

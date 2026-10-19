@@ -147,33 +147,14 @@ cp frontend/public/config.example.json frontend/public/config.local.json
 # 3. Deploy (runs every check, builds, then deploys)
 just deploy
 
-# 4. Bootstrap the first admin (one-time, see "Bootstrap your admin" below).
-#    Then open the CloudFront URL CDK printed and sign in with Google
-#    + your passphrase. The first-run wizard walks you through creating
-#    your family, adding members, and starting a season.
+# 4. Open the CloudFront URL CDK printed and sign in with Google. On a new
+#    deployment the first sign-in starts your circle: name it, pick who
+#    it's for and how it looks, and you're its owner with Season 1 running.
 ```
 
-## Bootstrap your admin
+## Your first circle
 
-CDK provisions the infrastructure but does not seed any users. After your first `cdk deploy`, drop one admin record into the data bucket so you can sign in:
-
-```bash
-# Replace BUCKET with the DataBucket name from `cdk deploy`'s output.
-# Pick any short userId (used as your display id) and a passphrase
-# you'll type once on first login.
-cat > /tmp/users.json <<'JSON'
-{
-  "version": "1.0",
-  "lastUpdated": "2026-05-07T00:00:00Z",
-  "users": {
-    "rob": { "group": "parents", "color": "#4CAF50", "passphrase": "happy-tiger", "isAdmin": true }
-  }
-}
-JSON
-aws s3 cp /tmp/users.json s3://BUCKET/config/users.json
-```
-
-Open the site, **Sign in with Google**, then enter your passphrase when prompted. You're now linked, admin, and the SetupWizard runs to build out the rest of your family.
+There's nothing to seed. The first time anyone signs in to a new deployment, they're asked to start a circle (its name, family or friends or both, and a theme) and they become its owner, with the first season already running. Set `ownerEmail` in `infra/cdk.config.json` so only you can do that. From there, invite everyone with a link.
 
 ## Inviting people
 

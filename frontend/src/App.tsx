@@ -31,8 +31,6 @@ const Leaderboard = React.lazy(() => import('./components/Leaderboard'));
 const StoryProfile = React.lazy(() =>
   import('./features/profile').then((m) => ({ default: m.StoryProfile })),
 );
-const SetupWizard = React.lazy(() => import('./components/SetupWizard/SetupWizard'));
-
 const logger = createLogger('App');
 
 interface AppProps {
@@ -126,19 +124,6 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
   // Non-null assertion is safe because AppProvider only renders App when userId is set.
   // biome-ignore lint/style/noNonNullAssertion: AppProvider renders App only once signed in.
   const user = selectedUser!;
-
-  // First-time setup wizard — show before anything else
-  if (familyData.isFirstRun && isAppReady) {
-    return (
-      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-        <Container maxWidth="sm" sx={{ py: 3 }}>
-          <React.Suspense fallback={null}>
-            <SetupWizard onComplete={() => window.location.reload()} />
-          </React.Suspense>
-        </Container>
-      </Box>
-    );
-  }
 
   // --- Page components defined inline to keep props in scope ---
 

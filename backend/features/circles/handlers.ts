@@ -2,17 +2,21 @@
  * Signing in, and the circles a person belongs to (docs/decisions/0015).
  * One Google sign-in, any number of circles; a passphrase joins one more.
  */
+
+import { CIRCLE_KINDS } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { errorResponse, successResponse } from '../../config';
+import { errorResponse, OWNER_EMAIL, successResponse } from '../../config';
 import type { Caller } from '../../middleware/requireAuth';
 import { verifyGoogleToken } from '../../services/auth';
 import {
   myCircles as circlesOf,
   createCircle,
   isOwner,
+  isUnstarted,
   linkByPassphrase,
   listCircles,
   rebuildMemberships,
+  startFirstCircle,
 } from '../../services/circles';
 import { logger } from '../../services/logger';
 import { sessionFor } from '../../services/session';
@@ -58,6 +62,41 @@ export async function signIn(event: APIGatewayProxyEvent): Promise<APIGatewayPro
   });
   if (!session) return errorResponse('Account not linked', 401, undefined, 'NOT_LINKED');
   logger.info('Signed in', { circles: session.circles.length, joined: joined ?? null });
+  return successResponse(session);
+}
+
+/** GET /setup: whether this deployment still needs its first circle (before sign-in). */
+export async function getSetup(): Promise<APIGatewayProxyResult> {
+  return successResponse({ unstarted: await isUnstarted() });
+}
+
+/**
+ * POST /auth/start {googleIdToken, name, circle: {name, kind, themeId?}}
+ * The first sign-in on a brand-new deployment starts its first circle, with
+ * them as owner (docs/decisions/0029). Only while nothing has started, and
+ * only for the owner's email when one is configured.
+ */
+export async function startFirst(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const body = parse(event);
+  const googleIdToken = text(body?.googleIdToken);
+  const name = text(body?.name);
+  const c = (body?.circle ?? {}) as Body;
+  const circleName = text(c.name);
+  const kind = CIRCLE_KINDS.find((k) => k === c.kind);
+  if (!googleIdToken || !name || !circleName || !kind)
+    return errorResponse('googleIdToken, name, circle.name and circle.kind are required', 400);
+  const google = await verifyGoogleToken(googleIdToken);
+  if (!google) return errorResponse('Invalid or expired Google token', 401);
+  if (OWNER_EMAIL && google.email.toLowerCase() !== OWNER_EMAIL)
+    return errorResponse('Only the owner can start this one', 403, undefined, 'NOT_OWNER');
+  if (!(await isUnstarted()))
+    return errorResponse('This has already been started', 409, undefined, 'STARTED');
+  await startFirstCircle(
+    { name: circleName.slice(0, 60), kind, themeId: text(c.themeId) },
+    { email: google.email, name: name.slice(0, 40) },
+  );
+  const session = await sessionFor(google, { isNewLink: true });
+  if (!session) return errorResponse('Could not open the new circle', 500);
   return successResponse(session);
 }
 

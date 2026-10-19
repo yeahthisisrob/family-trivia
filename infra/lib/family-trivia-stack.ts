@@ -121,6 +121,8 @@ export class FamilyTriviaStack extends Stack {
         NODE_ENV: 'production',
         JWT_SECRET: config.jwtSecret,
         GOOGLE_CLIENT_ID: config.googleClientId,
+        // Who may start a brand-new deployment's first circle (docs/decisions/0029).
+        ...(config.ownerEmail ? { OWNER_EMAIL: config.ownerEmail } : {}),
       },
     });
 

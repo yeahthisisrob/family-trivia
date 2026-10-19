@@ -889,6 +889,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether this deployment still needs its first circle (before sign-in) */
+        get: operations["getSetup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The first sign-in on a brand-new deployment starts its first circle, as owner */
+        post: operations["startFirstCircle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/plans": {
         parameters: {
             query?: never;
@@ -3040,7 +3074,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        isFirstRun?: boolean;
                         userConfig?: Record<string, never>;
                         hierarchy?: Record<string, never>;
                         seasonStatus?: Record<string, never>;
@@ -4939,6 +4972,83 @@ export interface operations {
             };
             /** @description The picture didn't come out */
             502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getSetup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The state */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        unstarted: boolean;
+                    };
+                };
+            };
+        };
+    };
+    startFirstCircle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    googleIdToken: string;
+                    /** @description What the circle calls them */
+                    name: string;
+                    circle: {
+                        name: string;
+                        /** @enum {string} */
+                        kind: "family" | "friends" | "mixed";
+                        themeId?: string;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description Signed in to the new circle */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Session"];
+                };
+            };
+            /** @description Bad Google token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not the configured owner */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Already started */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

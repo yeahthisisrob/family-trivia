@@ -1,26 +1,23 @@
-import type { Circle, CircleKind } from '@family-trivia/shared';
+import type { Circle } from '@family-trivia/shared';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import {
   Alert,
   Box,
   Button,
-  ButtonBase,
   Card,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Stack,
-  TextField,
   Typography,
 } from '@mui/material';
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import { CIRCLE_KINDS, KIND_ICON, KIND_LABEL, KIND_LINE } from '../../../entities/circle';
+import { KIND_ICON, KIND_LABEL } from '../../../entities/circle';
 import { enterCircle } from '../../../session';
-import { DEFAULT_THEME_ID, THEMES } from '../../../shared/design-system';
 import { circlesApi } from '../api/circlesApi';
+import { CircleFields, isReady, type NewCircle, newCircle } from './CircleFields';
 
 interface Props {
   /** The circle open now. */
@@ -82,10 +79,7 @@ const StartCircle: React.FC<{ open: boolean; yourName: string; onClose: () => vo
   yourName,
   onClose,
 }) => {
-  const [name, setName] = useState('');
-  const [kind, setKind] = useState<CircleKind>('friends');
-  const [themeId, setThemeId] = useState(DEFAULT_THEME_ID);
-  const [me, setMe] = useState(yourName);
+  const [form, setForm] = useState<NewCircle>(newCircle(yourName));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -93,7 +87,7 @@ const StartCircle: React.FC<{ open: boolean; yourName: string; onClose: () => vo
     setBusy(true);
     setError(null);
     try {
-      const { circle, circles } = await circlesApi.create({ name, kind, themeId, yourName: me });
+      const { circle, circles } = await circlesApi.create(form);
       const mine = circles.find((c) => c.id === circle.id);
       if (mine) enterCircle(mine, circles);
     } catch {
@@ -107,128 +101,16 @@ const StartCircle: React.FC<{ open: boolean; yourName: string; onClose: () => vo
       <DialogTitle sx={{ fontWeight: 700 }}>Start a circle</DialogTitle>
       <DialogContent>
         <Stack spacing={2.5} sx={{ pt: 1 }}>
-          <TextField
-            autoFocus
-            fullWidth
-            label="Name"
-            placeholder="The Crew"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-
-          <Box>
-            <Label>Who's in it</Label>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
-              {CIRCLE_KINDS.map((k) => {
-                const Icon = KIND_ICON[k];
-                return (
-                  <Choice key={k} selected={kind === k} onClick={() => setKind(k)}>
-                    <Icon />
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', mt: 0.5 }}>
-                      {KIND_LABEL[k]}
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
-                      {KIND_LINE[k]}
-                    </Typography>
-                  </Choice>
-                );
-              })}
-            </Box>
-          </Box>
-
-          <Box>
-            <Label>How it looks</Label>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-                gap: 1,
-              }}
-            >
-              {THEMES.map((t) => (
-                <Choice key={t.id} selected={themeId === t.id} onClick={() => setThemeId(t.id)}>
-                  <Box
-                    sx={{
-                      height: 28,
-                      borderRadius: 1,
-                      background: t.schemes.light.header,
-                      display: 'flex',
-                      alignItems: 'flex-end',
-                      justifyContent: 'flex-end',
-                      p: 0.5,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: '50%',
-                        bgcolor: t.schemes.light.secondary.main,
-                      }}
-                    />
-                  </Box>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.8rem', mt: 0.75 }}>
-                    {t.name}
-                  </Typography>
-                </Choice>
-              ))}
-            </Box>
-          </Box>
-
-          <TextField
-            fullWidth
-            label="What this circle calls you"
-            value={me}
-            onChange={(e) => setMe(e.target.value)}
-          />
+          <CircleFields value={form} onChange={setForm} />
           {error && <Alert severity="error">{error}</Alert>}
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose}>Cancel</Button>
-        <Button
-          variant="contained"
-          disabled={busy || !name.trim() || !me.trim()}
-          onClick={() => void start()}
-        >
+        <Button variant="contained" disabled={busy || !isReady(form)} onClick={() => void start()}>
           Start and open it
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
-
-const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: 'text.secondary', mb: 0.75 }}>
-    {children}
-  </Typography>
-);
-
-const Choice: React.FC<{ selected: boolean; onClick: () => void; children: React.ReactNode }> = ({
-  selected,
-  onClick,
-  children,
-}) => (
-  <ButtonBase
-    onClick={onClick}
-    aria-pressed={selected}
-    sx={{
-      position: 'relative',
-      display: 'block',
-      textAlign: 'left',
-      p: 1.25,
-      borderRadius: 2,
-      border: 2,
-      borderColor: selected ? 'primary.main' : 'divider',
-      bgcolor: selected ? 'action.selected' : 'transparent',
-      transition: 'border-color 0.15s, background-color 0.15s',
-    }}
-  >
-    {selected && (
-      <CheckCircleRoundedIcon
-        sx={{ position: 'absolute', top: 6, right: 6, fontSize: 18, color: 'primary.main' }}
-      />
-    )}
-    {children}
-  </ButtonBase>
-);

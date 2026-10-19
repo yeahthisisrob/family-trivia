@@ -4,6 +4,9 @@ import type { APIGatewayProxyResult } from 'aws-lambda';
 export const BUCKET = process.env.BUCKET_NAME ?? '';
 export const REGION = process.env.AWS_REGION || 'us-east-1';
 
+/** Who may start a brand-new deployment (docs/decisions/0029); anyone when unset. */
+export const OWNER_EMAIL = process.env.OWNER_EMAIL?.trim().toLowerCase() || null;
+
 /**
  * Claude models on Bedrock, by role rather than by name, so moving to a new
  * model is a config change (BEDROCK_MODEL_WRITER / BEDROCK_MODEL_FAST, set

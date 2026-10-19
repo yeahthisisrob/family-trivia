@@ -61,7 +61,6 @@ export interface FamilyFeudInitData {
 
 // Critical init response — returned fast, blocks first paint
 export interface AppInitResponse {
-  isFirstRun?: boolean;
   userConfig: UserConfigResponse | null;
   hierarchy: {
     hierarchy: FamilyHierarchy;

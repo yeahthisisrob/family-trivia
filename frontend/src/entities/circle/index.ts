@@ -24,7 +24,7 @@ export const KIND_LINE: Record<CircleKind, string> = {
   mixed: 'Family and the friends who are family',
 };
 
-export const CIRCLE_KINDS: readonly CircleKind[] = ['family', 'friends', 'mixed'];
+export { CIRCLE_KINDS } from '@family-trivia/shared';
 
 /** The kind of circle this screen is in, and its words (docs/decisions/0021). */
 export function useCircleWords(override?: CircleKind): { kind: CircleKind; words: Words } {

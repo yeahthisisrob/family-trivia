@@ -11,12 +11,30 @@ import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import type React from 'react';
 import { useCallback, useState } from 'react';
 
-import { linkGoogleAccount, loginWithGoogle } from '../../api/modules/auth';
+import {
+  linkGoogleAccount,
+  loginWithGoogle,
+  setupState,
+  startFirstCircle,
+} from '../../api/modules/auth';
+import { FirstCircle } from '../../features/circles';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { LoadingDots } from '../ui/feedback';
 
-type LoginState = 'idle' | 'linking' | 'loading';
+type LoginState = 'idle' | 'linking' | 'loading' | 'starting';
+
+/** The name in a Google ID token, to start the first circle with. */
+const nameIn = (idToken: string): string => {
+  try {
+    const payload = JSON.parse(
+      atob(idToken.split('.')[1]?.replace(/-/g, '+').replace(/_/g, '/') ?? ''),
+    );
+    return typeof payload.given_name === 'string' ? payload.given_name : '';
+  } catch {
+    return '';
+  }
+};
 
 interface LoginScreenProps {
   googleClientId: string;
@@ -51,8 +69,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate, n
       } catch (err: any) {
         if (err?.errorType === 'NOT_LINKED') {
           setPendingGoogleToken(idToken);
-          setState('linking');
           setError(null);
+          // A brand-new deployment: the first person in starts it (0029).
+          const { unstarted } = await setupState().catch(() => ({ unstarted: false }));
+          setState(unstarted ? 'starting' : 'linking');
         } else {
           setError(err?.message || 'Sign-in failed. Please try again.');
           setState('idle');
@@ -90,6 +110,19 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate, n
   }, [passphrase, pendingGoogleToken, onActivate]);
 
   const isLoading = state === 'loading';
+
+  if (state === 'starting' && pendingGoogleToken)
+    return (
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', p: 2, pt: { xs: 4, sm: 8 } }}>
+        <FirstCircle
+          yourName={nameIn(pendingGoogleToken)}
+          onStart={async (c) => {
+            const result = await startFirstCircle(pendingGoogleToken, c);
+            onActivate(result.userId, true, result.token);
+          }}
+        />
+      </Box>
+    );
 
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
