@@ -16,7 +16,7 @@ import {
 } from '@family-trivia/shared';
 import { S3_PATHS } from '../../constants';
 import { logger } from '../logger';
-import { getJson } from '../s3';
+import { getJson, putJson } from '../s3';
 
 interface PlayerAccounts {
   users?: Record<string, unknown>;
@@ -33,6 +33,29 @@ export async function loadFamily(): Promise<Family> {
   ]);
   logger.debug('Reading the version 1 hierarchy as a family');
   return fromLegacyHierarchy(legacy, Object.keys(accounts?.users ?? {}));
+}
+
+/**
+ * Save the family, keeping the version it replaces under family/history/
+ * (the v2 file, or the v1 hierarchy the first time), so any change can be
+ * undone. The one way family.json is written.
+ */
+export async function storeFamily(family: Family, by: string): Promise<void> {
+  const previous =
+    (await getJson<unknown>(S3_PATHS.FAMILY)) ??
+    (await getJson<unknown>(S3_PATHS.FAMILY_HIERARCHY));
+  if (previous) {
+    await putJson(
+      `family/history/${new Date().toISOString().replace(/[:.]/g, '-')}.json`,
+      previous,
+    );
+  }
+  await putJson(S3_PATHS.FAMILY, family);
+  logger.info('Family saved', {
+    by,
+    people: Object.keys(family.people).length,
+    ties: family.ties.length,
+  });
 }
 
 /**

@@ -22,6 +22,7 @@ import { lookBackRoutes } from './features/look-back/routes';
 import { personStoryRoutes } from './features/person-story/routes';
 import { reactionsRoutes } from './features/reactions/routes';
 import { settingsRoutes } from './features/settings/routes';
+import { threadsRoutes } from './features/threads/routes';
 import * as adminHandlers from './routes/admin';
 // Answer grid for trivia status matrix
 import { getAnswerGrid } from './routes/answerGrid';
@@ -171,6 +172,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...celebrationsRoutes,
   ...circlesRoutes,
   ...invitesRoutes,
+  ...threadsRoutes,
 
   // ── Protected: identity comes from the token (middleware/requireAuth.ts) ──
   'GET /members': requireAuth(listMembers),

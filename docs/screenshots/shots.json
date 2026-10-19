@@ -162,6 +162,13 @@
       "selector": ".MuiDialog-paper",
       "storyFile": "frontend/src/features/family-editor/ui/FamilyEditor.stories.tsx",
       "source": "e1f9b33af4f9"
+    },
+    {
+      "file": "threads.png",
+      "story": "home-threadcard--how-do-you-know",
+      "size": "phone",
+      "storyFile": "frontend/src/features/threads/ui/ThreadCard.stories.tsx",
+      "source": "f3dc76d05533"
     }
   ]
 }

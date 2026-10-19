@@ -855,6 +855,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/threads/today": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Today's one "How do you know ...?" question (or none), and how many threads are tied */
+        get: operations["getThreadsToday"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/threads/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer it. The answer ties a thread between the two people, unless they're already connected. */
+        post: operations["answerThread"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/invite": {
         parameters: {
             query?: never;
@@ -2060,6 +2094,32 @@ export interface components {
         JoinDetails: {
             name: string;
             howWeMet?: string;
+        };
+        ThreadChoice: {
+            id: string;
+            label: string;
+            asksWhen?: boolean;
+        };
+        ThreadQuestion: {
+            about: {
+                id: string;
+                name: string;
+            };
+            prompt: string;
+            choices: components["schemas"]["ThreadChoice"][];
+        };
+        ThreadProgress: {
+            tied: number;
+            pairs: number;
+        };
+        ThreadsToday: {
+            question: components["schemas"]["ThreadQuestion"] | null;
+            progress: components["schemas"]["ThreadProgress"];
+        };
+        ThreadAnswer: {
+            about: string;
+            choice: string;
+            when?: string;
         };
         PendingJoin: {
             id: string;
@@ -4511,6 +4571,60 @@ export interface operations {
             };
             /** @description Not the owner */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getThreadsToday: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Today's question and the circle's progress */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThreadsToday"];
+                };
+            };
+        };
+    };
+    answerThread: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ThreadAnswer"];
+            };
+        };
+        responses: {
+            /** @description Whether a thread was tied, and the progress after */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        tied: boolean;
+                        progress: components["schemas"]["ThreadProgress"];
+                    };
+                };
+            };
+            /** @description Unknown person or answer */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -8,13 +8,12 @@
 import { type Family, familyProblems } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
-import { S3_PATHS } from '../../constants';
 import { requireAdmin } from '../../services/adminAuth';
 import { loadJoined } from '../../services/family/joined';
-import { loadFamily } from '../../services/family/roster';
+import { loadFamily, storeFamily } from '../../services/family/roster';
 import { logger } from '../../services/logger';
 import { isMediaKey, readUrl } from '../../services/media';
-import { getJson, putJson } from '../../services/s3';
+import { getJson } from '../../services/s3';
 import { readStory, writeStory } from './story';
 
 /** Photo keys in the family, signed for display. */
@@ -52,23 +51,7 @@ export async function saveFamily(
   if (problems.length)
     return errorResponse('The family has problems to fix first', 400, problems.join('\n'));
 
-  // Keep what this save replaces: the version 2 file, or the version 1
-  // hierarchy the first time a family is saved in the new format.
-  const previous =
-    (await getJson<unknown>(S3_PATHS.FAMILY)) ??
-    (await getJson<unknown>(S3_PATHS.FAMILY_HIERARCHY));
-  if (previous) {
-    await putJson(
-      `family/history/${new Date().toISOString().replace(/[:.]/g, '-')}.json`,
-      previous,
-    );
-  }
-  await putJson(S3_PATHS.FAMILY, family);
-  logger.info('Family saved', {
-    by: userId,
-    people: Object.keys(family.people).length,
-    ties: family.ties.length,
-  });
+  await storeFamily(family, userId);
   return successResponse({ family, photoUrls: await photoUrls(family) });
 }
 

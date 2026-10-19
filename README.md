@@ -191,7 +191,11 @@ Opening the link shows only the circle it was made for. They sign in with Google
 
 ## Friends, connected
 
-People in a friends circle are tied the way family is, with friendships in place of parents: who's friends with whom, and how they met (in college, at work, through a friend), when and where. The groups inside a circle are **crews**, the same way a family has households, and every screen uses the circle's own words. How two friends met finds its way into the questions the AI writes about them.
+Nobody has to draw the map. Once a day, Home asks one **Thread**: "How do you know Bob?" in a friends circle, "How are you and Carol related?" in a family. One tap ties it (a year if you like), for both of you. Everyone answers about everyone, so the circle's web fills in on its own, and the bar under the card shows how far it's come. A family that's already connected in the tree is never asked.
+
+![Threads: how do you know Bob? One tap](docs/screenshots/threads.png)
+
+Friendships sit in the same people model as family: who's friends with whom and how they met, when and where. The groups inside a circle are **crews**, the way a family has households, and every screen uses the circle's own words. How two friends met finds its way into the questions the AI writes about them. Admins can fix anything in Admin › Family.
 
 ![A friend's connections: how and when they met each friend](docs/screenshots/friend-ties.png)
 

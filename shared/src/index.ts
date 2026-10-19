@@ -32,6 +32,7 @@ export * from './season';
 export * from './settings';
 export * from './similarity';
 export * from './slot-machine';
+export * from './threads';
 export * from './ties';
 export * from './timeline';
 export * from './timezoneUtils';
