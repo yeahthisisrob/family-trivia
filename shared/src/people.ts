@@ -11,6 +11,16 @@
  * and come back, and people who have died stay in the family, remembered.
  */
 
+import {
+  ENDINGS,
+  KIN_RELATIONS,
+  MET_HOWS,
+  metLine,
+  PARENT_KINDS,
+  PARTNER_KINDS,
+  tieEnds,
+} from './ties';
+
 // ── People ───────────────────────────────────────────────────────────────
 
 /** Whether someone takes part in the game. Separate from being in the family. */
@@ -92,7 +102,34 @@ export interface Kinship {
   relation: DeclaredKin;
 }
 
-export type Tie = Partnership | Parenthood | Kinship;
+/** Where two friends found each other (labels live in ties.ts). */
+export type MetHow =
+  | 'school'
+  | 'college'
+  | 'work'
+  | 'neighbors'
+  | 'team'
+  | 'through-a-friend'
+  | 'online'
+  | 'family'
+  | 'other';
+
+/** Two friends, and how they met. All of it optional: a friendship is enough. */
+export interface Friendship {
+  id: string;
+  type: 'friend';
+  a: string;
+  b: string;
+  met?: {
+    how?: MetHow;
+    /** YYYY or a fuller ISO date. */
+    when?: string;
+    /** A place, in their words ("Springfield", "the old office"). */
+    where?: string;
+  };
+}
+
+export type Tie = Partnership | Parenthood | Kinship | Friendship;
 
 // ── Households ───────────────────────────────────────────────────────────
 
@@ -191,6 +228,12 @@ const declared = (f: Family, id: string, relation: DeclaredKin): Kinship[] =>
   );
 
 // ── Derived kinship ──────────────────────────────────────────────────────
+
+/** Friends someone has a friendship tie with. */
+export const friendsOf = (f: Family, id: string): string[] =>
+  f.ties
+    .filter((r): r is Friendship => r.type === 'friend' && (r.a === id || r.b === id))
+    .map((r) => (r.a === id ? r.b : r.a));
 
 export interface Siblings {
   /** Share every birth or adoptive parent that's known. */
@@ -330,6 +373,8 @@ export function relationOf(f: Family, me: string, other: string): string | null 
   for (const c of childrenOf(f, me))
     if (currentPartnersOf(f, c).includes(other)) return 'child-in-law';
 
+  if (friendsOf(f, me).includes(other)) return 'friend';
+
   const kin = f.ties.find(
     (r): r is Kinship =>
       r.type === 'kin' && ((r.a === me && r.b === other) || (r.a === other && r.b === me)),
@@ -350,11 +395,23 @@ export function mentionableRelations(
 ): { id: string; name: string; relation: string }[] {
   return Object.values(f.people)
     .filter((p) => p.id !== id && !p.noAiMentions)
-    .map((p) => ({ id: p.id, name: p.name, relation: relationOf(f, id, p.id) }))
+    .map((p) => ({ id: p.id, name: p.name, relation: describedRelation(f, id, p.id) }))
     .filter(
       (r): r is { id: string; name: string; relation: string } =>
         !!r.relation && r.relation !== 'former partner' && r.relation !== 'family',
     );
+}
+
+/** relationOf, with how they met when they're friends: "friend (met in college, 2004)". */
+function describedRelation(f: Family, me: string, other: string): string | null {
+  const rel = relationOf(f, me, other);
+  if (rel !== 'friend') return rel;
+  const tie = f.ties.find(
+    (r): r is Friendship =>
+      r.type === 'friend' && ((r.a === me && r.b === other) || (r.a === other && r.b === me)),
+  );
+  const met = tie && metLine(tie);
+  return met ? `friend (${met})` : rel;
 }
 
 // ── Reading the version 1 hierarchy ──────────────────────────────────────
@@ -506,18 +563,6 @@ export function toLegacyHierarchy(f: Family): LegacyHierarchy & {
 // ── Checking a family before it's saved ──────────────────────────────────
 
 const PARTICIPATION: Participation[] = ['playing', 'paused', 'not-playing'];
-const PARTNER_KINDS: PartnerKind[] = ['married', 'partnered', 'engaged'];
-const ENDINGS: PartnershipEnd[] = ['separated', 'divorced', 'widowed'];
-const PARENT_KINDS: ParentKind[] = ['birth', 'adoptive', 'step', 'foster', 'guardian'];
-const KIN: DeclaredKin[] = [
-  'sibling',
-  'cousin',
-  'aunt-uncle',
-  'grandparent',
-  'in-law',
-  'chosen-family',
-  'friend',
-];
 const DATE = /^\d{4}(-\d{2}(-\d{2})?)?$/;
 
 /**
@@ -542,7 +587,7 @@ export function familyProblems(f: Family): string[] {
   for (const t of f.ties ?? []) {
     if (seen.has(t.id)) problems.push(`Tie "${t.id}" appears twice.`);
     seen.add(t.id);
-    const ends = t.type === 'parent' ? [t.parent, t.child] : [t.a, t.b];
+    const ends = tieEnds(t);
     if (ends.some((e) => !ids.has(e)))
       problems.push(`Tie "${t.id}" points at someone who isn't in the family.`);
     if (ends[0] === ends[1]) problems.push(`Tie "${t.id}" connects someone to themselves.`);
@@ -553,7 +598,12 @@ export function familyProblems(f: Family): string[] {
     } else if (t.type === 'parent') {
       if (!PARENT_KINDS.includes(t.kind)) problems.push(`Tie "${t.id}": unknown kind of parent.`);
     } else if (t.type === 'kin') {
-      if (!KIN.includes(t.relation)) problems.push(`Tie "${t.id}": unknown relation.`);
+      if (!KIN_RELATIONS.includes(t.relation)) problems.push(`Tie "${t.id}": unknown relation.`);
+    } else if (t.type === 'friend') {
+      if (t.met?.how && !MET_HOWS.includes(t.met.how))
+        problems.push(`Tie "${t.id}": unknown way of meeting.`);
+      if (t.met?.when && !DATE.test(t.met.when))
+        problems.push(`Tie "${t.id}": when they met should be YYYY.`);
     } else {
       problems.push('A tie has an unknown type.');
     }

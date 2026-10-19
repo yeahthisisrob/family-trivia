@@ -8,7 +8,7 @@
  * the same place every time.
  */
 import type { FamilyKnowledge, KnowledgeKind } from '@family-trivia/shared';
-import { relationOf } from '@family-trivia/shared';
+import { relationOf, yourRelation } from '@family-trivia/shared';
 import CloseIcon from '@mui/icons-material/Close';
 import {
   alpha,
@@ -25,6 +25,7 @@ import {
 import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D, { type ForceGraphMethods } from 'react-force-graph-2d';
+import { useCircleWords } from '../../../entities/circle';
 import { type GraphData, knowledgeApi } from '../../../entities/family';
 import { asFamily } from '../model/buildGraph';
 import { buildMap, type MapTopic, ringFor } from '../model/buildMap';
@@ -66,6 +67,7 @@ export const FamilyMap: React.FC<{
   knowledge?: FamilyKnowledge | null;
 }> = ({ data, meId, height = 600, onOpenProfile, knowledge: given }) => {
   const theme = useTheme();
+  const { kind } = useCircleWords();
   const night = theme.palette.night;
   const fg = useRef<ForceGraphMethods | undefined>(undefined);
   const box = useRef<HTMLDivElement>(null);
@@ -428,10 +430,7 @@ export const FamilyMap: React.FC<{
               <Typography sx={{ fontSize: 22, fontWeight: 700 }}>{focused.name}</Typography>
               {meId && meId !== focused.id && (
                 <Typography sx={{ fontSize: 13, color: night.textDim }}>
-                  {(() => {
-                    const r = relationOf(family, meId, focused.id);
-                    return r ? `Your ${r}` : 'In your family';
-                  })()}
+                  {yourRelation(relationOf(family, meId, focused.id), kind)}
                 </Typography>
               )}
               <Typography

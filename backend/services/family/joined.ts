@@ -4,7 +4,7 @@
  * Admin › Family but are left out of everything the family sees, until the
  * day they play (docs/decisions/0009).
  */
-import { type Family, isRemembered } from '@family-trivia/shared';
+import { type Family, isRemembered, tieEnds } from '@family-trivia/shared';
 import { S3_PATHS } from '../../constants';
 import { getJson } from '../s3';
 import { loadFamily } from './roster';
@@ -36,11 +36,7 @@ export function joinedFamily(family: Family, joined: Set<string>): Family {
   return {
     ...family,
     people: Object.fromEntries(Object.entries(family.people).filter(([id]) => joined.has(id))),
-    ties: family.ties.filter((t) =>
-      t.type === 'parent'
-        ? joined.has(t.parent) && joined.has(t.child)
-        : joined.has(t.a) && joined.has(t.b),
-    ),
+    ties: family.ties.filter((t) => tieEnds(t).every((id) => joined.has(id))),
     households: Object.fromEntries(
       Object.entries(family.households).map(([id, h]) => [
         id,

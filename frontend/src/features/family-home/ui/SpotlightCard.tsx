@@ -8,6 +8,7 @@ import { Box, Button, Card, Chip, Skeleton, Stack, Typography } from '@mui/mater
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { getMemberSummary } from '../../../api/modules/user';
+import { useCircleWords } from '../../../entities/circle';
 import { type PersonView, relationLabel } from '../model/people';
 import { Face } from './Face';
 
@@ -18,6 +19,7 @@ export const SpotlightCard: React.FC<{
   photo?: string;
   onOpen: (id: string) => void;
 }> = ({ person, next, meId, photo, onOpen }) => {
+  const { kind } = useCircleWords();
   const [roast, setRoast] = useState(false);
   const [text, setText] = useState<Record<'regular' | 'roast', string | null>>({
     regular: null,
@@ -77,7 +79,7 @@ export const SpotlightCard: React.FC<{
         <Box sx={{ minWidth: 0 }}>
           <Typography sx={{ fontSize: '1.2rem', fontWeight: 700 }}>{person.name}</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {relationLabel(person.relation, person.id === meId)}
+            {relationLabel(person.relation, person.id === meId, kind)}
             {homes && ` · ${homes}`}
           </Typography>
         </Box>

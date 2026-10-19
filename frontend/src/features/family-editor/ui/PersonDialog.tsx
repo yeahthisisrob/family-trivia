@@ -3,7 +3,14 @@
  * remembers them if they've died, and their direct connections.
  */
 
-import type { Family, FamilyPerson, Participation, Tie } from '@family-trivia/shared';
+import {
+  type Family,
+  type FamilyPerson,
+  type Participation,
+  type Tie,
+  type Words,
+  wordsFor,
+} from '@family-trivia/shared';
 import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
 import {
   Alert,
@@ -25,6 +32,7 @@ import {
 import type React from 'react';
 import { useRef, useState } from 'react';
 import { uploadImage } from '../../../api/modules/admin';
+import { useCircleWords } from '../../../entities/circle';
 import { TieList } from './TieList';
 
 interface PersonDialogProps {
@@ -41,7 +49,7 @@ interface PersonDialogProps {
   onClose: () => void;
 }
 
-const PARTICIPATION: { value: Participation; label: string; help: string }[] = [
+const participation = (w: Words): { value: Participation; label: string; help: string }[] => [
   { value: 'playing', label: 'Playing', help: 'Gets daily questions and shows on leaderboards.' },
   {
     value: 'paused',
@@ -51,7 +59,7 @@ const PARTICIPATION: { value: Participation; label: string; help: string }[] = [
   {
     value: 'not-playing',
     label: 'Not playing',
-    help: 'In the family and the tree, but not in the game.',
+    help: `In ${w.circle} and the tree, but not in the game.`,
   },
 ];
 
@@ -67,6 +75,8 @@ export const PersonDialog: React.FC<PersonDialogProps> = ({
   canDownload,
   onCanDownload,
 }) => {
+  const { words } = useCircleWords();
+  const choices = participation(words);
   const [draft, setDraft] = useState<FamilyPerson>(person);
   const [ties, setTies] = useState<Tie[]>(family.ties);
   const [localPhoto, setLocalPhoto] = useState<string | null>(null);
@@ -111,10 +121,10 @@ export const PersonDialog: React.FC<PersonDialogProps> = ({
         <Stack spacing={2} sx={{ mt: 1 }}>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <TextField
-              label="Name the family uses"
+              label={`Name ${words.circle} uses`}
               value={draft.name}
               onChange={(e) => set({ name: e.target.value })}
-              helperText="Grandma Jo, Uncle Sam, Alice"
+              helperText={words.nameExamples}
               fullWidth
               required
             />
@@ -153,7 +163,7 @@ export const PersonDialog: React.FC<PersonDialogProps> = ({
               onChange={(_, v: Participation | null) => v && set({ participation: v })}
               disabled={remembered}
             >
-              {PARTICIPATION.map((p) => (
+              {choices.map((p) => (
                 <ToggleButton key={p.value} value={p.value}>
                   {p.label}
                 </ToggleButton>
@@ -164,8 +174,8 @@ export const PersonDialog: React.FC<PersonDialogProps> = ({
               sx={{ display: 'block', mt: 0.75, color: 'text.secondary' }}
             >
               {remembered
-                ? 'People the family remembers are never asked questions or ranked.'
-                : PARTICIPATION.find((p) => p.value === draft.participation)?.help}
+                ? `People ${words.circle} remembers are never asked questions or ranked.`
+                : choices.find((p) => p.value === draft.participation)?.help}
             </Typography>
           </Box>
 
@@ -183,7 +193,7 @@ export const PersonDialog: React.FC<PersonDialogProps> = ({
               control={
                 <Switch checked={!!canDownload} onChange={(e) => onCanDownload(e.target.checked)} />
               }
-              label="Can download the family archive"
+              label={`Can download ${words.archive}`}
             />
           )}
 
@@ -224,7 +234,7 @@ export const PersonDialog: React.FC<PersonDialogProps> = ({
                 </Stack>
                 <TextField
                   label="Dedication"
-                  placeholder="A few words the family chose"
+                  placeholder={`A few words ${words.circle} chose`}
                   multiline
                   minRows={2}
                   value={draft.memorial?.dedication ?? ''}
@@ -277,7 +287,7 @@ export const PersonDialog: React.FC<PersonDialogProps> = ({
         <Box>
           {onRemove && !isNew && (
             <Button color="error" onClick={onRemove}>
-              Remove from the family
+              Remove from {words.circle}
             </Button>
           )}
         </Box>
@@ -299,4 +309,5 @@ export const PersonDialog: React.FC<PersonDialogProps> = ({
 export const participationLabel = (p: FamilyPerson) =>
   p.memorial
     ? 'In memory'
-    : (PARTICIPATION.find((x) => x.value === p.participation)?.label ?? p.participation);
+    : (participation(wordsFor()).find((x) => x.value === p.participation)?.label ??
+      p.participation);

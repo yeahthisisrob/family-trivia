@@ -93,3 +93,65 @@ export const DerivedConnections: Story = {
     await expect(body.getByText('Grandma Grace: grandparent')).toBeInTheDocument();
   },
 };
+
+// A made-up circle of friends on the same model: friendships, a couple, crews.
+const crew: Family = {
+  version: 2,
+  name: 'The Crew',
+  people: {
+    alice: { id: 'alice', name: 'Alice', participation: 'playing' },
+    bob: { id: 'bob', name: 'Bob', participation: 'playing' },
+    carol: { id: 'carol', name: 'Carol', participation: 'playing' },
+    dave: { id: 'dave', name: 'Dave', participation: 'playing' },
+  },
+  ties: [
+    {
+      id: 'f1',
+      type: 'friend',
+      a: 'alice',
+      b: 'bob',
+      met: { how: 'college', when: '2004', where: 'Springfield' },
+    },
+    { id: 'f2', type: 'friend', a: 'alice', b: 'carol', met: { how: 'work' } },
+    { id: 'p1', type: 'partner', a: 'carol', b: 'dave', kind: 'married' },
+  ],
+  households: {
+    college: { id: 'college', name: 'The college crew', members: ['alice', 'bob'] },
+  },
+};
+
+/** The same editor in a friends circle: crews, friendships and how they met. */
+export const FriendsCircle: Story = {
+  beforeEach: () => {
+    localStorage.setItem(
+      'familyTriviaCircles',
+      JSON.stringify({
+        current: 'crew',
+        circles: [{ id: 'crew', name: 'The Crew', kind: 'friends', userId: 'alice' }],
+      }),
+    );
+    return () => localStorage.removeItem('familyTriviaCircles');
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/family', () =>
+          HttpResponse.json({ ok: true, data: { family: crew, photoUrls: {} } }),
+        ),
+        http.get('*/admin/archive/permissions', () =>
+          HttpResponse.json({ ok: true, data: { everyone: true, users: {} } }),
+        ),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(await canvas.findByText('Crews')).toBeInTheDocument();
+    await expect(canvas.getByText('Add a crew')).toBeInTheDocument();
+    await userEvent.click(canvas.getByText('Alice'));
+    const body = within(canvasElement.ownerDocument.body);
+    await expect(await body.findByDisplayValue('Springfield')).toBeInTheDocument();
+    // A friends circle offers "A friend" first when adding a connection.
+    await expect(body.getByText('A friend')).toBeInTheDocument();
+  },
+};

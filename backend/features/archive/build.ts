@@ -3,7 +3,7 @@
  * per person with readable Markdown and CSV next to the raw JSON, plus a
  * README saying what's inside.
  */
-import type { Family, FamilyPerson } from '@family-trivia/shared';
+import { type Family, type FamilyPerson, tieEnds } from '@family-trivia/shared';
 import { strToU8, zipSync } from 'fflate';
 import type { PersonArchive } from './collect';
 
@@ -133,9 +133,7 @@ export function buildArchive({
           born,
           memorial,
         })),
-        ties: family.ties.filter((t) =>
-          (t.type === 'parent' ? [t.parent, t.child] : [t.a, t.b]).every((x) => included.has(x)),
-        ),
+        ties: family.ties.filter((t) => tieEnds(t).every((x) => included.has(x))),
       },
       null,
       2,

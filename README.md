@@ -189,6 +189,12 @@ Opening the link shows only the circle it was made for. They sign in with Google
 
 ![Admin › Circles: someone waiting to join, a new link, and the links already out](docs/screenshots/invites.png)
 
+## Friends, connected
+
+People in a friends circle are tied the way family is, with friendships in place of parents: who's friends with whom, and how they met (in college, at work, through a friend), when and where. The groups inside a circle are **crews**, the same way a family has households, and every screen uses the circle's own words. How two friends met finds its way into the questions the AI writes about them.
+
+![A friend's connections: how and when they met each friend](docs/screenshots/friend-ties.png)
+
 ## Configuration
 
 `infra/cdk.config.json` (gitignored; copy from `cdk.context.example.json`):

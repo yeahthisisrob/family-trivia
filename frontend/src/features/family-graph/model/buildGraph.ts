@@ -2,10 +2,17 @@
  * Turn the family into nodes and links for the force graph. Pure: no React,
  * no drawing, so the rules for what connects to what are tested on their own.
  */
-import type { Family } from '@family-trivia/shared';
+import { type Family, tieEnds } from '@family-trivia/shared';
 import type { GraphData, GraphPerson } from '../../../entities/family';
 
-export type LinkKind = 'partner' | 'former-partner' | 'parent' | 'kin' | 'household' | 'alike';
+export type LinkKind =
+  | 'partner'
+  | 'former-partner'
+  | 'parent'
+  | 'kin'
+  | 'friend'
+  | 'household'
+  | 'alike';
 
 export interface GraphNode {
   id: string;
@@ -57,7 +64,7 @@ export function buildGraph(
 
   if (opts.ties) {
     for (const t of data.ties) {
-      const [a, b] = t.type === 'parent' ? [t.parent, t.child] : [t.a, t.b];
+      const [a, b] = tieEnds(t);
       if (!ids.has(a) || !ids.has(b)) continue;
       const kind: LinkKind =
         t.type === 'partner'
@@ -66,7 +73,9 @@ export function buildGraph(
             : 'partner'
           : t.type === 'parent'
             ? 'parent'
-            : 'kin';
+            : t.type === 'friend'
+              ? 'friend'
+              : 'kin';
       links.push({ source: a, target: b, kind, strength: 1 });
     }
   }
