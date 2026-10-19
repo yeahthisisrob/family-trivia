@@ -22,6 +22,7 @@ export * from './knowledge';
 export * from './leaderboard';
 export * from './look-back';
 export * from './member-summary';
+export * from './memory-link';
 export * from './notifications';
 export * from './people';
 export * from './person-story';

@@ -15,7 +15,7 @@ export interface Scope {
 }
 
 /** Sign-in data and invite links, shared by every circle. Everything else belongs to one. */
-const GLOBAL_PREFIXES = ['circles.json', 'accounts/', 'invites/'];
+const GLOBAL_PREFIXES = ['circles.json', 'accounts/', 'invites/', 'memory-links/'];
 
 const store = new AsyncLocalStorage<Scope>();
 let fallback: Scope | null = null;

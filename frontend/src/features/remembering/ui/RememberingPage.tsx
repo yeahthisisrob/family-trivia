@@ -14,6 +14,7 @@ import {
   type PersonStory,
   type StoryWord,
   spanLabel,
+  type VisitorMemory,
 } from '@family-trivia/shared';
 import CloseIcon from '@mui/icons-material/Close';
 import {
@@ -28,9 +29,11 @@ import {
   Typography,
 } from '@mui/material';
 import type React from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCircleWords } from '../../../entities/circle';
 import { storyApi } from '../../../entities/family';
 import { usePaper } from '../../../shared/design-system';
+import { MemoryLinkPanel, memoryLinksApi } from '../../memory-links';
 import { PersonBookButton } from '../../person-book';
 import { rememberingApi } from '../api/rememberingApi';
 import { Memories } from './Memories';
@@ -109,9 +112,19 @@ export const RememberingPage: React.FC<{
   onClose: () => void;
 }> = ({ person, photo, topics = [], nameOf, onClose }) => {
   const paper = usePaper();
+  const { words } = useCircleWords();
   const [data, setData] = useState<PersonStory | null>(null);
   const [failed, setFailed] = useState(false);
   const [memories, setMemories] = useState<Comment[] | null>(null);
+  const [visitors, setVisitors] = useState<VisitorMemory[]>([]);
+  const loadVisitors = useCallback(
+    () =>
+      memoryLinksApi
+        .visitors(person.id)
+        .then((v) => setVisitors(v.filter((m) => m.status === 'shown')))
+        .catch(() => setVisitors([])),
+    [person.id],
+  );
   const [all, setAll] = useState(false);
   const name = person.name;
   const years = yearsOf(person);
@@ -126,7 +139,8 @@ export const RememberingPage: React.FC<{
       .memories(person.id)
       .then(setMemories)
       .catch(() => setMemories([]));
-  }, [person.id]);
+    void loadVisitors();
+  }, [person.id, loadVisitors]);
 
   const byId = useMemo(() => new Map(data?.words.map((w) => [w.id, w]) ?? []), [data]);
   const months = useMemo(() => (data ? byMonth(data.words) : []), [data]);
@@ -236,7 +250,7 @@ export const RememberingPage: React.FC<{
 
           {data && data.loved.length > 0 && (
             <Box>
-              <Heading>What the family loved</Heading>
+              <Heading>What {words.circle} loved</Heading>
               <Stack spacing={2.25}>
                 {data.loved.map((l) => {
                   const w = byId.get(l.id);
@@ -255,7 +269,9 @@ export const RememberingPage: React.FC<{
 
           {data && data.mentions.length > 0 && (
             <Box>
-              <Heading>What the family said about {name}</Heading>
+              <Heading>
+                What {words.circle} said about {name}
+              </Heading>
               <Stack spacing={2.25}>
                 {data.mentions.map((m) => (
                   <Box key={m.id}>
@@ -324,7 +340,20 @@ export const RememberingPage: React.FC<{
 
           <Box>
             <Heading>Memories of {name}</Heading>
-            <Memories name={name} memories={memories} nameOf={nameOf} onShare={share} />
+            <Memories
+              name={name}
+              memories={memories}
+              visitors={visitors}
+              nameOf={nameOf}
+              onShare={share}
+            />
+            <Box sx={{ mt: 3 }}>
+              <MemoryLinkPanel
+                personId={person.id}
+                name={name}
+                onLetIn={() => void loadVisitors()}
+              />
+            </Box>
           </Box>
 
           {topics.length > 0 && (

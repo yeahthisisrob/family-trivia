@@ -14,6 +14,7 @@ import { TriviaProvider } from './contexts/TriviaContext';
 import { UserStatusProvider } from './contexts/UserStatusContext';
 import { FeaturesProvider } from './entities/settings';
 import { JoinScreen } from './features/invites';
+import { RememberScreen } from './features/memory-links';
 import { apiService } from './services/ApiService';
 import { loadSession, onSessionExpired, saveSession } from './session';
 import { createLogger, LogLevel } from './utils/logger';
@@ -88,6 +89,13 @@ const AppProvider: React.FC = () => {
     if (!googleClientId) return null;
     return <JoinScreen token={joinToken} googleClientId={googleClientId} />;
   }
+
+  // ── A memory link (/remember?t=…): anyone can add a memory, no sign-in (0027). ──
+  const rememberToken =
+    window.location.pathname === '/remember'
+      ? new URLSearchParams(window.location.search).get('t')
+      : null;
+  if (rememberToken) return <RememberScreen token={rememberToken} />;
 
   // ── Pre-auth: show login screen. No providers = no API calls. ──
   if (!userId || !authValid) {

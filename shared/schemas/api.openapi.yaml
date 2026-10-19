@@ -1970,6 +1970,149 @@ paths:
         "200": { description: Saved }
         "404": { description: No such plan }
 
+  /remember:
+    get:
+      summary: A memory link's page, before sign-in — who it remembers and the memories let in, nothing else
+      operationId: getRemember
+      tags: [Memory links]
+      parameters:
+        - { name: token, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: The link's state and, while open, the person
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemoryLinkPreview"
+        "404": { description: No such link }
+    post:
+      summary: Add a memory through a link (no account); it waits for an admin
+      operationId: postRemember
+      tags: [Memory links]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, name, text]
+              properties:
+                token: { type: string }
+                name: { type: string, maxLength: 60 }
+                how: { type: string, maxLength: 120 }
+                text: { type: string, maxLength: 2000 }
+      responses:
+        "200": { description: Waiting for an admin }
+        "404": { description: No such link }
+        "410": { description: The link has closed }
+        "429": { description: Too many waiting }
+
+  /family/visitor-memories:
+    get:
+      summary: Memories from outside the circle for someone remembered; admins also get the waiting ones
+      operationId: getVisitorMemories
+      tags: [Memory links]
+      parameters:
+        - { name: personId, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: The memories
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [memories]
+                properties:
+                  memories:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/VisitorMemory"
+
+  /admin/memory-links:
+    get:
+      summary: This person's memory links in this circle
+      operationId: getMemoryLinks
+      tags: [Memory links, Admin]
+      parameters:
+        - { name: personId, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: The links
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [links]
+                properties:
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MemoryLink"
+    post:
+      summary: Make a memory link for someone the circle remembers
+      operationId: postMemoryLink
+      tags: [Memory links, Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [personId]
+              properties:
+                personId: { type: string }
+                lifetime: { type: string, enum: [day, week, month, forever] }
+      responses:
+        "200":
+          description: The link
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [link]
+                properties:
+                  link:
+                    $ref: "#/components/schemas/MemoryLink"
+        "400": { description: Not someone the circle remembers }
+
+  /admin/memory-links/revoke:
+    post:
+      summary: Take back a memory link
+      operationId: revokeMemoryLink
+      tags: [Memory links, Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token: { type: string }
+      responses:
+        "200": { description: Taken back }
+        "404": { description: No such link }
+
+  /admin/visitor-memories/decide:
+    post:
+      summary: Let a waiting memory in, or let it go
+      operationId: decideVisitorMemory
+      tags: [Memory links, Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [personId, id, approve]
+              properties:
+                personId: { type: string }
+                id: { type: string }
+                approve: { type: boolean }
+      responses:
+        "200": { description: Decided }
+        "404": { description: No such memory }
+
   /threads/today:
     get:
       summary: Today's one "How do you know ...?" question (or none), and how many threads are tied
@@ -4325,6 +4468,59 @@ components:
         best:
           type: array
           items: { type: string }
+
+    MemoryLink:
+      type: object
+      required: [token, circleId, personId, createdBy, createdAt, expiresAt, uses]
+      properties:
+        token: { type: string }
+        circleId: { type: string }
+        personId: { type: string }
+        createdBy: { type: string }
+        createdAt: { type: string }
+        expiresAt: { type: string, nullable: true }
+        revokedAt: { type: string }
+        uses: { type: integer }
+
+    VisitorMemory:
+      type: object
+      required: [id, name, text, at, status]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        how: { type: string }
+        text: { type: string }
+        at: { type: string }
+        status: { type: string, enum: [waiting, shown] }
+
+    MemoryLinkPreview:
+      type: object
+      required: [state]
+      properties:
+        state: { type: string, enum: [open, expired, used-up, revoked] }
+        person:
+          type: object
+          required: [name]
+          properties:
+            name: { type: string }
+            years: { type: string }
+            dedication: { type: string }
+        circle:
+          type: object
+          required: [name, kind]
+          properties:
+            name: { type: string }
+            kind: { type: string, enum: [family, friends, mixed] }
+        memories:
+          type: array
+          items:
+            type: object
+            required: [name, text, at]
+            properties:
+              name: { type: string }
+              how: { type: string }
+              text: { type: string }
+              at: { type: string }
 
     ThreadChoice:
       type: object
