@@ -6,7 +6,7 @@
 > _"Assume everyone is trying their best, and be kind to each other."_
 > — Christina Baker Kline
 
-A daily question for the whole family, and a place that keeps what everyone answers. Each morning everyone gets one question about themselves and one trivia question; the answers become the family's timeline, each person's story, a map of what the family talks about, and, at the end of a season, a book you can read in the app or send to a printer. Games earn trivia multipliers, an arcade keeps high scores, and a Remembering page holds the words of the people the family has lost. One CDK command deploys it into your own AWS account; the family's words never leave it.
+A daily question for the whole family (or your oldest friends), and a place that keeps what everyone answers. Each morning everyone gets one question about themselves and one trivia question; the answers become the family's timeline, each person's story, a map of what the family talks about, and, at the end of a season, a book you can read in the app or send to a printer. Games earn trivia multipliers, an arcade keeps high scores, and a Remembering page holds the words of the people the family has lost. One CDK command deploys it into your own AWS account; the family's words never leave it.
 
 ![The family's home: who we are, today's spotlight, and what we share](docs/screenshots/family-home.png)
 
@@ -89,6 +89,12 @@ When a season ends, Look back shows the questions most of the family answered an
 The people the family has lost keep a page: their years, the last things they told the family, and a book of their words. Families change, so people can be active, paused, or remembered, and relationships change over time.
 
 ![Remembering: the last things they told us](docs/screenshots/remembering.png)
+
+### Family, friends, or both
+
+One Google sign-in can belong to any number of circles: a family, an old crew of friends, or both together. Each circle has its own people, seasons, games and memories, and none of it crosses into another circle unless someone shares it on purpose. Anyone in more than one circle moves between them from the title, and a passphrase joins one more.
+
+![Circles: a family and two circles of friends, one sign-in](docs/screenshots/circles.png)
 
 ### Run by the family, in its own account
 
