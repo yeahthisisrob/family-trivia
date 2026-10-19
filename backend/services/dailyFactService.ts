@@ -11,6 +11,7 @@ import { extractTextContent } from './bedrock/core/textExtractor';
 import { isDuplicateQuestionString } from './bedrock/questions/utils';
 import { logger } from './logger';
 import { getJson, listObjects, putJsonIfNotExists } from './s3';
+import { circleCache } from './scope';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -46,15 +47,11 @@ export const FACT_CATEGORIES = [
 // Load ALL previous shared questions (cached per invocation)
 // ---------------------------------------------------------------------------
 
-let cachedSharedQuestions: string[] | null = null;
-let cacheTime = 0;
-const CACHE_TTL = 30_000;
+const sharedQuestionsCache = circleCache<string[]>(30_000);
 
 async function getAllPreviousSharedQuestions(): Promise<string[]> {
-  const now = Date.now();
-  if (cachedSharedQuestions && now - cacheTime < CACHE_TTL) {
-    return cachedSharedQuestions;
-  }
+  const cached = sharedQuestionsCache.get();
+  if (cached) return cached;
 
   const keys = await listObjects('facts/daily/shared/');
   const questions: string[] = [];
@@ -75,8 +72,7 @@ async function getAllPreviousSharedQuestions(): Promise<string[]> {
     if (q) questions.push(q);
   }
 
-  cachedSharedQuestions = questions;
-  cacheTime = now;
+  sharedQuestionsCache.set(questions);
 
   logger.info('Loaded all previous shared questions', { count: questions.length });
   return questions;
@@ -297,6 +293,5 @@ export async function saveTodaySharedQuestion(question: DailyFactQuestion): Prom
 }
 
 export function invalidateCache(): void {
-  cachedSharedQuestions = null;
-  cacheTime = 0;
+  sharedQuestionsCache.clear();
 }

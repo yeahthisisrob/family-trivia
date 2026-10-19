@@ -6,6 +6,7 @@ import { getFactHistory } from './factHistoryService';
 import { accountIsPlaying, loadFamily } from './family/roster';
 import { logger } from './logger';
 import { getJson } from './s3';
+import { circleCache } from './scope';
 
 // Types for user configuration
 export interface UserConfig {
@@ -40,29 +41,20 @@ export function toPublicUserConfig(config: UserConfigData): UserConfigData {
 }
 
 // Cache for user configuration
-let userConfigCache: UserConfigData | null = null;
-let lastCacheTime = 0;
-const CACHE_TTL = 60 * 1000; // 1 minute
+const userConfigCache = circleCache<UserConfigData>(60 * 1000); // 1 minute
 
 /**
  * Get user configuration from S3
  */
 export async function getUserConfig(): Promise<UserConfigData | null> {
-  const now = Date.now();
-
-  // Return from cache if valid
-  if (userConfigCache && now - lastCacheTime < CACHE_TTL) {
-    return userConfigCache;
-  }
+  const cached = userConfigCache.get();
+  if (cached) return cached;
 
   // Get from S3
   try {
     const config = await getJson<UserConfigData>(S3_PATHS.USERS_CONFIG);
 
-    if (config) {
-      userConfigCache = config;
-      lastCacheTime = now;
-    }
+    if (config) userConfigCache.set(config);
 
     return config;
   } catch (err) {
@@ -137,8 +129,7 @@ export async function getAllGroups(): Promise<string[]> {
  * Invalidate the user config cache. Call after admin writes.
  */
 export function invalidateUserConfigCache(): void {
-  userConfigCache = null;
-  lastCacheTime = 0;
+  userConfigCache.clear();
   logger.info('User config cache invalidated');
 }
 

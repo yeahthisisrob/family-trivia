@@ -10,6 +10,7 @@ import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { appearanceApi } from '../../entities/appearance';
 import { useFeatures } from '../../entities/settings';
+import { CircleSwitcher } from '../../features/circles';
 import { ROUTES } from '../../hooks/useApp';
 import { colors, tint } from '../../shared/design-system';
 import { AppearanceMenu } from '../../shared/design-system/components/AppearanceMenu';
@@ -61,17 +62,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     <AppBar position="sticky" elevation={0} sx={{ background: headerBg, color: onHeader }}>
       {/* Top bar */}
       <Toolbar sx={{ minHeight: { xs: 48, sm: 54 }, px: { xs: 1.5, sm: 2 } }}>
-        <Typography
-          sx={{
-            fontWeight: 800,
-            fontSize: { xs: '1.05rem', sm: '1.15rem' },
-            letterSpacing: 0.3,
-            flex: 1,
-            color: onHeader,
-          }}
-        >
-          Family Trivia
-        </Typography>
+        <CircleSwitcher fallbackTitle="Family Trivia" color={onHeader} mutedColor={inactiveText} />
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
           <Avatar

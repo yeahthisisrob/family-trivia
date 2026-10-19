@@ -7,6 +7,7 @@ export * from './book-page';
 export * from './casino-rush';
 export * from './categories';
 export * from './celebrations';
+export * from './circle';
 export * from './comments';
 export * from './eligibility';
 export * from './facts';

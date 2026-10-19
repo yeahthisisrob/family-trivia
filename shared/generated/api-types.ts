@@ -811,8 +811,26 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Exchange a Google ID token for a JWT session token */
+        /** Sign in with Google; a passphrase joins one more circle */
         post: operations["authGoogle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/circles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every circle the caller belongs to, and which one this request is in */
+        get: operations["getMyCircles"];
+        put?: never;
+        /** Join one more circle with a passphrase while signed in */
+        post: operations["joinCircle"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1889,6 +1907,15 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description A circle as one signed-in person sees it (shared/src/circle.ts) */
+        MyCircle: {
+            id: string;
+            name: string;
+            /** @enum {string} */
+            kind: "family" | "friends" | "mixed";
+            /** @description Who this person is in that circle */
+            userId: string;
+        };
         /** @description Result of a play-eligibility check — single source of truth for "can this user play?" */
         PlayEligibility: {
             canPlay: boolean;
@@ -4155,25 +4182,114 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    idToken: string;
-                    /** @description Optional — used to link a Google account to an existing user on first login */
+                    googleIdToken: string;
+                    /** @description Links this Google account to the person it names, in its circle */
                     passphrase?: string;
+                    /** @description The circle to open, if they're in it */
+                    circleId?: string;
                 };
             };
         };
         responses: {
-            /** @description Session token and user info */
+            /** @description Session token, and the circles this sign-in belongs to */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        token?: string;
-                        userId?: string;
-                        linked?: boolean;
+                        token: string;
+                        /** @description Who they are in the circle being opened */
+                        userId: string;
+                        circleId: string;
+                        circles: components["schemas"]["MyCircle"][];
+                        email: string;
+                        name?: string;
+                        picture?: string;
+                        isNewLink: boolean;
                     };
                 };
+            };
+            /** @description Bad Google token, unknown passphrase, or not linked yet (NOT_LINKED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Person already linked elsewhere, or passphrase shared by two circles */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getMyCircles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller's circles */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        circles: components["schemas"]["MyCircle"][];
+                        current: string;
+                    };
+                };
+            };
+        };
+    };
+    joinCircle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    passphrase: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The caller's circles, with the one just joined */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        circles: components["schemas"]["MyCircle"][];
+                        joined: string;
+                        userId: string;
+                    };
+                };
+            };
+            /** @description Person already linked elsewhere, or passphrase shared by two circles */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The passphrase didn't match anyone (INVALID_PASSPHRASE) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

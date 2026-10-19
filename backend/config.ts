@@ -29,7 +29,7 @@ export const MODEL_ID = MODELS.WRITER;
 export const CORS_HEADERS: Record<string, string> = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization,Cache-Control',
+  'Access-Control-Allow-Headers': 'Content-Type,Authorization,Cache-Control,X-Circle',
   'Access-Control-Allow-Methods': 'OPTIONS,GET,POST,PUT,DELETE',
 };
 

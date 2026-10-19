@@ -29,3 +29,4 @@ when the decision is made, so the reason survives the people who made it.
 | [0016](0016-play-as-time-allows.md) | Play as time allows: nothing is lost by coming back late | Accepted |
 | [0017](0017-when-everyone-is-free.md) | When everyone's free: availability that leads back to the app | Accepted |
 | [0018](0018-your-world.md) | Your world: joining circles, splitting them, and seeing across them | Accepted |
+| [0019](0019-membership-lives-in-each-circle.md) | Membership lives in each circle | Accepted |

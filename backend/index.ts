@@ -11,6 +11,7 @@ import { appearanceRoutes } from './features/appearance/routes';
 import { archiveRoutes } from './features/archive/routes';
 import { backupsRoutes } from './features/backups/routes';
 import { celebrationsRoutes } from './features/celebrations/routes';
+import { circlesRoutes } from './features/circles/routes';
 import { commentsRoutes } from './features/comments/routes';
 import { familyRoutes } from './features/family/routes';
 import { fillInRoutes } from './features/fill-in/routes';
@@ -28,7 +29,6 @@ import { appInit, appInitDeferred } from './routes/appInit';
 // Arcade endpoints
 import { arcadeLeaderboard, arcadeSubmitScore } from './routes/arcade';
 // Auth
-import { authGoogle } from './routes/authGoogle';
 import { canAnswerQuestion } from './routes/canAnswerQuestion';
 // Casino (shared credit pool)
 import { getCasinoBalance, updateCasinoBalance } from './routes/casino';
@@ -146,6 +146,12 @@ import { logger } from './services/logger';
 // Cache invalidation — must clear per-request to prevent stale data on warm Lambdas
 import { invalidatePlayerStateCache } from './services/playerStateService';
 import { invalidateS3ReadCache } from './services/s3';
+import { onCircleEnter, onCircleExit } from './services/scope';
+
+// Each request works in one circle (middleware/requireAuth.ts): its own AI
+// model choices going in, one write of what its AI used coming out.
+onCircleEnter(loadModelChoices);
+onCircleExit(flushUsage);
 
 const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   // ── Feature slices (backend/features/*) ─────────────────────
@@ -162,9 +168,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...personStoryRoutes,
   ...lookBackRoutes,
   ...celebrationsRoutes,
-
-  // ── Public (no auth) ─────────────────────────────────────────
-  'POST /auth/google': authGoogle,
+  ...circlesRoutes,
 
   // ── Protected: identity comes from the token (middleware/requireAuth.ts) ──
   'GET /members': requireAuth(listMembers),
@@ -313,7 +317,6 @@ export const handler: APIGatewayProxyHandler = async (event) => {
   }
 
   try {
-    await loadModelChoices();
     return await fn(event);
   } catch (err: any) {
     logger.error('Unhandled error in route', {
@@ -329,8 +332,5 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       },
       500,
     );
-  } finally {
-    // One write per request for whatever the AI used (services/bedrock/core/usage.ts).
-    await flushUsage();
   }
 };

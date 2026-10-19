@@ -5,6 +5,7 @@
 import { S3_PATHS } from '../../constants';
 import { logger } from '../../services/logger';
 import { getJson } from '../../services/s3';
+import { circleCache } from '../../services/scope';
 
 // Family side is now a generic string (side IDs come from hierarchy data)
 export type FamilySide = string;
@@ -34,27 +35,20 @@ interface HierarchyData {
 }
 
 // In-memory caches
-let hierarchyCache: HierarchyData | null = null;
-let hierarchyCacheTime = 0;
-const HIERARCHY_CACHE_TTL = 60_000; // 1 minute
+const hierarchyCache = circleCache<HierarchyData>(60_000); // 1 minute
 
 async function getHierarchy(): Promise<HierarchyData | null> {
-  const now = Date.now();
-  if (hierarchyCache && now - hierarchyCacheTime < HIERARCHY_CACHE_TTL) {
-    return hierarchyCache;
-  }
+  const cached = hierarchyCache.get();
+  if (cached) return cached;
   try {
     const data = await getJson<HierarchyData>(S3_PATHS.FAMILY_HIERARCHY);
-    if (data) {
-      hierarchyCache = data;
-      hierarchyCacheTime = now;
-    }
+    if (data) hierarchyCache.set(data);
     return data;
   } catch (err) {
     logger.error('Error loading family hierarchy', {
       error: err instanceof Error ? err.message : String(err),
     });
-    return hierarchyCache; // return stale cache on error
+    return hierarchyCache.stale(); // return stale cache on error
   }
 }
 

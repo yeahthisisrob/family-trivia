@@ -1,11 +1,16 @@
 // Module: auth
 // Google OAuth login + account linking + legacy passphrase validation.
 
+import type { MyCircle } from '@family-trivia/shared';
 import { apiService } from '../../services/ApiService';
+import { saveCircles } from '../../session';
 
 export interface AuthResponse {
   token: string;
   userId: string;
+  /** The circle being opened, and every circle this sign-in belongs to. */
+  circleId: string;
+  circles: MyCircle[];
   email: string;
   name: string;
   picture?: string;
@@ -31,7 +36,9 @@ async function authGoogleRaw(body: Record<string, string>): Promise<AuthResponse
     err.errorType = payload?.errorType;
     throw err;
   }
-  return payload as AuthResponse;
+  const auth = payload as AuthResponse;
+  saveCircles(auth.circleId, auth.circles);
+  return auth;
 }
 
 /**

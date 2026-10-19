@@ -1,4 +1,6 @@
 // File: lambda/services/s3.ts
+// Keys here are circle-relative; physicalKey (services/scope.ts) makes them
+// real at the edge, so every feature is scoped to its circle without knowing.
 import {
   DeleteObjectCommand,
   GetObjectCommand,
@@ -9,6 +11,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { BUCKET, REGION } from '../config';
 import { logger } from './logger';
+import { logicalKey, physicalKey } from './scope';
 
 // Initialize S3 client
 const s3 = new S3Client({
@@ -31,6 +34,8 @@ const STABLE_KEYS = new Set([
   'categories/categories.json',
   'config/seasons.json',
   'config/member-activation.json',
+  'config/google-auth-map.json',
+  'circles.json',
 ]);
 const ttlCache = new Map<string, { data: any; expiresAt: number }>();
 
@@ -45,9 +50,11 @@ export function invalidateS3ReadCache(): void {
  * @param key S3 object key
  * @returns Parsed JSON data or null if object doesn't exist
  */
-export async function getJson<T>(key: string): Promise<T | null> {
+export async function getJson<T>(logical: string): Promise<T | null> {
+  const key = physicalKey(logical);
+  const stable = STABLE_KEYS.has(logical);
   // 1. Check cross-invocation TTL cache for stable config files
-  if (STABLE_KEYS.has(key)) {
+  if (stable) {
     const cached = ttlCache.get(key);
     if (cached && Date.now() < cached.expiresAt) {
       logger.debug('S3 TTL cache hit', { key });
@@ -65,7 +72,7 @@ export async function getJson<T>(key: string): Promise<T | null> {
   const promise = (async () => {
     const result = await getJsonUncached<T>(key);
     // Populate TTL cache on successful read of stable keys
-    if (STABLE_KEYS.has(key)) {
+    if (stable) {
       ttlCache.set(key, { data: result, expiresAt: Date.now() + TTL_MS });
     }
     return result;
@@ -139,7 +146,8 @@ async function getJsonUncached<T>(key: string): Promise<T | null> {
  * @param key S3 object key
  * @param data Data to store as JSON
  */
-export async function putJson(key: string, data: any): Promise<void> {
+export async function putJson(logical: string, data: any): Promise<void> {
+  const key = physicalKey(logical);
   try {
     await s3.send(
       new PutObjectCommand({
@@ -151,7 +159,7 @@ export async function putJson(key: string, data: any): Promise<void> {
     );
 
     // Bust TTL cache on write so admin changes take effect immediately
-    if (STABLE_KEYS.has(key)) {
+    if (STABLE_KEYS.has(logical)) {
       ttlCache.delete(key);
     }
 
@@ -172,7 +180,8 @@ export async function putJson(key: string, data: any): Promise<void> {
  * @returns true if successfully written, false if object already exists
  */
 /** Read raw bytes (photos for a book's cover); null when there's nothing there. */
-export async function getBytes(key: string): Promise<Uint8Array | null> {
+export async function getBytes(logical: string): Promise<Uint8Array | null> {
+  const key = physicalKey(logical);
   try {
     const r = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
     return r.Body ? await r.Body.transformToByteArray() : null;
@@ -183,13 +192,23 @@ export async function getBytes(key: string): Promise<Uint8Array | null> {
 }
 
 /** Write raw bytes (exports, generated files). */
-export async function putBytes(key: string, body: Uint8Array, contentType: string): Promise<void> {
+export async function putBytes(
+  logical: string,
+  body: Uint8Array,
+  contentType: string,
+): Promise<void> {
   await s3.send(
-    new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: body, ContentType: contentType }),
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: physicalKey(logical),
+      Body: body,
+      ContentType: contentType,
+    }),
   );
 }
 
-export async function putJsonIfNotExists(key: string, data: any): Promise<boolean> {
+export async function putJsonIfNotExists(logical: string, data: any): Promise<boolean> {
+  const key = physicalKey(logical);
   try {
     // Use IfNoneMatch condition to only write if object doesn't exist
     await s3.send(
@@ -229,7 +248,8 @@ export async function putJsonIfNotExists(key: string, data: any): Promise<boolea
  * @param maxKeys Maximum number of keys to return (default: 1000)
  * @returns Array of object keys
  */
-export async function listObjects(prefix: string, maxKeys = 1000): Promise<string[]> {
+export async function listObjects(logicalPrefix: string, maxKeys = 1000): Promise<string[]> {
+  const prefix = physicalKey(logicalPrefix);
   try {
     const objectKeys: string[] = [];
     let continuationToken: string | undefined;
@@ -245,7 +265,8 @@ export async function listObjects(prefix: string, maxKeys = 1000): Promise<strin
       );
 
       response.Contents?.forEach((obj) => {
-        if (obj.Key) objectKeys.push(obj.Key);
+        const key = obj.Key && logicalKey(obj.Key);
+        if (key) objectKeys.push(key);
       });
 
       continuationToken = response.NextContinuationToken;
@@ -271,7 +292,8 @@ export async function listObjects(prefix: string, maxKeys = 1000): Promise<strin
  * Delete an object from S3
  * @param key S3 object key
  */
-export async function deleteObject(key: string): Promise<void> {
+export async function deleteObject(logical: string): Promise<void> {
+  const key = physicalKey(logical);
   try {
     await s3.send(
       new DeleteObjectCommand({
@@ -295,7 +317,8 @@ export async function deleteObject(key: string): Promise<void> {
  * @param key The key to check
  * @returns boolean indicating if the file exists
  */
-export async function fileExists(key: string): Promise<boolean> {
+export async function fileExists(logical: string): Promise<boolean> {
+  const key = physicalKey(logical);
   try {
     await s3.send(
       new HeadObjectCommand({

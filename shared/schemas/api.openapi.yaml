@@ -1,7 +1,13 @@
 openapi: 3.0.3
 info:
   title: Family Trivia API
-  description: Backend API for the Family Trivia game
+  description: |
+    Backend API for the Family Trivia game.
+
+    Every route but POST /auth/google takes a Bearer token and works in one
+    circle (docs/decisions/0015): the one named by the X-Circle header, or
+    the caller's first circle when it's left out. A caller who isn't in that
+    circle gets 403 (errorType NOT_IN_CIRCLE).
   version: 1.0.0
 
 servers:
@@ -1691,7 +1697,7 @@ paths:
 
   /auth/google:
     post:
-      summary: Exchange a Google ID token for a JWT session token
+      summary: Sign in with Google; a passphrase joins one more circle
       operationId: authGoogle
       tags: [Authentication]
       requestBody:
@@ -1700,27 +1706,104 @@ paths:
           application/json:
             schema:
               type: object
-              required: [idToken]
+              required: [googleIdToken]
               properties:
-                idToken:
+                googleIdToken:
                   type: string
                 passphrase:
                   type: string
-                  description: Optional — used to link a Google account to an existing user on first login
+                  description: Links this Google account to the person it names, in its circle
+                circleId:
+                  type: string
+                  description: The circle to open, if they're in it
       responses:
         "200":
-          description: Session token and user info
+          description: Session token, and the circles this sign-in belongs to
           content:
             application/json:
               schema:
                 type: object
+                required: [token, userId, circleId, circles, email, isNewLink]
                 properties:
                   token:
                     type: string
                   userId:
                     type: string
-                  linked:
+                    description: Who they are in the circle being opened
+                  circleId:
+                    type: string
+                  circles:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MyCircle"
+                  email:
+                    type: string
+                  name:
+                    type: string
+                  picture:
+                    type: string
+                  isNewLink:
                     type: boolean
+        "401":
+          description: Bad Google token, unknown passphrase, or not linked yet (NOT_LINKED)
+        "409":
+          description: Person already linked elsewhere, or passphrase shared by two circles
+
+  /me/circles:
+    get:
+      summary: Every circle the caller belongs to, and which one this request is in
+      operationId: getMyCircles
+      tags: [Circles]
+      responses:
+        "200":
+          description: The caller's circles
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [circles, current]
+                properties:
+                  circles:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MyCircle"
+                  current:
+                    type: string
+    post:
+      summary: Join one more circle with a passphrase while signed in
+      operationId: joinCircle
+      tags: [Circles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [passphrase]
+              properties:
+                passphrase:
+                  type: string
+      responses:
+        "200":
+          description: The caller's circles, with the one just joined
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [circles, joined, userId]
+                properties:
+                  circles:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MyCircle"
+                  joined:
+                    type: string
+                  userId:
+                    type: string
+        "409":
+          description: Person already linked elsewhere, or passphrase shared by two circles
+        "422":
+          description: The passphrase didn't match anyone (INVALID_PASSPHRASE)
 
   # ──────────────────────────────────────────────
   # Notifications
@@ -3683,6 +3766,21 @@ paths:
 
 components:
   schemas:
+    MyCircle:
+      type: object
+      description: A circle as one signed-in person sees it (shared/src/circle.ts)
+      required: [id, name, kind, userId]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        kind:
+          type: string
+          enum: [family, friends, mixed]
+        userId:
+          type: string
+          description: Who this person is in that circle
     # ──────────────────────────────────────────────
     # Reusable Schemas
     # ──────────────────────────────────────────────
