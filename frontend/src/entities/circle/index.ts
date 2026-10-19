@@ -1,8 +1,9 @@
 /** How each kind of circle shows itself (docs/decisions/0015). */
-import type { CircleKind } from '@family-trivia/shared';
+import { type CircleKind, type Words, wordsFor } from '@family-trivia/shared';
 import Diversity1RoundedIcon from '@mui/icons-material/Diversity1Rounded';
 import FamilyRestroomRoundedIcon from '@mui/icons-material/FamilyRestroomRounded';
 import Groups2RoundedIcon from '@mui/icons-material/Groups2Rounded';
+import { currentCircleKind } from '../../session';
 
 export const KIND_ICON: Record<CircleKind, typeof Groups2RoundedIcon> = {
   family: FamilyRestroomRoundedIcon,
@@ -24,3 +25,9 @@ export const KIND_LINE: Record<CircleKind, string> = {
 };
 
 export const CIRCLE_KINDS: readonly CircleKind[] = ['family', 'friends', 'mixed'];
+
+/** The kind of circle this screen is in, and its words (docs/decisions/0021). */
+export function useCircleWords(override?: CircleKind): { kind: CircleKind; words: Words } {
+  const kind = override ?? currentCircleKind();
+  return { kind, words: wordsFor(kind) };
+}

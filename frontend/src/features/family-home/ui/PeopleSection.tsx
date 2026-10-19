@@ -5,6 +5,7 @@
 import { Box, Card, CardActionArea, Chip, Stack, Typography } from '@mui/material';
 import type React from 'react';
 import { useMemo, useState } from 'react';
+import { useCircleWords } from '../../../entities/circle';
 import { type PersonView, relationLabel } from '../model/people';
 import { Face } from './Face';
 
@@ -23,6 +24,7 @@ const PersonCard: React.FC<{
   photo?: string;
   onOpen: (id: string) => void;
 }> = ({ person: p, meId, photo, onOpen }) => {
+  const { kind } = useCircleWords();
   const status = statusOf(p);
   return (
     <Card variant="outlined" sx={{ height: '100%' }}>
@@ -43,7 +45,7 @@ const PersonCard: React.FC<{
             {p.name}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {relationLabel(p.relation, p.id === meId)} ·{' '}
+            {relationLabel(p.relation, p.id === meId, kind)} ·{' '}
             {status ?? (p.facts ? `${p.facts} answers` : 'no answers yet')}
           </Typography>
         </Box>

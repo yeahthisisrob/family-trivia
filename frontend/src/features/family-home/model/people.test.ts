@@ -69,6 +69,8 @@ describe('people on the Family tab', () => {
     });
     expect(people.find((p) => p.id === 'buddy')?.notPlaying).toBe(true);
     expect(relationLabel('cousin', false)).toBe('your cousin');
+    expect(relationLabel(null, false, 'friends')).toBe('friend');
+    expect(relationLabel('family', false, 'friends')).toBe('same crew');
   });
 
   test('me first, then closest family', () => {

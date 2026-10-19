@@ -30,3 +30,5 @@ when the decision is made, so the reason survives the people who made it.
 | [0017](0017-when-everyone-is-free.md) | When everyone's free: availability that leads back to the app | Accepted |
 | [0018](0018-your-world.md) | Your world: joining circles, splitting them, and seeing across them | Accepted |
 | [0019](0019-membership-lives-in-each-circle.md) | Membership lives in each circle | Accepted |
+| [0020](0020-invites.md) | Invites: one link, a few choices, and passphrases are one of them | Accepted |
+| [0021](0021-one-tie-registry-and-circle-words.md) | One tie registry, and words per circle | Accepted |

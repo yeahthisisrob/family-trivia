@@ -5,7 +5,7 @@
  * which is dark in every theme (docs/decisions/0011).
  */
 
-import { relationOf } from '@family-trivia/shared';
+import { relationOf, yourRelation } from '@family-trivia/shared';
 import CloseIcon from '@mui/icons-material/Close';
 import {
   Autocomplete,
@@ -24,6 +24,7 @@ import {
 import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D, { type ForceGraphMethods } from 'react-force-graph-2d';
+import { useCircleWords } from '../../../entities/circle';
 import type { GraphData } from '../../../entities/family';
 import { colors, identityColor } from '../../../shared/design-system';
 import {
@@ -54,6 +55,7 @@ const LINK_STYLE: Record<LinkKind, { label: string; dash?: number[] }> = {
   'former-partner': { label: 'Former partners', dash: [2, 3] },
   parent: { label: 'Parent and child' },
   kin: { label: 'Family', dash: [1, 2] },
+  friend: { label: 'Friends', dash: [4, 2] },
   household: { label: 'Household', dash: [1, 3] },
   alike: { label: 'Answered alike' },
 };
@@ -75,6 +77,7 @@ export const FamilyGraph: React.FC<FamilyGraphProps> = ({
   initialOptions,
 }) => {
   const theme = useTheme();
+  const { kind, words } = useCircleWords();
   const night = theme.palette.night;
   const narrow = useMediaQuery(theme.breakpoints.down('md'));
   const fg = useRef<ForceGraphMethods | undefined>(undefined);
@@ -196,7 +199,7 @@ export const FamilyGraph: React.FC<FamilyGraphProps> = ({
           />
           <Chip
             size="small"
-            label="Households"
+            label={words.groups}
             onClick={() => toggle('households')}
             sx={chipSx(opts.households)}
           />
@@ -449,10 +452,7 @@ export const FamilyGraph: React.FC<FamilyGraphProps> = ({
           </Typography>
           {meId && meId !== focused.id && (
             <Typography sx={{ fontSize: 13, color: night.textDim, mt: 0.25 }}>
-              {(() => {
-                const r = relationOf(family, meId, focused.id);
-                return r ? `Your ${r}` : 'In your family';
-              })()}
+              {yourRelation(relationOf(family, meId, focused.id), kind)}
             </Typography>
           )}
           {onOpenProfile && (

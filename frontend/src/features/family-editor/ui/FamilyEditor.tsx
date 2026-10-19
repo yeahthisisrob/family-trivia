@@ -13,6 +13,7 @@ import {
   playingPeople,
   rememberedPeople,
   type Tie,
+  tieTouches,
 } from '@family-trivia/shared';
 import AddIcon from '@mui/icons-material/Add';
 import {
@@ -34,6 +35,7 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
+import { useCircleWords } from '../../../entities/circle';
 import { familyApi, useFamily } from '../../../entities/family';
 import { ApiError } from '../../../services/ApiService';
 import { archiveApi } from '../../family-archive';
@@ -61,6 +63,7 @@ const initials = (name: string) =>
 
 export const FamilyEditor: React.FC<{ adminUserId: string }> = ({ adminUserId }) => {
   const { family: saved, photoUrls, error: loadError, replace } = useFamily();
+  const { words } = useCircleWords();
   const [draft, setDraft] = useState<Family | null>(null);
   const [editing, setEditing] = useState<{ person: FamilyPerson; isNew: boolean } | null>(null);
   const [household, setHousehold] = useState<Household | null>(null);
@@ -119,9 +122,7 @@ export const FamilyEditor: React.FC<{ adminUserId: string }> = ({ adminUserId })
     change({
       ...family,
       people: rest,
-      ties: family.ties.filter(
-        (t) => !(t.type === 'parent' ? [t.parent, t.child] : [t.a, t.b]).includes(id),
-      ),
+      ties: family.ties.filter((t) => !tieTouches(t, id)),
       households: Object.fromEntries(
         Object.entries(family.households).map(([k, h]) => [
           k,
@@ -244,11 +245,10 @@ export const FamilyEditor: React.FC<{ adminUserId: string }> = ({ adminUserId })
       </Box>
 
       <Typography variant="subtitle2" sx={{ mt: 4, mb: 1 }}>
-        Households
+        {words.groups}
       </Typography>
       <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5 }}>
-        Homes or branches of the family. Someone can be in more than one, like a child with two
-        homes.
+        {words.groupHint}
       </Typography>
       <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
         {Object.values(family.households).map((h) => (
@@ -261,7 +261,7 @@ export const FamilyEditor: React.FC<{ adminUserId: string }> = ({ adminUserId })
         <Chip
           icon={<AddIcon />}
           variant="outlined"
-          label="Add a household"
+          label={`Add a ${words.group}`}
           onClick={() => setHousehold({ id: '', name: '', members: [] })}
         />
       </Stack>
@@ -331,9 +331,10 @@ const HouseholdDialog: React.FC<{
   onClose: () => void;
 }> = ({ family, household, onSave, onRemove, onClose }) => {
   const [h, setH] = useState(household);
+  const { words } = useCircleWords();
   return (
     <Dialog open onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{household.id ? h.name : 'Add a household'}</DialogTitle>
+      <DialogTitle>{household.id ? h.name : `Add a ${words.group}`}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           <TextField
@@ -370,7 +371,7 @@ const HouseholdDialog: React.FC<{
         <Box>
           {onRemove && (
             <Button color="error" onClick={onRemove}>
-              Remove household
+              Remove {words.group}
             </Button>
           )}
         </Box>

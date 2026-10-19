@@ -1,7 +1,7 @@
 // File: frontend/src/session.ts
 // Session storage — JWT token + userId persisted across page loads.
 
-import type { MyCircle } from '@family-trivia/shared';
+import type { CircleKind, MyCircle } from '@family-trivia/shared';
 
 interface SessionData {
   userId: string;
@@ -90,6 +90,12 @@ export function loadCircles(): SessionCircles | null {
 }
 
 export const currentCircleId = (): string | null => loadCircles()?.current ?? null;
+
+/** The kind of circle this browser is in. Family until it's known (the first circle always is). */
+export const currentCircleKind = (): CircleKind => {
+  const c = loadCircles();
+  return c?.circles.find((x) => x.id === c.current)?.kind ?? 'family';
+};
 
 /** Forget the remembered circle and start over; the server opens their first. */
 export function leaveRememberedCircle() {

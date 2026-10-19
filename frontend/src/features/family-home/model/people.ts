@@ -3,7 +3,14 @@
  * person looking, their homes, a few numbers, and who is in today's
  * spotlight. Pure, so the rules are tested on their own.
  */
-import { type Family, isRemembered, relationOf } from '@family-trivia/shared';
+import {
+  type CircleKind,
+  type Family,
+  isRemembered,
+  relationOf,
+  relationWord,
+  wordsFor,
+} from '@family-trivia/shared';
 import type { GraphData } from '../../../entities/family';
 
 export interface PersonView {
@@ -21,8 +28,18 @@ export interface PersonView {
 }
 
 /** Relation words for the person looking: "your cousin", or a name's role. */
-export const relationLabel = (relation: string | null, isMe: boolean): string =>
-  isMe ? 'you' : relation ? `your ${relation}` : 'family';
+export const relationLabel = (
+  relation: string | null,
+  isMe: boolean,
+  kind: CircleKind = 'family',
+): string =>
+  isMe
+    ? 'you'
+    : relation === 'family'
+      ? relationWord(relation, kind)
+      : relation
+        ? `your ${relation}`
+        : wordsFor(kind).someone;
 
 export function peopleFor(data: GraphData, family: Family, meId: string | null): PersonView[] {
   return data.people.map((p) => {
