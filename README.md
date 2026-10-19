@@ -199,6 +199,12 @@ Friendships sit in the same people model as family: who's friends with whom and 
 
 ![A friend's connections: how and when they met each friend](docs/screenshots/friend-ties.png)
 
+## Memories from everyone who knew them
+
+The people with the most to say about someone you've lost often aren't in the app. From their Remembering page, an admin can share a link: anyone who opens it can leave a memory, no account needed, and it waits for the admin to let it in. A friend who never played can have a page made entirely of what the people who loved them remember.
+
+![A memory link: no account, just a name and a memory](docs/screenshots/remember-link.png)
+
 ## What's on
 
 Getting everyone in one place starts with knowing who's around. On Home, drop in what you're doing the way you'd text it: "beach weekend the 14th to the 16th", "busy Tuesday nights", "free Saturday, anyone up for a hike?". It lands on the right days, and the next two weeks show for the whole circle at a glance, with the best days to get together picked out. Tap a day to see who's free and what's planned, and say you're in. Busy times only ever show as busy. No calendar to connect.

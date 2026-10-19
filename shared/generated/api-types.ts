@@ -924,6 +924,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/remember": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A memory link's page, before sign-in — who it remembers and the memories let in, nothing else */
+        get: operations["getRemember"];
+        put?: never;
+        /** Add a memory through a link (no account); it waits for an admin */
+        post: operations["postRemember"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/family/visitor-memories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Memories from outside the circle for someone remembered; admins also get the waiting ones */
+        get: operations["getVisitorMemories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/memory-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** This person's memory links in this circle */
+        get: operations["getMemoryLinks"];
+        put?: never;
+        /** Make a memory link for someone the circle remembers */
+        post: operations["postMemoryLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/memory-links/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Take back a memory link */
+        post: operations["revokeMemoryLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/visitor-memories/decide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Let a waiting memory in, or let it go */
+        post: operations["decideVisitorMemory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/threads/today": {
         parameters: {
             query?: never;
@@ -2219,6 +2306,45 @@ export interface components {
                 };
             };
             best: string[];
+        };
+        MemoryLink: {
+            token: string;
+            circleId: string;
+            personId: string;
+            createdBy: string;
+            createdAt: string;
+            expiresAt: string | null;
+            revokedAt?: string;
+            uses: number;
+        };
+        VisitorMemory: {
+            id: string;
+            name: string;
+            how?: string;
+            text: string;
+            at: string;
+            /** @enum {string} */
+            status: "waiting" | "shown";
+        };
+        MemoryLinkPreview: {
+            /** @enum {string} */
+            state: "open" | "expired" | "used-up" | "revoked";
+            person?: {
+                name: string;
+                years?: string;
+                dedication?: string;
+            };
+            circle?: {
+                name: string;
+                /** @enum {string} */
+                kind: "family" | "friends" | "mixed";
+            };
+            memories?: {
+                name: string;
+                how?: string;
+                text: string;
+                at: string;
+            }[];
         };
         ThreadChoice: {
             id: string;
@@ -4857,6 +4983,232 @@ export interface operations {
                 content?: never;
             };
             /** @description No such plan */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getRemember: {
+        parameters: {
+            query: {
+                token: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The link's state and, while open, the person */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryLinkPreview"];
+                };
+            };
+            /** @description No such link */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    postRemember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    token: string;
+                    name: string;
+                    how?: string;
+                    text: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Waiting for an admin */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such link */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The link has closed */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Too many waiting */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getVisitorMemories: {
+        parameters: {
+            query: {
+                personId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The memories */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        memories: components["schemas"]["VisitorMemory"][];
+                    };
+                };
+            };
+        };
+    };
+    getMemoryLinks: {
+        parameters: {
+            query: {
+                personId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The links */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        links: components["schemas"]["MemoryLink"][];
+                    };
+                };
+            };
+        };
+    };
+    postMemoryLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    personId: string;
+                    /** @enum {string} */
+                    lifetime?: "day" | "week" | "month" | "forever";
+                };
+            };
+        };
+        responses: {
+            /** @description The link */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        link: components["schemas"]["MemoryLink"];
+                    };
+                };
+            };
+            /** @description Not someone the circle remembers */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    revokeMemoryLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    token: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Taken back */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such link */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    decideVisitorMemory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    personId: string;
+                    id: string;
+                    approve: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Decided */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such memory */
             404: {
                 headers: {
                     [name: string]: unknown;

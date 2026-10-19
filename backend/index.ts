@@ -20,6 +20,7 @@ import { graphRoutes } from './features/graph/routes';
 import { invitesRoutes } from './features/invites/routes';
 import { knowledgeRoutes } from './features/knowledge/routes';
 import { lookBackRoutes } from './features/look-back/routes';
+import { memoryLinksRoutes } from './features/memory-links/routes';
 import { personStoryRoutes } from './features/person-story/routes';
 import { plansRoutes } from './features/plans/routes';
 import { reactionsRoutes } from './features/reactions/routes';
@@ -174,6 +175,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...celebrationsRoutes,
   ...circlesRoutes,
   ...invitesRoutes,
+  ...memoryLinksRoutes,
   ...plansRoutes,
   ...avatarRoutes,
   ...threadsRoutes,

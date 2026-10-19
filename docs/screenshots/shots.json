@@ -44,7 +44,7 @@
       "file": "remembering.png",
       "story": "family-rememberingpage--remembering",
       "size": "desktop",
-      "source": "7d3abcdc71e2",
+      "source": "332805cd49bf",
       "storyFile": "frontend/src/features/remembering/ui/RememberingPage.stories.tsx"
     },
     {
@@ -152,7 +152,7 @@
       "story": "features-invites-invitesadmin--with-someone-waiting",
       "size": "desktop",
       "height": 640,
-      "source": "91673a07743f",
+      "source": "8157592db409",
       "storyFile": "frontend/src/features/invites/ui/InvitesAdmin.stories.tsx"
     },
     {
@@ -184,6 +184,13 @@
       "size": "phone",
       "storyFile": "frontend/src/features/plans/ui/PlansCard.stories.tsx",
       "source": "7be8f1dcdf18"
+    },
+    {
+      "file": "remember-link.png",
+      "story": "remembering-rememberscreen--the-link-page",
+      "size": "phone",
+      "storyFile": "frontend/src/features/memory-links/ui/RememberScreen.stories.tsx",
+      "source": "0d89bf562d6d"
     }
   ]
 }

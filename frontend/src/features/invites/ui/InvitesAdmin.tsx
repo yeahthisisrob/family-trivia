@@ -27,6 +27,7 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { useState } from 'react';
+import { shareLink } from '../../../shared/share';
 import { inviteLink } from '../api/invitesApi';
 import { useInvites } from '../model/useInvites';
 
@@ -43,20 +44,6 @@ const LIFETIMES: { value: InviteLifetime; label: string }[] = [
   { value: 'month', label: 'A month' },
   { value: 'forever', label: 'No end' },
 ];
-
-/** Copy the link, or hand it to the phone's share sheet when there is one. */
-async function share(link: string, circleName: string): Promise<'shared' | 'copied'> {
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: `Join ${circleName}`, url: link });
-      return 'shared';
-    } catch {
-      /* closed the sheet: copy instead */
-    }
-  }
-  await navigator.clipboard.writeText(link);
-  return 'copied';
-}
 
 interface Props {
   circleName: string;
@@ -278,7 +265,7 @@ const MadeLink: React.FC<{ invite: Invite; circleName: string }> = ({ invite, ci
         variant="contained"
         color="secondary"
         startIcon={done ? <CheckRoundedIcon /> : <IosShareRoundedIcon />}
-        onClick={async () => setDone(await share(link, circleName))}
+        onClick={async () => setDone(await shareLink(link, `Join ${circleName}`))}
       >
         {done === 'copied' ? 'Copied' : done === 'shared' ? 'Shared' : 'Share'}
       </Button>
@@ -320,7 +307,7 @@ const Links: React.FC<{
                   <Tooltip title="Copy or share">
                     <IconButton
                       size="small"
-                      onClick={() => void share(inviteLink(i.token), circleName)}
+                      onClick={() => void shareLink(inviteLink(i.token), `Join ${circleName}`)}
                     >
                       <ContentCopyRoundedIcon fontSize="small" />
                     </IconButton>
