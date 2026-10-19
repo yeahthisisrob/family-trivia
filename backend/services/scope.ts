@@ -14,8 +14,8 @@ export interface Scope {
   root: boolean;
 }
 
-/** Sign-in data shared by every circle. Everything else belongs to one. */
-const GLOBAL_PREFIXES = ['circles.json', 'accounts/'];
+/** Sign-in data and invite links, shared by every circle. Everything else belongs to one. */
+const GLOBAL_PREFIXES = ['circles.json', 'accounts/', 'invites/'];
 
 const store = new AsyncLocalStorage<Scope>();
 let fallback: Scope | null = null;
@@ -31,7 +31,7 @@ export function currentScope(): Scope {
   return scope;
 }
 
-const isGlobalKey = (key: string) => GLOBAL_PREFIXES.some((p) => key.startsWith(p));
+export const isGlobalKey = (key: string) => GLOBAL_PREFIXES.some((p) => key.startsWith(p));
 
 const prefixOf = (scope: Scope) => (scope.root ? '' : `circles/${scope.circleId}/`);
 

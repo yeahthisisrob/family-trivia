@@ -4,6 +4,7 @@ import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
 import { generateMemberSummary } from '../services/bedrock/members/memberSummary';
 import { getFactHistory } from '../services/factHistoryService';
+import { loadHierarchy } from '../services/family/roster';
 import { getRecentRounds } from '../services/familyFeudService';
 import { logger } from '../services/logger';
 import { fileExists, getJson, putJson } from '../services/s3';
@@ -215,7 +216,7 @@ export async function getMemberSummary(
     logger.info('Facts loaded', { count: facts.length });
 
     // 4) Load family hierarchy to get relationships and name
-    const hierarchy = await getJson<any>(S3_PATHS.FAMILY_HIERARCHY);
+    const hierarchy = await loadHierarchy<any>();
     let memberInfo = null;
     let memberName = userId; // Default to user ID if name not found
 

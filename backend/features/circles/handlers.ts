@@ -2,18 +2,20 @@
  * Signing in, and the circles a person belongs to (docs/decisions/0015).
  * One Google sign-in, any number of circles; a passphrase joins one more.
  */
-import type { MyCircle } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
 import type { Caller } from '../../middleware/requireAuth';
-import { signJwt, verifyGoogleToken } from '../../services/auth';
+import { verifyGoogleToken } from '../../services/auth';
 import {
-  accountIdOf,
   myCircles as circlesOf,
+  createCircle,
+  isOwner,
   linkByPassphrase,
+  listCircles,
   rebuildMemberships,
 } from '../../services/circles';
 import { logger } from '../../services/logger';
+import { sessionFor } from '../../services/session';
 
 type Body = Record<string, unknown>;
 
@@ -27,9 +29,6 @@ function parse(event: APIGatewayProxyEvent): Body | null {
 }
 
 const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
-
-/** The circle to open: the one asked for if they're in it, else their first. */
-const choose = (mine: MyCircle[], wanted?: string) => mine.find((c) => c.id === wanted) ?? mine[0];
 
 /**
  * POST /auth/google {googleIdToken, passphrase?, circleId?}
@@ -53,22 +52,13 @@ export async function signIn(event: APIGatewayProxyEvent): Promise<APIGatewayPro
     joined = link.circle.id;
   }
 
-  const mine = await rebuildMemberships(google.email);
-  const current = choose(mine, joined ?? text(body.circleId));
-  if (!current) return errorResponse('Account not linked', 401, undefined, 'NOT_LINKED');
-
-  const token = await signJwt({ sub: accountIdOf(google.email), email: google.email });
-  logger.info('Signed in', { circles: mine.length, joined: joined ?? null });
-  return successResponse({
-    token,
-    userId: current.userId,
-    circleId: current.id,
-    circles: mine,
-    email: google.email,
-    name: google.name,
-    picture: google.picture,
+  const session = await sessionFor(google, {
+    open: joined ?? text(body.circleId),
     isNewLink: joined !== undefined,
   });
+  if (!session) return errorResponse('Account not linked', 401, undefined, 'NOT_LINKED');
+  logger.info('Signed in', { circles: session.circles.length, joined: joined ?? null });
+  return successResponse(session);
 }
 
 /** GET /me/circles: every circle the caller is in, and which one this is. */
@@ -100,4 +90,42 @@ export async function joinCircle(
     );
   const circles = await rebuildMemberships(caller.email);
   return successResponse({ circles, joined: link.circle.id, userId: link.userId });
+}
+
+// ── Admin › Circles: the owner starts circles ──────────────────
+
+const KINDS = ['family', 'friends', 'mixed'] as const;
+const isKind = (v: unknown): v is (typeof KINDS)[number] =>
+  typeof v === 'string' && (KINDS as readonly string[]).includes(v);
+
+/** GET /admin/circles: every circle, for the owner; whether the caller is the owner. */
+export async function getCircles(
+  _event: APIGatewayProxyEvent,
+  _userId: string,
+  caller: Caller,
+): Promise<APIGatewayProxyResult> {
+  const owner = await isOwner(caller.email);
+  return successResponse({ owner, circles: owner ? await listCircles() : [] });
+}
+
+/** POST /admin/circles {name, kind, themeId?, yourName}: start a circle, with the owner as its admin. */
+export async function postCircle(
+  event: APIGatewayProxyEvent,
+  _userId: string,
+  caller: Caller,
+): Promise<APIGatewayProxyResult> {
+  if (!(await isOwner(caller.email)))
+    return errorResponse('Only the owner can start a circle', 403);
+  const body = parse(event);
+  const name = text(body?.name)?.slice(0, 60);
+  const yourName = text(body?.yourName)?.slice(0, 60);
+  const themeId = text(body?.themeId);
+  if (!name || !yourName || !isKind(body?.kind))
+    return errorResponse('name, kind and yourName are required', 400);
+  if (themeId && !/^[a-z0-9-]{1,40}$/.test(themeId)) return errorResponse('Unknown theme', 400);
+  const circle = await createCircle(
+    { name, kind: body.kind, ...(themeId ? { themeId } : {}) },
+    { email: caller.email, name: yourName },
+  );
+  return successResponse({ circle, circles: await circlesOf(caller.email) });
 }

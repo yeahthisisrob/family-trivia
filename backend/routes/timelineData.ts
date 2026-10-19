@@ -4,9 +4,8 @@
 
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
-import { S3_PATHS } from '../constants';
+import { loadHierarchy } from '../services/family/roster';
 import { logger } from '../services/logger';
-import * as s3Service from '../services/s3';
 import { type HierarchyPerson, loadTimeline } from '../services/timelineService';
 
 interface HierarchyData {
@@ -50,7 +49,7 @@ export async function getTimelineData(event: APIGatewayProxyEvent): Promise<APIG
     }
 
     // Load hierarchy
-    const hierarchyData = await s3Service.getJson<HierarchyData>(S3_PATHS.FAMILY_HIERARCHY);
+    const hierarchyData = await loadHierarchy<HierarchyData>();
     if (!hierarchyData) {
       return errorResponse('Family hierarchy data not found', 404);
     }

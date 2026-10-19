@@ -16,6 +16,7 @@ export * from './fill-in';
 export * from './game-modes';
 export * from './group';
 export * from './history';
+export * from './invite';
 export * from './knowledge';
 export * from './leaderboard';
 export * from './look-back';

@@ -1,10 +1,7 @@
-import type { CircleKind, MyCircle } from '@family-trivia/shared';
+import type { MyCircle } from '@family-trivia/shared';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
-import Diversity1RoundedIcon from '@mui/icons-material/Diversity1Rounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
-import FamilyRestroomRoundedIcon from '@mui/icons-material/FamilyRestroomRounded';
-import Groups2RoundedIcon from '@mui/icons-material/Groups2Rounded';
 import {
   Box,
   Button,
@@ -23,19 +20,8 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { useState } from 'react';
+import { KIND_ICON, KIND_LABEL } from '../../../entities/circle';
 import { useMyCircles } from '../model/useMyCircles';
-
-const KIND_ICON: Record<CircleKind, typeof Groups2RoundedIcon> = {
-  family: FamilyRestroomRoundedIcon,
-  friends: Groups2RoundedIcon,
-  mixed: Diversity1RoundedIcon,
-};
-
-const KIND_LABEL: Record<CircleKind, string> = {
-  family: 'Family',
-  friends: 'Friends',
-  mixed: 'Family and friends',
-};
 
 const JOIN_ERRORS: Record<string, string> = {
   INVALID_PASSPHRASE: "That passphrase didn't match. Check it and try again.",

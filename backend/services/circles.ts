@@ -10,7 +10,9 @@
  * someone removed from a circle loses it at once.
  */
 import { createHash } from 'node:crypto';
-import type { Circle, CircleRegistry, MyCircle } from '@family-trivia/shared';
+import type { Circle, CircleKind, CircleRegistry, MyCircle } from '@family-trivia/shared';
+import { S3_PATHS } from '../constants';
+import { addMember, idFor, nextColor } from './family/members';
 import { logger } from './logger';
 import { getJson, putJson } from './s3';
 import { inCircle, type Scope } from './scope';
@@ -40,7 +42,7 @@ export async function listCircles(): Promise<Circle[]> {
   return registry?.circles?.length ? registry.circles : [IMPLICIT_ROOT];
 }
 
-async function findCircle(id: string): Promise<Circle | null> {
+export async function findCircle(id: string): Promise<Circle | null> {
   return (await listCircles()).find((c) => c.id === id) ?? null;
 }
 
@@ -51,7 +53,7 @@ export const accountIdOf = (email: string) =>
 const accountKey = (email: string) => `accounts/${accountIdOf(email)}.json`;
 
 /** Who this email is in one circle, from that circle's own map. */
-function memberIn(circle: Circle, email: string): Promise<string | null> {
+export function memberIn(circle: Circle, email: string): Promise<string | null> {
   return inCircle(scopeOf(circle), async () => {
     const map = (await getJson<SignInMap>(SIGN_IN_MAP_KEY)) ?? {};
     const wanted = normalize(email);
@@ -173,6 +175,14 @@ export async function linkByPassphrase(email: string, passphrase: string): Promi
   }
 
   const [{ circle, userId }] = matches as [{ circle: Circle; userId: string }];
+  return linkMember(circle, userId, email);
+}
+
+/**
+ * Link a Google account to one person in a circle (passphrases, invites and
+ * approved joins all end here). A person is linked to one account only.
+ */
+export function linkMember(circle: Circle, userId: string, email: string): Promise<LinkResult> {
   return inCircle(scopeOf(circle), async () => {
     const map = (await getJson<SignInMap>(SIGN_IN_MAP_KEY)) ?? {};
     const linkedTo = Object.entries(map).find(([, uid]) => uid === userId)?.[0];
@@ -188,4 +198,62 @@ export async function linkByPassphrase(email: string, passphrase: string): Promi
     await putJson(SIGN_IN_MAP_KEY, map);
     return { ok: true as const, circle, userId };
   });
+}
+
+// ── Making circles ──────────────────────────────────────────────
+
+/**
+ * The deployment's owner: an admin of its founding circle (the first). They
+ * can start new circles; each circle's own admins run that circle.
+ */
+export async function isOwner(email: string): Promise<boolean> {
+  const [founding] = await listCircles();
+  if (!founding) return false;
+  const userId = await memberIn(founding, email);
+  if (!userId) return false;
+  return inCircle(scopeOf(founding), async () => {
+    const users = (await getJson<UsersConfig>(USERS_KEY))?.users ?? {};
+    return (users[userId] as { isAdmin?: boolean } | undefined)?.isAdmin === true;
+  });
+}
+
+const CIRCLE_ID = /^[a-z0-9-]{1,40}$/;
+
+/**
+ * Start a circle with its maker as its first admin, already signed in to it:
+ * an entry in circles.json (the founding circle kept first), and in the new
+ * circle its people (just them, through the one way people are added) and
+ * its sign-in map.
+ */
+export async function createCircle(
+  input: { name: string; kind: CircleKind; themeId?: string },
+  maker: { email: string; name: string },
+): Promise<Circle> {
+  const circles = await listCircles();
+  const base = idFor(input.name, () => false);
+  const id = idFor(base, (c) => circles.some((x) => x.id === c) || !CIRCLE_ID.test(c));
+  const circle: Circle = {
+    id,
+    name: input.name.trim(),
+    kind: input.kind,
+    createdAt: new Date().toISOString(),
+  };
+  const registry: CircleRegistry = { version: 1, circles: [...circles, circle] };
+  await putJson(REGISTRY_KEY, registry);
+
+  await inCircle(scopeOf(circle), async () => {
+    const userId = idFor(maker.name, () => false);
+    const added = await addMember({
+      id: userId,
+      name: maker.name,
+      color: nextColor({}),
+      isAdmin: true,
+    });
+    if (!added.ok) throw new Error(added.error);
+    await putJson(SIGN_IN_MAP_KEY, { [maker.email]: userId });
+    if (input.themeId) await putJson(S3_PATHS.APPEARANCE, { themeId: input.themeId });
+  });
+  await rebuildMemberships(maker.email);
+  logger.info('Circle created', { circleId: id, kind: input.kind });
+  return circle;
 }

@@ -3,6 +3,7 @@
 // used by the slot machine game mode.
 
 import { S3_PATHS } from '../../constants';
+import { loadHierarchy } from '../../services/family/roster';
 import { logger } from '../../services/logger';
 import { getJson } from '../../services/s3';
 import { circleCache } from '../../services/scope';
@@ -41,7 +42,7 @@ async function getHierarchy(): Promise<HierarchyData | null> {
   const cached = hierarchyCache.get();
   if (cached) return cached;
   try {
-    const data = await getJson<HierarchyData>(S3_PATHS.FAMILY_HIERARCHY);
+    const data = await loadHierarchy<HierarchyData>();
     if (data) hierarchyCache.set(data);
     return data;
   } catch (err) {

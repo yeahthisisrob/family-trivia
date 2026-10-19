@@ -8,6 +8,8 @@ export const S3_PATHS = {
   // User Profiles & Configuration
   USER_PROFILE: (userId: string) => `profile_data/${userId}.json`,
   USERS_CONFIG: 'config/users.json',
+  /** The circle's theme (features/appearance). */
+  APPEARANCE: 'config/appearance.json',
 
   // Family Structure
   FAMILY_HIERARCHY: 'family/hierarchy.json',

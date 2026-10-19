@@ -11,7 +11,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { BUCKET, REGION } from '../config';
 import { logger } from './logger';
-import { logicalKey, physicalKey } from './scope';
+import { isGlobalKey, logicalKey, physicalKey } from './scope';
 
 // Initialize S3 client
 const s3 = new S3Client({
@@ -265,7 +265,8 @@ export async function listObjects(logicalPrefix: string, maxKeys = 1000): Promis
       );
 
       response.Contents?.forEach((obj) => {
-        const key = obj.Key && logicalKey(obj.Key);
+        // Shared keys (invites/) read the same from every circle.
+        const key = obj.Key && (isGlobalKey(logicalPrefix) ? obj.Key : logicalKey(obj.Key));
         if (key) objectKeys.push(key);
       });
 

@@ -7,7 +7,7 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
 import { visibleHierarchy } from '../services/family/joined';
-import { accountIsPlaying, loadFamily } from '../services/family/roster';
+import { accountIsPlaying, loadFamily, loadHierarchy } from '../services/family/roster';
 import { canPlayGameModeAny } from '../services/gameModeService';
 import { logger } from '../services/logger';
 import { calculateCatchupStatus, checkPlayEligibility } from '../services/playerStateService';
@@ -137,7 +137,7 @@ export async function appInit(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       userCategoriesData,
     ] = await Promise.all([
       getJson<UserConfigData>(S3_PATHS.USERS_CONFIG),
-      getJson<HierarchyData>(S3_PATHS.FAMILY_HIERARCHY),
+      loadHierarchy<HierarchyData>(),
       getSeasonStatusResponse(userId ?? undefined),
       getJson<Record<string, GroupDescriptionData>>(S3_PATHS.GROUP_DESCRIPTIONS),
       getJson<any[]>(S3_PATHS.CATEGORIES).catch(() => null),
@@ -234,7 +234,7 @@ export async function appInitDeferred(event: APIGatewayProxyEvent): Promise<APIG
 
     const family = await loadFamily();
     // Load hierarchy for people/sides filtering (TTL-cached, no extra S3 read)
-    const rawHierarchy = await getJson<HierarchyData>(S3_PATHS.FAMILY_HIERARCHY);
+    const rawHierarchy = await loadHierarchy<HierarchyData>();
     const hierarchy = await visibleHierarchy(validateHierarchy(rawHierarchy));
     const people = hierarchy?.family?.people || {};
     const allUserIds = Object.keys(people);

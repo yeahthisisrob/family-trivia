@@ -13,7 +13,7 @@
  *   getHistory(user)      — read a user's history
  */
 import type { HistoryEntry } from '@family-trivia/shared';
-import { logicalKey, physicalKey } from '../../services/scope';
+import { isGlobalKey, logicalKey, physicalKey } from '../../services/scope';
 import type { Season, SeasonsConfig } from '../../services/seasonService';
 
 const store = new Map<string, unknown>();
@@ -105,7 +105,7 @@ async function listObjects(prefix: string, _maxKeys = 1000): Promise<string[]> {
   const real = physicalKey(prefix);
   const keys: string[] = [];
   for (const k of store.keys()) {
-    const key = k.startsWith(real) ? logicalKey(k) : null;
+    const key = k.startsWith(real) ? (isGlobalKey(prefix) ? k : logicalKey(k)) : null;
     if (key) keys.push(key);
   }
   return keys;

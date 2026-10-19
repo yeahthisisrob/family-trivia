@@ -12,6 +12,7 @@ import {
   fromLegacyHierarchy,
   isPlaying,
   type LegacyHierarchy,
+  toLegacyHierarchy,
 } from '@family-trivia/shared';
 import { S3_PATHS } from '../../constants';
 import { logger } from '../logger';
@@ -32,6 +33,19 @@ export async function loadFamily(): Promise<Family> {
   ]);
   logger.debug('Reading the version 1 hierarchy as a family');
   return fromLegacyHierarchy(legacy, Object.keys(accounts?.users ?? {}));
+}
+
+/**
+ * The version 1 hierarchy the tree, timeline and older screens read. A family
+ * that still has its hierarchy file keeps reading it, unchanged; one with only
+ * a family file (every new circle) gets it derived from that, so people live
+ * in one place.
+ */
+export async function loadHierarchy<H = LegacyHierarchy>(): Promise<H | null> {
+  const stored = await getJson<H>(S3_PATHS.FAMILY_HIERARCHY);
+  if (stored) return stored;
+  const family = await getJson<Family>(S3_PATHS.FAMILY);
+  return family?.version === 2 ? (toLegacyHierarchy(family) as H) : null;
 }
 
 /**
