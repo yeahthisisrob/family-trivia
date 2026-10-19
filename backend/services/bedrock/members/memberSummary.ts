@@ -7,6 +7,7 @@ import {
   cousinsOf,
   currentPartnersOf,
   householdsOf,
+  mentionableRelations,
   niecesAndNephewsOf,
   parentsOf,
   siblingsOf,
@@ -255,6 +256,10 @@ async function analyzeMemberData(memberData: MemberData) {
     const cousins = nameOf(cousinsOf(family, me));
     const aunt = nameOf(auntsAndUnclesOf(family, me));
     const nieceNephew = nameOf(niecesAndNephewsOf(family, me));
+    // Friendships, with how they met when it's known: "Bob (met in college, 2004)".
+    const friends = mentionableRelations(family, me)
+      .filter((r) => r.relation.startsWith('friend'))
+      .map((r) => `${r.name}${r.relation.slice('friend'.length)}`);
     const married = partnerTie?.type === 'partner' && partnerTie.kind === 'married';
 
     detailedRelationships = {
@@ -266,6 +271,7 @@ async function analyzeMemberData(memberData: MemberData) {
       cousins,
       aunt,
       nieceNephew,
+      friends,
       generation: children.length > 0 ? 'parent' : parents.length > 0 ? 'child' : 'adult',
       familyRole: partner
         ? married
@@ -517,6 +523,7 @@ async function buildMemberSummaryPrompts(memberData: MemberData): Promise<{
       familyDesc.push(`aunt/uncle to ${rel.nieceNephew.join(' and ')}`);
     }
 
+    if (rel.friends?.length) familyDesc.push(`friends with ${rel.friends.join(', ')}`);
     return familyDesc.length > 0 ? familyDesc.join(', ') : 'individual family member';
   };
 

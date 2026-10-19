@@ -3,9 +3,10 @@ import { modelFor } from './bedrock/core/models';
 // Purpose: Daily fact question generation service.
 // Loads ALL previous questions for dedup, uses best model, stores metadata.
 
-import { getEasternDateString } from '@family-trivia/shared';
+import { type AiFrame, getEasternDateString } from '@family-trivia/shared';
 import { S3_PATHS } from '../constants';
 import { invokeBedrockPrompt } from './bedrock/core/bedrockClient';
+import { circleFrame } from './bedrock/core/frame';
 import { collectResponseBody } from './bedrock/core/responseParser';
 import { extractTextContent } from './bedrock/core/textExtractor';
 import { isDuplicateQuestionString } from './bedrock/questions/utils';
@@ -28,8 +29,8 @@ export interface DailyFactQuestion {
   theme?: string; // theme/words the first person provided
 }
 
-// Categories for daily facts — exported for frontend use
-export const FACT_CATEGORIES = [
+// Categories for daily facts (the app gets them through factCategoriesFor)
+const FACT_CATEGORIES = [
   { id: 'favorites', label: 'Favorites', emoji: '⭐', hint: 'Preferences, top picks, go-tos' },
   { id: 'memories', label: 'Memories', emoji: '📸', hint: 'Childhood, nostalgia, moments' },
   { id: 'food', label: 'Food', emoji: '🍕', hint: 'Meals, cooking, guilty pleasures' },
@@ -42,6 +43,17 @@ export const FACT_CATEGORIES = [
   { id: 'dreams', label: 'Dreams', emoji: '🚀', hint: 'Goals, bucket list, aspirations' },
   { id: 'misc', label: 'Surprise Me', emoji: '🎲', hint: 'Random fun question' },
 ];
+
+/** The categories for this circle: the one about the group itself is worded for its kind. */
+export function factCategoriesFor(frame: AiFrame) {
+  return frame.kind === 'family'
+    ? FACT_CATEGORIES
+    : FACT_CATEGORIES.map((c) =>
+        c.id === 'family'
+          ? { ...c, label: 'Us', emoji: '🙌', hint: 'Shared nights, trips, inside jokes' }
+          : c,
+      );
+}
 
 // ---------------------------------------------------------------------------
 // Load ALL previous shared questions (cached per invocation)
@@ -93,9 +105,11 @@ export async function generateDailyFactQuestion(
   const allPrevious = await getAllPreviousSharedQuestions();
 
   // Use selected category or pick random
+  const frame = await circleFrame();
+  const categories = factCategoriesFor(frame);
   const catObj =
-    FACT_CATEGORIES.find((c) => c.id === categoryId) ||
-    FACT_CATEGORIES[Math.floor(Math.random() * (FACT_CATEGORIES.length - 1))]; // exclude 'misc' from random
+    categories.find((c) => c.id === categoryId) ||
+    categories[Math.floor(Math.random() * (categories.length - 1))]; // exclude 'misc' from random
   const category = catObj.label;
 
   // Build prompt with ALL previous questions included
@@ -106,14 +120,15 @@ export async function generateDailyFactQuestion(
     ? `\nThe person who goes first today suggested this theme: "${userTheme}"\nIncorporate it creatively while keeping the question fun and universally answerable.`
     : '';
 
-  const prompt = `Generate ONE fun question for a family daily fact game.
+  const prompt = `Generate ONE fun question for a daily fact game played by ${frame.audience}. Everyone answers it, then sees each other's answers.
 Category for today: ${category}${themeInstruction}
 
 RULES:
 - Short (max 20 words), clear, engaging
 - Answerable by anyone in 1-2 sentences
 - Light-hearted, non-controversial
-- No role-play, no "imagine you are...", no "our family"
+- No role-play, no "imagine you are..."
+- ${frame.avoid}
 - Focus on personal preferences, experiences, or opinions
 - Must be COMPLETELY DIFFERENT from all ${allPrevious.length} previously asked questions
 
@@ -201,7 +216,7 @@ Return ONLY the question text. No quotes, no prefix, no explanation.`;
 export async function generateQuestionOptions(
   userTheme?: string,
 ): Promise<Array<{ question: string; category: string }>> {
-  const allPrevious = await getAllPreviousSharedQuestions();
+  const [allPrevious, frame] = await Promise.all([getAllPreviousSharedQuestions(), circleFrame()]);
 
   const previousList =
     allPrevious.length > 0
@@ -215,13 +230,14 @@ export async function generateQuestionOptions(
     ? `Theme suggested: "${userTheme}". Make the questions relate to this theme.`
     : '';
 
-  const prompt = `Generate 3 fun question options for a family daily fact game.
+  const prompt = `Generate 3 fun question options for a daily fact game played by ${frame.audience}.
 ${themeInstruction}
 
 RULES:
 - Each question max 20 words, clear, engaging
 - Answerable by anyone in 1-2 sentences
 - Light-hearted, non-controversial
+- ${frame.avoid}
 - Each from a DIFFERENT category
 - Must NOT repeat or closely match any previously asked question
 
@@ -229,7 +245,9 @@ RECENTLY ASKED (avoid similar):
 ${previousList}
 
 Return ONLY a JSON array of 3 objects: [{"question": "...", "category": "..."}]
-Categories: ${FACT_CATEGORIES.join(', ')}`;
+Categories: ${factCategoriesFor(frame)
+    .map((c) => c.label)
+    .join(', ')}`;
 
   try {
     const modelId = modelFor('familyQuestions');

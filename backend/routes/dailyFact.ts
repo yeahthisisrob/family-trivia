@@ -5,8 +5,9 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
 import { generateFunFact } from '../services/bedrock';
+import { circleFrame } from '../services/bedrock/core/frame';
 import {
-  FACT_CATEGORIES,
+  factCategoriesFor,
   generateDailyFactQuestion,
   generateQuestionOptions,
 } from '../services/dailyFactService';
@@ -965,7 +966,7 @@ export async function getDailyFactCategories(
   _event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   return successResponse({
-    categories: FACT_CATEGORIES.map((c) => ({
+    categories: factCategoriesFor(await circleFrame()).map((c) => ({
       id: c.id,
       label: c.label,
       emoji: c.emoji,
