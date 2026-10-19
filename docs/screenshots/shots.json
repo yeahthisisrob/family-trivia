@@ -138,6 +138,22 @@
       "height": 300,
       "source": "2c99f08a0d03",
       "storyFile": "frontend/src/components/AppShell/AppHeader.stories.tsx"
+    },
+    {
+      "file": "join.png",
+      "story": "features-invites-joinscreen--friends-invite",
+      "size": "phone",
+      "height": 760,
+      "source": "430d988f627b",
+      "storyFile": "frontend/src/features/invites/ui/JoinScreen.stories.tsx"
+    },
+    {
+      "file": "invites.png",
+      "story": "features-invites-invitesadmin--with-someone-waiting",
+      "size": "desktop",
+      "height": 640,
+      "source": "91673a07743f",
+      "storyFile": "frontend/src/features/invites/ui/InvitesAdmin.stories.tsx"
     }
   ]
 }

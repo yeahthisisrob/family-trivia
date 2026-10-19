@@ -4,13 +4,13 @@ import { modelFor } from '../services/bedrock/core/models';
 import { getWeekStartDateET as getWeekStartDate } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
-import { S3_PATHS } from '../constants';
 import { invokeBedrockPrompt } from '../services/bedrock/core/bedrockClient';
 import {
   collectResponseBody,
   extractJsonFromResponse,
 } from '../services/bedrock/core/responseParser';
 import { getRecentSharedQuestions as getRecentSharedFactQuestions } from '../services/factHistoryService';
+import { loadHierarchy } from '../services/family/roster';
 import { logger } from '../services/logger';
 import { getJson } from '../services/s3';
 
@@ -63,7 +63,7 @@ export async function generateQuestionOptions(
     // 3. Family member names
     let familyNames: string[] = [];
     try {
-      const hierarchy = await getJson<any>(S3_PATHS.FAMILY_HIERARCHY);
+      const hierarchy = await loadHierarchy<any>();
       if (hierarchy?.family?.people) {
         familyNames = Object.values(hierarchy.family.people)
           .map((p: any) => p.name || '')

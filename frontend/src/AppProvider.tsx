@@ -13,6 +13,7 @@ import { TimelineProvider } from './contexts/TimelineContext';
 import { TriviaProvider } from './contexts/TriviaContext';
 import { UserStatusProvider } from './contexts/UserStatusContext';
 import { FeaturesProvider } from './entities/settings';
+import { JoinScreen } from './features/invites';
 import { apiService } from './services/ApiService';
 import { loadSession, onSessionExpired, saveSession } from './session';
 import { createLogger, LogLevel } from './utils/logger';
@@ -77,6 +78,16 @@ const AppProvider: React.FC = () => {
       apiService.clearCache();
     }
   }, [userId, authValid]);
+
+  // ── An invite link (/join?t=…) opens its own page, signed in or not. ──
+  const joinToken =
+    window.location.pathname === '/join'
+      ? new URLSearchParams(window.location.search).get('t')
+      : null;
+  if (joinToken) {
+    if (!googleClientId) return null;
+    return <JoinScreen token={joinToken} googleClientId={googleClientId} />;
+  }
 
   // ── Pre-auth: show login screen. No providers = no API calls. ──
   if (!userId || !authValid) {

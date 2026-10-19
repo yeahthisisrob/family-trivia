@@ -2,10 +2,9 @@
 
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
-import { S3_PATHS } from '../constants';
 import { visibleHierarchy } from '../services/family/joined';
+import { loadHierarchy } from '../services/family/roster';
 import { logger } from '../services/logger';
-import { getJson } from '../services/s3';
 
 // Type definitions for hierarchy data
 interface Person {
@@ -48,7 +47,7 @@ export async function getFamilyHierarchy(
 ): Promise<APIGatewayProxyResult> {
   try {
     // Get the hierarchy data from S3
-    const rawHierarchyData = await getJson<HierarchyData>(S3_PATHS.FAMILY_HIERARCHY);
+    const rawHierarchyData = await loadHierarchy<HierarchyData>();
 
     if (!rawHierarchyData) {
       return errorResponse('Family hierarchy data not found', 404);

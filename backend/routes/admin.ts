@@ -11,6 +11,7 @@ import {
   getFactHistory,
   invalidateFactHistoryCache,
 } from '../services/factHistoryService';
+import { addMember } from '../services/family/members';
 import { logger } from '../services/logger';
 import { isImageType, isMediaKey, readUrl, uploadUrl } from '../services/media';
 import { deleteObject, getJson, listObjects, putJson } from '../services/s3';
@@ -100,66 +101,20 @@ export async function addPlayer(event: APIGatewayProxyEvent): Promise<APIGateway
     return errorResponse('userId, group, and color are required', 400);
   }
 
-  const config = await getJson<UserConfigData>(S3_PATHS.USERS_CONFIG);
-  if (!config) {
-    return errorResponse('User config not found', 404);
-  }
-
-  if (config.users[userId]) {
-    return errorResponse(`Player "${userId}" already exists`, 409);
-  }
-
-  config.users[userId] = {
+  // Display name from the id, as before: "uncle-buddy" → "Uncle Buddy"
+  const name = String(userId)
+    .split(/[-_]/)
+    .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+  const added = await addMember({
+    id: userId,
+    name,
     group,
     color,
-    ...(passphrase && { passphrase }),
-    ...(isAdminFlag && { isAdmin: true }),
-  };
-  config.lastUpdated = new Date().toISOString();
-
-  await putJson(S3_PATHS.USERS_CONFIG, config);
-  invalidateUserConfigCache();
-
-  // Sync hierarchy: add player to group's members list AND people object
-  if (group) {
-    const hierarchy = await getJson<HierarchyData>(S3_PATHS.FAMILY_HIERARCHY);
-    if (hierarchy?.family) {
-      let changed = false;
-
-      // Add to group members
-      if (hierarchy.family.groups?.[group]) {
-        const members = hierarchy.family.groups[group].members || [];
-        if (!members.includes(userId)) {
-          members.push(userId);
-          hierarchy.family.groups[group].members = members;
-          changed = true;
-        }
-      }
-
-      // Add to people
-      if (!hierarchy.family.people[userId]) {
-        // Derive display name from userId: "uncle-buddy" → "Uncle Buddy"
-        const displayName = userId
-          .split(/[-_]/)
-          .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
-          .join(' ');
-        // Determine familySide from the group's side
-        const groupData = hierarchy.family.groups?.[group];
-        const familySide = groupData?.familySide || '';
-        hierarchy.family.people[userId] = {
-          id: userId,
-          name: displayName,
-          groupId: group,
-          familySide,
-        };
-        changed = true;
-      }
-
-      if (changed) {
-        await putJson(S3_PATHS.FAMILY_HIERARCHY, hierarchy);
-      }
-    }
-  }
+    passphrase,
+    isAdmin: isAdminFlag,
+  });
+  if (!added.ok) return errorResponse(`Player "${userId}" already exists`, 409);
 
   logger.info('Admin: player added', { userId });
   return successResponse({ success: true });

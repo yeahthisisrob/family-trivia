@@ -92,7 +92,7 @@ The people the family has lost keep a page: their years, the last things they to
 
 ### Family, friends, or both
 
-One Google sign-in can belong to any number of circles: a family, an old crew of friends, or both together. Each circle has its own people, seasons, games and memories, and none of it crosses into another circle unless someone shares it on purpose. Anyone in more than one circle moves between them from the title, and a passphrase joins one more.
+One Google sign-in can belong to any number of circles: a family, an old crew of friends, or both together. Each circle has its own people, seasons, games and memories, and none of it crosses into another circle unless someone shares it on purpose. Anyone in more than one circle moves between them from the title. The owner starts new circles from Admin › Circles, each with its own theme, and brings people in with a link.
 
 ![Circles: a family and two circles of friends, one sign-in](docs/screenshots/circles.png)
 
@@ -175,16 +175,19 @@ aws s3 cp /tmp/users.json s3://BUCKET/config/users.json
 
 Open the site, **Sign in with Google**, then enter your passphrase when prompted. You're now linked, admin, and the SetupWizard runs to build out the rest of your family.
 
-## Inviting family members
+## Inviting people
 
-Once the admin runs the SetupWizard, every new member gets a short auto-generated passphrase (e.g. `clever-river`). The flow for them is:
+An admin opens **Admin › Circles** and makes a link:
 
-1. Admin shares each person's passphrase with them privately.
-2. Family member opens the site → **Sign in with Google**.
-3. First time only: they're prompted for their passphrase. The backend matches it to their family-member slot and links their Google account.
-4. Every subsequent visit is plain Google sign-in — no passphrase needed.
+- **For anyone** (they enter what everyone should call them, and for friends, how they know everyone), or **for someone already added** (they just sign in and take their place).
+- It lasts **a day, a week, a month, or until taken back**, works for **one person or many**, and can wait for the admin to **let each person in**.
+- **Share** hands it to the phone's share sheet, or copies it.
 
-Passphrases are **one-time identification, not ongoing auth** — they exist so people don't need to share an inbox or pre-register Google emails.
+Opening the link shows only the circle it was made for. They sign in with Google and they're in; someone already in other circles keeps them. Passphrases still work, as a personal invite that never expires.
+
+![An invite link: the circle, a name, then Google](docs/screenshots/join.png)
+
+![Admin › Circles: someone waiting to join, a new link, and the links already out](docs/screenshots/invites.png)
 
 ## Configuration
 

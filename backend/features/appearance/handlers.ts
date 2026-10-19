@@ -5,10 +5,11 @@
  */
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
+import { S3_PATHS } from '../../constants';
 import { requireAdmin } from '../../services/adminAuth';
 import { getJson, putJson } from '../../services/s3';
 
-const KEY = 'config/appearance.json';
+const KEY = S3_PATHS.APPEARANCE;
 export interface FamilyAppearance {
   themeId: string | null;
 }

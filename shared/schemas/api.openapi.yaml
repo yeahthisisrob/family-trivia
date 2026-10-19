@@ -1805,6 +1805,243 @@ paths:
         "422":
           description: The passphrase didn't match anyone (INVALID_PASSPHRASE)
 
+  /admin/circles:
+    get:
+      summary: Every circle, for the deployment's owner (an admin of the founding circle)
+      operationId: getCircles
+      tags: [Circles]
+      responses:
+        "200":
+          description: Whether the caller is the owner, and (if so) every circle
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [owner, circles]
+                properties:
+                  owner:
+                    type: boolean
+                  circles:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Circle"
+    post:
+      summary: Start a circle with the owner as its first admin
+      operationId: createCircle
+      tags: [Circles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, kind, yourName]
+              properties:
+                name:
+                  type: string
+                kind:
+                  type: string
+                  enum: [family, friends, mixed]
+                themeId:
+                  type: string
+                yourName:
+                  type: string
+                  description: What the new circle calls its maker
+      responses:
+        "200":
+          description: The new circle, and every circle the owner is in now
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [circle, circles]
+                properties:
+                  circle:
+                    $ref: "#/components/schemas/Circle"
+                  circles:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MyCircle"
+        "403":
+          description: Not the owner
+
+  /invite:
+    get:
+      summary: What an invite link opens, shown before sign-in (only its own circle)
+      operationId: getInvite
+      tags: [Invites]
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The link's state and, while open, its circle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvitePreview"
+        "404":
+          description: No such link
+
+  /invite/accept:
+    post:
+      summary: Sign in with Google through an invite link and join its circle
+      operationId: acceptInvite
+      tags: [Invites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, googleIdToken]
+              properties:
+                token:
+                  type: string
+                googleIdToken:
+                  type: string
+                details:
+                  $ref: "#/components/schemas/JoinDetails"
+      responses:
+        "200":
+          description: Joined (with a session), or waiting for an admin's yes
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [pending]
+                properties:
+                  pending:
+                    type: boolean
+                  circleName:
+                    type: string
+                  session:
+                    description: Null while waiting, unless they're in other circles
+                    type: object
+                    nullable: true
+                    allOf:
+                      - $ref: "#/components/schemas/Session"
+        "400":
+          description: A link for anyone needs a name (NAME_REQUIRED)
+        "409":
+          description: That person is linked to another Google account
+        "410":
+          description: Expired, used up or taken back (INVITE_EXPIRED, INVITE_USED_UP, INVITE_REVOKED)
+
+  /admin/invites:
+    get:
+      summary: This circle's invite links and the joins waiting for a yes
+      operationId: getInvites
+      tags: [Invites]
+      responses:
+        "200":
+          description: Links (open, and ended in the last month) and waiting joins
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [invites, joins]
+                properties:
+                  invites:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Invite"
+                  joins:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PendingJoin"
+    post:
+      summary: Make an invite link for this circle
+      operationId: createInvite
+      tags: [Invites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                for:
+                  type: object
+                  description: Leave out for anyone; give userId for one person already added
+                  properties:
+                    userId:
+                      type: string
+                lifetime:
+                  type: string
+                  enum: [day, week, month, forever]
+                maxUses:
+                  type: integer
+                  nullable: true
+                approval:
+                  type: boolean
+      responses:
+        "200":
+          description: The new link
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [invite]
+                properties:
+                  invite:
+                    $ref: "#/components/schemas/Invite"
+
+  /admin/invites/revoke:
+    post:
+      summary: Take an invite link back
+      operationId: revokeInvite
+      tags: [Invites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        "200":
+          description: Taken back
+        "404":
+          description: Not one of this circle's links
+
+  /admin/joins/decide:
+    post:
+      summary: Let someone waiting in, or not
+      operationId: decideJoin
+      tags: [Invites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, approve]
+              properties:
+                id:
+                  type: string
+                approve:
+                  type: boolean
+      responses:
+        "200":
+          description: Decided; userId is set when they were let in
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok:
+                    type: boolean
+                  userId:
+                    type: string
+
   # ──────────────────────────────────────────────
   # Notifications
   # ──────────────────────────────────────────────
@@ -3766,6 +4003,120 @@ paths:
 
 components:
   schemas:
+    Circle:
+      type: object
+      required: [id, name, kind]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        kind:
+          type: string
+          enum: [family, friends, mixed]
+        root:
+          type: boolean
+        createdAt:
+          type: string
+    Session:
+      type: object
+      required: [token, userId, circleId, circles, email, isNewLink]
+      properties:
+        token:
+          type: string
+        userId:
+          type: string
+        circleId:
+          type: string
+        circles:
+          type: array
+          items:
+            $ref: "#/components/schemas/MyCircle"
+        email:
+          type: string
+        name:
+          type: string
+        picture:
+          type: string
+        isNewLink:
+          type: boolean
+    Invite:
+      type: object
+      description: shared/src/invite.ts
+      required: [token, circleIds, for, createdBy, createdAt, expiresAt, maxUses, uses, approval]
+      properties:
+        token:
+          type: string
+        circleIds:
+          type: array
+          items:
+            type: string
+        for:
+          type: object
+          required: [kind]
+          properties:
+            kind:
+              type: string
+              enum: [anyone, person]
+            userId:
+              type: string
+        createdBy:
+          type: string
+        createdAt:
+          type: string
+        expiresAt:
+          type: string
+          nullable: true
+        maxUses:
+          type: integer
+          nullable: true
+        uses:
+          type: integer
+        approval:
+          type: boolean
+        revokedAt:
+          type: string
+    InvitePreview:
+      type: object
+      required: [state]
+      properties:
+        state:
+          type: string
+          enum: [open, expired, used-up, revoked]
+        circle:
+          type: object
+          properties:
+            name:
+              type: string
+            kind:
+              type: string
+              enum: [family, friends, mixed]
+        forName:
+          type: string
+        approval:
+          type: boolean
+    JoinDetails:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        howWeMet:
+          type: string
+    PendingJoin:
+      type: object
+      required: [id, token, email, details, requestedAt]
+      properties:
+        id:
+          type: string
+        token:
+          type: string
+        email:
+          type: string
+        details:
+          $ref: "#/components/schemas/JoinDetails"
+        requestedAt:
+          type: string
     MyCircle:
       type: object
       description: A circle as one signed-in person sees it (shared/src/circle.ts)

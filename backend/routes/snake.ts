@@ -3,11 +3,10 @@
 
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
-import { S3_PATHS } from '../constants';
 import { getAllFactHistories } from '../services/factHistoryService';
+import { loadHierarchy } from '../services/family/roster';
 import { logger } from '../services/logger';
 import { getAllQuestionsFlat } from '../services/questionHistoryService';
-import { getJson } from '../services/s3';
 
 interface SnakeQuestion {
   clue: string;
@@ -46,7 +45,7 @@ export async function getSnakeQuestions(
     // Source 2: Family facts (personal Q&A)
     try {
       const histories = await getAllFactHistories();
-      const hierarchy = await getJson<any>(S3_PATHS.FAMILY_HIERARCHY);
+      const hierarchy = await loadHierarchy<any>();
       const people = hierarchy?.family?.people || {};
 
       for (const [userId, entries] of histories) {

@@ -6,15 +6,14 @@ import { modelFor } from '../services/bedrock/core/models';
 
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
-import { S3_PATHS } from '../constants';
 import { invokeBedrockPrompt } from '../services/bedrock/core/bedrockClient';
 import {
   collectResponseBody,
   extractJsonFromResponse,
 } from '../services/bedrock/core/responseParser';
 import { getAllFactHistories } from '../services/factHistoryService';
+import { loadHierarchy } from '../services/family/roster';
 import { logger } from '../services/logger';
-import { getJson } from '../services/s3';
 import { getCurrentSeason } from '../services/seasonService';
 
 interface CrosswordClue {
@@ -269,7 +268,7 @@ export async function generateCrossword(
     // Load facts + user names + current season
     const [histories, hierarchy, season] = await Promise.all([
       getAllFactHistories(),
-      getJson<any>(S3_PATHS.FAMILY_HIERARCHY),
+      loadHierarchy<any>(),
       getCurrentSeason(),
     ]);
 

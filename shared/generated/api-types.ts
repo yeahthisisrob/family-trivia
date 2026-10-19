@@ -837,6 +837,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/circles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every circle, for the deployment's owner (an admin of the founding circle) */
+        get: operations["getCircles"];
+        put?: never;
+        /** Start a circle with the owner as its first admin */
+        post: operations["createCircle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What an invite link opens, shown before sign-in (only its own circle) */
+        get: operations["getInvite"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/invite/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign in with Google through an invite link and join its circle */
+        post: operations["acceptInvite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** This circle's invite links and the joins waiting for a yes */
+        get: operations["getInvites"];
+        put?: never;
+        /** Make an invite link for this circle */
+        post: operations["createInvite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/invites/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Take an invite link back */
+        post: operations["revokeInvite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/joins/decide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Let someone waiting in, or not */
+        post: operations["decideJoin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/notifications": {
         parameters: {
             query?: never;
@@ -1907,6 +2011,63 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        Circle: {
+            id: string;
+            name: string;
+            /** @enum {string} */
+            kind: "family" | "friends" | "mixed";
+            root?: boolean;
+            createdAt?: string;
+        };
+        Session: {
+            token: string;
+            userId: string;
+            circleId: string;
+            circles: components["schemas"]["MyCircle"][];
+            email: string;
+            name?: string;
+            picture?: string;
+            isNewLink: boolean;
+        };
+        /** @description shared/src/invite.ts */
+        Invite: {
+            token: string;
+            circleIds: string[];
+            for: {
+                /** @enum {string} */
+                kind: "anyone" | "person";
+                userId?: string;
+            };
+            createdBy: string;
+            createdAt: string;
+            expiresAt: string | null;
+            maxUses: number | null;
+            uses: number;
+            approval: boolean;
+            revokedAt?: string;
+        };
+        InvitePreview: {
+            /** @enum {string} */
+            state: "open" | "expired" | "used-up" | "revoked";
+            circle?: {
+                name?: string;
+                /** @enum {string} */
+                kind?: "family" | "friends" | "mixed";
+            };
+            forName?: string;
+            approval?: boolean;
+        };
+        JoinDetails: {
+            name: string;
+            howWeMet?: string;
+        };
+        PendingJoin: {
+            id: string;
+            token: string;
+            email: string;
+            details: components["schemas"]["JoinDetails"];
+            requestedAt: string;
+        };
         /** @description A circle as one signed-in person sees it (shared/src/circle.ts) */
         MyCircle: {
             id: string;
@@ -4290,6 +4451,272 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    getCircles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Whether the caller is the owner, and (if so) every circle */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        owner: boolean;
+                        circles: components["schemas"]["Circle"][];
+                    };
+                };
+            };
+        };
+    };
+    createCircle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                    /** @enum {string} */
+                    kind: "family" | "friends" | "mixed";
+                    themeId?: string;
+                    /** @description What the new circle calls its maker */
+                    yourName: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The new circle, and every circle the owner is in now */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        circle: components["schemas"]["Circle"];
+                        circles: components["schemas"]["MyCircle"][];
+                    };
+                };
+            };
+            /** @description Not the owner */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getInvite: {
+        parameters: {
+            query: {
+                token: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The link's state and, while open, its circle */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitePreview"];
+                };
+            };
+            /** @description No such link */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    acceptInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    token: string;
+                    googleIdToken: string;
+                    details?: components["schemas"]["JoinDetails"];
+                };
+            };
+        };
+        responses: {
+            /** @description Joined (with a session), or waiting for an admin's yes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        pending: boolean;
+                        circleName?: string;
+                        /** @description Null while waiting, unless they're in other circles */
+                        session?: components["schemas"]["Session"] | null;
+                    };
+                };
+            };
+            /** @description A link for anyone needs a name (NAME_REQUIRED) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description That person is linked to another Google account */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Expired, used up or taken back (INVITE_EXPIRED, INVITE_USED_UP, INVITE_REVOKED) */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getInvites: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Links (open, and ended in the last month) and waiting joins */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        invites: components["schemas"]["Invite"][];
+                        joins: components["schemas"]["PendingJoin"][];
+                    };
+                };
+            };
+        };
+    };
+    createInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Leave out for anyone; give userId for one person already added */
+                    for?: {
+                        userId?: string;
+                    };
+                    /** @enum {string} */
+                    lifetime?: "day" | "week" | "month" | "forever";
+                    maxUses?: number | null;
+                    approval?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description The new link */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        invite: components["schemas"]["Invite"];
+                    };
+                };
+            };
+        };
+    };
+    revokeInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    token: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Taken back */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not one of this circle's links */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    decideJoin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    id: string;
+                    approve: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Decided; userId is set when they were let in */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ok: boolean;
+                        userId?: string;
+                    };
+                };
             };
         };
     };

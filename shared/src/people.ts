@@ -40,6 +40,8 @@ export interface FamilyPerson {
   memorial?: Memorial;
   /** Opt out of being named in AI-written questions, summaries and stories. */
   noAiMentions?: boolean;
+  /** How they came into the circle, in their words ("college roommates"). */
+  howWeMet?: string;
 }
 
 // ── Ties: how two people are connected ────────────────────────────────────────────────────────
@@ -438,6 +440,67 @@ export function fromLegacyHierarchy(
     };
   }
   return { version: 2, name: fam.name || 'Our family', people, ties, households };
+}
+
+/**
+ * The other way: a version 2 family in the version 1 shape the tree, timeline
+ * and older screens still read, for families (and every new circle) that
+ * have no hierarchy file. Derived on read, never stored, so the family file
+ * stays the one truth. Ended partnerships are left out, as the tree shows
+ * who is together now.
+ */
+export function toLegacyHierarchy(f: Family): LegacyHierarchy & {
+  family: { people: Record<string, { id: string; name: string; groupId: string }> };
+} {
+  const people: Record<string, { id: string; name: string; groupId: string }> = {};
+  for (const p of Object.values(f.people))
+    people[p.id] = { id: p.id, name: p.name, groupId: householdsOf(f, p.id)[0]?.id ?? '' };
+
+  const groups = Object.fromEntries(
+    Object.values(f.households).map((h) => [
+      h.id,
+      {
+        id: h.id,
+        name: h.name,
+        members: h.members,
+        ...(h.description ? { description: h.description } : {}),
+      },
+    ]),
+  );
+
+  const relationships: Array<Record<string, unknown>> = [];
+  for (const t of f.ties)
+    if (t.type === 'partner' && !t.ended)
+      relationships.push({ type: 'partners', partner1: t.a, partner2: t.b });
+
+  // One parents-of entry per set of parents, as version 1 wrote them.
+  const parentsOf = new Map<string, string[]>();
+  for (const t of f.ties) {
+    if (t.type !== 'parent') continue;
+    parentsOf.set(t.child, [...(parentsOf.get(t.child) ?? []), t.parent]);
+  }
+  const byParents = new Map<string, { parents: string[]; children: string[] }>();
+  for (const [child, parents] of parentsOf) {
+    const key = [...parents].sort().join('|');
+    const entry = byParents.get(key) ?? { parents: [...parents].sort(), children: [] };
+    entry.children.push(child);
+    byParents.set(key, entry);
+  }
+  for (const { parents, children } of byParents.values())
+    relationships.push({
+      type: 'parents-of',
+      parent1: parents[0],
+      ...(parents[1] ? { parent2: parents[1] } : {}),
+      children,
+    });
+
+  for (const t of f.ties)
+    if (t.type === 'kin' && t.relation === 'cousin')
+      relationships.push({ type: 'cousins', person1: t.a, people: [t.b] });
+    else if (t.type === 'kin' && t.relation === 'aunt-uncle')
+      relationships.push({ type: 'aunt-of', aunt: t.a, 'nieces-nephews': [t.b] });
+
+  return { family: { name: f.name, people, groups, sides: {}, relationships } };
 }
 
 // ── Checking a family before it's saved ──────────────────────────────────

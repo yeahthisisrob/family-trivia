@@ -198,10 +198,14 @@ export const THEMES: readonly ThemeDefinition[] = [
   heirloom,
   highContrast,
 ];
-export const DEFAULT_THEME_ID = classic.id;
+/**
+ * What a circle sees until its admin picks a theme. Classic, the original
+ * green, stays a choice; a circle that wants it keeps it by choosing it.
+ */
+export const DEFAULT_THEME_ID = sunset.id;
 
 export const themeById = (id: string | null | undefined): ThemeDefinition =>
-  THEMES.find((t) => t.id === id) ?? classic;
+  THEMES.find((t) => t.id === id) ?? sunset;
 
 export const tokensFor = (id: string | null | undefined, mode: Mode): SchemeTokens =>
   themeById(id).schemes[mode];

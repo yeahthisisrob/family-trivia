@@ -6,9 +6,9 @@ import {
 } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
-import { S3_PATHS } from '../constants';
 import { generateDailyFactSummary } from '../services/bedrock/facts/dailySummary';
 import { getFactHistory } from '../services/factHistoryService';
+import { loadHierarchy } from '../services/family/roster';
 import { getRecentRounds } from '../services/familyFeudService';
 import { logger } from '../services/logger';
 import { fileExists, getJson, listObjects, putJson } from '../services/s3';
@@ -146,7 +146,7 @@ export async function getWeeklyFactSummary(
     logger.info('Collecting facts for week', { targetWeekStart, targetWeekEnd });
 
     // Load family hierarchy to get user information
-    const hierarchy = await getJson<any>(S3_PATHS.FAMILY_HIERARCHY);
+    const hierarchy = await loadHierarchy<any>();
     if (!hierarchy?.family?.people) {
       return errorResponse('Family hierarchy not found', 500);
     }

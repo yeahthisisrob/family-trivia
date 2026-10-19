@@ -8,6 +8,7 @@ import { FamilyEditor } from '../../features/family-editor';
 import { KnowledgeAdmin, StoryAdmin } from '../../features/family-home';
 import { SettingsPage } from '../../features/settings';
 import { LoadingDots } from '../ui/feedback';
+import { CirclesTab } from './CirclesTab';
 import DailyQuestionsTab from './DailyQuestionsTab';
 import DataTab from './DataTab';
 import FamilyTreeTab from './FamilyTreeTab';
@@ -20,6 +21,7 @@ import TriviaBankTab from './TriviaBankTab';
 /** Admin sub-route definitions — order matches visual tab order */
 const ADMIN_TABS = [
   { label: 'Family', path: 'family' },
+  { label: 'Circles', path: 'circles' },
   { label: 'Settings', path: 'settings' },
   { label: 'Players', path: 'players' },
   { label: 'Groups', path: 'groups' },
@@ -110,6 +112,7 @@ const AdminPageInner: React.FC<AdminPageInnerProps> = () => {
               </>
             }
           />
+          <Route path="/admin/circles" element={<CirclesTab />} />
           <Route path="/admin/settings" element={<SettingsPage />} />
           <Route path="/admin/players" element={<PlayersTab />} />
           <Route path="/admin/groups" element={<GroupsTab />} />

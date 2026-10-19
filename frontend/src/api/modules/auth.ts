@@ -18,26 +18,38 @@ export interface AuthResponse {
 }
 
 /**
- * Call /auth/google directly — bypasses ApiService's error swallowing
- * so we can read errorType from 401 responses (e.g., NOT_LINKED).
+ * A request made before sign-in (signing in, opening an invite link). It
+ * goes around ApiService, which would treat a 401 as an ended session, and
+ * keeps errorType so the screen can say what went wrong (NOT_LINKED,
+ * INVITE_EXPIRED…).
  */
-async function authGoogleRaw(body: Record<string, string>): Promise<AuthResponse> {
+export async function publicRequest<T>(path: string, body?: unknown): Promise<T> {
   const base = await apiService.getApiUrl();
-  const res = await fetch(`${base}/auth/google`, {
-    method: 'POST',
+  const res = await fetch(`${base}${path}`, {
+    method: body === undefined ? 'GET' : 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
-  const data = await res.json();
-  // Unwrap envelope
+  const data = await res.json().catch(() => null);
   const payload = data?.ok === true ? data.data : data;
   if (!res.ok || data?.ok === false) {
-    const err: any = new Error(payload?.error || `Auth failed (${res.status})`);
+    const err = new Error(payload?.error || `Request failed (${res.status})`) as Error & {
+      errorType?: string;
+    };
     err.errorType = payload?.errorType;
     throw err;
   }
-  const auth = payload as AuthResponse;
+  return payload as T;
+}
+
+/** Keep the session's circles once signed in (the rest of the session is the caller's). */
+export function rememberCircles(auth: Pick<AuthResponse, 'circleId' | 'circles'>) {
   saveCircles(auth.circleId, auth.circles);
+}
+
+async function authGoogleRaw(body: Record<string, string>): Promise<AuthResponse> {
+  const auth = await publicRequest<AuthResponse>('/auth/google', body);
+  rememberCircles(auth);
   return auth;
 }
 

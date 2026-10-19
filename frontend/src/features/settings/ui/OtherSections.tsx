@@ -13,7 +13,7 @@ import {
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { appearanceApi } from '../../../entities/appearance';
-import { THEMES, useAppearance } from '../../../shared/design-system';
+import { DEFAULT_THEME_ID, THEMES, useAppearance } from '../../../shared/design-system';
 import { archiveApi } from '../../family-archive';
 
 export const AppearanceSection: React.FC = () => {
@@ -42,7 +42,7 @@ export const AppearanceSection: React.FC = () => {
       >
         {THEMES.map((t) => {
           const s = t.schemes[a.resolved];
-          const on = a.familyThemeId === t.id || (!a.familyThemeId && t.id === 'classic');
+          const on = a.familyThemeId === t.id || (!a.familyThemeId && t.id === DEFAULT_THEME_ID);
           return (
             <ButtonBase
               key={t.id}
