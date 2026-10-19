@@ -3,10 +3,13 @@
  * for you, or keep your initials. One tap saves it everywhere.
  */
 import {
+  AVATAR_CREDITS,
   AVATAR_STYLE_LABEL,
   AVATAR_STYLES,
   type AvatarChoice,
   type AvatarStyle,
+  SKIN_TONES,
+  type SkinTone,
 } from '@family-trivia/shared';
 import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
 import {
@@ -23,7 +26,7 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { useState } from 'react';
-import { Face, setAvatarChoice } from '../../../entities/person';
+import { Face, setAvatarChoice, toneSwatch } from '../../../entities/person';
 import { avatarApi } from '../api/avatarApi';
 
 interface Props {
@@ -45,7 +48,8 @@ export const AvatarPicker: React.FC<Props> = ({
   onClose,
   save = avatarApi.save,
 }) => {
-  const [style, setStyle] = useState<AvatarStyle>(current?.style ?? 'lorelei');
+  const [style, setStyle] = useState<AvatarStyle>(current?.style ?? 'micah');
+  const [tone, setTone] = useState<SkinTone>(current?.tone ?? 'light');
   const [round, setRound] = useState(0);
   const [picked, setPicked] = useState<AvatarChoice | null>(current ?? null);
   const [busy, setBusy] = useState(false);
@@ -72,6 +76,36 @@ export const AvatarPicker: React.FC<Props> = ({
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <Face id={personId} name={name} size={88} avatar={picked} />
           </Box>
+          {picked && picked.style !== 'fun-emoji' && (
+            <Box
+              role="radiogroup"
+              aria-label="Skin tone"
+              sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}
+            >
+              {SKIN_TONES.map((t) => (
+                <ButtonBase
+                  key={t}
+                  role="radio"
+                  aria-checked={t === tone}
+                  aria-label={t}
+                  onClick={() => {
+                    setTone(t);
+                    setPicked((p) => (p ? { ...p, tone: t } : p));
+                  }}
+                  sx={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    bgcolor: toneSwatch(t),
+                    outline: t === tone ? '3px solid' : '1px solid',
+                    outlineColor: t === tone ? 'primary.main' : 'divider',
+                    outlineOffset: 2,
+                  }}
+                />
+              ))}
+            </Box>
+          )}
+
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, justifyContent: 'center' }}>
             {AVATAR_STYLES.map((s) => (
               <Chip
@@ -88,7 +122,7 @@ export const AvatarPicker: React.FC<Props> = ({
           </Box>
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.5 }}>
             {seedsFor(personId, style, round).map((seed) => {
-              const choice: AvatarChoice = { library: 'dicebear', style, seed };
+              const choice: AvatarChoice = { library: 'dicebear', style, seed, tone };
               const on = picked?.style === style && picked.seed === seed;
               return (
                 <ButtonBase
@@ -114,6 +148,9 @@ export const AvatarPicker: React.FC<Props> = ({
               Show me more
             </Button>
           </Box>
+          <Typography variant="caption" sx={{ color: 'text.secondary', textAlign: 'center' }}>
+            {AVATAR_CREDITS}
+          </Typography>
           {error && (
             <Typography sx={{ color: 'error.main', textAlign: 'center' }}>
               That didn't save. Try again.

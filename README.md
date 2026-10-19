@@ -219,7 +219,7 @@ Your profile starts with what you love, gathered from your own answers as you pl
 
 ## Your picture
 
-Everyone starts with their initials. Tap your face on your profile to pick a picture instead: six drawn styles, nine to choose from in each, as many more as you like. They're public-domain drawings made on your phone, so nothing is uploaded, and your pick shows everywhere in the circle at once.
+Everyone starts with their initials. Tap your face on your profile to pick a picture instead: six drawn styles, nine to choose from in each (as many more as you like), then your skin tone. They're drawn right on your phone, so nothing is uploaded, and your pick shows everywhere in the circle at once.
 
 ![Your picture: a style, then one of nine](docs/screenshots/avatar-picker.png)
 

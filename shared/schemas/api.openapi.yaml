@@ -4417,10 +4417,13 @@ components:
           enum: [dicebear]
         style:
           type: string
-          enum: [lorelei, notionists, open-peeps, thumbs, pixel-art, shapes]
+          enum: [micah, toon-head, avataaars, big-smile, personas, fun-emoji]
         seed:
           type: string
           maxLength: 64
+        tone:
+          type: string
+          enum: [light, medium, tan, brown, dark]
 
     Drop:
       type: object
