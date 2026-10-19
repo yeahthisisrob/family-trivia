@@ -176,7 +176,7 @@
       "size": "phone",
       "selector": ".MuiDialog-paper",
       "storyFile": "frontend/src/features/avatar-picker/ui/AvatarPicker.stories.tsx",
-      "source": "ca6a4abbf05c"
+      "source": "ffb11e7d549e"
     },
     {
       "file": "plans.png",

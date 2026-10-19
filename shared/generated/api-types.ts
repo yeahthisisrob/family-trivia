@@ -2272,8 +2272,10 @@ export interface components {
             /** @enum {string} */
             library: "dicebear";
             /** @enum {string} */
-            style: "lorelei" | "notionists" | "open-peeps" | "thumbs" | "pixel-art" | "shapes";
+            style: "micah" | "toon-head" | "avataaars" | "big-smile" | "personas" | "fun-emoji";
             seed: string;
+            /** @enum {string} */
+            tone?: "light" | "medium" | "tan" | "brown" | "dark";
         };
         Drop: {
             id: string;

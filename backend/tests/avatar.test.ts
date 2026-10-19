@@ -21,7 +21,7 @@ beforeEach(() => {
 
 describe('your picture', () => {
   test('a library picture is saved on you, and null goes back to initials', async () => {
-    const choice = { library: 'dicebear', style: 'lorelei', seed: 'alice-lorelei-3' };
+    const choice = { library: 'dicebear', style: 'micah', seed: 'alice-micah-3' };
     expect((await put(choice)).statusCode).toBe(200);
     expect((await loadFamily()).people.alice?.avatar).toEqual(choice);
     expect((await put(null)).statusCode).toBe(200);
@@ -29,8 +29,11 @@ describe('your picture', () => {
   });
 
   test('only the library: no uploads, no other styles', async () => {
-    expect((await put({ library: 'upload', style: 'lorelei', seed: 'x' })).statusCode).toBe(400);
+    expect((await put({ library: 'upload', style: 'micah', seed: 'x' })).statusCode).toBe(400);
     expect((await put({ library: 'dicebear', style: 'bottts', seed: 'x' })).statusCode).toBe(400);
-    expect((await put({ library: 'dicebear', style: 'lorelei', seed: '' })).statusCode).toBe(400);
+    expect((await put({ library: 'dicebear', style: 'micah', seed: '' })).statusCode).toBe(400);
+    expect(
+      (await put({ library: 'dicebear', style: 'micah', seed: 'x', tone: 'green' })).statusCode,
+    ).toBe(400);
   });
 });
