@@ -35,9 +35,25 @@ each other's family.
   throws, so a missed scope fails loudly, never across circles.
 - **Scheduled jobs run once per circle**, each inside that circle's context
   (nightly questions, notifications, backups).
+- **A circle can hold family and friends together.** `kind` is `family`,
+  `friends` or `mixed` and only picks the starting words and question sets.
+  Who is in it and how they're tied is free, so "our people" (family plus
+  the friends who are family) is just a circle. Questions draw on the ties
+  each person actually has: a parent question goes to someone with a parent
+  in the circle, a "how you met" question to friends.
 - **Circles are private from each other.** Someone in two circles sees each
   one separately, and nothing (answers, people, the graph, AI prompts)
-  crosses between them.
+  crosses between them unless it is shared on purpose.
+- **Shared spaces cross circles on purpose.** A Remembering page, a plan or
+  a book can be shared from the circle that owns it into other circles (a
+  friend's memorial shared with his family's circle; a reunion plan open to
+  two crews). The owner's admin grants view or add, and can take it back.
+  The data stays in the owning circle, and every contribution says which
+  circle it came from. A share link can also let people with no account
+  add a memory to a Remembering page and nothing else.
+- **One account, one home.** The home view brings together what is new
+  across someone's circles (waiting questions, memories that name them,
+  plans), each labeled with its circle, without mixing their data.
 - **One people and relationships model for every kind** (0009), not a copy
   per kind. Tie kinds are data in one registry (`shared/src/ties.ts`): each
   says what it means, whether it can end, its words, and the rules for what
