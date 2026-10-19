@@ -5,10 +5,11 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import QuizIcon from '@mui/icons-material/Quiz';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
-import { AppBar, Avatar, Box, IconButton, Toolbar, Typography } from '@mui/material';
+import { AppBar, Box, IconButton, Toolbar, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { appearanceApi } from '../../entities/appearance';
+import { PersonAvatar } from '../../entities/person';
 import { useFeatures } from '../../entities/settings';
 import { CircleSwitcher } from '../../features/circles';
 import { ROUTES } from '../../hooks/useApp';
@@ -65,7 +66,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         <CircleSwitcher fallbackTitle="Family Trivia" color={onHeader} mutedColor={inactiveText} />
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
-          <Avatar
+          <PersonAvatar
+            personId={selectedUser}
             onClick={onAvatarClick}
             sx={{
               bgcolor: userColor,
@@ -82,7 +84,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             }}
           >
             {getUserInitials(selectedUser)}
-          </Avatar>
+          </PersonAvatar>
           <NotificationBell onNotificationClick={onNotificationClick} />
           <AppearanceMenu
             sx={{ color: inactiveText, '&:hover': { color: onHeader } }}

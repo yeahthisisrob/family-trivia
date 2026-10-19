@@ -9,8 +9,8 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import { getMemberSummary } from '../../../api/modules/user';
 import { useCircleWords } from '../../../entities/circle';
+import { Face } from '../../../entities/person';
 import { type PersonView, relationLabel } from '../model/people';
-import { Face } from './Face';
 
 export const SpotlightCard: React.FC<{
   person: PersonView;

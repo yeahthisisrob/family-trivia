@@ -1,7 +1,14 @@
-/** A person's face: their photo if the family added one, else initials in their color. */
+/**
+ * A person's face, the one used everywhere: a photo the family added, else the
+ * picture they chose from the shared library (docs/decisions/0024), else
+ * initials in their color.
+ */
+
+import type { AvatarChoice } from '@family-trivia/shared';
 import { Avatar } from '@mui/material';
 import type React from 'react';
 import { colors, identityColor, usePaper } from '../../../shared/design-system';
+import { useAvatarUri } from '../model/avatars';
 
 /** What the family calls someone before their name; never an initial. */
 const TITLES =
@@ -26,18 +33,22 @@ export const Face: React.FC<{
   dim?: boolean;
   /** A light ring, for a face set on its own color. */
   ring?: boolean;
-}> = ({ id, name, size = 48, photo, remembered, dim, ring }) => {
+  /** Show this choice instead of theirs (the picker's preview); null for initials. */
+  avatar?: AvatarChoice | null;
+}> = ({ id, name, size = 48, photo, remembered, dim, ring, avatar }) => {
   const paper = usePaper();
+  const chosen = useAvatarUri(id, avatar);
+  const src = photo ?? chosen;
   return (
     <Avatar
-      src={photo}
+      src={src}
       alt=""
       sx={{
         width: size,
         height: size,
         fontSize: size / 3.1,
         fontWeight: 700,
-        bgcolor: remembered ? paper.paper : identityColor(id),
+        bgcolor: remembered ? paper.paper : src && !photo ? 'transparent' : identityColor(id),
         color: remembered ? paper.ink : colors.onColor,
         border: remembered
           ? `2px solid ${colors.medal.gold}`

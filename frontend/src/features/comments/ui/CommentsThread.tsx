@@ -5,7 +5,6 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
 import {
-  Avatar,
   Box,
   Collapse,
   Grow,
@@ -23,6 +22,7 @@ import { LoadingDots } from '../../../components/ui/feedback';
 import { useFamilyData } from '../../../contexts/FamilyDataContext';
 import { useNotifications } from '../../../contexts/NotificationContext';
 import { useTimeline } from '../../../contexts/TimelineContext';
+import { PersonAvatar } from '../../../entities/person';
 import { createLogger } from '../../../utils/logger';
 import { ReactionBar } from '../../reactions';
 
@@ -211,7 +211,8 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
         )}
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, width: '100%' }}>
-          <Avatar
+          <PersonAvatar
+            personId={currentUserId}
             sx={{
               width: small ? 20 : 26,
               height: small ? 20 : 26,
@@ -221,7 +222,7 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
             }}
           >
             {getUserInitials(currentUserId)}
-          </Avatar>
+          </PersonAvatar>
           <TextField
             size="small"
             fullWidth
@@ -347,7 +348,8 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
               ? [...new Set(topLevelComments.map((c) => c.userId))].slice(0, 3)
               : commentCommenters.get(`${contentType}:${contentId}`) || []
             ).map((uid, i) => (
-              <Avatar
+              <PersonAvatar
+                personId={uid}
                 key={uid}
                 sx={{
                   width: 18,
@@ -361,7 +363,7 @@ const CommentsThread: React.FC<CommentsThreadProps> = ({
                 }}
               >
                 {getUserInitials(uid)}
-              </Avatar>
+              </PersonAvatar>
             ))}
           </Box>
         )}
@@ -493,7 +495,8 @@ const CommentBubble: React.FC<CommentBubbleProps> = ({
   return (
     <Box sx={{ mb: 1 }}>
       <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'flex-start' }}>
-        <Avatar
+        <PersonAvatar
+          personId={comment.userId}
           sx={{
             width: 26,
             height: 26,
@@ -504,7 +507,7 @@ const CommentBubble: React.FC<CommentBubbleProps> = ({
           }}
         >
           {getUserInitials(comment.userId)}
-        </Avatar>
+        </PersonAvatar>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box
             sx={{
@@ -581,7 +584,8 @@ const CommentBubble: React.FC<CommentBubbleProps> = ({
                 mb: 0.75,
               }}
             >
-              <Avatar
+              <PersonAvatar
+                personId={reply.userId}
                 sx={{
                   width: 20,
                   height: 20,
@@ -592,7 +596,7 @@ const CommentBubble: React.FC<CommentBubbleProps> = ({
                 }}
               >
                 {getUserInitials(reply.userId)}
-              </Avatar>
+              </PersonAvatar>
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Box
                   sx={{

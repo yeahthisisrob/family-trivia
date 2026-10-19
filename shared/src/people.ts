@@ -11,6 +11,7 @@
  * and come back, and people who have died stay in the family, remembered.
  */
 
+import { type AvatarChoice, isAvatarChoice } from './avatar';
 import {
   ENDINGS,
   KIN_RELATIONS,
@@ -52,6 +53,8 @@ export interface FamilyPerson {
   noAiMentions?: boolean;
   /** How they came into the circle, in their words ("college roommates"). */
   howWeMet?: string;
+  /** The picture they chose from the shared library; initials when absent. */
+  avatar?: AvatarChoice;
 }
 
 // ── Ties: how two people are connected ────────────────────────────────────────────────────────
@@ -583,6 +586,8 @@ export function familyProblems(f: Family): string[] {
       problems.push(`${p.name}: birth date should be YYYY-MM-DD.`);
     if (p.memorial?.died && !DATE.test(p.memorial.died))
       problems.push(`${p.name}: date of death should be YYYY-MM-DD.`);
+    if (p.avatar !== undefined && !isAvatarChoice(p.avatar))
+      problems.push(`${p.name}: that picture isn't one of the library's.`);
   }
   const seen = new Set<string>();
   for (const t of f.ties ?? []) {

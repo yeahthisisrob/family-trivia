@@ -855,6 +855,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Choose your picture from the shared library, or null for initials */
+        put: operations["putMyAvatar"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/threads/today": {
         parameters: {
             query?: never;
@@ -2094,6 +2111,13 @@ export interface components {
         JoinDetails: {
             name: string;
             howWeMet?: string;
+        };
+        AvatarChoice: {
+            /** @enum {string} */
+            library: "dicebear";
+            /** @enum {string} */
+            style: "lorelei" | "notionists" | "open-peeps" | "thumbs" | "pixel-art" | "shapes";
+            seed: string;
         };
         ThreadChoice: {
             id: string;
@@ -4571,6 +4595,44 @@ export interface operations {
             };
             /** @description Not the owner */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    putMyAvatar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    avatar: components["schemas"]["AvatarChoice"] | null;
+                };
+            };
+        };
+        responses: {
+            /** @description The saved choice */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not one of the library's pictures */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not in this circle's people yet */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

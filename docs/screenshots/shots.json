@@ -29,7 +29,7 @@
       "file": "look-back.png",
       "story": "family-seasonlookback--a-season",
       "size": "desktop",
-      "source": "98b26c76703b",
+      "source": "e6c361ea22fb",
       "storyFile": "frontend/src/features/look-back/ui/SeasonLookBack.stories.tsx"
     },
     {
@@ -51,7 +51,7 @@
       "file": "profile.png",
       "story": "profile-storyprofile--you",
       "size": "desktop",
-      "source": "55a9d63ca30d",
+      "source": "b81b5788e579",
       "storyFile": "frontend/src/features/profile/ui/StoryProfile.stories.tsx"
     },
     {
@@ -93,14 +93,14 @@
       "file": "spotlight.png",
       "story": "family-spotlightcard--today",
       "size": "phone",
-      "source": "ec675de928d6",
+      "source": "a96693de0749",
       "storyFile": "frontend/src/features/family-home/ui/SpotlightCard.stories.tsx"
     },
     {
       "file": "podium.png",
       "story": "leaderboard-podium--three-players",
       "size": "phone",
-      "source": "1093012ef1d3",
+      "source": "34a6c7cad341",
       "storyFile": "frontend/src/components/Leaderboard/Podium.stories.tsx"
     },
     {
@@ -136,7 +136,7 @@
       "story": "appshell-appheader--in-several-circles",
       "size": "phone",
       "height": 300,
-      "source": "2c99f08a0d03",
+      "source": "9d9daf6b3c31",
       "storyFile": "frontend/src/components/AppShell/AppHeader.stories.tsx"
     },
     {
@@ -169,6 +169,14 @@
       "size": "phone",
       "storyFile": "frontend/src/features/threads/ui/ThreadCard.stories.tsx",
       "source": "f3dc76d05533"
+    },
+    {
+      "file": "avatar-picker.png",
+      "story": "profile-avatarpicker--already-chosen",
+      "size": "phone",
+      "selector": ".MuiDialog-paper",
+      "storyFile": "frontend/src/features/avatar-picker/ui/AvatarPicker.stories.tsx",
+      "source": "ca6a4abbf05c"
     }
   ]
 }

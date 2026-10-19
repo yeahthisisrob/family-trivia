@@ -3,6 +3,7 @@
 export * from './ai';
 export * from './api';
 export * from './arcade';
+export * from './avatar';
 export * from './book-page';
 export * from './casino-rush';
 export * from './categories';

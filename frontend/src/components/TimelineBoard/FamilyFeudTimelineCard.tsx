@@ -8,6 +8,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import { Avatar, Box, Card, Chip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
+import { PersonAvatar } from '../../entities/person';
 import { colors } from '../../shared/design-system';
 
 interface FeudGuess {
@@ -59,7 +60,8 @@ const FamilyFeudTimelineCard: React.FC<FamilyFeudTimelineCardProps> = ({
     >
       {/* Header */}
       <Box sx={{ px: 1.5, pt: 1.25, pb: 0.75, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <Avatar
+        <PersonAvatar
+          personId={entry.userId}
           sx={{
             bgcolor: entry.color,
             width: 30,
@@ -70,7 +72,7 @@ const FamilyFeudTimelineCard: React.FC<FamilyFeudTimelineCardProps> = ({
           onClick={() => onUserClick?.(entry.userId)}
         >
           {entry.initials}
-        </Avatar>
+        </PersonAvatar>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography

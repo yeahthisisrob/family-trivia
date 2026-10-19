@@ -7,6 +7,7 @@ import { Avatar, Box, Card, Collapse, IconButton, Typography, useTheme } from '@
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useMemo, useState } from 'react';
+import { PersonAvatar } from '../../entities/person';
 import { colors as dsColors } from '../../shared/design-system/tokens/colors';
 import { getUserColor, getUserInitials } from '../../utils';
 import CategoryChip from './CategoryChip';
@@ -360,7 +361,8 @@ const GroupCard: React.FC<GroupCardProps> = ({
                         : {},
                     }}
                   >
-                    <Avatar
+                    <PersonAvatar
+                      personId={p.userId}
                       sx={{
                         width: 30,
                         height: 30,
@@ -370,7 +372,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
                       }}
                     >
                       {getUserInitials(p.userId)}
-                    </Avatar>
+                    </PersonAvatar>
                     <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', flex: 1 }} noWrap>
                       {p.userId}
                     </Typography>

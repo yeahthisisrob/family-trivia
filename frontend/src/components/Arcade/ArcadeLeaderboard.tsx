@@ -4,10 +4,11 @@
 import type { HighScoreEntry } from '@family-trivia/shared';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import StarIcon from '@mui/icons-material/Star';
-import { Avatar, Box, Chip, Typography, useTheme } from '@mui/material';
+import { Box, Chip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { formatDistance } from 'date-fns';
 import type React from 'react';
+import { PersonAvatar } from '../../entities/person';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
 import { getUserColor, getUserInitials } from '../../utils';
@@ -87,7 +88,8 @@ const ArcadeLeaderboard: React.FC<Props> = ({
             </Box>
 
             {/* Avatar */}
-            <Avatar
+            <PersonAvatar
+              personId={entry.userId}
               sx={{
                 width: 26,
                 height: 26,
@@ -97,7 +99,7 @@ const ArcadeLeaderboard: React.FC<Props> = ({
               }}
             >
               {getUserInitials(entry.userId)}
-            </Avatar>
+            </PersonAvatar>
 
             {/* Name + mode */}
             <Box sx={{ flex: 1, minWidth: 0 }}>

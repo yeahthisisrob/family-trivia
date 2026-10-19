@@ -1,10 +1,11 @@
 // Individual card component for timeline
 import CasinoIcon from '@mui/icons-material/Casino';
 import SchoolIcon from '@mui/icons-material/School';
-import { Avatar, Box, Card, Chip, Typography, useTheme } from '@mui/material';
+import { Box, Card, Chip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useState } from 'react';
+import { PersonAvatar } from '../../entities/person';
 import { colors } from '../../shared/design-system';
 import AnswerResultDialog from '../TriviaCard/AnswerResultDialog';
 import CustomCategoryBanner from './CustomCategoryBanner';
@@ -59,7 +60,8 @@ const TimelineCard: React.FC<TimelineCardProps> = ({
             mb: 1.5,
           }}
         >
-          <Avatar
+          <PersonAvatar
+            personId={entry.userId}
             sx={{
               bgcolor: entry.color,
               width: 36,
@@ -78,7 +80,7 @@ const TimelineCard: React.FC<TimelineCardProps> = ({
             onClick={() => onUserClick?.(entry.userId)}
           >
             {entry.initials}
-          </Avatar>
+          </PersonAvatar>
 
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box

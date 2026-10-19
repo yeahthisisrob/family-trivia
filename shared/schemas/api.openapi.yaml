@@ -1865,6 +1865,32 @@ paths:
         "403":
           description: Not the owner
 
+  /me/avatar:
+    put:
+      summary: Choose your picture from the shared library, or null for initials
+      operationId: putMyAvatar
+      tags: [Avatar]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [avatar]
+              properties:
+                avatar:
+                  type: object
+                  nullable: true
+                  allOf:
+                    - $ref: "#/components/schemas/AvatarChoice"
+      responses:
+        "200":
+          description: The saved choice
+        "400":
+          description: Not one of the library's pictures
+        "404":
+          description: Not in this circle's people yet
+
   /threads/today:
     get:
       summary: Today's one "How do you know ...?" question (or none), and how many threads are tied
@@ -4143,6 +4169,20 @@ components:
           type: string
         howWeMet:
           type: string
+    AvatarChoice:
+      type: object
+      required: [library, style, seed]
+      properties:
+        library:
+          type: string
+          enum: [dicebear]
+        style:
+          type: string
+          enum: [lorelei, notionists, open-peeps, thumbs, pixel-art, shapes]
+        seed:
+          type: string
+          maxLength: 64
+
     ThreadChoice:
       type: object
       required: [id, label]

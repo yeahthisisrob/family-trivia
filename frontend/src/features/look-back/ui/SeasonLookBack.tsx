@@ -9,7 +9,6 @@ import type { BookPage, SeasonReview } from '@family-trivia/shared';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import {
   Alert,
-  Avatar,
   Box,
   Button,
   ButtonBase,
@@ -22,6 +21,7 @@ import {
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useFamily } from '../../../entities/family';
+import { PersonAvatar } from '../../../entities/person';
 import { dayName, monthName } from '../../../shared/dates';
 import { identityColor } from '../../../shared/design-system';
 import { lookBackApi } from '../api/lookBackApi';
@@ -216,7 +216,8 @@ export const SeasonLookBack: React.FC<{ onOpenPerson?: (id: string) => void }> =
                   textAlign: 'left',
                 }}
               >
-                <Avatar
+                <PersonAvatar
+                  personId={p.personId}
                   src={photoOf(p.personId)}
                   sx={{
                     width: 40,
@@ -226,7 +227,7 @@ export const SeasonLookBack: React.FC<{ onOpenPerson?: (id: string) => void }> =
                   }}
                 >
                   {nameOf(p.personId).slice(0, 1)}
-                </Avatar>
+                </PersonAvatar>
                 <Box sx={{ minWidth: 0 }}>
                   <Typography sx={{ fontWeight: 700 }}>{nameOf(p.personId)}</Typography>
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>
