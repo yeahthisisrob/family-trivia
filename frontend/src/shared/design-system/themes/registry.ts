@@ -122,7 +122,8 @@ export const sunset: ThemeDefinition = {
       primary: { main: '#ce93d8', light: '#ffc4ff', dark: '#9c64a6' },
       secondary: { main: '#f2a541', light: '#ffd671', dark: '#bb7609' },
       background: { default: '#151217', paper: '#1e1a21', subtle: '#28222c' },
-      header: 'linear-gradient(120deg, #2a1530 0%, #3d1d36 100%)',
+      // Evening into dusk: plum to a low amber, dimmer than the light scheme's.
+      header: 'linear-gradient(120deg, #2a1530 0%, #5a2448 55%, #8a5200 100%)',
     }),
   },
 };

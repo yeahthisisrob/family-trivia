@@ -22,6 +22,7 @@ async function photoUrls(family: Family): Promise<Record<string, string>> {
   for (const p of Object.values(family.people)) {
     if (isMediaKey(p.photo)) keys.add(p.photo as string);
     if (isMediaKey(p.memorial?.photo)) keys.add(p.memorial?.photo as string);
+    if (p.avatar?.library === 'ai' && isMediaKey(p.avatar.key)) keys.add(p.avatar.key);
   }
   const entries = await Promise.all([...keys].map(async (k) => [k, await readUrl(k)] as const));
   return Object.fromEntries(entries.filter((e): e is readonly [string, string] => !!e[1]));

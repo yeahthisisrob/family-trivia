@@ -3,11 +3,12 @@
  * face on screen. A change shows everywhere at once.
  */
 import type { AvatarChoice } from '@family-trivia/shared';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 import { familyApi } from '../../family/api/familyApi';
-import { drawAvatar } from './drawAvatar';
+import { type Look, lookOf } from './look';
 
 let choices: Record<string, AvatarChoice> = {};
+let urls: Record<string, string> = {};
 let loading: Promise<void> | null = null;
 const listeners = new Set<() => void>();
 const emit = () => {
@@ -17,7 +18,8 @@ const emit = () => {
 function load() {
   loading ??= familyApi
     .get()
-    .then(({ family }) => {
+    .then(({ family, photoUrls }) => {
+      urls = { ...urls, ...photoUrls };
       choices = Object.fromEntries(
         Object.values(family.people)
           .filter((p) => p.avatar)
@@ -30,9 +32,16 @@ function load() {
 }
 
 /** Set one person's picture here (after saving it), or null for initials. */
-export function setAvatarChoice(id: string, choice: AvatarChoice | null) {
+export function setAvatarChoice(id: string, choice: AvatarChoice | null, url?: string) {
   const { [id]: _old, ...rest } = choices;
   choices = choice ? { ...rest, [id]: choice } : rest;
+  if (choice?.library === 'ai' && url) urls = { ...urls, [choice.key]: url };
+  emit();
+}
+
+/** Remember a made picture's link, so a preview can show it. */
+export function rememberPictureUrl(key: string, url: string) {
+  urls = { ...urls, [key]: url };
   emit();
 }
 
@@ -42,18 +51,10 @@ const subscribe = (l: () => void) => {
   return () => listeners.delete(l);
 };
 
-/** The picture to show for someone: a given choice, else theirs, else none (initials). */
-export function useAvatarUri(id: string, given?: AvatarChoice | null): string | undefined {
+/** How to show someone: a given choice, else theirs, else nothing (initials). */
+export function useAvatarLook(id: string, given?: AvatarChoice | null): Look | undefined {
   const theirs = useSyncExternalStore(subscribe, () => choices[id]);
+  const known = useSyncExternalStore(subscribe, () => urls);
   const choice = given === undefined ? theirs : given;
-  const [uri, setUri] = useState<string>();
-  useEffect(() => {
-    let live = true;
-    if (!choice) setUri(undefined);
-    else drawAvatar(choice).then((u) => live && setUri(u));
-    return () => {
-      live = false;
-    };
-  }, [choice]);
-  return uri;
+  return choice ? lookOf(choice, known) : undefined;
 }

@@ -1,6 +1,6 @@
 // File: src/components/FamilyTree/index.tsx
 /**
- * The Family tab. The page itself is the family-home feature; this puts the
+ * Us. The page itself is the family-home feature; this puts the
  * tree, the connections graph and (when the family turned them on) the
  * albums behind its doors, and the archive at the foot.
  */

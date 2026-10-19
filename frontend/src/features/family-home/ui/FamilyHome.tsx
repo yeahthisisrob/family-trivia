@@ -1,5 +1,5 @@
 /**
- * The Family tab: the story first, doors into the tree, the connections and
+ * Us: the story first, doors into the tree, the connections and
  * the albums, today's spotlight, what we share, the people the family
  * remembers (each with their own Remembering page), and everyone. It is for looking at the family, not for doing chores in it
  * (docs/decisions/0009). Whatever opens behind a door is passed in, so this

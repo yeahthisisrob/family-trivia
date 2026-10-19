@@ -5,7 +5,8 @@
  */
 import { Avatar, type AvatarProps } from '@mui/material';
 import type React from 'react';
-import { useAvatarUri } from '../model/avatars';
+import { useAvatarLook } from '../model/avatars';
+import { lookSx } from './lookSx';
 
 export const PersonAvatar: React.FC<AvatarProps & { personId: string }> = ({
   personId,
@@ -13,12 +14,12 @@ export const PersonAvatar: React.FC<AvatarProps & { personId: string }> = ({
   sx,
   ...rest
 }) => {
-  const chosen = useAvatarUri(personId);
-  const picture = src ?? chosen;
+  const look = useAvatarLook(personId);
+  const shown = src ? undefined : look;
   return (
     <Avatar
-      src={picture}
-      sx={[...(Array.isArray(sx) ? sx : [sx]), !src && !!chosen && { bgcolor: 'transparent' }]}
+      src={src ?? look?.src}
+      sx={[...(Array.isArray(sx) ? sx : [sx]), ...(shown ? [lookSx(shown)] : [])]}
       {...rest}
     />
   );

@@ -1,53 +1,109 @@
 /**
- * A person's picture, chosen from one shared library (docs/decisions/0024).
- * Initials are the default; a choice is a style and a seed, drawn on the
- * device from bundled, openly licensed styles. Nothing is uploaded.
+ * A person's picture (docs/decisions/0024). Initials are the default. A
+ * person can choose one the AI made for them (from what they love: an
+ * animal or a thing, never a face) or one of the bundled animals on a color.
+ * AI pictures live in the circle's private media; animals ship with the app.
  */
 
-export const AVATAR_STYLES = [
-  'micah',
-  'toon-head',
-  'avataaars',
-  'big-smile',
-  'personas',
-  'fun-emoji',
+/** Bundled animals: Microsoft Fluent Emoji (MIT), served from /avatars/animals/{id}.svg. */
+export const ANIMALS = [
+  'baby_chick',
+  'badger',
+  'bear',
+  'beaver',
+  'bison',
+  'butterfly',
+  'cat_face',
+  'cow_face',
+  'crab',
+  'deer',
+  'dodo',
+  'dog_face',
+  'dolphin',
+  'dragon_face',
+  'duck',
+  'eagle',
+  'elephant',
+  'flamingo',
+  'fox',
+  'frog',
+  'giraffe',
+  'hamster',
+  'hatching_chick',
+  'hedgehog',
+  'hippopotamus',
+  'honeybee',
+  'horse_face',
+  'kangaroo',
+  'koala',
+  'lady_beetle',
+  'lion',
+  'lizard',
+  'llama',
+  'monkey_face',
+  'mouse_face',
+  'octopus',
+  'orangutan',
+  'otter',
+  'owl',
+  'panda',
+  'parrot',
+  'peacock',
+  'penguin',
+  'pig_face',
+  'polar_bear',
+  'rabbit_face',
+  'raccoon',
+  'seal',
+  'shark',
+  'sloth',
+  'snail',
+  'spouting_whale',
+  'swan',
+  'tiger_face',
+  'turtle',
+  'unicorn',
+  'wolf',
+  'zebra',
 ] as const;
-export type AvatarStyle = (typeof AVATAR_STYLES)[number];
+export type Animal = (typeof ANIMALS)[number];
 
-export const AVATAR_STYLE_LABEL: Record<AvatarStyle, string> = {
-  micah: 'Bright',
-  'toon-head': 'Toon',
-  avataaars: 'Classic',
-  'big-smile': 'Big smile',
-  personas: 'Personas',
-  'fun-emoji': 'Emoji',
-};
+/** Soft colors an animal sits on. */
+export const AVATAR_COLORS = {
+  sky: '#b6e3f4',
+  lilac: '#c0aede',
+  periwinkle: '#d1d4f9',
+  blush: '#ffd5dc',
+  peach: '#ffdfbf',
+  mint: '#c1f0d1',
+} as const;
+export type AvatarColor = keyof typeof AVATAR_COLORS;
 
-/** Credit the artists, as their licenses ask (CC BY 4.0; Avataaars is free for any use). */
-export const AVATAR_CREDITS =
-  'Pictures by Micah Lanier, Johan Melin, Pablo Stanley (Avataaars), Ashley Seo, Draftbit and Davis Uche, drawn with DiceBear.';
+export type AvatarChoice =
+  | { library: 'ai'; key: string }
+  | { library: 'animal'; animal: Animal; color: AvatarColor };
 
-/** Natural skin tones, chosen once; the seed varies everything else. */
-export const SKIN_TONES = ['light', 'medium', 'tan', 'brown', 'dark'] as const;
-export type SkinTone = (typeof SKIN_TONES)[number];
-
-export interface AvatarChoice {
-  library: 'dicebear';
-  style: AvatarStyle;
-  seed: string;
-  /** Light when not chosen. Styles without skin (Emoji) ignore it. */
-  tone?: SkinTone;
-}
+/** An AI picture's key: the person's own folder in the circle's media. */
+export const aiAvatarKey = (userId: string, id: string) => `media/avatars/${userId}/${id}.webp`;
+export const isAiAvatarKeyOf = (userId: string, key: string) =>
+  new RegExp(`^media/avatars/${userId.replace(/[^a-z0-9_-]/gi, '')}/[a-f0-9-]{36}\\.webp$`).test(
+    key,
+  );
 
 export const isAvatarChoice = (v: unknown): v is AvatarChoice => {
-  const a = v as AvatarChoice;
+  const a = v as Record<string, unknown> | null;
+  if (!a || typeof a !== 'object') return false;
+  if (a.library === 'ai') return typeof a.key === 'string' && a.key.startsWith('media/avatars/');
   return (
-    !!a &&
-    a.library === 'dicebear' &&
-    (AVATAR_STYLES as readonly string[]).includes(a.style) &&
-    typeof a.seed === 'string' &&
-    a.seed.length > 0 &&
-    a.seed.length <= 64 &&
-    (a.tone === undefined || (SKIN_TONES as readonly string[]).includes(a.tone))
+    a.library === 'animal' &&
+    (ANIMALS as readonly string[]).includes(a.animal as string) &&
+    typeof a.color === 'string' &&
+    a.color in AVATAR_COLORS
   );
 };
+
+export const AVATAR_CREDITS =
+  'Animals from Microsoft Fluent Emoji (MIT). Made-for-you pictures are drawn by AI.';
+
+/** How many pictures one person can have made in a day. */
+export const AI_PICTURES_PER_DAY = 3;

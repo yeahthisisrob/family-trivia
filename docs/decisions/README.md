@@ -34,7 +34,7 @@ when the decision is made, so the reason survives the people who made it.
 | [0021](0021-one-tie-registry-and-circle-words.md) | One tie registry, and words per circle | Accepted |
 | [0022](0022-threads.md) | Threads: connections come from one tap a day | Accepted |
 | [0023](0023-one-ai-frame-per-circle.md) | One AI frame per kind of circle | Accepted |
-| [0024](0024-pictures-from-one-library.md) | Pictures from one shared library | Accepted |
+| [0024](0024-pictures-from-one-library.md) | Pictures: made for you, or an animal | Accepted |
 | [0025](0025-know-yourself.md) | Know yourself: what you love, kept and noted | Accepted |
 | [0026](0026-plans.md) | Plans: drop in what you're doing | Accepted |
 | [0027](0027-memory-links.md) | Memory links: anyone can add a memory | Accepted |

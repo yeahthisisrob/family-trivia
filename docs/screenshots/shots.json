@@ -4,7 +4,7 @@
       "file": "family-home.png",
       "story": "family-familyhome--story-first",
       "size": "desktop",
-      "source": "fefd3e2002e2",
+      "source": "b981e5e39f8f",
       "storyFile": "frontend/src/features/family-home/ui/FamilyHome.stories.tsx"
     },
     {
@@ -136,7 +136,7 @@
       "story": "appshell-appheader--in-several-circles",
       "size": "phone",
       "height": 300,
-      "source": "9d9daf6b3c31",
+      "source": "83d4eed0e43f",
       "storyFile": "frontend/src/components/AppShell/AppHeader.stories.tsx"
     },
     {
@@ -176,7 +176,7 @@
       "size": "phone",
       "selector": ".MuiDialog-paper",
       "storyFile": "frontend/src/features/avatar-picker/ui/AvatarPicker.stories.tsx",
-      "source": "ffb11e7d549e"
+      "source": "6c9128d90adb"
     },
     {
       "file": "plans.png",

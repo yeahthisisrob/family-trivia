@@ -1,33 +1,37 @@
 /**
- * Choose your picture (docs/decisions/0024): a style, then one of nine drawn
- * for you, or keep your initials. One tap saves it everywhere.
+ * Choose your picture (docs/decisions/0024). First, one made for you from
+ * what you love (say a few words to steer it, or make another); or pick an
+ * animal, then its color. Or keep your initials. One tap saves it everywhere.
  */
 import {
+  ANIMALS,
+  type Animal,
+  AVATAR_COLORS,
   AVATAR_CREDITS,
-  AVATAR_STYLE_LABEL,
-  AVATAR_STYLES,
   type AvatarChoice,
-  type AvatarStyle,
-  SKIN_TONES,
-  type SkinTone,
+  type AvatarColor,
 } from '@family-trivia/shared';
-import CasinoRoundedIcon from '@mui/icons-material/CasinoRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import {
   Box,
   Button,
   ButtonBase,
-  Chip,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material';
 import type React from 'react';
-import { useState } from 'react';
-import { Face, setAvatarChoice, toneSwatch } from '../../../entities/person';
-import { avatarApi } from '../api/avatarApi';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { animalSrc, Face, rememberPictureUrl, setAvatarChoice } from '../../../entities/person';
+import { avatarApi, type MadePicture } from '../api/avatarApi';
+
+const COLORS = Object.keys(AVATAR_COLORS) as AvatarColor[];
+const label = (a: string) => a.replace(/_face$/, '').replace(/_/g, ' ');
 
 interface Props {
   personId: string;
@@ -36,10 +40,8 @@ interface Props {
   onClose: () => void;
   /** For stories: skip the server. */
   save?: (a: AvatarChoice | null) => Promise<unknown>;
+  make?: (hint?: string) => Promise<MadePicture>;
 }
-
-const seedsFor = (personId: string, style: AvatarStyle, round: number) =>
-  Array.from({ length: 9 }, (_, i) => `${personId}-${style}-${round * 9 + i}`);
 
 export const AvatarPicker: React.FC<Props> = ({
   personId,
@@ -47,58 +49,94 @@ export const AvatarPicker: React.FC<Props> = ({
   current,
   onClose,
   save = avatarApi.save,
+  make = avatarApi.make,
 }) => {
-  const [style, setStyle] = useState<AvatarStyle>(current?.style ?? 'micah');
-  const [tone, setTone] = useState<SkinTone>(current?.tone ?? 'light');
-  const [round, setRound] = useState(0);
   const [picked, setPicked] = useState<AvatarChoice | null>(current ?? null);
+  const [made, setMade] = useState<MadePicture | null>(null);
+  const [making, setMaking] = useState(false);
+  const [hint, setHint] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const started = useRef(false);
+
+  const makeOne = useCallback(
+    async (words?: string) => {
+      setMaking(true);
+      setProblem(null);
+      try {
+        const m = await make(words);
+        rememberPictureUrl(m.key, m.url);
+        setMade(m);
+        setPicked({ library: 'ai', key: m.key });
+      } catch (e) {
+        setProblem(e instanceof Error ? e.message : 'The picture didn’t come out. Try again.');
+      } finally {
+        setMaking(false);
+      }
+    },
+    [make],
+  );
+
+  // The first picture is made as the picker opens, unless they already chose one.
+  useEffect(() => {
+    if (started.current || current) return;
+    started.current = true;
+    void makeOne();
+  }, [current, makeOne]);
 
   const done = async (choice: AvatarChoice | null) => {
     setBusy(true);
-    setError(false);
+    setProblem(null);
     try {
       await save(choice);
       setAvatarChoice(personId, choice);
       onClose();
     } catch {
-      setError(true);
+      setProblem('That didn’t save. Try again.');
       setBusy(false);
     }
   };
+
+  const animal = picked?.library === 'animal' ? picked : null;
+  const pickAnimal = (a: Animal) =>
+    setPicked({ library: 'animal', animal: a, color: animal?.color ?? 'sky' });
+  const heading = { fontWeight: 700, fontSize: '0.95rem', mb: 1 };
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="xs">
       <DialogTitle sx={{ fontWeight: 700 }}>Your picture</DialogTitle>
       <DialogContent>
-        <Stack spacing={2}>
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Face id={personId} name={name} size={88} avatar={picked} />
+        <Stack spacing={2.5}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', minHeight: 96 }}>
+            {making && !made ? (
+              <Box sx={{ width: 96, height: 96, display: 'grid', placeItems: 'center' }}>
+                <CircularProgress size={32} />
+              </Box>
+            ) : (
+              <Face id={personId} name={name} size={96} avatar={picked} />
+            )}
           </Box>
-          {picked && picked.style !== 'fun-emoji' && (
+
+          {animal && (
             <Box
               role="radiogroup"
-              aria-label="Skin tone"
+              aria-label="Color"
               sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}
             >
-              {SKIN_TONES.map((t) => (
+              {COLORS.map((c) => (
                 <ButtonBase
-                  key={t}
+                  key={c}
                   role="radio"
-                  aria-checked={t === tone}
-                  aria-label={t}
-                  onClick={() => {
-                    setTone(t);
-                    setPicked((p) => (p ? { ...p, tone: t } : p));
-                  }}
+                  aria-checked={c === animal.color}
+                  aria-label={c}
+                  onClick={() => setPicked({ ...animal, color: c })}
                   sx={{
                     width: 28,
                     height: 28,
                     borderRadius: '50%',
-                    bgcolor: toneSwatch(t),
-                    outline: t === tone ? '3px solid' : '1px solid',
-                    outlineColor: t === tone ? 'primary.main' : 'divider',
+                    bgcolor: AVATAR_COLORS[c],
+                    outline: c === animal.color ? '3px solid' : '1px solid',
+                    outlineColor: c === animal.color ? 'primary.main' : 'divider',
                     outlineOffset: 2,
                   }}
                 />
@@ -106,56 +144,83 @@ export const AvatarPicker: React.FC<Props> = ({
             </Box>
           )}
 
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, justifyContent: 'center' }}>
-            {AVATAR_STYLES.map((s) => (
-              <Chip
-                key={s}
-                label={AVATAR_STYLE_LABEL[s]}
-                color={s === style ? 'primary' : 'default'}
-                variant={s === style ? 'filled' : 'outlined'}
-                onClick={() => {
-                  setStyle(s);
-                  setRound(0);
-                }}
+          <Box>
+            <Typography sx={heading}>Made for you</Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
+              Drawn from what you love. Say what you'd like instead, if you want.
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              <TextField
+                size="small"
+                fullWidth
+                placeholder="A fox with headphones"
+                value={hint}
+                onChange={(e) => setHint(e.target.value.slice(0, 160))}
+                slotProps={{ htmlInput: { 'aria-label': 'What you’d like' } }}
               />
-            ))}
+              <Button
+                variant="outlined"
+                startIcon={making ? <CircularProgress size={16} /> : <AutoAwesomeRoundedIcon />}
+                disabled={making || made?.left === 0}
+                onClick={() => void makeOne(hint.trim() || undefined)}
+                sx={{ flexShrink: 0 }}
+              >
+                {made ? 'Another' : 'Make'}
+              </Button>
+            </Stack>
+            {made && (
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {made.left === 0
+                  ? 'That’s today’s pictures. More tomorrow.'
+                  : `${made.left} more today`}
+              </Typography>
+            )}
           </Box>
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.5 }}>
-            {seedsFor(personId, style, round).map((seed) => {
-              const choice: AvatarChoice = { library: 'dicebear', style, seed, tone };
-              const on = picked?.style === style && picked.seed === seed;
-              return (
-                <ButtonBase
-                  key={seed}
-                  aria-label={`Picture ${seed.split('-').at(-1)}`}
-                  aria-pressed={on}
-                  onClick={() => setPicked(choice)}
-                  sx={{
-                    borderRadius: '50%',
-                    justifySelf: 'center',
-                    outline: on ? '3px solid' : 'none',
-                    outlineColor: 'primary.main',
-                    outlineOffset: 3,
-                  }}
-                >
-                  <Face id={personId} name={name} size={72} avatar={choice} />
-                </ButtonBase>
-              );
-            })}
+
+          <Box>
+            <Typography sx={heading}>Or an animal</Typography>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(48px, 1fr))',
+                gap: 1,
+                maxHeight: 220,
+                overflowY: 'auto',
+                p: 0.5,
+              }}
+            >
+              {ANIMALS.map((a) => {
+                const on = animal?.animal === a;
+                return (
+                  <ButtonBase
+                    key={a}
+                    aria-label={label(a)}
+                    aria-pressed={on}
+                    onClick={() => pickAnimal(a)}
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: '50%',
+                      justifySelf: 'center',
+                      bgcolor: AVATAR_COLORS[animal?.color ?? 'sky'],
+                      outline: on ? '3px solid' : 'none',
+                      outlineColor: 'primary.main',
+                      outlineOffset: 2,
+                    }}
+                  >
+                    <Box component="img" src={animalSrc(a)} alt="" sx={{ width: 32, height: 32 }} />
+                  </ButtonBase>
+                );
+              })}
+            </Box>
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Button startIcon={<CasinoRoundedIcon />} onClick={() => setRound((r) => r + 1)}>
-              Show me more
-            </Button>
-          </Box>
+
+          {problem && (
+            <Typography sx={{ color: 'error.main', textAlign: 'center' }}>{problem}</Typography>
+          )}
           <Typography variant="caption" sx={{ color: 'text.secondary', textAlign: 'center' }}>
             {AVATAR_CREDITS}
           </Typography>
-          {error && (
-            <Typography sx={{ color: 'error.main', textAlign: 'center' }}>
-              That didn't save. Try again.
-            </Typography>
-          )}
         </Stack>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'space-between', px: 3, pb: 2 }}>

@@ -28,6 +28,10 @@ code that every feature reads (0009) and drift apart, and a mixed circle
   `useCircleWords()`; it never checks the kind itself. Households are the
   same data as crews; only the word changes.
 
+- **One tab name for every circle: Us** (it was Family). The same tab
+  holds a family's tree and a crew's connections, so one short word that
+  fits both keeps the app the same everywhere. Old /family links land on /us.
+
 ## Consequences
 New kinds of tie, or a new kind of circle, are additions to two files. The
 AI prompts take their framing from the same words next (one frame per kind,

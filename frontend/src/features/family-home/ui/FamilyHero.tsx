@@ -1,5 +1,5 @@
 /**
- * The top of the Family tab: the family's name, their story in a few
+ * The top of Us: the family's name, their story in a few
  * paragraphs, a handful of numbers, and everyone's face. It shows; it
  * doesn't ask anything of the reader.
  */
