@@ -64,7 +64,7 @@ export const JoinScreen: React.FC<Props> = ({ token, googleClientId }) => {
         setStep(
           preview.state === 'open'
             ? { at: 'open', preview }
-            : { at: 'gone', why: GONE[preview.state] },
+            : { at: 'gone', why: GONE[preview.state] ?? "This invite link doesn't work." },
         ),
       )
       .catch(() => setStep({ at: 'missing' }));

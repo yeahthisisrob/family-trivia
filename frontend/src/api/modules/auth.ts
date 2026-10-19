@@ -32,7 +32,7 @@ export async function publicRequest<T>(path: string, body?: unknown): Promise<T>
   });
   const data = await res.json().catch(() => null);
   const payload = data?.ok === true ? data.data : data;
-  if (!res.ok || data?.ok === false) {
+  if (!res.ok || data?.ok === false || payload == null) {
     const err = new Error(payload?.error || `Request failed (${res.status})`) as Error & {
       errorType?: string;
     };

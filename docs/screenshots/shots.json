@@ -144,7 +144,7 @@
       "story": "features-invites-joinscreen--friends-invite",
       "size": "phone",
       "height": 760,
-      "source": "430d988f627b",
+      "source": "c91bc7607cf9",
       "storyFile": "frontend/src/features/invites/ui/JoinScreen.stories.tsx"
     },
     {
