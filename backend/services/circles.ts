@@ -21,7 +21,7 @@ import { S3_PATHS } from '../constants';
 import { addMember, idFor, nextColor } from './family/members';
 import { logger } from './logger';
 import { getJson, putJson } from './s3';
-import { inCircle, type Scope } from './scope';
+import { currentScope, inCircle, type Scope } from './scope';
 
 const REGISTRY_KEY = 'circles.json';
 const SIGN_IN_MAP_KEY = 'config/google-auth-map.json';
@@ -50,6 +50,11 @@ export async function listCircles(): Promise<Circle[]> {
 
 export async function findCircle(id: string): Promise<Circle | null> {
   return (await listCircles()).find((c) => c.id === id) ?? null;
+}
+
+/** The kind of circle this request is in. Family for the root circle from before circles. */
+export async function currentCircleKind(): Promise<CircleKind> {
+  return (await findCircle(currentScope().circleId))?.kind ?? 'family';
 }
 
 const normalize = (email: string) => email.trim().toLowerCase();

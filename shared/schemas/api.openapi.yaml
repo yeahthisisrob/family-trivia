@@ -1865,6 +1865,46 @@ paths:
         "403":
           description: Not the owner
 
+  /threads/today:
+    get:
+      summary: Today's one "How do you know ...?" question (or none), and how many threads are tied
+      operationId: getThreadsToday
+      tags: [Threads]
+      responses:
+        "200":
+          description: Today's question and the circle's progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThreadsToday"
+
+  /threads/answer:
+    post:
+      summary: Answer it. The answer ties a thread between the two people, unless they're already connected.
+      operationId: answerThread
+      tags: [Threads]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ThreadAnswer"
+      responses:
+        "200":
+          description: Whether a thread was tied, and the progress after
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [tied, progress]
+                properties:
+                  tied:
+                    type: boolean
+                  progress:
+                    $ref: "#/components/schemas/ThreadProgress"
+        "400":
+          description: Unknown person or answer
+
   /invite:
     get:
       summary: What an invite link opens, shown before sign-in (only its own circle)
@@ -4103,6 +4143,69 @@ components:
           type: string
         howWeMet:
           type: string
+    ThreadChoice:
+      type: object
+      required: [id, label]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        asksWhen:
+          type: boolean
+
+    ThreadQuestion:
+      type: object
+      required: [about, prompt, choices]
+      properties:
+        about:
+          type: object
+          required: [id, name]
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+        prompt:
+          type: string
+        choices:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThreadChoice"
+
+    ThreadProgress:
+      type: object
+      required: [tied, pairs]
+      properties:
+        tied:
+          type: integer
+        pairs:
+          type: integer
+
+    ThreadsToday:
+      type: object
+      required: [question, progress]
+      properties:
+        question:
+          type: object
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ThreadQuestion"
+        progress:
+          $ref: "#/components/schemas/ThreadProgress"
+
+    ThreadAnswer:
+      type: object
+      required: [about, choice]
+      properties:
+        about:
+          type: string
+        choice:
+          type: string
+        when:
+          type: string
+          pattern: "^[0-9]{4}$"
+
     PendingJoin:
       type: object
       required: [id, token, email, details, requestedAt]

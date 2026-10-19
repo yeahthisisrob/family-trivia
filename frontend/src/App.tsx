@@ -17,6 +17,7 @@ import { appearanceApi } from './entities/appearance';
 import { useFeatures } from './entities/settings';
 import { UpcomingDates } from './features/celebrations';
 import { DailyMemory } from './features/daily-memory';
+import { ThreadCard } from './features/threads';
 import { ROUTES, useApp } from './hooks/useApp';
 import { colors, tint, useAppearance } from './shared/design-system';
 import { createLogger } from './utils/logger';
@@ -169,6 +170,9 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
           onDismiss={dismissInlineFact}
         />
       )}
+
+      {/* One connection a day, while the season asks questions (docs/decisions/0022) */}
+      {isSeasonActive && <ThreadCard />}
 
       {/* A page from our past, every day: at the top between seasons, under the day's question in one */}
       <DailyMemory
