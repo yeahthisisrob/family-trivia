@@ -6,8 +6,8 @@ import { Box, Card, CardActionArea, Chip, Stack, Typography } from '@mui/materia
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import { useCircleWords } from '../../../entities/circle';
+import { Face } from '../../../entities/person';
 import { type PersonView, relationLabel } from '../model/people';
-import { Face } from './Face';
 
 const statusOf = (p: PersonView): string | null =>
   p.remembered

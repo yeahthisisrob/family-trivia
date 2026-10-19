@@ -20,7 +20,6 @@ import {
 } from '@family-trivia/shared';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
-  Avatar,
   alpha,
   Box,
   Button,
@@ -41,7 +40,9 @@ import PersonalQuestionsHistory from '../../../components/PersonalQuestionsHisto
 import ScoreHistory from '../../../components/Profile/ScoreHistory';
 import UserTimeline from '../../../components/Profile/UserTimeline';
 import { graphApi, knowledgeApi, storyApi, useFamily } from '../../../entities/family';
+import { PersonAvatar } from '../../../entities/person';
 import { identityColor } from '../../../shared/design-system';
+import { AvatarPicker } from '../../avatar-picker';
 import { FillIn } from '../../fill-in';
 import { PersonBookButton } from '../../person-book';
 import { RememberingPage } from '../../remembering';
@@ -130,6 +131,7 @@ export const StoryProfile: React.FC<{
   const [editing, setEditing] = useState(false);
 
   const isMe = userId === meId;
+  const [picking, setPicking] = useState(false);
   const person = family?.people[userId];
   const theme = useTheme();
   const color = identityColor(userId);
@@ -221,21 +223,29 @@ export const StoryProfile: React.FC<{
         </IconButton>
         <Stack spacing={2} sx={{ px: { xs: 2.5, sm: 3.5 }, pt: 7, pb: 3 }}>
           <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-            <Avatar
-              src={photo}
-              alt=""
-              sx={{
-                width: 84,
-                height: 84,
-                fontSize: '2rem',
-                fontWeight: 800,
-                bgcolor: alpha(ink, 0.22),
-                color: 'inherit',
-                border: `3px solid ${alpha(ink, 0.65)}`,
-              }}
+            <ButtonBase
+              disabled={!isMe}
+              aria-label={isMe ? 'Choose your picture' : undefined}
+              onClick={() => setPicking(true)}
+              sx={{ borderRadius: '50%', flexShrink: 0 }}
             >
-              {name.slice(0, 1)}
-            </Avatar>
+              <PersonAvatar
+                personId={userId}
+                src={photo}
+                alt=""
+                sx={{
+                  width: 84,
+                  height: 84,
+                  fontSize: '2rem',
+                  fontWeight: 800,
+                  bgcolor: alpha(ink, 0.22),
+                  color: 'inherit',
+                  border: `3px solid ${alpha(ink, 0.65)}`,
+                }}
+              >
+                {name.slice(0, 1)}
+              </PersonAvatar>
+            </ButtonBase>
             <Box sx={{ minWidth: 0 }}>
               <Typography
                 component="h1"
@@ -467,6 +477,15 @@ export const StoryProfile: React.FC<{
             </Box>
           </Collapse>
         </Box>
+      )}
+
+      {picking && (
+        <AvatarPicker
+          personId={userId}
+          name={name}
+          current={person?.avatar}
+          onClose={() => setPicking(false)}
+        />
       )}
 
       {trivia && (

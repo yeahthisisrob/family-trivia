@@ -199,6 +199,12 @@ Friendships sit in the same people model as family: who's friends with whom and 
 
 ![A friend's connections: how and when they met each friend](docs/screenshots/friend-ties.png)
 
+## Your picture
+
+Everyone starts with their initials. Tap your face on your profile to pick a picture instead: six drawn styles, nine to choose from in each, as many more as you like. They're public-domain drawings made on your phone, so nothing is uploaded, and your pick shows everywhere in the circle at once.
+
+![Your picture: a style, then one of nine](docs/screenshots/avatar-picker.png)
+
 ## Configuration
 
 `infra/cdk.config.json` (gitignored; copy from `cdk.context.example.json`):

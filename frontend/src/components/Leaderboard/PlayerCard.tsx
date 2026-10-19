@@ -6,7 +6,6 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
-  Avatar,
   Box,
   Card,
   Chip,
@@ -21,6 +20,7 @@ import {
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useState } from 'react';
+import { PersonAvatar } from '../../entities/person';
 import { colors as dsColors } from '../../shared/design-system/tokens/colors';
 import { getUserColor, getUserInitials } from '../../utils';
 import { getCategoryColor, isCustomCategory } from '../../utils/categoryUtils';
@@ -208,7 +208,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
         </Typography>
 
         {/* Avatar */}
-        <Avatar
+        <PersonAvatar
+          personId={player.userId}
           sx={{
             width: { xs: 42, sm: 48 },
             height: { xs: 42, sm: 48 },
@@ -222,7 +223,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
           }}
         >
           {getUserInitials(player.userId)}
-        </Avatar>
+        </PersonAvatar>
 
         {/* Name + stats */}
         <Box sx={{ flex: 1, minWidth: 0 }}>

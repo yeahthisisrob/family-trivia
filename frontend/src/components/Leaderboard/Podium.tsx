@@ -1,9 +1,10 @@
 // File: frontend/src/components/Leaderboard/Podium.tsx
 import BoltIcon from '@mui/icons-material/Bolt';
-import { Avatar, Box, Typography, useTheme } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { motion } from 'framer-motion';
 import type React from 'react';
+import { PersonAvatar } from '../../entities/person';
 import { colors as dsColors } from '../../shared/design-system/tokens/colors';
 import { getUserColor } from '../../utils';
 import { getUserInitials } from './utils';
@@ -67,7 +68,8 @@ const PodiumStep: React.FC<{
       >
         {/* Avatar with medal ring */}
         <Box sx={{ position: 'relative', display: 'inline-block', mb: 0.75 }}>
-          <Avatar
+          <PersonAvatar
+            personId={player.userId}
             sx={{
               width: config.avatarSize,
               height: config.avatarSize,
@@ -79,7 +81,7 @@ const PodiumStep: React.FC<{
             }}
           >
             {getUserInitials(player.userId)}
-          </Avatar>
+          </PersonAvatar>
 
           {/* Rank badge */}
           <Box

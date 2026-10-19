@@ -12,6 +12,7 @@ import { Avatar, Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { formatDistance } from 'date-fns';
 import type React from 'react';
+import { PersonAvatar } from '../../entities/person';
 import { colors } from '../../shared/design-system';
 import { getUserColor, getUserInitials } from '../../utils';
 
@@ -123,7 +124,8 @@ const NotificationItem: React.FC<Props> = ({ item, onClick }) => {
     >
       {/* Avatar or icon */}
       {displayUser ? (
-        <Avatar
+        <PersonAvatar
+          personId={displayUser}
           sx={{
             width: 28,
             height: 28,
@@ -134,7 +136,7 @@ const NotificationItem: React.FC<Props> = ({ item, onClick }) => {
           }}
         >
           {getUserInitials(displayUser)}
-        </Avatar>
+        </PersonAvatar>
       ) : (
         <Avatar
           sx={{

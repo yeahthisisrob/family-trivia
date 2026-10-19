@@ -9,6 +9,7 @@ const SUBJECT = { userId: 'subject' } as const;
 // Admin endpoints
 import { appearanceRoutes } from './features/appearance/routes';
 import { archiveRoutes } from './features/archive/routes';
+import { avatarRoutes } from './features/avatar/routes';
 import { backupsRoutes } from './features/backups/routes';
 import { celebrationsRoutes } from './features/celebrations/routes';
 import { circlesRoutes } from './features/circles/routes';
@@ -172,6 +173,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...celebrationsRoutes,
   ...circlesRoutes,
   ...invitesRoutes,
+  ...avatarRoutes,
   ...threadsRoutes,
 
   // ── Protected: identity comes from the token (middleware/requireAuth.ts) ──

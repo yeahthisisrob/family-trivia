@@ -2,8 +2,8 @@
 import type { FamilyPerson } from '@family-trivia/shared';
 import { Box, ButtonBase, Typography } from '@mui/material';
 import type React from 'react';
+import { Face } from '../../../entities/person';
 import { usePaper } from '../../../shared/design-system';
-import { Face } from './Face';
 
 export const InMemory: React.FC<{
   people: FamilyPerson[];
