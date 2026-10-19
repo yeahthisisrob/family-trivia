@@ -5,8 +5,15 @@
 // All cache entries are temporary and exist only for the current browser session.
 // The backend is always treated as the source of truth for game state.
 
+import { CIRCLE_HEADER } from '@family-trivia/shared';
 import { loadConfig } from '../config';
-import { expireSession, getToken, updateToken } from '../session';
+import {
+  currentCircleId,
+  expireSession,
+  getToken,
+  leaveRememberedCircle,
+  updateToken,
+} from '../session';
 import { createLogger } from '../utils/logger';
 import { cacheService } from './CacheService';
 
@@ -117,12 +124,14 @@ export class ApiService {
       // Default request options — merge headers so caller-provided headers
       // don't clobber Authorization / Content-Type.
       const token = ApiService.getAuthToken();
+      const circle = currentCircleId();
       const { headers: callerHeaders, ...restOptions } = options || {};
       const requestOptions: RequestInit = {
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(circle ? { [CIRCLE_HEADER]: circle } : {}),
           ...((callerHeaders as Record<string, string>) || {}),
         },
         ...restOptions,
@@ -170,6 +179,24 @@ export class ApiService {
           undefined,
           'SESSION_EXPIRED',
         );
+      }
+
+      // No longer in the circle this browser remembers (removed, or the
+      // circle was closed): forget it and start again in their first circle.
+      if (response.status === 403 && circle) {
+        const body = await response
+          .clone()
+          .json()
+          .catch(() => null);
+        if (body?.errorType === 'NOT_IN_CIRCLE') {
+          leaveRememberedCircle();
+          throw new ApiError(
+            'That circle is no longer open to you.',
+            403,
+            undefined,
+            'NOT_IN_CIRCLE',
+          );
+        }
       }
 
       // Silent token refresh — backend returns a fresh JWT when close to expiry

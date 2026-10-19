@@ -46,11 +46,11 @@ export type {
   SeasonsConfig,
 } from '@family-trivia/shared';
 
+import { circleCache } from './scope';
+
 // ── In-memory cache (per Lambda invocation cold start) ───────────
 
-let cachedConfig: SeasonsConfig | null = null;
-let cacheTimestamp = 0;
-const CACHE_TTL_MS = 60_000; // 1 minute — plenty for Lambda
+const configCache = circleCache<SeasonsConfig>(60_000); // 1 minute — plenty for Lambda
 
 // ── Public API ───────────────────────────────────────────────────
 
@@ -58,25 +58,21 @@ const CACHE_TTL_MS = 60_000; // 1 minute — plenty for Lambda
  * Invalidate the seasons config cache. Call after admin writes.
  */
 export function invalidateSeasonsCache(): void {
-  cachedConfig = null;
-  cacheTimestamp = 0;
+  configCache.clear();
 }
 
 /**
  * Load seasons config from S3, with a short in-memory cache.
  */
 export async function getSeasonsConfig(): Promise<SeasonsConfig> {
-  const now = Date.now();
-  if (cachedConfig && now - cacheTimestamp < CACHE_TTL_MS) {
-    return cachedConfig;
-  }
+  const cached = configCache.get();
+  if (cached) return cached;
 
   try {
     const config = await getJson<SeasonsConfig>(S3_PATHS.SEASONS_CONFIG);
 
     if (config && Array.isArray(config.seasons)) {
-      cachedConfig = config;
-      cacheTimestamp = now;
+      configCache.set(config);
       return config;
     }
   } catch (err) {
@@ -90,8 +86,7 @@ export async function getSeasonsConfig(): Promise<SeasonsConfig> {
     currentSeasonNumber: null,
     seasons: [],
   };
-  cachedConfig = fallback;
-  cacheTimestamp = now;
+  configCache.set(fallback);
   return fallback;
 }
 
@@ -137,13 +132,16 @@ export async function getLastConcludedSeason(): Promise<Season | null> {
  * Scans all user answer histories and finds the min/max timestamps.
  * Cached per Lambda invocation.
  */
-let cachedDateRange: { startDate: string; endDate: string } | null = null;
+const dateRangeCache = circleCache<{ startDate: string; endDate: string }>(
+  Number.POSITIVE_INFINITY,
+);
 
 async function computeSeasonDatesFromHistory(): Promise<{
   startDate: string;
   endDate: string;
 } | null> {
-  if (cachedDateRange) return cachedDateRange;
+  const cached = dateRangeCache.get();
+  if (cached) return cached;
 
   try {
     const historyFiles = await listObjects('answers/history/', 100);
@@ -165,8 +163,9 @@ async function computeSeasonDatesFromHistory(): Promise<{
     }
 
     if (earliest && latest) {
-      cachedDateRange = { startDate: earliest, endDate: latest };
-      return cachedDateRange;
+      const range = { startDate: earliest, endDate: latest };
+      dateRangeCache.set(range);
+      return range;
     }
   } catch (err) {
     logger.warn('Failed to compute season dates from history', {

@@ -6,6 +6,7 @@
 import { S3_PATHS } from '../constants';
 import { logger } from './logger';
 import { getJson } from './s3';
+import { circleCache } from './scope';
 import { getAllUsers } from './users';
 
 interface QuestionRecord {
@@ -26,19 +27,17 @@ interface HistoryEntry {
 // Per-invocation cache. Module-level variables persist across calls within a single
 // Lambda container but are reset between invocations in practice because Casino Rush
 // generates all 3 questions in a single handler call.
-let cachedHistories: Map<string, HistoryEntry[]> | null = null;
-let cacheTimestamp = 0;
-const CACHE_TTL = 30_000; // 30 seconds — covers a single Casino Rush session
+const historiesCache = circleCache<Map<string, HistoryEntry[]>>(30_000); // covers a Casino Rush session
 
 /**
  * Load answer histories for all users, cached per invocation.
  * First call reads from S3, subsequent calls return cached data.
  */
 export async function getAllUserHistories(): Promise<Map<string, HistoryEntry[]>> {
-  const now = Date.now();
-  if (cachedHistories && now - cacheTimestamp < CACHE_TTL) {
+  const cached = historiesCache.get();
+  if (cached) {
     logger.debug('Using cached question histories');
-    return cachedHistories;
+    return cached;
   }
 
   const allUsers = await getAllUsers();
@@ -62,8 +61,7 @@ export async function getAllUserHistories(): Promise<Map<string, HistoryEntry[]>
     histories.set(uid, history);
   }
 
-  cachedHistories = histories;
-  cacheTimestamp = now;
+  historiesCache.set(histories);
 
   logger.info('Question histories loaded and cached', {
     userCount: histories.size,
@@ -108,6 +106,5 @@ export async function getUserHistory(userId: string): Promise<HistoryEntry[]> {
  * Invalidate the cache (e.g., after a new answer is submitted).
  */
 export function invalidateHistoryCache(): void {
-  cachedHistories = null;
-  cacheTimestamp = 0;
+  historiesCache.clear();
 }

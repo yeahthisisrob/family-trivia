@@ -78,8 +78,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ googleClientId, onActivate, n
         setError('Wrong passphrase. Try again.');
       } else if (err?.errorType === 'USER_ALREADY_LINKED') {
         setError(
-          'This family member is already linked to another Google account. Contact the administrator for help.',
+          'This person is already linked to another Google account. Contact the administrator for help.',
         );
+      } else if (err?.errorType === 'PASSPHRASE_AMBIGUOUS') {
+        setError('That passphrase is used in more than one circle. Ask the admin for a new one.');
       } else {
         setError(err?.message || 'Linking failed. Please try again.');
       }

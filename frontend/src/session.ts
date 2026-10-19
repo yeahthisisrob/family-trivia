@@ -1,6 +1,8 @@
 // File: frontend/src/session.ts
 // Session storage — JWT token + userId persisted across page loads.
 
+import type { MyCircle } from '@family-trivia/shared';
+
 interface SessionData {
   userId: string;
   token: string;
@@ -59,6 +61,55 @@ export function updateToken(token: string) {
 /** Clear session (logout). */
 export function clearSession() {
   localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(CIRCLES_KEY);
+}
+
+// ── Circles (docs/decisions/0015) ────────────────────────────────
+// Which circle this browser is in, and the others this sign-in can open.
+// The id goes out on every request (X-Circle); the server checks it.
+
+const CIRCLES_KEY = 'familyTriviaCircles';
+
+export interface SessionCircles {
+  current: string;
+  circles: MyCircle[];
+}
+
+export function saveCircles(current: string, circles: MyCircle[]) {
+  localStorage.setItem(CIRCLES_KEY, JSON.stringify({ current, circles }));
+}
+
+export function loadCircles(): SessionCircles | null {
+  try {
+    const raw = localStorage.getItem(CIRCLES_KEY);
+    const data = raw ? (JSON.parse(raw) as SessionCircles) : null;
+    return data?.current && Array.isArray(data.circles) ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+export const currentCircleId = (): string | null => loadCircles()?.current ?? null;
+
+/** Forget the remembered circle and start over; the server opens their first. */
+export function leaveRememberedCircle() {
+  localStorage.removeItem(CIRCLES_KEY);
+  window.location.assign('/');
+}
+
+/** Open another circle: who they are there, then a fresh start of the app in it. */
+export function enterCircle(circle: MyCircle, circles: MyCircle[]) {
+  saveCircles(circle.id, circles);
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (raw) {
+      const data = JSON.parse(raw) as SessionData;
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ ...data, userId: circle.userId }));
+    }
+  } catch {
+    /* */
+  }
+  window.location.assign('/');
 }
 
 const EXPIRED_EVENT = 'ft:session-expired';

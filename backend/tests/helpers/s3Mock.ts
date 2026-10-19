@@ -13,6 +13,7 @@
  *   getHistory(user)      — read a user's history
  */
 import type { HistoryEntry } from '@family-trivia/shared';
+import { logicalKey, physicalKey } from '../../services/scope';
 import type { Season, SeasonsConfig } from '../../services/seasonService';
 
 const store = new Map<string, unknown>();
@@ -84,36 +85,42 @@ export function seedEndedSeason(): void {
   });
 }
 
-// ── Mock functions that match services/s3 signatures ─────────────────
+// ── Mock functions that match services/s3 signatures ─────────────
+// Keys go through the real circle scope (services/scope.ts), as in
+// services/s3.ts, so tests see the same isolation production does. The seed
+// and read helpers above take real keys; under the root fallback scope set
+// in tests/helpers/setup.ts those are the same as a feature's keys.
 
 async function getJson<T>(key: string): Promise<T | null> {
-  const v = store.get(key);
+  const v = store.get(physicalKey(key));
   return v === undefined ? null : (v as T);
 }
 
 async function putJson(key: string, data: unknown): Promise<void> {
   // Deep-clone to simulate round-trip serialization
-  store.set(key, JSON.parse(JSON.stringify(data)));
+  store.set(physicalKey(key), JSON.parse(JSON.stringify(data)));
 }
 
 async function listObjects(prefix: string, _maxKeys = 1000): Promise<string[]> {
+  const real = physicalKey(prefix);
   const keys: string[] = [];
   for (const k of store.keys()) {
-    if (k.startsWith(prefix)) keys.push(k);
+    const key = k.startsWith(real) ? logicalKey(k) : null;
+    if (key) keys.push(key);
   }
   return keys;
 }
 
 async function deleteObject(key: string): Promise<void> {
-  store.delete(key);
+  store.delete(physicalKey(key));
 }
 
 async function fileExists(key: string): Promise<boolean> {
-  return store.has(key);
+  return store.has(physicalKey(key));
 }
 
 async function putJsonIfNotExists(key: string, data: unknown): Promise<boolean> {
-  if (store.has(key)) return false;
+  if (store.has(physicalKey(key))) return false;
   await putJson(key, data);
   return true;
 }
@@ -123,10 +130,10 @@ export const s3MockModule = {
   putJson,
   listObjects,
   putBytes: async (key: string, body: Uint8Array) => {
-    store.set(key, body);
+    store.set(physicalKey(key), body);
   },
   getBytes: async (key: string) => {
-    const v = store.get(key);
+    const v = store.get(physicalKey(key));
     return v instanceof Uint8Array ? v : null;
   },
   deleteObject,

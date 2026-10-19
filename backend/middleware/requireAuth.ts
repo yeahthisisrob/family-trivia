@@ -1,21 +1,32 @@
 /**
  * Auth middleware — wraps route handlers with JWT verification.
  *
- * Extracts userId from the JWT `sub` claim and passes it to the handler.
+ * Verifies the JWT, finds the circle the request is for (X-Circle) and the
+ * caller's id in it, and runs the handler inside that circle's scope.
  * If the token is within 24h of expiry, attaches a refreshed token via
  * the X-Refreshed-Token response header.
  */
 
+import { CIRCLE_HEADER, type Circle } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { CORS_HEADERS } from '../config';
-import { maybeRefreshJwt, verifyJwt } from '../services/auth';
+import { maybeRefreshJwt, type VerifiedUser, verifyJwt } from '../services/auth';
+import { listCircles, type Resolved, resolveCircle, scopeOf } from '../services/circles';
 import { logger } from '../services/logger';
+import { serveInCircle } from '../services/scope';
 
 /** Handler signature for auth-protected routes. */
 export type AuthHandler = (
   event: APIGatewayProxyEvent,
   userId: string,
+  caller: Caller,
 ) => Promise<APIGatewayProxyResult>;
+
+/** Who is calling and in which circle, for handlers that need more than the id. */
+export interface Caller {
+  email: string;
+  circle: Circle;
+}
 
 /**
  * Who `userId` in a request names. Most routes act for the caller, so the
@@ -55,6 +66,24 @@ export function withIdentity(
     }
   }
   return { ...event, queryStringParameters: query, body };
+}
+
+const headerOf = (event: APIGatewayProxyEvent, name: string) =>
+  Object.entries(event.headers ?? {}).find(([k]) => k.toLowerCase() === name.toLowerCase())?.[1];
+
+/**
+ * The circle the request names (X-Circle) and the caller's id in it. A token
+ * from before circles carries no email only in local dev; it acts in the
+ * root circle as the id it was signed for, and only while there is one.
+ */
+async function callerInCircle(event: APIGatewayProxyEvent, user: VerifiedUser): Promise<Resolved> {
+  const requested = headerOf(event, CIRCLE_HEADER) || undefined;
+  if (user.email) return resolveCircle(user.email, requested);
+  const circles = await listCircles();
+  const [only] = circles;
+  if (circles.length === 1 && only?.root && (!requested || requested === only.id))
+    return { ok: true, circle: only, userId: user.userId };
+  return { ok: false, status: 403, error: 'Sign in again' };
 }
 
 /**
@@ -98,10 +127,24 @@ export function requireAuth(handler: AuthHandler, opts: { userId?: UserIdMeaning
         };
       }
 
-      // Run the handler
-      const response = await handler(
-        withIdentity(event, user.userId, opts.userId ?? 'self'),
-        user.userId,
+      // Which circle, and who the caller is in it (docs/decisions/0015)
+      const found = await callerInCircle(event, user);
+      if (!found.ok) {
+        return {
+          statusCode: found.status,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({ ok: false, error: found.error, errorType: 'NOT_IN_CIRCLE' }),
+        };
+      }
+      const { circle, userId } = found;
+      logger.appendKeys({ circleId: circle.id });
+
+      // Run the handler with every key it touches scoped to that circle
+      const response = await serveInCircle(scopeOf(circle), () =>
+        handler(withIdentity(event, userId, opts.userId ?? 'self'), userId, {
+          email: user.email,
+          circle,
+        }),
       );
 
       // Attach refreshed token if close to expiry (never crash for this)

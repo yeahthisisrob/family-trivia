@@ -7,6 +7,7 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { BUCKET, REGION } from '../config';
+import { physicalKey } from './scope';
 
 const s3 = new S3Client({ region: REGION });
 
@@ -33,7 +34,7 @@ export async function uploadUrl(
   const key = `media/${folder}/${crypto.randomUUID()}.${ALLOWED[type]}`;
   const url = await getSignedUrl(
     s3,
-    new PutObjectCommand({ Bucket: BUCKET, Key: key, ContentType: type }),
+    new PutObjectCommand({ Bucket: BUCKET, Key: physicalKey(key), ContentType: type }),
     {
       expiresIn: UPLOAD_SECONDS,
     },
@@ -43,7 +44,7 @@ export async function uploadUrl(
 
 export async function readUrl(key: string): Promise<string | null> {
   if (!isMediaKey(key)) return null;
-  return getSignedUrl(s3, new GetObjectCommand({ Bucket: BUCKET, Key: key }), {
+  return getSignedUrl(s3, new GetObjectCommand({ Bucket: BUCKET, Key: physicalKey(key) }), {
     expiresIn: READ_SECONDS,
   });
 }
@@ -63,7 +64,7 @@ export async function downloadUrl(key: string, filename: string): Promise<string
     s3,
     new GetObjectCommand({
       Bucket: BUCKET,
-      Key: key,
+      Key: physicalKey(key),
       ResponseContentDisposition: `attachment; filename="${filename.replace(/"/g, '')}"`,
     }),
     { expiresIn: READ_SECONDS },
