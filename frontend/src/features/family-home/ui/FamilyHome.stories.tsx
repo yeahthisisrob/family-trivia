@@ -71,3 +71,22 @@ export const OpensSomeoneRemembered: Story = {
 export const BeforeTheStoryIsWritten: Story = {
   parameters: { msw: { handlers: familyHomeHandlers(null) } },
 };
+
+/** The same page in a friends circle: the crew's words, not the family's. */
+export const FriendsCircle: Story = {
+  beforeEach: () => {
+    localStorage.setItem(
+      'familyTriviaCircles',
+      JSON.stringify({
+        current: 'crew',
+        circles: [{ id: 'crew', name: 'The Crew', kind: 'friends', userId: 'alice' }],
+      }),
+    );
+    return () => localStorage.removeItem('familyTriviaCircles');
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(await canvas.findByText('Our crew')).toBeInTheDocument();
+    await expect(canvas.queryByText('Our family')).not.toBeInTheDocument();
+  },
+};

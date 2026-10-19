@@ -1,4 +1,6 @@
 // File: frontend/src/components/UpcomingDates/AddCelebrationDialog.tsx
+
+import { capitalized } from '@family-trivia/shared';
 import CakeIcon from '@mui/icons-material/Cake';
 import CelebrationIcon from '@mui/icons-material/Celebration';
 import CloseIcon from '@mui/icons-material/Close';
@@ -27,6 +29,7 @@ import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import type React from 'react';
 import { useState } from 'react';
+import { useCircleWords } from '../../../entities/circle';
 import { createLogger } from '../../../utils/logger';
 import { celebrationsApi } from '../api/celebrationsApi';
 
@@ -74,6 +77,7 @@ const AddCelebrationDialog: React.FC<AddCelebrationDialogProps> = ({
   onSuccess,
 }) => {
   const theme = useTheme();
+  const { words } = useCircleWords();
   const [type, setType] = useState<'birthday' | 'anniversary' | 'holiday' | 'other'>('birthday');
   const [name, setName] = useState('');
   const [date, setDate] = useState<Dayjs | null>(dayjs().startOf('day'));
@@ -228,7 +232,9 @@ const AddCelebrationDialog: React.FC<AddCelebrationDialogProps> = ({
                   fontStyle: 'italic',
                 }}
               >
-                {currentType.hint}
+                {currentType.value === 'holiday'
+                  ? `${capitalized(words.noun)} tradition or holiday`
+                  : currentType.hint}
               </Typography>
             </Box>
 

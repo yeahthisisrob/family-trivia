@@ -4,6 +4,8 @@
  * tree, the connections graph and (when the family turned them on) the
  * albums behind its doors, and the archive at the foot.
  */
+
+import { capitalized } from '@family-trivia/shared';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -12,6 +14,7 @@ import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import { Box, Button, Fade } from '@mui/material';
 import React, { useMemo, useState } from 'react';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
+import { useCircleWords } from '../../entities/circle';
 import { useFeatures } from '../../entities/settings';
 import { ArchiveDialog } from '../../features/family-archive';
 import { Connections } from '../../features/family-graph';
@@ -30,6 +33,7 @@ interface FamilyTreeProps {
 const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, isAdmin, onViewProfile }) => {
   const [archiveOpen, setArchiveOpen] = useState(false);
   const features = useFeatures();
+  const { words } = useCircleWords();
   const { hierarchyData: hierarchy, groupDescriptions: raw } = useFamilyData();
 
   const groupDescriptions = useMemo(() => {
@@ -44,8 +48,8 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, isAdmin, onViewProfile 
   if (hierarchy?.family?.groups) {
     doors.push({
       id: 'tree',
-      title: 'The family tree',
-      caption: 'Every side, every home',
+      title: words.tree,
+      caption: words.treeHint,
       icon: <AccountTreeIcon />,
       render: (_graph, openPerson) => (
         <FamilySplitView
@@ -77,7 +81,7 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, isAdmin, onViewProfile 
     doors.push({
       id: 'albums',
       title: 'Albums',
-      caption: 'The family’s shared photos',
+      caption: `${capitalized(words.whose).replace("'", '’')} shared photos`,
       icon: <PhotoLibraryIcon />,
       render: () => (
         <React.Suspense fallback={null}>
@@ -97,7 +101,7 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ userId, isAdmin, onViewProfile 
           footer={
             <Box sx={{ textAlign: 'center' }}>
               <Button startIcon={<DownloadIcon />} onClick={() => setArchiveOpen(true)}>
-                Download the family archive
+                Download {words.archive}
               </Button>
             </Box>
           }

@@ -39,6 +39,7 @@ import { getMemberSummary, getUserProfile } from '../../../api/modules/user';
 import PersonalQuestionsHistory from '../../../components/PersonalQuestionsHistory';
 import ScoreHistory from '../../../components/Profile/ScoreHistory';
 import UserTimeline from '../../../components/Profile/UserTimeline';
+import { useCircleWords } from '../../../entities/circle';
 import { graphApi, knowledgeApi, storyApi, useFamily } from '../../../entities/family';
 import { PersonAvatar } from '../../../entities/person';
 import { identityColor } from '../../../shared/design-system';
@@ -138,6 +139,7 @@ export const StoryProfile: React.FC<{
   const [scoresOpen, setScoresOpen] = useState(false);
   const [editing, setEditing] = useState(false);
 
+  const { words } = useCircleWords();
   const isMe = userId === meId;
   const [picking, setPicking] = useState(false);
   const person = family?.people[userId];
@@ -329,7 +331,7 @@ export const StoryProfile: React.FC<{
       )}
 
       {story && story.loved.length > 0 && (
-        <Section title="What the family loved">
+        <Section title={`What ${words.circle} loved`}>
           <Stack spacing={2}>
             {story.loved.map((l) => {
               const w = byId.get(l.id);
@@ -348,7 +350,9 @@ export const StoryProfile: React.FC<{
 
       {story && story.mentions.length > 0 && (
         <Section
-          title={isMe ? 'What the family says about you' : `What the family says about ${name}`}
+          title={
+            isMe ? `What ${words.circle} says about you` : `What ${words.circle} says about ${name}`
+          }
         >
           <Stack spacing={2}>
             {story.mentions

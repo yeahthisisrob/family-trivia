@@ -27,6 +27,7 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import ConfettiExplosion from 'react-confetti-explosion';
 import { LoadingDots } from '../../../components/ui/feedback';
+import { useCircleWords } from '../../../entities/circle';
 import { loadSession } from '../../../session';
 import { colors } from '../../../shared/design-system';
 import { createLogger } from '../../../utils/logger';
@@ -166,6 +167,7 @@ const DISMISS_KEY = 'celebrations_cta_dismissed';
 
 const UpcomingDates: React.FC = () => {
   const theme = useTheme();
+  const { words } = useCircleWords();
   const currentUserId = loadSession() || '';
 
   const [birthdays, setBirthdays] = useState<Birthday[]>([]);
@@ -416,13 +418,13 @@ const UpcomingDates: React.FC = () => {
             >
               <Box sx={{ flex: 1 }}>
                 <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, mb: 0.25 }}>
-                  Add your family's important dates!
+                  Add your {words.noun}'s important dates!
                 </Typography>
                 <Typography
                   sx={{ fontSize: '0.65rem', color: theme.palette.text.secondary, lineHeight: 1.3 }}
                 >
-                  Anniversaries, pet birthdays, 5K races, vacations, family reunions — never miss a
-                  celebration.
+                  Anniversaries, pet birthdays, 5K races, vacations, {words.noun} reunions — never
+                  miss a celebration.
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>

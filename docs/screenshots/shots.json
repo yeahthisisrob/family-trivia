@@ -4,7 +4,7 @@
       "file": "family-home.png",
       "story": "family-familyhome--story-first",
       "size": "desktop",
-      "source": "b981e5e39f8f",
+      "source": "64b9605bb41b",
       "storyFile": "frontend/src/features/family-home/ui/FamilyHome.stories.tsx"
     },
     {
@@ -12,7 +12,7 @@
       "story": "family-familymap--our-map",
       "size": "desktop",
       "scheme": "dark",
-      "source": "51767cabc5b8",
+      "source": "18c6d1d1c457",
       "height": 640,
       "storyFile": "frontend/src/features/family-graph/ui/FamilyMap.stories.tsx"
     },
@@ -22,7 +22,7 @@
       "size": "desktop",
       "scheme": "dark",
       "height": 520,
-      "source": "d1429c8f99a7",
+      "source": "74824fcd1331",
       "storyFile": "frontend/src/features/family-graph/ui/FamilyGraph.stories.tsx"
     },
     {
@@ -51,7 +51,7 @@
       "file": "profile.png",
       "story": "profile-storyprofile--you",
       "size": "desktop",
-      "source": "f327258a796d",
+      "source": "1e68ee65cd85",
       "storyFile": "frontend/src/features/profile/ui/StoryProfile.stories.tsx"
     },
     {

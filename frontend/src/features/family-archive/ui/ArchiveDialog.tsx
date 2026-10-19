@@ -19,9 +19,11 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { useEffect, useState } from 'react';
+import { useCircleWords } from '../../../entities/circle';
 import { type ArchiveOptions, archiveApi } from '../api/archiveApi';
 
 export const ArchiveDialog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const { words } = useCircleWords();
   const [options, setOptions] = useState<ArchiveOptions | null>(null);
   const [chosen, setChosen] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
@@ -35,7 +37,7 @@ export const ArchiveDialog: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         setOptions(o);
         setChosen(new Set(o.people.map((p) => p.id)));
       })
-      .catch(() => setError("Couldn't load the family. Try again in a moment."));
+      .catch(() => setError(`Couldn't load ${words.circle}. Try again in a moment.`));
   }, []);
 
   const toggle = (ids: string[], on: boolean) =>
@@ -68,12 +70,12 @@ export const ArchiveDialog: React.FC<{ onClose: () => void }> = ({ onClose }) =>
 
   return (
     <Dialog open onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Download the family archive</DialogTitle>
+      <DialogTitle>Download {words.archive}</DialogTitle>
       <DialogContent>
         <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
           A zip with a folder for each person: their trivia answers, their answers to the daily
-          family questions, games and comments. Everything opens in any app; nothing leaves your
-          family's storage except this download.
+          {words.noun} questions, games and comments. Everything opens in any app; nothing leaves
+          your {words.noun}'s storage except this download.
         </Typography>
         {error && (
           <Alert severity="warning" sx={{ mb: 2 }}>

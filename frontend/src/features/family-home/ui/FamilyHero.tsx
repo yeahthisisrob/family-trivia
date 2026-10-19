@@ -8,6 +8,7 @@ import type { FamilyKnowledge } from '@family-trivia/shared';
 import { Box, Card, Skeleton, Stack, Typography } from '@mui/material';
 import type React from 'react';
 import ReactMarkdown from 'react-markdown';
+import { useCircleWords } from '../../../entities/circle';
 import type { FamilyStory } from '../api/familyHomeApi';
 
 const Stat: React.FC<{ value: string | number; label: string }> = ({ value, label }) => (
@@ -26,6 +27,7 @@ export const FamilyHero: React.FC<{
   numbers?: FamilyKnowledge['stats'];
   nameOf: (id: string) => string;
 }> = ({ familyName, story, numbers, nameOf }) => {
+  const { words } = useCircleWords();
   const stats = story?.stats;
   const since = stats?.since?.slice(0, 4);
   // About 300 words to a printed page.
@@ -46,7 +48,7 @@ export const FamilyHero: React.FC<{
           color: 'primary.main',
         }}
       >
-        Our family
+        Our {words.noun}
       </Typography>
       <Typography
         component="h1"
@@ -67,8 +69,8 @@ export const FamilyHero: React.FC<{
           <ReactMarkdown>{story.markdown}</ReactMarkdown>
         ) : (
           <Typography sx={{ color: 'text.secondary' }}>
-            Every answer anyone shares becomes part of this family's story. It's written here as it
-            grows.
+            Every answer anyone shares becomes part of this {words.noun}'s story. It's written here
+            as it grows.
           </Typography>
         )}
       </Box>
@@ -76,7 +78,10 @@ export const FamilyHero: React.FC<{
       {stats && (
         <Stack direction="row" sx={{ gap: 3, mt: 2, flexWrap: 'wrap' }}>
           <Stat value={stats.people} label="people" />
-          <Stat value={stats.households} label={stats.households === 1 ? 'home' : 'homes'} />
+          <Stat
+            value={stats.households}
+            label={stats.households === 1 ? words.unit : `${words.unit}s`}
+          />
           <Stat value={stats.answers.toLocaleString()} label="answers shared" />
           {numbers && numbers.words > 0 && (
             <Stat
