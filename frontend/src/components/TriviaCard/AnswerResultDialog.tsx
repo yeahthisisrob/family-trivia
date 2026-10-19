@@ -1,7 +1,6 @@
 // File: src/components/TriviaCard/AnswerResultDialog.tsx
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import StarsIcon from '@mui/icons-material/Stars';
 import { alpha, Box, Button, Chip, Dialog, Divider, Paper, Typography } from '@mui/material';
 import type React from 'react';
@@ -19,7 +18,6 @@ interface AnswerResultDialogProps {
   question?: Question;
   selected?: string | null;
   isCorrect: boolean;
-  streak?: number;
   pointsEarned?: number;
   isCatchingUp?: boolean;
   /** UserId of the player who answered */
@@ -35,7 +33,6 @@ const AnswerResultDialog: React.FC<AnswerResultDialogProps> = ({
   question,
   selected,
   isCorrect,
-  streak = 0,
   pointsEarned = 0,
   isCatchingUp = false,
   userId,
@@ -212,15 +209,6 @@ const AnswerResultDialog: React.FC<AnswerResultDialogProps> = ({
 
         {/* Achievement chips */}
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 2 }}>
-          {streak > 0 && (
-            <Chip
-              icon={<EmojiEventsIcon sx={{ fontSize: '1rem !important' }} />}
-              label={appStrings.resultDialog.dayStreak(streak)}
-              color="success"
-              size="small"
-              sx={{ fontWeight: 600 }}
-            />
-          )}
           {pointsEarned > 0 && isCorrect && (
             <Chip
               icon={<StarsIcon sx={{ fontSize: '1rem !important' }} />}

@@ -56,12 +56,6 @@ function todayTimestamp(): string {
   return new Date(`${todayET}T16:00:00.000Z`).toISOString();
 }
 
-function yesterdayTimestamp(): string {
-  const d = new Date(`${todayET}T16:00:00.000Z`);
-  d.setUTCDate(d.getUTCDate() - 1);
-  return d.toISOString();
-}
-
 function daysAgoTimestamp(days: number): string {
   const d = new Date(`${todayET}T16:00:00.000Z`);
   d.setUTCDate(d.getUTCDate() - days);
@@ -188,8 +182,8 @@ describe('casinoRushStartGame', () => {
 
   test('catchup mode allowed even after daily play — catch up in one session', async () => {
     seedDefaultActiveSeason();
-    seedHistory('alice', [regular()]); // played daily today
-    seedHistory('leader', [regular({ timestamp: yesterdayTimestamp() }), regular()]); // 2 slots vs alice's 1 → 1 gap
+    // First played 2 days ago, then today's daily → 1 gap (yesterday)
+    seedHistory('alice', [regular({ timestamp: daysAgoTimestamp(2) }), regular()]);
 
     const resp = parseResponse(
       await casinoRushStartGame(
@@ -205,8 +199,7 @@ describe('casinoRushStartGame', () => {
 
   test('catchup mode blocked when no gaps', async () => {
     seedDefaultActiveSeason();
-    seedHistory('alice', [regular()]);
-    seedHistory('leader', [regular()]);
+    seedHistory('alice', [regular()]); // first play today → nothing owed
 
     const resp = parseResponse(
       await casinoRushStartGame(
@@ -222,11 +215,7 @@ describe('casinoRushStartGame', () => {
 
   test('catchup mode still respects CR cooldown', async () => {
     seedDefaultActiveSeason();
-    seedHistory('alice', [casinoRushEntry('cr_recent', { timestamp: daysAgoTimestamp(2) })]);
-    seedHistory('leader', [
-      regular({ timestamp: yesterdayTimestamp() }),
-      regular({ timestamp: yesterdayTimestamp() }),
-    ]);
+    seedHistory('alice', [casinoRushEntry('cr_recent', { timestamp: daysAgoTimestamp(2) })]); // 1 gap
 
     // Has gaps BUT weekly cooldown hasn't passed
     const resp = parseResponse(
@@ -631,8 +620,8 @@ describe('canPlayGameMode', () => {
 
   test('catchup allowed even after daily play — user has gaps', async () => {
     seedDefaultActiveSeason();
-    seedHistory('alice', [regular()]); // played daily today
-    seedHistory('leader', [regular({ timestamp: yesterdayTimestamp() }), regular()]); // leader has 2 slots, alice 1 → 1 gap
+    // First played 2 days ago, then today's daily → 1 gap (yesterday)
+    seedHistory('alice', [regular({ timestamp: daysAgoTimestamp(2) }), regular()]);
     const result = await canPlayGameMode('alice', 'curling', 'catchup');
     expect(result.canPlay).toBe(true);
   });
@@ -641,11 +630,7 @@ describe('canPlayGameMode', () => {
     seedDefaultActiveSeason();
     seedHistory('alice', [
       { ...regular({ timestamp: daysAgoTimestamp(2) }), isCurling: true, curlingMultiplier: 2 },
-    ]);
-    seedHistory('leader', [
-      regular({ timestamp: yesterdayTimestamp() }),
-      regular({ timestamp: yesterdayTimestamp() }),
-    ]); // 2 gaps for alice
+    ]); // 1 gap (yesterday)
     const result = await canPlayGameMode('alice', 'curling', 'catchup');
     expect(result.canPlay).toBe(false);
     expect(result.blockedReason).toBe('cooldown');
@@ -655,16 +640,15 @@ describe('canPlayGameMode', () => {
 describe('canPlayGameModeAny', () => {
   test('played today but has catchup gap → tile shows playable', async () => {
     seedDefaultActiveSeason();
-    seedHistory('alice', [regular()]); // played daily today
-    seedHistory('leader', [regular({ timestamp: yesterdayTimestamp() }), regular()]); // leader has 2 slots, alice 1 → 1 gap
+    // First played 2 days ago, then today's daily → 1 gap (yesterday)
+    seedHistory('alice', [regular({ timestamp: daysAgoTimestamp(2) }), regular()]);
     const result = await canPlayGameModeAny('alice', 'curling');
     expect(result.canPlay).toBe(true);
   });
 
   test('played today, no catchup gaps → blocked', async () => {
     seedDefaultActiveSeason();
-    seedHistory('alice', [regular()]);
-    seedHistory('leader', [regular()]); // no gap
+    seedHistory('alice', [regular()]); // first play today → no gap
     const result = await canPlayGameModeAny('alice', 'curling');
     expect(result.canPlay).toBe(false);
     expect(result.blockedReason).toBe('daily_limit_reached');
@@ -674,11 +658,7 @@ describe('canPlayGameModeAny', () => {
     seedDefaultActiveSeason();
     seedHistory('alice', [
       { ...regular({ timestamp: daysAgoTimestamp(2) }), isCurling: true, curlingMultiplier: 2 },
-    ]);
-    seedHistory('leader', [
-      regular({ timestamp: yesterdayTimestamp() }),
-      regular({ timestamp: yesterdayTimestamp() }),
-    ]); // 2 gaps but curling on cooldown
+    ]); // 1 gap but curling on cooldown
     const result = await canPlayGameModeAny('alice', 'curling');
     expect(result.canPlay).toBe(false);
     expect(result.blockedReason).toBe('cooldown');

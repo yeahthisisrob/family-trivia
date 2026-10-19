@@ -1,3 +1,4 @@
+import type { CatchupStatus } from '@family-trivia/shared';
 /**
  * UserStatusContext — mirrors the backend's eligibility model.
  *
@@ -30,12 +31,6 @@ interface Question {
   category?: string;
   difficulty?: 'easy' | 'normal' | 'hard';
   pointMultiplier?: number;
-}
-
-interface CatchupStatus {
-  questionsBehind: number;
-  userAnswerCount: number;
-  maxQuestionsAvailable: number;
 }
 
 interface UserStatusContextType {

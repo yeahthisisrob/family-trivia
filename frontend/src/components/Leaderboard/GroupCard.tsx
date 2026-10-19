@@ -1,5 +1,3 @@
-// File: frontend/src/components/Leaderboard/GroupCard.tsx
-import BoltIcon from '@mui/icons-material/Bolt';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import GroupIcon from '@mui/icons-material/Group';
@@ -386,20 +384,6 @@ const GroupCard: React.FC<GroupCardProps> = ({
                       >
                         {typeof p.score === 'number' ? p.score.toFixed(1) : p.score}
                       </Typography>
-                      {p.streak > 0 && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.15 }}>
-                          <BoltIcon sx={{ fontSize: 12, color: theme.palette.warning.main }} />
-                          <Typography
-                            sx={{
-                              fontSize: '0.6rem',
-                              fontWeight: 700,
-                              color: theme.palette.warning.dark,
-                            }}
-                          >
-                            {p.streak}
-                          </Typography>
-                        </Box>
-                      )}
                       {p.accuracy !== undefined && (
                         <Typography
                           sx={{

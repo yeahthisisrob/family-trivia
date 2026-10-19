@@ -13,12 +13,14 @@ import TimelineBoard from './components/TimelineBoard';
 import TriviaTab from './components/TriviaCard';
 import { LeaderboardProvider } from './contexts/LeaderboardContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { useUserStatus } from './contexts/UserStatusContext';
 import { appearanceApi } from './entities/appearance';
 import { useFeatures } from './entities/settings';
 import { UpcomingDates } from './features/celebrations';
 import { DailyMemory } from './features/daily-memory';
 import { PlansCard } from './features/plans';
 import { ThreadCard } from './features/threads';
+import { WaitingCard } from './features/waiting';
 import { ROUTES, useApp } from './hooks/useApp';
 import { colors, tint, useAppearance } from './shared/design-system';
 import { createLogger } from './utils/logger';
@@ -89,6 +91,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
   // The family's default theme applies to everyone who hasn't picked their own.
   const { setFamilyTheme } = useAppearance();
   const features = useFeatures();
+  const { catchupStatus } = useUserStatus();
   React.useEffect(() => {
     if (!authValid) return;
     appearanceApi
@@ -145,6 +148,15 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
             if (letter)
               markSeasonLetterSeen(letter.seasonNumber, letter.kind).catch(() => undefined);
           }}
+        />
+      )}
+
+      {/* What's waiting, oldest first; nothing expires in an open season (0016) */}
+      {isSeasonActive && (
+        <WaitingCard
+          trivia={catchupStatus?.questionsBehind ?? 0}
+          questions={catchupStatus?.factsWaiting ?? 0}
+          onPlay={() => navigateTo(ROUTES.PLAY)}
         />
       )}
 

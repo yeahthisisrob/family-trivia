@@ -332,7 +332,7 @@ paths:
             type: string
       responses:
         "200":
-          description: Catch-up status
+          description: What's waiting for them in the open season (docs/decisions/0016)
           content:
             application/json:
               schema:
@@ -340,10 +340,14 @@ paths:
                 properties:
                   questionsBehind:
                     type: integer
+                    description: Trivia waiting, one a day since their first play this season
                   userAnswerCount:
                     type: integer
-                  maxUserAnswerCount:
+                  maxQuestionsAvailable:
                     type: integer
+                  factsWaiting:
+                    type: integer
+                    description: Past daily questions this season they haven't answered
 
   # ──────────────────────────────────────────────
   # Question Generation Steps
@@ -4922,6 +4926,9 @@ components:
       properties:
         userId:
           type: string
+        stillToPlay:
+          type: integer
+          description: Trivia waiting for them this season
         score:
           type: number
         streak:

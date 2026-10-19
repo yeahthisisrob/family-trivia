@@ -1,3 +1,7 @@
+/** Whole days from `from` up to (not including) `to`, both YYYY-MM-DD. */
+const daysBetween = (from: string, to: string) =>
+  Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000);
+
 /**
  * Player State Service — SINGLE SOURCE OF TRUTH
  *
@@ -40,6 +44,8 @@ import {
   type PlayEligibility,
   type PlayMode,
 } from '@family-trivia/shared';
+import { S3_PATHS } from '../constants';
+import { getFactHistory } from './factHistoryService';
 import { logger } from './logger';
 import { type QuestionSlot, toQuestionSlots } from './questionSlotService';
 import { getJson, listObjects } from './s3';
@@ -149,6 +155,12 @@ async function loadAllState(): Promise<{
   let maxSeasonSlots = 0;
   let leaderId: string | null = null;
 
+  const inSeasonDay = (timestamp: string) => {
+    if (!seasonStart) return true;
+    const d = timestamp.split('T')[0] ?? '';
+    return d >= seasonStart && (!seasonEnd || d <= seasonEnd);
+  };
+
   // First pass: compute slots, score, streak per player
   for (const { userId, history } of entries) {
     const slots = toQuestionSlots(history);
@@ -222,11 +234,18 @@ async function loadAllState(): Promise<{
     });
   }
 
-  // Second pass: compute catch-up gaps (needs maxSeasonSlots from first pass).
-  // User's "filled count" = priorDaySlots + catchup answers filed today.
+  // Second pass: what's waiting for each person (docs/decisions/0016). From
+  // their first play this season, every day before today owes one question,
+  // whatever anyone else did; nothing expires while the season is open. A
+  // late start owes nothing for the days before it.
   for (const state of states.values()) {
+    const first = state.slots
+      .filter((sl) => inSeasonDay(sl.timestamp))
+      .map((sl) => getEasternDateString(new Date(sl.timestamp)))
+      .sort()[0];
+    const owed = first && first < todayET ? daysBetween(first, todayET) : 0;
     const filled = state.priorDaySlots + state.catchupSlotsToday;
-    state.catchupGaps = Math.max(0, maxSeasonSlots - filled);
+    state.catchupGaps = Math.max(0, owed - filled);
   }
 
   const summary: SeasonSummary = {
@@ -342,12 +361,37 @@ export async function calculateCatchupStatus(userId: string): Promise<CatchupSta
   const userAnswerCount = playerState
     ? playerState.priorDaySlots + playerState.catchupSlotsToday
     : 0;
-  const maxQuestionsAvailable = summary.maxSeasonSlots;
-  const questionsBehind = Math.max(0, maxQuestionsAvailable - userAnswerCount);
+  // Nothing waits in a closed season, or one without trivia.
+  const open = !!summary.activeSeason && !summary.isEndOfSeason;
+  const questionsBehind = open ? (playerState?.catchupGaps ?? 0) : 0;
+  const factsWaiting = open ? await waitingFacts(userId, summary.activeSeason?.startDate) : 0;
+  return {
+    questionsBehind,
+    userAnswerCount,
+    maxQuestionsAvailable: userAnswerCount + questionsBehind,
+    factsWaiting,
+  };
+}
 
-  logger.info(
-    `Catchup: ${userId} has ${userAnswerCount}/${maxQuestionsAvailable}, behind ${questionsBehind}`,
+/**
+ * Past daily questions this season someone hasn't answered, from their first
+ * answer this season on (a late start owes nothing). Today's is just today's.
+ */
+async function waitingFacts(userId: string, seasonStart?: string): Promise<number> {
+  const today = getEasternDateString(new Date());
+  const [keys, history] = await Promise.all([
+    listObjects(S3_PATHS.SHARED_QUESTIONS_DIR),
+    getFactHistory(userId),
+  ]);
+  const answered = new Set(
+    history
+      .filter((e) => e.questionType !== 'basic' && (e.answered || e.skipped))
+      .map((e) => e.date),
   );
-
-  return { questionsBehind, userAnswerCount, maxQuestionsAvailable };
+  const mine = [...answered].filter((d) => !seasonStart || d >= seasonStart).sort();
+  const from = mine[0];
+  if (!from) return 0;
+  return keys
+    .map((k) => k.match(/(\d{4}-\d{2}-\d{2})\.json$/)?.[1])
+    .filter((d): d is string => !!d && d >= from && d < today && !answered.has(d)).length;
 }

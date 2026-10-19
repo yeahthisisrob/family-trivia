@@ -2561,6 +2561,8 @@ export interface components {
         };
         LeaderboardEntry: {
             userId: string;
+            /** @description Trivia waiting for them this season */
+            stillToPlay?: number;
             score: number;
             streak: number;
             lastAnswer?: components["schemas"]["HistoryEntry"];
@@ -3331,16 +3333,19 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Catch-up status */
+            /** @description What's waiting for them in the open season (docs/decisions/0016) */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description Trivia waiting, one a day since their first play this season */
                         questionsBehind?: number;
                         userAnswerCount?: number;
-                        maxUserAnswerCount?: number;
+                        maxQuestionsAvailable?: number;
+                        /** @description Past daily questions this season they haven't answered */
+                        factsWaiting?: number;
                     };
                 };
             };

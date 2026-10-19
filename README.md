@@ -186,6 +186,10 @@ The people with the most to say about someone you've lost often aren't in the ap
 
 ![A memory link: no account, just a name and a memory](docs/screenshots/remember-link.png)
 
+## Play as time allows
+
+Nothing in an open season expires. Come back after two weeks and Home says what's waiting for you, oldest first, to play a few at a time or all at once. Answers count the same whenever they're given, the leaderboard shows what each person still has to play so a late start never looks like losing, and there are no streaks to break.
+
 ## What's on
 
 Getting everyone in one place starts with knowing who's around. On Home, drop in what you're doing the way you'd text it: "beach weekend the 14th to the 16th", "busy Tuesday nights", "free Saturday, anyone up for a hike?". It lands on the right days, and the next two weeks show for the whole circle at a glance, with the best days to get together picked out. Tap a day to see who's free and what's planned, and say you're in. Busy times only ever show as busy. No calendar to connect.

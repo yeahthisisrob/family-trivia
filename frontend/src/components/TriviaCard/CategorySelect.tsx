@@ -253,15 +253,15 @@ const CategorySelect: React.FC<CategorySelectProps> = (props) => {
             gap: 0.75,
             px: 2,
             py: 0.75,
-            bgcolor: alpha(theme.palette.warning.main, 0.08),
-            borderBottom: `1px solid ${alpha(theme.palette.warning.main, 0.12)}`,
+            bgcolor: alpha(theme.palette.primary.main, 0.08),
+            borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
           }}
         >
-          <DirectionsRunIcon sx={{ fontSize: 16, color: theme.palette.warning.dark }} />
+          <DirectionsRunIcon sx={{ fontSize: 16, color: theme.palette.primary.main }} />
           <Typography
-            sx={{ fontSize: '0.75rem', fontWeight: 600, color: theme.palette.warning.dark }}
+            sx={{ fontSize: '0.75rem', fontWeight: 600, color: theme.palette.primary.main }}
           >
-            Catching up — {catchupBehind} question{catchupBehind !== 1 ? 's' : ''} remaining
+            {catchupBehind} waiting for you, oldest first. Nothing expires this season.
           </Typography>
         </Box>
       )}

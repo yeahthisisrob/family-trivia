@@ -276,7 +276,7 @@ const FactStatusBar: React.FC<FactStatusBarProps> = ({ userId }) => {
         {[
           { color: ANSWERED, label: 'Answered' },
           { color: alpha(theme.palette.text.disabled, 0.25), label: 'Skipped' },
-          { color: gapColor, label: 'Catch-up' },
+          { color: gapColor, label: 'Waiting' },
         ].map((item) => (
           <Box key={item.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
             <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: item.color }} />

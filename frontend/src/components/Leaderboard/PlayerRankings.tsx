@@ -113,7 +113,6 @@ const PlayerRankings: React.FC<PlayerRankingsProps> = ({
                   rank={rank}
                   isCurrentUser={player.userId === currentUserId}
                   onViewProfile={handleViewProfile}
-                  maxQuestionsAsked={maxQuestionsAsked}
                 />
               </Box>
             </motion.div>

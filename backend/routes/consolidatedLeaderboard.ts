@@ -11,7 +11,7 @@ import { S3_PATHS } from '../constants';
 import { getHighScores } from '../services/arcadeService';
 import { getRecentRounds } from '../services/familyFeudService';
 import { logger } from '../services/logger';
-import { getAllPlayerState } from '../services/playerStateService';
+import { getAllPlayerState, getSeasonSummary } from '../services/playerStateService';
 import { toQuestionSlots } from '../services/questionSlotService';
 import { getJson, putJson } from '../services/s3';
 import { computePoints, type HistoryEntry, type LeaderboardEntry } from '../services/scoring';
@@ -249,6 +249,12 @@ async function computeLeaderboard(
       facts: [],
     };
   }
+
+  // What's still to play, so a late start never looks like losing (0016).
+  const [states, season] = await Promise.all([getAllPlayerState(), getSeasonSummary()]);
+  const open = !!season.activeSeason && !season.isEndOfSeason;
+  for (const [id, r] of Object.entries(result))
+    r.leaderboardEntry.stillToPlay = open ? (states.get(id)?.catchupGaps ?? 0) : 0;
 
   return result;
 }

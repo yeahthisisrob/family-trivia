@@ -121,7 +121,7 @@ const DailyFactCard: React.FC<DailyFactCardProps> = ({
   const headerTitle = isFirstPersonStep
     ? "You're Today's Creator!"
     : state.isCatchup
-      ? 'Catch Up'
+      ? 'Waiting for you'
       : "Today's Question";
 
   const headerIcon = isFirstPersonStep ? (
@@ -132,7 +132,7 @@ const DailyFactCard: React.FC<DailyFactCardProps> = ({
 
   const chipLabel = state.isCatchup
     ? `${state.totalCatchup - state.catchupRemaining} of ${state.totalCatchup}`
-    : `${state.totalCatchup} to catch up`;
+    : `${state.totalCatchup} waiting`;
 
   const header = (
     <Box

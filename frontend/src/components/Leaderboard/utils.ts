@@ -42,6 +42,8 @@ export interface LeaderboardEntry {
   userId: string;
   score: number; // total weighted points
   streak: number;
+  /** Trivia waiting for them this season (docs/decisions/0016). */
+  stillToPlay?: number;
   lastAnswer?: QuestionHistory;
   categoryScores?: Record<string, number>;
   difficultyStats?: {

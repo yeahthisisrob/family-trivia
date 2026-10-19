@@ -1,5 +1,3 @@
-// File: frontend/src/components/Leaderboard/PlayerCard.tsx
-import BoltIcon from '@mui/icons-material/Bolt';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CasinoIcon from '@mui/icons-material/Casino';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -11,7 +9,6 @@ import {
   Chip,
   Collapse,
   IconButton,
-  LinearProgress,
   type Theme,
   Typography,
   useMediaQuery,
@@ -123,16 +120,9 @@ interface PlayerCardProps {
   rank: number;
   isCurrentUser: boolean;
   onViewProfile?: (userId: string) => void;
-  maxQuestionsAsked?: number;
 }
 
-const PlayerCard: React.FC<PlayerCardProps> = ({
-  player,
-  rank,
-  isCurrentUser,
-  onViewProfile,
-  maxQuestionsAsked,
-}) => {
+const PlayerCard: React.FC<PlayerCardProps> = ({ player, rank, isCurrentUser, onViewProfile }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [expanded, setExpanded] = useState(false);
@@ -152,11 +142,6 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
         : rank === 3
           ? dsColors.medal.bronze
           : undefined;
-
-  const questionsProgress =
-    player.questionsAnswered != null && maxQuestionsAsked != null && maxQuestionsAsked > 0
-      ? (player.questionsAnswered / maxQuestionsAsked) * 100
-      : null;
 
   const lastAnswer = player.lastAnswer;
   const lastAnswerExt = lastAnswer as ExtendedQuestionHistory | undefined;
@@ -234,16 +219,6 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
             >
               {player.userId}
             </Typography>
-            {player.streak > 0 && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.2, flexShrink: 0 }}>
-                <BoltIcon sx={{ fontSize: 14, color: theme.palette.warning.main }} />
-                <Typography
-                  sx={{ fontWeight: 700, fontSize: '0.7rem', color: theme.palette.warning.dark }}
-                >
-                  {player.streak}
-                </Typography>
-              </Box>
-            )}
           </Box>
 
           {/* Score + accuracy + category */}
@@ -337,37 +312,13 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
             </Box>
           )}
 
-          {/* Progress bar */}
-          {questionsProgress !== null && (
-            <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <LinearProgress
-                variant="determinate"
-                value={Math.min(questionsProgress, 100)}
-                sx={{
-                  flex: 1,
-                  height: 3,
-                  borderRadius: 2,
-                  bgcolor: alpha(theme.palette.divider, 0.08),
-                  '& .MuiLinearProgress-bar': {
-                    borderRadius: 2,
-                    bgcolor:
-                      questionsProgress >= 100
-                        ? theme.palette.success.main
-                        : theme.palette.primary.light,
-                  },
-                }}
-              />
-              <Typography
-                sx={{
-                  fontSize: '0.55rem',
-                  color: theme.palette.text.disabled,
-                  fontWeight: 600,
-                  flexShrink: 0,
-                }}
-              >
-                {player.questionsAnswered}/{maxQuestionsAsked}
-              </Typography>
-            </Box>
+          {/* What's still to play: a late start never looks like losing (0016) */}
+          {!!player.stillToPlay && (
+            <Typography
+              sx={{ mt: 0.5, fontSize: '0.7rem', color: 'text.secondary', fontWeight: 600 }}
+            >
+              {player.stillToPlay} still to play
+            </Typography>
           )}
         </Box>
 

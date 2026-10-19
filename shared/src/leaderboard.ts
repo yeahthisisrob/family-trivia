@@ -18,6 +18,8 @@ export interface LeaderboardEntry {
   userId: string;
   score: number;
   streak: number;
+  /** Trivia waiting for them this season (docs/decisions/0016), shown next to their name. */
+  stillToPlay?: number;
   lastAnswer?: HistoryEntry;
   categoryScores?: Record<string, number>;
   difficultyStats?: {

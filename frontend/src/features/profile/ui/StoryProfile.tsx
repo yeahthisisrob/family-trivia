@@ -294,9 +294,6 @@ export const StoryProfile: React.FC<{
           {story && (
             <Stack direction="row" sx={{ gap: { xs: 2.5, sm: 4 }, flexWrap: 'wrap', pt: 0.5 }}>
               <Stat value={story.words.length} label="answers shared" />
-              {!!known?.stats.bestStreak && known.stats.bestStreak > 1 && (
-                <Stat value={`${known.stats.bestStreak} days`} label="longest run" />
-              )}
               {!!trivia?.totalScore && (
                 <Stat
                   value={trivia.totalScore}
@@ -408,7 +405,6 @@ export const StoryProfile: React.FC<{
                   onClick={() => setScoresOpen(true)}
                 />
               )}
-              {!!trivia?.streak && <Stat value={trivia.streak} label="right in a row" />}
               {!!trivia?.categoryBonusStats?.timesBonusEarned && (
                 <Stat value={trivia.categoryBonusStats.totalBonusPoints} label="bonus points" />
               )}
