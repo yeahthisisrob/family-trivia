@@ -28,6 +28,20 @@ export interface Words {
   nameExamples: string;
   /** The download of everything the circle has made. */
   archive: string;
+  /** The circle as a bare noun, for "our ...", "this ...'s", "... reunions". */
+  noun: string;
+  /** The circle as a one word label: a tag over a name, a heading. */
+  title: string;
+  /** "the family's": what belongs to the circle. */
+  whose: string;
+  /** The people and the ties between them, as a view's name. */
+  ties: string;
+  /** The page that lays out every group and who is in it. */
+  tree: string;
+  /** What that page shows, in a line. */
+  treeHint: string;
+  /** A group, said short, for a count ("2 homes"); plural adds an s. */
+  unit: string;
 }
 
 const WORDS: Record<CircleKind, Words> = {
@@ -44,6 +58,13 @@ const WORDS: Record<CircleKind, Words> = {
     someone: 'family',
     nameExamples: 'Grandma Jo, Uncle Sam, Alice',
     archive: 'the family archive',
+    noun: 'family',
+    title: 'Family',
+    whose: "the family's",
+    ties: 'Family ties',
+    tree: 'The family tree',
+    treeHint: 'Every side, every home',
+    unit: 'home',
   },
   friends: {
     circle: 'the crew',
@@ -58,6 +79,13 @@ const WORDS: Record<CircleKind, Words> = {
     someone: 'friend',
     nameExamples: 'Big Mike, Al, Coach',
     archive: "the crew's archive",
+    noun: 'crew',
+    title: 'Friends',
+    whose: "the crew's",
+    ties: 'Friendships',
+    tree: "Who's who",
+    treeHint: 'Every crew, everyone in it',
+    unit: 'crew',
   },
   mixed: {
     circle: 'the circle',
@@ -72,10 +100,20 @@ const WORDS: Record<CircleKind, Words> = {
     someone: 'in the circle',
     nameExamples: 'Grandma Jo, Big Mike, Alice',
     archive: "the circle's archive",
+    noun: 'group',
+    title: 'Us',
+    whose: "the circle's",
+    ties: 'Connections',
+    tree: "Who's who",
+    treeHint: 'Every group, everyone in it',
+    unit: 'group',
   },
 };
 
 export const wordsFor = (kind: CircleKind = 'family'): Words => WORDS[kind];
+
+/** A word at the start of a line: "the family's" → "The family's". */
+export const capitalized = (word: string): string => word.charAt(0).toUpperCase() + word.slice(1);
 
 /** A relation from relationOf, worded for the circle. */
 export const relationWord = (relation: string, kind: CircleKind = 'family'): string =>

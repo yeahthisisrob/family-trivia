@@ -187,7 +187,7 @@ export const FamilyGraph: React.FC<FamilyGraphProps> = ({
         >
           <Chip
             size="small"
-            label="Family ties"
+            label={words.ties}
             onClick={() => toggle('ties')}
             sx={chipSx(opts.ties)}
           />
@@ -437,7 +437,7 @@ export const FamilyGraph: React.FC<FamilyGraphProps> = ({
           >
             {focused.person.remembered
               ? `In memory${focused.person.died ? ` · ${focused.person.died.slice(0, 4)}` : ''}`
-              : 'Family'}
+              : words.title}
           </Typography>
           <Typography
             onClick={() => onOpenProfile?.(focused.id)}

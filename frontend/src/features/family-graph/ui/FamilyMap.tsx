@@ -67,7 +67,7 @@ export const FamilyMap: React.FC<{
   knowledge?: FamilyKnowledge | null;
 }> = ({ data, meId, height = 600, onOpenProfile, knowledge: given }) => {
   const theme = useTheme();
-  const { kind } = useCircleWords();
+  const { kind, words } = useCircleWords();
   const night = theme.palette.night;
   const fg = useRef<ForceGraphMethods | undefined>(undefined);
   const box = useRef<HTMLDivElement>(null);
@@ -243,7 +243,7 @@ export const FamilyMap: React.FC<{
             }}
           >
             <Typography sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
-              Our map fills in as the family’s answers are read
+              Our map fills in as {words.whose.replace("'", '’')} answers are read
             </Typography>
             <Typography sx={{ color: night.textDim, maxWidth: 380 }}>
               The places, food and things we talk about show up here, with each of us drawn toward

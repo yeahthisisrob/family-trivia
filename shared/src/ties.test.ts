@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { type Family, familyProblems, mentionableRelations, relationOf } from './people';
 import { metLine, newTie, tieChoicesFor, tieEnds } from './ties';
-import { relationWord, wordsFor, yourRelation } from './vocabulary';
+import { capitalized, relationWord, wordsFor, yourRelation } from './vocabulary';
 
 /** A friends circle and a family circle on the same model. */
 const crew: Family = {
@@ -85,5 +85,15 @@ describe('the tie registry', () => {
     expect(yourRelation('friend', 'friends')).toBe('Your friend');
     expect(yourRelation('family', 'friends')).toBe('In your crew');
     expect(yourRelation(null, 'family')).toBe('In your family');
+  });
+
+  test('the Us tab reads as it always has for a family, and fits the others', () => {
+    expect(wordsFor().ties).toBe('Family ties');
+    expect(wordsFor().tree).toBe('The family tree');
+    expect(capitalized(wordsFor().whose)).toBe("The family's");
+    expect(wordsFor('friends').ties).toBe('Friendships');
+    expect(`Our ${wordsFor('friends').noun}`).toBe('Our crew');
+    expect(wordsFor('mixed').title).toBe('Us');
+    expect(wordsFor('mixed').unit).toBe('group');
   });
 });
