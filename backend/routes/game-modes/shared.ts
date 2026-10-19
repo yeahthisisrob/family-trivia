@@ -1,6 +1,7 @@
 // File: lambda/routes/game-modes/shared.ts
 // Shared utilities and types for game modes (Casino Rush and Slot Machine)
 
+import { DEFAULT_CATEGORIES } from '@family-trivia/shared';
 import { S3_PATHS } from '../../constants';
 import { logger } from '../../services/logger';
 import { getJson } from '../../services/s3';
@@ -63,16 +64,7 @@ export async function getAvailableCategories(userId: string): Promise<string[]> 
     // If no categories found, use default categories as fallback
     if (allCategories.length === 0) {
       logger.warn('No categories found in S3, using default categories', { userId });
-      const defaultCategories = [
-        'History & Politics',
-        'Science & Nature',
-        'Geography & Travel',
-        'Pop Culture',
-        'Sports & Games',
-        'Literature & Arts',
-        'Fun Facts & Oddities',
-      ];
-      return defaultCategories;
+      return DEFAULT_CATEGORIES.map((c) => c.name);
     }
 
     logger.info('Available categories for user', {

@@ -10,7 +10,13 @@
  * someone removed from a circle loses it at once.
  */
 import { createHash } from 'node:crypto';
-import type { Circle, CircleKind, CircleRegistry, MyCircle } from '@family-trivia/shared';
+import type {
+  Circle,
+  CircleKind,
+  CircleRegistry,
+  MyCircle,
+  SeasonsConfig,
+} from '@family-trivia/shared';
 import { S3_PATHS } from '../constants';
 import { addMember, idFor, nextColor } from './family/members';
 import { logger } from './logger';
@@ -225,6 +231,28 @@ const CIRCLE_ID = /^[a-z0-9-]{1,40}$/;
  * circle its people (just them, through the one way people are added) and
  * its sign-in map.
  */
+/**
+ * A new circle is playable the moment it exists: Season 1 is on, open-ended.
+ * Questions about the circle itself come once there's something to ask about,
+ * so a friends circle starts on general trivia.
+ */
+function firstSeason(kind: CircleKind): SeasonsConfig {
+  return {
+    currentSeasonNumber: 1,
+    seasons: [
+      {
+        seasonNumber: 1,
+        name: 'Season 1',
+        status: 'active',
+        startDate: new Date().toISOString().slice(0, 10),
+        endDate: null,
+        message: null,
+        trivia: kind === 'family' ? 'mixed' : 'general',
+      },
+    ],
+  };
+}
+
 export async function createCircle(
   input: { name: string; kind: CircleKind; themeId?: string },
   maker: { email: string; name: string },
@@ -252,6 +280,7 @@ export async function createCircle(
     if (!added.ok) throw new Error(added.error);
     await putJson(SIGN_IN_MAP_KEY, { [maker.email]: userId });
     if (input.themeId) await putJson(S3_PATHS.APPEARANCE, { themeId: input.themeId });
+    await putJson(S3_PATHS.SEASONS_CONFIG, firstSeason(input.kind));
   });
   await rebuildMemberships(maker.email);
   logger.info('Circle created', { circleId: id, kind: input.kind });

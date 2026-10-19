@@ -100,17 +100,16 @@ function buildMembers(
 
   if (!hierarchy.family?.people) return members;
 
+  // A person needn't be in a group: friends circles often start with none.
   Object.entries(hierarchy.family.people).forEach(([userId, personData]) => {
-    if (personData.groupId) {
-      const color = userConfig ? api.getUserColor(userConfig, userId) : DEFAULT_COLOR;
-      members.push({
-        userId,
-        activated: false, // Updated later from activation data
-        name: personData.name || userId,
-        group: personData.groupId,
-        color,
-      });
-    }
+    const color = userConfig ? api.getUserColor(userConfig, userId) : DEFAULT_COLOR;
+    members.push({
+      userId,
+      activated: false, // Updated later from activation data
+      name: personData.name || userId,
+      group: personData.groupId ?? '',
+      color,
+    });
   });
 
   return members.sort((a, b) => a.userId.localeCompare(b.userId));

@@ -5,6 +5,7 @@ import { getCircles, postCircle } from '../features/circles/handlers';
 import type { Caller } from '../middleware/requireAuth';
 import { appInit, appInitDeferred } from '../routes/appInit';
 import { createCircle, findCircle, scopeOf } from '../services/circles';
+import { activatedIds } from '../services/family/joined';
 import { loadFamily, loadHierarchy } from '../services/family/roster';
 import {
   acceptInvite,
@@ -84,6 +85,15 @@ describe('starting a circle', () => {
     expect(init.statusCode).toBe(200);
     expect(deferred.statusCode).toBe(200);
     expect(JSON.stringify(JSON.parse(init.body))).toContain('Alice');
+
+    // What the app needs to finish loading and let people play.
+    const { data } = JSON.parse(init.body);
+    expect(data.hierarchy.hierarchy.version).toBeTruthy();
+    expect(Object.keys(data.hierarchy.hierarchy.family.people)).toEqual(['alice']);
+    expect(data.seasonStatus.isEndOfSeason).toBe(false);
+    expect(data.categories.length).toBeGreaterThan(3);
+    // Nobody has played yet, so nobody is hidden from the circle.
+    expect(await inCircle(scopeOf(crew), () => activatedIds())).toBeNull();
   });
 
   test('only the owner starts circles', async () => {

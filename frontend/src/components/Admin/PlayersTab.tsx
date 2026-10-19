@@ -246,7 +246,7 @@ const PlayersTab: React.FC = () => {
             variant="contained"
             onClick={() => void handleSave()}
             size="small"
-            disabled={!form.userId || !form.group}
+            disabled={!form.userId}
           >
             {editMode ? 'Save' : 'Add'}
           </Button>

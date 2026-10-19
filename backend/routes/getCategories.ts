@@ -1,8 +1,6 @@
 // File: lambda/routes/getCategories.ts
 // Purpose: Get available trivia categories, including system defaults and user's custom categories
 
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 import type { CategoryResponse, CustomCategory, SystemCategory } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
@@ -46,28 +44,6 @@ export async function getCategories(event: APIGatewayProxyEvent): Promise<APIGat
     return successResponse(response);
   } catch (err: any) {
     logger.error('Error fetching categories:', err);
-
-    // If system categories file doesn't exist yet, try to load default categories
-    if (err.$metadata?.httpStatusCode === 404 || err.name === 'NoSuchKey') {
-      try {
-        // Try to load default categories from file
-        const defaultCategoriesPath = path.join(__dirname, '../default-categories.json');
-        if (fs.existsSync(defaultCategoriesPath)) {
-          const defaultCategories = JSON.parse(fs.readFileSync(defaultCategoriesPath, 'utf-8'));
-          return successResponse({
-            systemCategories: defaultCategories,
-            customCategories: [],
-          });
-        }
-      } catch (loadError) {
-        logger.error('Error loading default categories:', loadError as Error);
-      }
-
-      return successResponse({
-        systemCategories: [],
-        customCategories: [],
-      });
-    }
 
     return errorResponse('Failed to fetch categories', 500, err.message);
   }

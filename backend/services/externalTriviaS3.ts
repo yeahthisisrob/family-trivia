@@ -1,5 +1,6 @@
 import { logger } from './logger';
 import { getJson } from './s3';
+import { physicalKey } from './scope';
 
 export interface ExternalTriviaQuestion {
   question: string;
@@ -29,8 +30,9 @@ class ExternalTriviaS3Service {
   private usedQuestionIds: Set<string> = new Set();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
+  /** Per circle: each circle has its own bank (docs/decisions/0015). */
   private getCacheKey(category: string, difficulty: string): string {
-    return `${category}/${difficulty}`;
+    return physicalKey(`trivia-bank/${category}/${difficulty}`);
   }
 
   private sanitizeCategoryForS3(category: string): string {
