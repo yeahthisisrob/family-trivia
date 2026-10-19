@@ -12,6 +12,7 @@ import {
   invalidateFactHistoryCache,
 } from '../services/factHistoryService';
 import { addMember } from '../services/family/members';
+import { loadHierarchy } from '../services/family/roster';
 import { logger } from '../services/logger';
 import { isImageType, isMediaKey, readUrl, uploadUrl } from '../services/media';
 import { deleteObject, getJson, listObjects, putJson } from '../services/s3';
@@ -97,8 +98,9 @@ export async function addPlayer(event: APIGatewayProxyEvent): Promise<APIGateway
   const body = JSON.parse(event.body || '{}');
   const { userId, group, color, passphrase, isAdmin: isAdminFlag } = body;
 
-  if (!userId || !group || !color) {
-    return errorResponse('userId, group, and color are required', 400);
+  // A group is optional: a friends circle often has none yet.
+  if (!userId || !color) {
+    return errorResponse('userId and color are required', 400);
   }
 
   // Display name from the id, as before: "uncle-buddy" → "Uncle Buddy"
@@ -109,7 +111,7 @@ export async function addPlayer(event: APIGatewayProxyEvent): Promise<APIGateway
   const added = await addMember({
     id: userId,
     name,
-    group,
+    group: group || undefined,
     color,
     passphrase,
     isAdmin: isAdminFlag,
@@ -239,7 +241,7 @@ export async function getGroups(event: APIGatewayProxyEvent): Promise<APIGateway
   const denied = await checkAdmin(event);
   if (denied) return denied;
 
-  const hierarchy = await getJson<HierarchyData>(S3_PATHS.FAMILY_HIERARCHY);
+  const hierarchy = await loadHierarchy<HierarchyData>();
   const descriptions = (await getJson<GroupDescriptions>(S3_PATHS.GROUP_DESCRIPTIONS)) || {};
 
   const groups = hierarchy?.family?.groups || {};

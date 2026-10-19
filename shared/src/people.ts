@@ -418,6 +418,7 @@ function describedRelation(f: Family, me: string, other: string): string | null 
 
 /** The version 1 `family/hierarchy.json`: one root couple, two sides, groups. */
 export interface LegacyHierarchy {
+  version?: string;
   family?: {
     name?: string;
     people?: Record<string, { id?: string; name?: string; groupId?: string }>;
@@ -557,7 +558,7 @@ export function toLegacyHierarchy(f: Family): LegacyHierarchy & {
     else if (t.type === 'kin' && t.relation === 'aunt-uncle')
       relationships.push({ type: 'aunt-of', aunt: t.a, 'nieces-nephews': [t.b] });
 
-  return { family: { name: f.name, people, groups, sides: {}, relationships } };
+  return { version: '2.0', family: { name: f.name, people, groups, sides: {}, relationships } };
 }
 
 // ── Checking a family before it's saved ──────────────────────────────────

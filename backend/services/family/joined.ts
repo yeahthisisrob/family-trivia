@@ -15,7 +15,8 @@ import { loadFamily } from './roster';
  */
 export async function activatedIds(): Promise<Set<string> | null> {
   const stored = await getJson<Record<string, boolean>>(S3_PATHS.MEMBER_ACTIVATION);
-  if (!stored) return null;
+  // An empty record is a circle nobody has played in yet: nobody is hidden.
+  if (!stored || !Object.values(stored).some(Boolean)) return null;
   return new Set(
     Object.entries(stored)
       .filter(([, on]) => on)
