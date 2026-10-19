@@ -29,6 +29,7 @@ import {
   skipDailyFact,
   submitDailyFact,
 } from '../../api/modules/facts';
+import { knowledgeApi } from '../../entities/family';
 import { createLogger } from '../../utils/logger';
 
 const logger = createLogger('useDailyFactFlow');
@@ -273,6 +274,7 @@ export function useDailyFactFlow({
           factResponse: result.fact || 'Thanks for sharing!',
         }));
         onFactSubmitted?.();
+        knowledgeApi.refreshMine();
         return true;
       } catch (err) {
         logger.error('Failed to submit fact', { err });

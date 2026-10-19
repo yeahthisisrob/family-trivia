@@ -23,6 +23,7 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
+import { knowledgeApi } from '../../../entities/family';
 import { ApiError } from '../../../services/ApiService';
 import { fillInApi } from '../api/fillInApi';
 
@@ -90,6 +91,7 @@ const Card: React.FC<{
     setProblem(null);
     try {
       await fillInApi.save(item.key, text);
+      knowledgeApi.refreshMine();
       onSaved();
     } catch (e) {
       setProblem(e instanceof ApiError ? e.message : 'That didn’t save. Try again.');

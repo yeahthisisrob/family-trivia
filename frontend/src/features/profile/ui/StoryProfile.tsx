@@ -46,6 +46,7 @@ import { AvatarPicker } from '../../avatar-picker';
 import { FillIn } from '../../fill-in';
 import { PersonBookButton } from '../../person-book';
 import { RememberingPage } from '../../remembering';
+import { Loves } from './Loves';
 
 const LATELY = 5;
 const emptyStory = (personId: string): PersonStory => ({
@@ -57,6 +58,7 @@ const emptyStory = (personId: string): PersonStory => ({
   span: { first: null, last: null },
   mentions: [],
   replies: [],
+  loves: [],
 });
 const FIRST_MONTHS = 2;
 
@@ -79,16 +81,22 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
   </Box>
 );
 
-const Said: React.FC<{ w: StoryWord; color: string; note?: string | null }> = ({
+const Said: React.FC<{ w: StoryWord; color: string; note?: string | null; fact?: boolean }> = ({
   w,
   color,
   note,
+  fact,
 }) => (
   <Box sx={{ borderLeft: 3, borderColor: color, pl: 1.5 }}>
     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
       {w.question}
     </Typography>
     <Typography sx={{ fontWeight: 600, fontSize: '1.05rem' }}>“{w.answer}”</Typography>
+    {fact && w.fact && (
+      <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic', mt: 0.25 }}>
+        Did you know? {w.fact}
+      </Typography>
+    )}
     {note && (
       <Typography variant="caption" sx={{ color: 'text.secondary' }}>
         {note}
@@ -306,12 +314,18 @@ export const StoryProfile: React.FC<{
 
       {!story && <Skeleton variant="rounded" height={160} />}
 
+      {story && story.loves.length > 0 && (
+        <Section title={isMe ? 'What you love' : `What ${name} loves`}>
+          <Loves loves={story.loves} color={color} />
+        </Section>
+      )}
+
       {story && story.last.length > 0 && (
         <Section title={isMe ? 'What you’ve said lately' : `What ${name} has said lately`}>
           <Stack spacing={2}>
             {story.last.slice(0, LATELY).map((id) => {
               const w = byId.get(id);
-              return w ? <Said key={id} w={w} color={color} note={day(w.date)} /> : null;
+              return w ? <Said key={id} w={w} color={color} note={day(w.date)} fact /> : null;
             })}
           </Stack>
         </Section>
@@ -377,16 +391,6 @@ export const StoryProfile: React.FC<{
                   <b>{name}:</b> {likeness.a === meId ? e.b : e.a}
                 </Typography>
               </Box>
-            ))}
-          </Stack>
-        </Section>
-      )}
-
-      {known && known.top.length > 0 && (
-        <Section title={isMe ? 'You often talk about' : `${name} often talks about`}>
-          <Stack direction="row" sx={{ gap: 0.75, flexWrap: 'wrap' }}>
-            {known.top.map((t) => (
-              <Chip key={`${t.kind}:${t.name}`} label={t.name} variant="outlined" />
             ))}
           </Stack>
         </Section>

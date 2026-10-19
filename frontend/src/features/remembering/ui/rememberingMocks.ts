@@ -51,6 +51,7 @@ export const GRACE: PersonStory = {
       date: '2023-12-01',
     },
   ],
+  loves: [],
   replies: [
     {
       on: 'grace_2024-01-14T13:00:00.000Z',

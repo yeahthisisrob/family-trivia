@@ -42,6 +42,30 @@ export const JO: PersonStory = {
     },
   ],
   replies: [],
+  loves: [
+    {
+      kind: 'place',
+      name: 'the beach',
+      count: 4,
+      says: ['Beach with cousins'],
+      note: 'Sand is mostly tiny bits of rock and shell, worn down over thousands of years.',
+    },
+    {
+      kind: 'food',
+      name: 'tacos',
+      count: 2,
+      says: ['Tacos, every time'],
+      note: 'Corn tortillas have been made in Mexico for thousands of years.',
+    },
+    {
+      kind: 'media',
+      name: 'the beatles',
+      count: 2,
+      says: ['Abbey Road on repeat'],
+      tag: 'band',
+      note: 'The Beatles recorded most of their albums at Abbey Road Studios in London.',
+    },
+  ],
 };
 
 export const profileHandlers = (story: PersonStory = JO) => [

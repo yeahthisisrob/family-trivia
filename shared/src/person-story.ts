@@ -1,3 +1,5 @@
+import type { Love } from './knowledge';
+
 /**
  * Someone's story in their own words: everything they told the family, the
  * latest first, what the family loved most, and their trivia. Their profile
@@ -11,6 +13,8 @@ export interface StoryWord {
   answer: string;
   /** YYYY-MM-DD */
   date: string;
+  /** The "did you know" that came back when they answered. */
+  fact?: string;
 }
 
 export interface PersonStory {
@@ -28,6 +32,8 @@ export interface PersonStory {
   mentions: StoryMention[];
   /** What the family wrote under their answers. */
   replies: StoryReply[];
+  /** What they love most, from the knowledge index. */
+  loves: Love[];
 }
 
 /** Another person's answer that talks about them. */

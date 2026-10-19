@@ -148,6 +148,14 @@ export const AI_TASKS = [
     usage: { callsPerPersonPerDay: 0.02, inputTokens: 2500, outputTokens: 300 },
   },
   {
+    id: 'notes',
+    label: 'Notes on what you love',
+    description:
+      'A short “did you know” about the bands, places and things each person loves most, written once and kept.',
+    role: 'writer',
+    usage: { callsPerPersonPerDay: 0.02, inputTokens: 600, outputTokens: 400 },
+  },
+  {
     id: 'book',
     label: 'Season books',
     description:

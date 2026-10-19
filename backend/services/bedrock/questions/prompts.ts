@@ -37,8 +37,16 @@ export function buildPersonalQuestionPrompt(facts: string[]): string {
 /**
  * Builds a prompt for generating a fun fact based on user's question and answer
  */
-export function buildFunFactPrompt(question: string, answer: string): string {
-  return `The user answered: "${question}"\nTheir answer: "${answer}"\n\nGenerate a single short, interesting fact that relates to their answer. Keep it 1-2 sentences, friendly and conversational. Do NOT mention AI. Return ONLY the fact.`;
+/**
+ * The "did you know" after an answer. `loves` are things they've talked
+ * about before (their knowledge index), so the fact can tie the new answer
+ * to who they are.
+ */
+export function buildFunFactPrompt(question: string, answer: string, loves: string[] = []): string {
+  const before = loves.length
+    ? `\nThey've talked before about: ${loves.join(', ')}. If one connects naturally to this answer, you may tie the fact to it; never force it.`
+    : '';
+  return `Someone was asked: "${question}"\nTheir answer: "${answer}"${before}\n\nWrite one short, surprising, true "did you know" fact about something in their answer. 1-2 sentences, warm and conversational, talking to them ("you"). Only facts you're sure of; no made-up numbers or dates. Do NOT mention AI. Return ONLY the fact.`;
 }
 
 /**

@@ -44,14 +44,14 @@
       "file": "remembering.png",
       "story": "family-rememberingpage--remembering",
       "size": "desktop",
-      "source": "c30d71ad9cba",
+      "source": "7d3abcdc71e2",
       "storyFile": "frontend/src/features/remembering/ui/RememberingPage.stories.tsx"
     },
     {
       "file": "profile.png",
       "story": "profile-storyprofile--you",
       "size": "desktop",
-      "source": "b81b5788e579",
+      "source": "24e4642aea5b",
       "storyFile": "frontend/src/features/profile/ui/StoryProfile.stories.tsx"
     },
     {
@@ -86,7 +86,7 @@
       "file": "fill-in.png",
       "story": "profile-fillin--through-the-deck",
       "size": "phone",
-      "source": "24c91ec13bb5",
+      "source": "0d41eef83c58",
       "storyFile": "frontend/src/features/fill-in/ui/FillIn.stories.tsx"
     },
     {
