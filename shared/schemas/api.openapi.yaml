@@ -37,8 +37,6 @@ paths:
               schema:
                 type: object
                 properties:
-                  isFirstRun:
-                    type: boolean
                   userConfig:
                     type: object
                   hierarchy:
@@ -1918,6 +1916,55 @@ paths:
                   left: { type: integer }
         "429": { description: That's today's pictures }
         "502": { description: The picture didn't come out }
+
+  /setup:
+    get:
+      summary: Whether this deployment still needs its first circle (before sign-in)
+      operationId: getSetup
+      tags: [Circles]
+      responses:
+        "200":
+          description: The state
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [unstarted]
+                properties:
+                  unstarted: { type: boolean }
+
+  /auth/start:
+    post:
+      summary: The first sign-in on a brand-new deployment starts its first circle, as owner
+      operationId: startFirstCircle
+      tags: [Circles, Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [googleIdToken, name, circle]
+              properties:
+                googleIdToken: { type: string }
+                name: { type: string, description: What the circle calls them }
+                circle:
+                  type: object
+                  required: [name, kind]
+                  properties:
+                    name: { type: string }
+                    kind: { type: string, enum: [family, friends, mixed] }
+                    themeId: { type: string }
+      responses:
+        "200":
+          description: Signed in to the new circle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "401": { description: Bad Google token }
+        "403": { description: Not the configured owner }
+        "409": { description: Already started }
 
   /plans:
     get:

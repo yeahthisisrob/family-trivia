@@ -70,3 +70,20 @@ export async function linkGoogleAccount(
 ): Promise<AuthResponse> {
   return authGoogleRaw({ googleIdToken, passphrase });
 }
+
+/** Whether this deployment still needs its first circle (docs/decisions/0029). */
+export const setupState = () => publicRequest<{ unstarted: boolean }>('/setup');
+
+/** Start a brand-new deployment's first circle, signed in as its owner. */
+export async function startFirstCircle(
+  googleIdToken: string,
+  c: { name: string; kind: string; themeId: string; yourName: string },
+): Promise<AuthResponse> {
+  const auth = await publicRequest<AuthResponse>('/auth/start', {
+    googleIdToken,
+    name: c.yourName,
+    circle: { name: c.name, kind: c.kind, themeId: c.themeId },
+  });
+  rememberCircles(auth);
+  return auth;
+}

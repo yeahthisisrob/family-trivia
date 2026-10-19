@@ -178,15 +178,12 @@ export async function appInit(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         })()
       : null;
 
-    const isFirstRun = !userConfig?.users || Object.keys(userConfig.users).length === 0;
-
     logger.info('app-init (critical) done', {
       durationMs: Date.now() - start,
       userId: userId || 'none',
     });
 
     return successResponse({
-      isFirstRun,
       userConfig: userConfig ? toPublicUserConfig(userConfig) : null,
       hierarchy: hierarchy
         ? {

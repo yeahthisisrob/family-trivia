@@ -258,6 +258,28 @@ function firstSeason(): SeasonsConfig {
   };
 }
 
+/** Everything a circle starts with: its maker as admin, their sign-in, its look and Season 1. */
+async function seedCircle(
+  circle: Circle,
+  input: { themeId?: string },
+  maker: { email: string; name: string },
+) {
+  await inCircle(scopeOf(circle), async () => {
+    const userId = idFor(maker.name, () => false);
+    const added = await addMember({
+      id: userId,
+      name: maker.name,
+      color: nextColor({}),
+      isAdmin: true,
+    });
+    if (!added.ok) throw new Error(added.error);
+    await putJson(SIGN_IN_MAP_KEY, { [maker.email]: userId });
+    if (input.themeId) await putJson(S3_PATHS.APPEARANCE, { themeId: input.themeId });
+    await putJson(S3_PATHS.SEASONS_CONFIG, firstSeason());
+  });
+  await rebuildMemberships(maker.email);
+}
+
 export async function createCircle(
   input: { name: string; kind: CircleKind; themeId?: string },
   maker: { email: string; name: string },
@@ -273,21 +295,36 @@ export async function createCircle(
   };
   const registry: CircleRegistry = { version: 1, circles: [...circles, circle] };
   await putJson(REGISTRY_KEY, registry);
-
-  await inCircle(scopeOf(circle), async () => {
-    const userId = idFor(maker.name, () => false);
-    const added = await addMember({
-      id: userId,
-      name: maker.name,
-      color: nextColor({}),
-      isAdmin: true,
-    });
-    if (!added.ok) throw new Error(added.error);
-    await putJson(SIGN_IN_MAP_KEY, { [maker.email]: userId });
-    if (input.themeId) await putJson(S3_PATHS.APPEARANCE, { themeId: input.themeId });
-    await putJson(S3_PATHS.SEASONS_CONFIG, firstSeason());
-  });
-  await rebuildMemberships(maker.email);
+  await seedCircle(circle, input, maker);
   logger.info('Circle created', { circleId: id, kind: input.kind });
+  return circle;
+}
+
+/**
+ * A deployment nobody has started: no circles written and nobody in the
+ * first circle. The first sign-in then starts it (docs/decisions/0029).
+ */
+export async function isUnstarted(): Promise<boolean> {
+  if (await getJson<CircleRegistry>(REGISTRY_KEY)) return false;
+  const users = await inCircle(scopeOf(IMPLICIT_ROOT), () =>
+    getJson<{ users?: Record<string, unknown> }>(USERS_KEY),
+  );
+  return !users?.users || Object.keys(users.users).length === 0;
+}
+
+/** Start the deployment's first circle, with whoever signed in as its owner. */
+export async function startFirstCircle(
+  input: { name: string; kind: CircleKind; themeId?: string },
+  maker: { email: string; name: string },
+): Promise<Circle> {
+  const circle: Circle = {
+    ...IMPLICIT_ROOT,
+    name: input.name.trim(),
+    kind: input.kind,
+    createdAt: new Date().toISOString(),
+  };
+  await putJson(REGISTRY_KEY, { version: 1, circles: [circle] } satisfies CircleRegistry);
+  await seedCircle(circle, input, maker);
+  logger.info('First circle started', { kind: input.kind });
   return circle;
 }

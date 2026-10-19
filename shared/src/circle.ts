@@ -3,7 +3,8 @@
  * belong to several; each has its own people, seasons and content.
  */
 
-export type CircleKind = 'family' | 'friends' | 'mixed';
+export const CIRCLE_KINDS = ['family', 'friends', 'mixed'] as const;
+export type CircleKind = (typeof CIRCLE_KINDS)[number];
 
 export interface Circle {
   id: string;
