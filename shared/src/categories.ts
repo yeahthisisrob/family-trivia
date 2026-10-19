@@ -1,3 +1,5 @@
+import type { CircleKind } from './circle';
+
 /** System category definition */
 export interface SystemCategory {
   name: string;
@@ -72,17 +74,35 @@ export const FAMILY_CATEGORY: SystemCategory = {
   emoji: '🏡',
 };
 
-export const isFamilyCategory = (name: string | undefined) => name === FAMILY_CATEGORY.name;
+/** The category about the circle itself, named for its kind (docs/decisions/0028). */
+const CIRCLE_CATEGORY: Record<CircleKind, SystemCategory> = {
+  family: FAMILY_CATEGORY,
+  friends: {
+    name: 'Our Crew',
+    description: 'Questions about us, from our own answers',
+    emoji: '🙌',
+  },
+  mixed: { name: 'About Us', description: 'Questions about us, from our own answers', emoji: '💛' },
+};
+
+export const circleCategoryFor = (kind: CircleKind = 'family') => CIRCLE_CATEGORY[kind];
+
+/** Whether a category is the one about the circle itself, whatever its circle calls it. */
+export const isFamilyCategory = (name: string | undefined) =>
+  Object.values(CIRCLE_CATEGORY).some((c) => c.name === name);
+
+export const CIRCLE_CATEGORY_NAMES = Object.values(CIRCLE_CATEGORY).map((c) => c.name);
 
 /** The categories a season offers. */
 export function categoriesFor(
   stored: SystemCategory[],
   trivia: 'general' | 'family' | 'mixed' | 'off',
+  kind: CircleKind = 'family',
 ): SystemCategory[] {
   const system = stored.length ? stored : DEFAULT_CATEGORIES;
+  const ours = circleCategoryFor(kind);
   if (trivia === 'off') return [];
-  if (trivia === 'family') return [FAMILY_CATEGORY];
-  if (trivia === 'mixed')
-    return [FAMILY_CATEGORY, ...system.filter((c) => !isFamilyCategory(c.name))];
+  if (trivia === 'family') return [ours];
+  if (trivia === 'mixed') return [ours, ...system.filter((c) => !isFamilyCategory(c.name))];
   return system;
 }

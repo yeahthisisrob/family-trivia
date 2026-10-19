@@ -12,6 +12,7 @@
  */
 import {
   type AiFrame,
+  circleCategoryFor,
   FAMILY_CATEGORY,
   type FactAnswerEntry,
   type Family,
@@ -248,9 +249,12 @@ export async function familyQuestion(
     getAllFactHistories(),
     circleFrame(),
   ]);
+  // Named for the circle: "Our Family", "Our Crew" (docs/decisions/0028).
+  const ours = circleCategoryFor(frame.kind).name;
+  const named = (q: Question): Question => ({ ...q, category: ours });
   const connection = connectionQuestion(family, playerId, difficulty);
   if (connection && Math.random() < 0.25 && !isDuplicateQuestion(connection, history))
-    return { question: connection, calls: 0 };
+    return { question: named(connection), calls: 0 };
 
   const sources = sourcesFor(family, playerId, histories);
   if (sources.length >= 4) {
@@ -263,9 +267,9 @@ export async function familyQuestion(
       ),
     );
     const q = tries.find(Boolean);
-    if (q) return { question: q, calls: 2 };
+    if (q) return { question: named(q), calls: 2 };
   }
   return connection && !isDuplicateQuestion(connection, history)
-    ? { question: connection, calls: 0 }
+    ? { question: named(connection), calls: 0 }
     : null;
 }

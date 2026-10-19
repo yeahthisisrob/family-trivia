@@ -1,11 +1,12 @@
 // File: lambda/routes/dailyFact.ts
 
-import { type FactAnswerEntry, getEasternDateString } from '@family-trivia/shared';
+import { type FactAnswerEntry, getEasternDateString, startersFor } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
 import { generateFunFact } from '../services/bedrock';
 import { circleFrame } from '../services/bedrock/core/frame';
+import { currentCircleKind } from '../services/circles';
 import {
   factCategoriesFor,
   generateDailyFactQuestion,
@@ -48,9 +49,9 @@ async function initializeBasicQuestions(): Promise<void> {
       }
     }
 
-    // If we reach here, no questions were found or there was an issue
-    logWithTime(`No basic questions found in S3, using empty array`);
-    BASIC_QUESTIONS = [];
+    // No list of its own: the starter set for this kind of circle (0028).
+    BASIC_QUESTIONS = startersFor(await currentCircleKind());
+    logWithTime(`No basic questions in S3, using the ${BASIC_QUESTIONS.length} starters`);
   } catch (err) {
     logWithTime(`Error loading basic questions from S3:`, err);
     // Use empty array if there's an error

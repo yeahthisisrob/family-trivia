@@ -237,11 +237,11 @@ const CIRCLE_ID = /^[a-z0-9-]{1,40}$/;
  * its sign-in map.
  */
 /**
- * A new circle is playable the moment it exists: Season 1 is on, open-ended.
- * Questions about the circle itself come once there's something to ask about,
- * so a friends circle starts on general trivia.
+ * A new circle is playable the moment it exists: Season 1 is on, open-ended,
+ * with general trivia and the circle's own category (Our Crew, Our Family),
+ * which asks general questions until the circle has shared enough.
  */
-function firstSeason(kind: CircleKind): SeasonsConfig {
+function firstSeason(): SeasonsConfig {
   return {
     currentSeasonNumber: 1,
     seasons: [
@@ -252,7 +252,7 @@ function firstSeason(kind: CircleKind): SeasonsConfig {
         startDate: new Date().toISOString().slice(0, 10),
         endDate: null,
         message: null,
-        trivia: kind === 'family' ? 'mixed' : 'general',
+        trivia: 'mixed',
       },
     ],
   };
@@ -285,7 +285,7 @@ export async function createCircle(
     if (!added.ok) throw new Error(added.error);
     await putJson(SIGN_IN_MAP_KEY, { [maker.email]: userId });
     if (input.themeId) await putJson(S3_PATHS.APPEARANCE, { themeId: input.themeId });
-    await putJson(S3_PATHS.SEASONS_CONFIG, firstSeason(input.kind));
+    await putJson(S3_PATHS.SEASONS_CONFIG, firstSeason());
   });
   await rebuildMemberships(maker.email);
   logger.info('Circle created', { circleId: id, kind: input.kind });
