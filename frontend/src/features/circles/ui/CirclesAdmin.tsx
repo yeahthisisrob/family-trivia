@@ -1,4 +1,4 @@
-import type { Circle } from '@family-trivia/shared';
+import type { Circle, MyCircle } from '@family-trivia/shared';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import {
   Alert,
@@ -18,6 +18,7 @@ import { KIND_ICON, KIND_LABEL } from '../../../entities/circle';
 import { enterCircle } from '../../../session';
 import { circlesApi } from '../api/circlesApi';
 import { CircleFields, isReady, type NewCircle, newCircle } from './CircleFields';
+import { InviteButton } from './InviteButton';
 
 interface Props {
   /** The circle open now. */
@@ -65,6 +66,7 @@ export const CirclesAdmin: React.FC<Props> = ({ currentId, yourName }) => {
                   {c.id === currentId && ' · you are here'}
                 </Typography>
               </Box>
+              <InviteButton circleId={c.id} circleName={c.name} />
             </Box>
           );
         })}
@@ -82,19 +84,52 @@ const StartCircle: React.FC<{ open: boolean; yourName: string; onClose: () => vo
   const [form, setForm] = useState<NewCircle>(newCircle(yourName));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [made, setMade] = useState<{ circle: Circle; circles: MyCircle[] } | null>(null);
 
   const start = async () => {
     setBusy(true);
     setError(null);
     try {
-      const { circle, circles } = await circlesApi.create(form);
-      const mine = circles.find((c) => c.id === circle.id);
-      if (mine) enterCircle(mine, circles);
+      setMade(await circlesApi.create(form));
     } catch {
       setError("Couldn't start the circle. Please try again.");
+    } finally {
       setBusy(false);
     }
   };
+
+  // Open the new circle; if this browser's list hasn't caught up, a fresh start finds it.
+  const openIt = () => {
+    const mine = made?.circles.find((c) => c.id === made.circle.id);
+    if (mine && made) enterCircle(mine, made.circles);
+    else window.location.assign('/');
+  };
+
+  if (made)
+    return (
+      <Dialog open onClose={onClose} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontWeight: 700 }}>{made.circle.name} is ready</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: 'text.secondary', mb: 2 }}>
+            Season 1 has started. Send a link to the people you want in it: they sign in with Google
+            and they're in.
+          </Typography>
+          <InviteButton
+            circleId={made.circle.id}
+            circleName={made.circle.name}
+            label="Share an invite link"
+            variant="contained"
+            size="large"
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={onClose}>Stay here</Button>
+          <Button variant="outlined" onClick={openIt}>
+            Open {made.circle.name}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">

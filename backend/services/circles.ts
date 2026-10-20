@@ -20,7 +20,7 @@ import type {
 import { S3_PATHS } from '../constants';
 import { addMember, idFor, nextColor } from './family/members';
 import { logger } from './logger';
-import { getJson, putJson } from './s3';
+import { forgetCached, getJson, putJson } from './s3';
 import { currentScope, inCircle, type Scope } from './scope';
 
 const REGISTRY_KEY = 'circles.json';
@@ -49,6 +49,10 @@ export async function listCircles(): Promise<Circle[]> {
 }
 
 export async function findCircle(id: string): Promise<Circle | null> {
+  const known = (await listCircles()).find((c) => c.id === id);
+  if (known) return known;
+  // A circle made a moment ago on another server: read the registry fresh once.
+  forgetCached(REGISTRY_KEY);
   return (await listCircles()).find((c) => c.id === id) ?? null;
 }
 
@@ -263,7 +267,7 @@ async function seedCircle(
   circle: Circle,
   input: { themeId?: string },
   maker: { email: string; name: string },
-) {
+): Promise<MyCircle[]> {
   await inCircle(scopeOf(circle), async () => {
     const userId = idFor(maker.name, () => false);
     const added = await addMember({
@@ -277,7 +281,7 @@ async function seedCircle(
     if (input.themeId) await putJson(S3_PATHS.APPEARANCE, { themeId: input.themeId });
     await putJson(S3_PATHS.SEASONS_CONFIG, firstSeason());
   });
-  await rebuildMemberships(maker.email);
+  return rebuildMemberships(maker.email);
 }
 
 export async function createCircle(

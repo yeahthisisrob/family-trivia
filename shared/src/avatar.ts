@@ -84,9 +84,9 @@ export type AvatarChoice =
   | { library: 'animal'; animal: Animal; color: AvatarColor };
 
 /** An AI picture's key: the person's own folder in the circle's media. */
-export const aiAvatarKey = (userId: string, id: string) => `media/avatars/${userId}/${id}.webp`;
+export const aiAvatarKey = (userId: string, id: string) => `media/avatars/${userId}/${id}.jpg`;
 export const isAiAvatarKeyOf = (userId: string, key: string) =>
-  new RegExp(`^media/avatars/${userId.replace(/[^a-z0-9_-]/gi, '')}/[a-f0-9-]{36}\\.webp$`).test(
+  new RegExp(`^media/avatars/${userId.replace(/[^a-z0-9_-]/gi, '')}/[a-f0-9-]{36}\\.jpg$`).test(
     key,
   );
 

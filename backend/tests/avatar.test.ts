@@ -8,7 +8,7 @@ import { resetS3Mock, seedRaw } from './helpers/s3Mock';
 
 const put = (avatar: unknown, who = 'alice') =>
   putMyAvatar({ body: JSON.stringify({ avatar }) } as APIGatewayProxyEvent, who);
-const made = 'media/avatars/alice/0b6a1c4e-2f7d-4c1e-9a3b-5d8e7f6a1b2c.webp';
+const made = 'media/avatars/alice/0b6a1c4e-2f7d-4c1e-9a3b-5d8e7f6a1b2c.jpg';
 
 beforeEach(() => {
   resetS3Mock();
