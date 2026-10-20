@@ -94,6 +94,25 @@ typecheck:
 test *args:
     {{x}} pnpm -r run test {{args}}
 
+# Everything GitHub checks on a pull request, in the same order, before
+# pushing: lint, leaks, dead code, types, tests, contract, screenshots, build,
+# then the stories with CI's two workers and the dark-mode audit
+[group('check')]
+ci:
+    {{x}} pnpm exec biome ci .
+    {{x}} node scripts/leak-guard.mjs
+    {{x}} pnpm exec knip --no-progress
+    {{x}} pnpm -r run typecheck
+    {{x}} pnpm -r run test
+    {{x}} pnpm --filter @family-trivia/shared run contract
+    git diff --exit-code --stat shared/generated
+    {{x}} node scripts/check-screenshots.mjs
+    {{x}} pnpm -r run build
+    {{x}} pnpm --filter @family-trivia/web exec vitest run --project=storybook --maxWorkers=2
+    {{x}} pnpm --filter @family-trivia/web run build-storybook
+    {{x}} node scripts/dark-audit.mjs
+    {{x}} node scripts/check-screenshots.mjs --stories
+
 # Storybook interaction tests in Chromium
 [group('check')]
 test-stories:

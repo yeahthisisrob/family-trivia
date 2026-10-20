@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import AppProvider from './AppProvider';
+import { currentCircleId } from './session';
 import { AppearanceProvider } from './shared/design-system';
 import { ToastProvider } from './shared/toast';
 
@@ -15,8 +16,8 @@ const root = createRoot(container);
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      {/* Theme and light/dark: the person's choice, then the family's default (AppearanceProvider). */}
-      <AppearanceProvider>
+      {/* Theme and light/dark: the person's choice in this circle, then the circle's own (AppearanceProvider). */}
+      <AppearanceProvider circleId={currentCircleId()}>
         <ToastProvider>
           <AppProvider />
         </ToastProvider>

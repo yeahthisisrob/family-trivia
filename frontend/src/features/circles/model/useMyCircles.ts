@@ -1,6 +1,12 @@
 import type { MyCircle } from '@family-trivia/shared';
 import { useCallback, useEffect, useState } from 'react';
-import { enterCircle, loadCircles, loadSession, saveCircles } from '../../../session';
+import {
+  currentCircleId,
+  enterCircle,
+  loadCircles,
+  loadSession,
+  saveCircles,
+} from '../../../session';
 import { circlesApi } from '../api/circlesApi';
 
 export interface MyCircles {
@@ -27,11 +33,19 @@ export function useMyCircles(): MyCircles {
       .mine()
       .then(({ circles, current }) => {
         if (!live) return;
-        saveCircles(current, circles);
-        setState({ current, circles });
-        const here = circles.find((c) => c.id === current);
+        // This tab stays in the circle it opened in (the server answers for
+        // the one each request names); a first visit takes the server's.
+        const pinned = currentCircleId();
+        const mineHere = pinned && circles.some((c) => c.id === pinned) ? pinned : current;
+        const here = circles.find((c) => c.id === mineHere);
         const me = loadSession();
-        if (here && me && me !== here.userId) enterCircle(here, circles);
+        // Someone else in it than this tab opened as: start over as them.
+        if (here && me && me !== here.userId) {
+          enterCircle(here, circles);
+          return;
+        }
+        saveCircles(mineHere, circles);
+        setState({ current: mineHere, circles });
       })
       .catch(() => {
         /* offline or signed out: keep what we had */

@@ -26,6 +26,7 @@ import { AfterCard, PlansCard } from './features/plans';
 import { TeamsCard } from './features/teams';
 import { ThreadCard } from './features/threads';
 import { ROUTES, useApp } from './hooks/useApp';
+import { inThisCircle } from './session';
 import { colors, tint, useAppearance } from './shared/design-system';
 import { createLogger } from './utils/logger';
 import { WelcomeCard } from './widgets/welcome';
@@ -54,14 +55,14 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
   const INLINE_DISMISS_KEY = 'dailyFactInlineDismissed';
   const [factInlineDismissed, setFactInlineDismissed] = React.useState(() => {
     try {
-      return window.sessionStorage.getItem(INLINE_DISMISS_KEY) === '1';
+      return window.sessionStorage.getItem(inThisCircle(INLINE_DISMISS_KEY)) === '1';
     } catch {
       return false;
     }
   });
   const dismissInlineFact = React.useCallback(() => {
     try {
-      window.sessionStorage.setItem(INLINE_DISMISS_KEY, '1');
+      window.sessionStorage.setItem(inThisCircle(INLINE_DISMISS_KEY), '1');
     } catch {
       /* ok */
     }
