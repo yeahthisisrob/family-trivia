@@ -2009,6 +2009,50 @@ paths:
                     items:
                       $ref: "#/components/schemas/Drop"
 
+  /plans/after:
+    get:
+      summary: Plans from the last two weeks the caller was in, asking how they went
+      operationId: getAfterPlans
+      tags: [Plans]
+      responses:
+        "200":
+          description: The plans and their memories
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [plans]
+                properties:
+                  plans: { type: array, items: { $ref: "#/components/schemas/AfterPlan" } }
+
+  /plans/memory:
+    post:
+      summary: Add a memory to a plan you were in ({ id, text }), or stop being asked ({ id, skip })
+      operationId: rememberPlan
+      tags: [Plans]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string }
+                text: { type: string, maxLength: 1000 }
+                skip: { type: boolean }
+      responses:
+        "200":
+          description: The plans after it
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [plans]
+                properties:
+                  plans: { type: array, items: { $ref: "#/components/schemas/AfterPlan" } }
+        "404": { description: Not a plan you were in }
+
   /plans/remove:
     post:
       summary: Take back one of your own drops
@@ -4610,6 +4654,22 @@ components:
             library: { type: string, enum: [animal] }
             animal: { type: string }
             color: { type: string, enum: [sky, lilac, periwinkle, blush, peach, mint] }
+
+    AfterPlan:
+      type: object
+      required: [drop, who, memories]
+      properties:
+        drop: { $ref: "#/components/schemas/Drop" }
+        who: { type: array, items: { type: string } }
+        memories:
+          type: array
+          items:
+            type: object
+            required: [by, text, at]
+            properties:
+              by: { type: string }
+              text: { type: string }
+              at: { type: string }
 
     Drop:
       type: object

@@ -941,6 +941,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/plans/after": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Plans from the last two weeks the caller was in, asking how they went */
+        get: operations["getAfterPlans"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plans/memory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a memory to a plan you were in ({ id, text }), or stop being asked ({ id, skip }) */
+        post: operations["rememberPlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/plans/remove": {
         parameters: {
             query?: never;
@@ -2417,6 +2451,15 @@ export interface components {
             animal: string;
             /** @enum {string} */
             color: "sky" | "lilac" | "periwinkle" | "blush" | "peach" | "mint";
+        };
+        AfterPlan: {
+            drop: components["schemas"]["Drop"];
+            who: string[];
+            memories: {
+                by: string;
+                text: string;
+                at: string;
+            }[];
         };
         Drop: {
             id: string;
@@ -5268,6 +5311,65 @@ export interface operations {
                         added: components["schemas"]["Drop"][];
                     };
                 };
+            };
+        };
+    };
+    getAfterPlans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The plans and their memories */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        plans: components["schemas"]["AfterPlan"][];
+                    };
+                };
+            };
+        };
+    };
+    rememberPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    id: string;
+                    text?: string;
+                    skip?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description The plans after it */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        plans: components["schemas"]["AfterPlan"][];
+                    };
+                };
+            };
+            /** @description Not a plan you were in */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
