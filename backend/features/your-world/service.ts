@@ -16,6 +16,9 @@ import {
 import { accountsIn, findCircle, myCircles, scopeOf } from '../../services/circles';
 import { loadJoined } from '../../services/family/joined';
 import { readKnowledge } from '../../services/knowledge';
+// People's moments (born, met, married...) come from the family service.
+import '../../services/family/lifeEvents';
+import { lifeEventsOf } from '../../services/lifeEvents';
 import { inCircle } from '../../services/scope';
 
 const THREADS = 12;
@@ -33,6 +36,7 @@ export async function yourWorld(email: string): Promise<WorldView> {
     links: [],
     threads: [],
     meet: [],
+    timeline: [],
   };
   if (!view.enough) return view;
 
@@ -46,6 +50,9 @@ export async function yourWorld(email: string): Promise<WorldView> {
       const shown = Object.values(visible.people).filter((p) => isPlaying(p) || isRemembered(p));
       const ids = new Set(shown.map((p) => p.id));
       const node = (id: string) => `${circle.id}:${id}`;
+      if (meHere)
+        for (const e of await lifeEventsOf(meHere))
+          view.timeline.push({ ...e, circleId: circle.id });
       for (const t of visible.ties) {
         const [a, b] = tieEnds(t);
         if (ids.has(a) && ids.has(b)) view.links.push({ a: node(a), b: node(b), kind: 'tie' });
@@ -110,5 +117,15 @@ export async function yourWorld(email: string): Promise<WorldView> {
         view.meet.push({ a, b, because: t.name } satisfies WorldMeet);
       }
   }
+  // The same moment known to two circles (a joined circle and its source) shows once.
+  const seenEvents = new Set<string>();
+  view.timeline = view.timeline
+    .filter((e) => {
+      const key = `${e.kind}|${e.date}|${e.title}`;
+      if (seenEvents.has(key)) return false;
+      seenEvents.add(key);
+      return true;
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
   return view;
 }

@@ -58,7 +58,9 @@ export const NotReadYet: Story = {
   args: { knowledge: null },
   play: async ({ canvasElement }) => {
     await expect(
-      await within(canvasElement).findByText('Our map fills in as the family’s answers are read'),
+      // The wording follows the circle ("the family's", "the crew's"), and
+      // stories in parallel share one browser's saved circle, so match either.
+      await within(canvasElement).findByText(/Our map fills in as .+ answers are read/),
     ).toBeInTheDocument();
     // The note never stands between a finger and the map.
     const note = within(canvasElement).getByTestId('map-not-read');

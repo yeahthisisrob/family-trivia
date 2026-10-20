@@ -4956,10 +4956,24 @@ components:
               average: { type: number, description: Points per member }
               total: { type: number }
 
+    LifeEvent:
+      type: object
+      description: "A moment in someone's life one of their circles knows (docs/decisions/0018)"
+      required: [date, kind, title, circleId]
+      properties:
+        date: { type: string, description: "YYYY, YYYY-MM or YYYY-MM-DD" }
+        kind: { type: string, enum: [born, met, partner, parent, remembered, joined, plan] }
+        title: { type: string }
+        detail: { type: string }
+        circleId: { type: string }
     WorldView:
       type: object
-      required: [circles, enough, nodes, links, threads, meet]
+      required: [circles, enough, nodes, links, threads, meet, timeline]
       properties:
+        timeline:
+          type: array
+          description: The viewer's life as their circles saw it, oldest first
+          items: { $ref: "#/components/schemas/LifeEvent" }
         circles:
           type: array
           items:

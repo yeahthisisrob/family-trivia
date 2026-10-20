@@ -34,6 +34,32 @@ const world: WorldView = {
   ],
   threads: [{ name: 'the beach', kind: 'place', people: ['home:bob', 'crew:dee'] }],
   meet: [{ a: 'home:bob', b: 'crew:dee', because: 'the beach' }],
+  timeline: [
+    {
+      date: '1988-04-02',
+      kind: 'born',
+      title: 'You were born',
+      detail: 'in Springfield',
+      circleId: 'home',
+    },
+    {
+      date: '2009',
+      kind: 'met',
+      title: 'You met Dee',
+      detail: 'at college, in Springfield',
+      circleId: 'crew',
+    },
+    { date: '2014-06-21', kind: 'partner', title: 'You and Bob got married', circleId: 'home' },
+    { date: '2017', kind: 'remembered', title: 'Sam died', circleId: 'crew' },
+    { date: '2026-03-02', kind: 'joined', title: 'You joined The Smiths', circleId: 'home' },
+    {
+      date: '2026-09-06',
+      kind: 'plan',
+      title: 'Hike at Blue Hills, with Dee',
+      detail: 'Dee: “Best hike of the year”',
+      circleId: 'crew',
+    },
+  ],
 };
 
 const meta: Meta<typeof YourWorldView> = {
@@ -50,10 +76,15 @@ export const TwoCircles: Story = {
   play: async ({ canvasElement }) => {
     const body = within(canvasElement.ownerDocument.body);
     await expect(await body.findByText('Who should meet')).toBeInTheDocument();
+    await expect(body.getByText('Your story so far')).toBeInTheDocument();
+    await expect(body.getByText('2009')).toBeInTheDocument();
+    await expect(body.getByText('at college, in Springfield')).toBeInTheDocument();
   },
 };
 
 /** One circle: nothing to see across yet. */
 export const OneCircle: Story = {
-  args: { world: { ...world, enough: false, nodes: [], links: [], threads: [], meet: [] } },
+  args: {
+    world: { ...world, enough: false, nodes: [], links: [], threads: [], meet: [], timeline: [] },
+  },
 };

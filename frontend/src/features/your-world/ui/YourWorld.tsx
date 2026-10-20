@@ -4,8 +4,16 @@
  * bridge; what comes up in more than one circle; and who should meet. Built
  * for you alone when you open it; nobody else sees it.
  */
-import type { WorldView } from '@family-trivia/shared';
+import type { LifeEvent, WorldView } from '@family-trivia/shared';
+import type { SvgIconComponent } from '@mui/icons-material';
+import CakeRoundedIcon from '@mui/icons-material/CakeRounded';
+import ChildCareRoundedIcon from '@mui/icons-material/ChildCareRounded';
 import CloseIcon from '@mui/icons-material/Close';
+import EventRoundedIcon from '@mui/icons-material/EventRounded';
+import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
+import GroupAddRoundedIcon from '@mui/icons-material/GroupAddRounded';
+import HandshakeRoundedIcon from '@mui/icons-material/HandshakeRounded';
+import LocalFloristRoundedIcon from '@mui/icons-material/LocalFloristRounded';
 import { Box, Chip, Dialog, IconButton, Stack, Typography, useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import type React from 'react';
@@ -13,6 +21,79 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import { colors, identityColor } from '../../../shared/design-system';
 import { worldApi } from '../api/worldApi';
+
+const EVENT_ICON: Record<LifeEvent['kind'], SvgIconComponent> = {
+  born: CakeRoundedIcon,
+  met: HandshakeRoundedIcon,
+  partner: FavoriteRoundedIcon,
+  parent: ChildCareRoundedIcon,
+  remembered: LocalFloristRoundedIcon,
+  joined: GroupAddRoundedIcon,
+  plan: EventRoundedIcon,
+};
+
+/** "Jun 21" for a full date, "June" for a month, nothing for a year alone. */
+const dayOf = (date: string) =>
+  date.length === 10
+    ? new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    : date.length === 7
+      ? new Date(`${date}-15T12:00:00`).toLocaleDateString(undefined, { month: 'long' })
+      : '';
+
+/** Your life as your circles saw it, by year (docs/decisions/0018). */
+const Timeline: React.FC<{
+  events: LifeEvent[];
+  circleName: (id: string) => string;
+  colorOf: (id: string) => string;
+  dim: string;
+}> = ({ events, circleName, colorOf, dim }) => {
+  const years = [...new Set(events.map((e) => e.date.slice(0, 4)))];
+  return (
+    <Box sx={{ mt: 3 }}>
+      <Typography component="h2" sx={{ fontWeight: 800, fontSize: '1.15rem', mb: 1.5 }}>
+        Your story so far
+      </Typography>
+      {years.map((year) => (
+        <Box key={year} sx={{ mb: 2 }}>
+          <Typography sx={{ fontWeight: 800, color: dim, letterSpacing: 1, mb: 0.75 }}>
+            {year}
+          </Typography>
+          <Stack spacing={1.25}>
+            {events
+              .filter((e) => e.date.startsWith(year))
+              .map((e) => {
+                const Icon = EVENT_ICON[e.kind];
+                return (
+                  <Stack key={`${e.kind}${e.date}${e.title}`} direction="row" spacing={1.25}>
+                    <Box
+                      sx={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: '50%',
+                        flexShrink: 0,
+                        display: 'grid',
+                        placeItems: 'center',
+                        border: `2px solid ${colorOf(e.circleId)}`,
+                      }}
+                    >
+                      <Icon sx={{ fontSize: 16 }} />
+                    </Box>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography sx={{ fontWeight: 700 }}>{e.title}</Typography>
+                      {e.detail && <Typography sx={{ color: dim }}>{e.detail}</Typography>}
+                      <Typography variant="caption" sx={{ color: dim }}>
+                        {[dayOf(e.date), circleName(e.circleId)].filter(Boolean).join(' · ')}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                );
+              })}
+          </Stack>
+        </Box>
+      ))}
+    </Box>
+  );
+};
 
 type Drawn = { id: string; name: string; color: string; me?: boolean; bridge?: boolean };
 
@@ -145,6 +226,15 @@ export const YourWorldView: React.FC<ViewProps> = ({ world, onClose }) => {
               />
             </Box>
 
+            {world.timeline.length > 0 && (
+              <Timeline
+                events={world.timeline}
+                circleName={(id) => world.circles.find((c) => c.id === id)?.name ?? ''}
+                colorOf={colorOf}
+                dim={night.textDim}
+              />
+            )}
+
             {world.threads.length > 0 && (
               <Box sx={{ mt: 3 }}>
                 <Typography component="h2" sx={{ fontWeight: 800, fontSize: '1.15rem', mb: 1 }}>
@@ -196,7 +286,15 @@ export const YourWorld: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       .get()
       .then(setWorld)
       .catch(() =>
-        setWorld({ circles: [], enough: false, nodes: [], links: [], threads: [], meet: [] }),
+        setWorld({
+          circles: [],
+          enough: false,
+          nodes: [],
+          links: [],
+          threads: [],
+          meet: [],
+          timeline: [],
+        }),
       );
   }, []);
   return <YourWorldView world={world} onClose={onClose} />;

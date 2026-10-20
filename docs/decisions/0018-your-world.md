@@ -51,7 +51,16 @@ each other (0015), so nobody sees that picture.
   circle, the same sign-in in two circles as a bridge, threads (the same
   knowledge item in more than one circle) and who should meet. Computed per
   request for the caller; accounts are matched on the server and never sent.
-  The timeline is still to come.
+- The timeline is built ("Your story so far"): the viewer's moments from each
+  circle, oldest first, the same moment from two circles shown once. Each
+  feature adds its own through `addLifeEvents` (`services/lifeEvents.ts`):
+  the people service gives birth, meeting someone (a friendship's when, how
+  and where), partnerships and their end, becoming a parent, someone close
+  who died, and joining the circle; plans give the plans you were in and
+  what someone remembered. Your world lists none of them, so a new feature
+  adds moments without touching it.
+- A plan's memories now keep the plan with them (title, day, who was in),
+  since plans themselves are let go after 120 days and memories never are.
 - Joining and splitting are built (Admin › Circles; `POST /admin/circles/join`,
   `POST /admin/circles/split`):
   - **The link lives in storage, not in features.** A joined circle's scope

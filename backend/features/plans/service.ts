@@ -16,7 +16,7 @@ import {
   type Rsvp,
 } from '@family-trivia/shared';
 import { loadJoined } from '../../services/family/joined';
-import { getJson, putJson } from '../../services/s3';
+import { getJson, listObjects, putJson } from '../../services/s3';
 import { latestStart, readDrops } from './ai';
 
 const PERSON = (id: string) => `plans/people/${id}.json`;
@@ -116,6 +116,11 @@ interface Memories {
   memories: PlanMemory[];
   /** People who said "skip": the plan stops asking them. */
   skipped: string[];
+  /**
+   * The plan itself, kept with what people remember of it: plans are let go
+   * after KEEP_DAYS, memories never are.
+   */
+  plan?: { title: string; start: string; end?: string; who: string[] };
 }
 
 const loadMemories = async (id: string): Promise<Memories> =>
@@ -150,6 +155,8 @@ export async function rememberPlan(
   const mine = (await afterPlans(me)).find((p) => p.drop.id === id);
   if (!mine) return false;
   const m = await loadMemories(id);
+  const { title, start, end } = mine.drop;
+  m.plan = { title, start, ...(end && { end }), who: mine.who };
   if (input === 'skip') m.skipped = [...new Set([...m.skipped, me])];
   else {
     const text = input.text.trim().slice(0, 1000);
@@ -158,4 +165,46 @@ export async function rememberPlan(
   }
   await putJson(MEMORIES(id), m);
   return true;
+}
+
+// ── Life events (docs/decisions/0018) ────────────────────────────────────
+
+/**
+ * The plans `me` was in that are over: the ones still kept, and every plan
+ * someone remembered, however old.
+ */
+export async function pastPlans(
+  me: string,
+): Promise<{ title: string; date: string; with: string[]; memory?: PlanMemory }[]> {
+  const today = getTodayET();
+  const ids = await people();
+  const drops = (await Promise.all(ids.map(async (id) => (await load(id)).drops))).flat();
+  const out = new Map<
+    string,
+    { title: string; date: string; with: string[]; memory?: PlanMemory }
+  >();
+  for (const d of drops) {
+    if (d.kind !== 'plan' || d.weekly || (d.end ?? d.start) >= today) continue;
+    const rsvps = (await getJson<Record<string, Rsvp>>(RSVP(d.id))) ?? {};
+    const who = [d.by, ...Object.keys(rsvps).filter((u) => rsvps[u] === 'in' && u !== d.by)];
+    if (who.includes(me))
+      out.set(d.id, { title: d.title, date: d.start, with: who.filter((w) => w !== me) });
+  }
+  for (const key of await listObjects('plans/memories/')) {
+    const id = key.slice('plans/memories/'.length, -'.json'.length);
+    const m = await loadMemories(id);
+    const known = out.get(id);
+    const plan = m.plan;
+    if (!known && !(plan && plan.who.includes(me))) continue;
+    const memory = m.memories.find((x) => x.by === me) ?? m.memories[0];
+    out.set(id, {
+      ...(known ?? {
+        title: plan?.title ?? '',
+        date: plan?.start ?? '',
+        with: (plan?.who ?? []).filter((w) => w !== me),
+      }),
+      ...(memory && { memory }),
+    });
+  }
+  return [...out.values()].filter((p) => p.title && p.date);
 }
