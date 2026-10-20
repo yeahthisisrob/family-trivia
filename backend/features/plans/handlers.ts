@@ -1,7 +1,7 @@
 /** Plans (docs/decisions/0026): the weeks ahead, drop in, take back, I'm in. */
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
-import { answerPlan, dropIn, removeDrop, viewPlans } from './service';
+import { afterPlans, answerPlan, dropIn, rememberPlan, removeDrop, viewPlans } from './service';
 
 const body = (e: APIGatewayProxyEvent): Record<string, unknown> | null => {
   try {
@@ -45,4 +45,20 @@ export async function postRsvp(e: APIGatewayProxyEvent, userId: string) {
   return (await answerPlan(userId, b.id, answer))
     ? successResponse({ ok: true })
     : errorResponse('No such plan', 404);
+}
+
+/** GET /plans/after: recent plans you were in, asking how they went. */
+export async function getAfter(_e: APIGatewayProxyEvent, userId: string) {
+  return successResponse({ plans: await afterPlans(userId) });
+}
+
+/** POST /plans/memory { id, text } or { id, skip: true } */
+export async function postPlanMemory(e: APIGatewayProxyEvent, userId: string) {
+  const b = body(e);
+  if (typeof b?.id !== 'string') return errorResponse('id is required', 400);
+  const input = b.skip === true ? 'skip' : typeof b.text === 'string' ? { text: b.text } : null;
+  if (!input) return errorResponse('text or skip is required', 400);
+  return (await rememberPlan(userId, b.id, input))
+    ? successResponse({ plans: await afterPlans(userId) })
+    : errorResponse('Not a plan you were in', 404);
 }

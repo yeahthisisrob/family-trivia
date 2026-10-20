@@ -26,6 +26,12 @@ people to connect a calendar is the kind of friction that stops a circle
   (`plans/rsvp/{id}.json`); past entries are let go after four months.
   Plans run between seasons.
 
+## After the day (Oct 20, 2026)
+- For two weeks after a plan's last day, the people who were in it (whoever
+  made it, and everyone who said "I'm in") see "How was …?" on Home: a few
+  words, shared with each other, or skip and it stops asking
+  (`plans/memories/{id}.json`).
+
 ## Consequences
 0017's later steps still stand and build on this: the day's memories coming
 back afterward, a reminder, an ICS file for anyone who wants their calendar.

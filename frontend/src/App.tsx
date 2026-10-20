@@ -18,7 +18,7 @@ import { appearanceApi } from './entities/appearance';
 import { useFeatures } from './entities/settings';
 import { UpcomingDates } from './features/celebrations';
 import { DailyMemory } from './features/daily-memory';
-import { PlansCard } from './features/plans';
+import { AfterCard, PlansCard } from './features/plans';
 import { TeamsCard } from './features/teams';
 import { ThreadCard } from './features/threads';
 import { WaitingCard } from './features/waiting';
@@ -186,6 +186,12 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
         me={user}
         nameOf={(id) => familyData.members.find((m) => m.userId === id)?.name ?? id}
         onOpenPerson={navigateToProfile}
+      />
+
+      {/* Just after a plan: how was it? (docs/decisions/0026) */}
+      <AfterCard
+        me={user}
+        nameOf={(id) => familyData.members.find((m) => m.userId === id)?.name ?? id}
       />
 
       {/* What's on: plans keep running between seasons (docs/decisions/0026) */}

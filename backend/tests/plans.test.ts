@@ -6,7 +6,14 @@ vi.mock('../features/plans/ai', () => ({
 }));
 
 import { addDays, getTodayET } from '@family-trivia/shared';
-import { answerPlan, dropIn, removeDrop, viewPlans } from '../features/plans/service';
+import {
+  afterPlans,
+  answerPlan,
+  dropIn,
+  rememberPlan,
+  removeDrop,
+  viewPlans,
+} from '../features/plans/service';
 import { resetS3Mock, seedRaw } from './helpers/s3Mock';
 
 const today = getTodayET();
@@ -59,5 +66,45 @@ describe('plans', () => {
       { kind: 'busy', title: 'Someday', start: 'soon' },
     ];
     expect(await dropIn('alice', 'yesterday and someday')).toEqual([]);
+  });
+});
+
+describe('after the day', () => {
+  test('the people who were in are asked how it went; memories are shared; skip stops asking', async () => {
+    seedRaw('plans/people/bob.json', {
+      drops: [
+        { id: 'bob-hike', by: 'bob', kind: 'plan', title: 'Hike', start: day(-2), createdAt: 'x' },
+      ],
+    });
+    seedRaw('plans/rsvp/bob-hike.json', { alice: 'in' });
+    seedRaw('family/family.json', {
+      version: 2,
+      name: 'The Crew',
+      people: Object.fromEntries(
+        ['alice', 'bob', 'carol'].map((id) => [id, { id, name: id, participation: 'playing' }]),
+      ),
+      ties: [],
+      households: {},
+    });
+    expect((await afterPlans('alice')).map((p) => p.drop.title)).toEqual(['Hike']);
+    expect(await afterPlans('carol')).toEqual([]);
+    expect(await rememberPlan('carol', 'bob-hike', { text: 'x' })).toBe(false);
+
+    expect(await rememberPlan('alice', 'bob-hike', { text: 'The view at the top.' })).toBe(true);
+    expect((await afterPlans('bob'))[0]?.memories).toMatchObject([
+      { by: 'alice', text: 'The view at the top.' },
+    ]);
+    expect(await rememberPlan('bob', 'bob-hike', 'skip')).toBe(true);
+    expect(await afterPlans('bob')).toEqual([]);
+  });
+
+  test('a plan still to come, or long past, asks nothing', async () => {
+    seedRaw('plans/people/bob.json', {
+      drops: [
+        { id: 'bob-soon', by: 'bob', kind: 'plan', title: 'Soon', start: day(3), createdAt: 'x' },
+        { id: 'bob-old', by: 'bob', kind: 'plan', title: 'Old', start: day(-40), createdAt: 'x' },
+      ],
+    });
+    expect(await afterPlans('bob')).toEqual([]);
   });
 });

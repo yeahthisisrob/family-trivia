@@ -161,3 +161,30 @@ export function cleanDrop(
     ...(r.weekly === true ? { weekly: until ? { until } : {} } : {}),
   };
 }
+
+// ── After the day (docs/decisions/0026) ──────────────────────────────────
+
+/** A memory someone added to a plan once its day had passed. */
+export interface PlanMemory {
+  by: string;
+  text: string;
+  at: string;
+}
+
+/** A recent plan the viewer was part of, and what people remember of it. */
+export interface AfterPlan {
+  drop: Drop;
+  /** Who was in: the person who made it, and everyone who said they were in. */
+  who: string[];
+  memories: PlanMemory[];
+}
+
+/** How long a plan asks for memories after its last day. */
+export const AFTER_DAYS = 14;
+
+/** The last day a drop happens on (a weekly drop's most recent day before `today`). */
+export function lastDayOf(d: Drop, today: string): string | null {
+  const from = addDays(today, -AFTER_DAYS);
+  const days = daysOf(d, from, addDays(today, -1));
+  return days.length ? (days[days.length - 1] as string) : null;
+}

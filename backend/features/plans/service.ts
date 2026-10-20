@@ -3,11 +3,14 @@
  * plans/people/{userId}.json; who's in for a plan at plans/rsvp/{dropId}.json.
  */
 import {
+  type AfterPlan,
   addDays,
   cleanDrop,
   type Drop,
   getTodayET,
   isPlaying,
+  lastDayOf,
+  type PlanMemory,
   type PlansView,
   plansView,
   type Rsvp,
@@ -102,5 +105,57 @@ export async function answerPlan(me: string, id: string, answer: Rsvp | null): P
   const current = (await getJson<Record<string, Rsvp>>(RSVP(id))) ?? {};
   const { [me]: _old, ...rest } = current;
   await putJson(RSVP(id), answer ? { ...rest, [me]: answer } : rest);
+  return true;
+}
+
+// ── After the day: memories (docs/decisions/0026) ─────────────────────────
+
+const MEMORIES = (dropId: string) => `plans/memories/${dropId}.json`;
+
+interface Memories {
+  memories: PlanMemory[];
+  /** People who said "skip": the plan stops asking them. */
+  skipped: string[];
+}
+
+const loadMemories = async (id: string): Promise<Memories> =>
+  (await getJson<Memories>(MEMORIES(id))) ?? { memories: [], skipped: [] };
+
+/** Plans from the last two weeks that `me` was part of and hasn't skipped. */
+export async function afterPlans(me: string): Promise<AfterPlan[]> {
+  const today = getTodayET();
+  const ids = await people();
+  const drops = (await Promise.all(ids.map(async (id) => (await load(id)).drops))).flat();
+  const out: AfterPlan[] = [];
+  for (const d of drops) {
+    if (d.kind !== 'plan' || !lastDayOf(d, today)) continue;
+    const rsvps = (await getJson<Record<string, Rsvp>>(RSVP(d.id))) ?? {};
+    const who = [d.by, ...Object.keys(rsvps).filter((u) => rsvps[u] === 'in' && u !== d.by)];
+    if (!who.includes(me)) continue;
+    const m = await loadMemories(d.id);
+    if (m.skipped.includes(me)) continue;
+    out.push({ drop: d, who, memories: m.memories });
+  }
+  return out.sort((a, b) =>
+    (lastDayOf(b.drop, today) ?? '').localeCompare(lastDayOf(a.drop, today) ?? ''),
+  );
+}
+
+/** Add a memory to a plan you were part of, or skip it. */
+export async function rememberPlan(
+  me: string,
+  id: string,
+  input: { text: string } | 'skip',
+): Promise<boolean> {
+  const mine = (await afterPlans(me)).find((p) => p.drop.id === id);
+  if (!mine) return false;
+  const m = await loadMemories(id);
+  if (input === 'skip') m.skipped = [...new Set([...m.skipped, me])];
+  else {
+    const text = input.text.trim().slice(0, 1000);
+    if (!text) return false;
+    m.memories.push({ by: me, text, at: new Date().toISOString() });
+  }
+  await putJson(MEMORIES(id), m);
   return true;
 }
