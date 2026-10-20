@@ -16,6 +16,10 @@ export interface ModelInfo {
   /** How it trades quality for cost and speed. */
   tier: 'fast' | 'balanced' | 'best';
   price: { input: number; output: number };
+  /** Bedrock caches a long system prompt (cachePoint), so repeat calls cost less. */
+  promptCache: boolean;
+  /** The model can be made to call one named tool (structured answers). */
+  forcedTool: boolean;
 }
 
 export const MODEL_CATALOG: readonly ModelInfo[] = [
@@ -24,36 +28,48 @@ export const MODEL_CATALOG: readonly ModelInfo[] = [
     label: 'Claude Haiku 4.5',
     tier: 'fast',
     price: { input: 1, output: 5 },
+    promptCache: true,
+    forcedTool: true,
   },
   {
     id: 'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
     label: 'Claude Sonnet 4.5',
     tier: 'balanced',
     price: { input: 3, output: 15 },
+    promptCache: true,
+    forcedTool: true,
   },
   {
     id: 'us.anthropic.claude-opus-4-5-20251101-v1:0',
     label: 'Claude Opus 4.5',
     tier: 'best',
     price: { input: 5, output: 25 },
+    promptCache: true,
+    forcedTool: true,
   },
   {
     id: 'us.anthropic.claude-haiku-5-5',
     label: 'Claude Haiku 5.5',
     tier: 'fast',
     price: { input: 1, output: 5 },
+    promptCache: true,
+    forcedTool: true,
   },
   {
     id: 'us.anthropic.claude-sonnet-5-5',
     label: 'Claude Sonnet 5.5',
     tier: 'balanced',
     price: { input: 3, output: 15 },
+    promptCache: true,
+    forcedTool: true,
   },
   {
     id: 'us.anthropic.claude-opus-5-5',
     label: 'Claude Opus 5.5',
     tier: 'best',
     price: { input: 5, output: 25 },
+    promptCache: true,
+    forcedTool: true,
   },
 ];
 

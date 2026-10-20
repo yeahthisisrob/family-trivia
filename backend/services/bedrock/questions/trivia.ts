@@ -8,9 +8,8 @@ import { getFactContent } from '../../factHistoryService';
 import { getAllQuestionsFlat, getAllUserHistories } from '../../questionHistoryService';
 import { getJson } from '../../s3';
 import { getUserGroup } from '../../users';
-import { invokeBedrockPrompt } from '../core/bedrockClient';
 import { MAX_RETRY_ATTEMPTS, POINT_MULTIPLIERS } from '../core/constants';
-import { collectResponseBody, extractJsonFromResponse } from '../core/responseParser';
+import { askStructured } from '../core/converse';
 import type {
   DifficultyLevel,
   GenerateQuestionOptions,
@@ -300,42 +299,7 @@ export async function generateTriviaQuestionBase(
     modelId,
   });
 
-  const bodyStream = await invokeBedrockPrompt(
-    fullPrompt,
-    512,
-    temperature,
-    { task: 'trivia' },
-    modelId,
-  );
-  const responseBuffer = await collectResponseBody(bodyStream);
-  const parsedResponse = extractJsonFromResponse(responseBuffer, modelId);
-
-  if (parsedResponse.rawText) {
-    logger.error('Model returned raw text instead of JSON question format', {
-      textPreview: parsedResponse.rawText.slice(0, 500),
-      modelId,
-      category: category || 'none',
-      mode: mode,
-      fullPrompt: fullPrompt.slice(0, 500),
-    });
-    throw new Error('Model returned raw text instead of structured question JSON');
-  }
-
-  const questionObj = parsedResponse;
-
-  if (!validateQuestion(questionObj)) {
-    logger.error('Question validation failed', {
-      questionObj,
-      hasQuestion: !!questionObj?.question,
-      hasChoices: !!questionObj?.choices,
-      choicesLength: questionObj?.choices?.length,
-      hasAnswer: !!questionObj?.answer,
-      answerInChoices: questionObj?.choices?.includes(questionObj?.answer),
-      modelId,
-      category,
-    });
-    throw new Error('Invalid question format in response');
-  }
+  const questionObj = await askTriviaQuestion(fullPrompt, temperature, modelId);
 
   // Add metadata
   if (category) {
@@ -356,6 +320,45 @@ export async function generateTriviaQuestionBase(
     attempts: 1,
     modelUsed: modelId,
   };
+}
+
+/** What the model fills in for a trivia question; the rest is added after. */
+const QUESTION_SCHEMA = {
+  type: 'object',
+  properties: {
+    question: { type: 'string', description: 'A clear trivia question' },
+    choices: {
+      type: 'array',
+      items: { type: 'string' },
+      minItems: 4,
+      maxItems: 4,
+      description: 'Exactly four answer options',
+    },
+    answer: { type: 'string', description: 'The correct answer, exactly as one of the choices' },
+  },
+  required: ['question', 'choices', 'answer'],
+};
+
+/** One trivia question from the model, as data, checked by validateQuestion (0033). */
+function askTriviaQuestion(prompt: string, temperature: number, model: string) {
+  return askStructured<any>({
+    task: 'trivia',
+    prompt,
+    maxTokens: 512,
+    temperature,
+    model,
+    name: 'trivia_question',
+    description: 'Give the trivia question, its four choices and the correct answer.',
+    schema: QUESTION_SCHEMA,
+    check: (v): v is any => validateQuestion(v),
+    why: (v) => {
+      const q = v as { choices?: unknown[]; answer?: unknown } | null;
+      if (!Array.isArray(q?.choices) || q.choices.length !== 4)
+        return 'there must be exactly four choices';
+      if (!q.choices.includes(q.answer)) return 'the answer must be exactly one of the choices';
+      return 'the question gives its answer away, or a field is empty';
+    },
+  });
 }
 
 /**
@@ -498,37 +501,7 @@ export async function generateQuestion(
           modelId,
         });
 
-        // Invoke Bedrock
-        const bodyStream = await invokeBedrockPrompt(
-          fullPrompt,
-          512,
-          temperature,
-          { task: 'trivia' },
-          modelId,
-        );
-
-        // Collect response and extract JSON
-        const responseBuffer = await collectResponseBody(bodyStream);
-        const parsedResponse = extractJsonFromResponse(responseBuffer, modelId);
-
-        // Check if we got raw text instead of JSON (happens with some models)
-        if (parsedResponse.rawText) {
-          logger.error('Model returned raw text instead of JSON question format', {
-            textPreview: parsedResponse.rawText.slice(0, 500),
-            modelId,
-            category: category || 'none',
-            mode: mode,
-            fullPrompt: fullPrompt.slice(0, 500), // Log part of prompt for debugging
-          });
-          throw new Error('Model returned raw text instead of structured question JSON');
-        }
-
-        const questionObj = parsedResponse;
-
-        // Validate question format
-        if (!validateQuestion(questionObj)) {
-          throw new Error('Invalid question format in response');
-        }
+        const questionObj = await askTriviaQuestion(fullPrompt, temperature, modelId);
 
         // Add the category and difficulty we already have, plus point multiplier
         if (category) {

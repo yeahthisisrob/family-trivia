@@ -2,7 +2,7 @@ vi.mock('../services/s3', async () => (await import('./helpers/s3Mock')).s3MockM
 
 import { aiTask, estimateMonthly, modelInfo } from '@family-trivia/shared';
 import { loadModelChoices, modelFor } from '../services/bedrock/core/models';
-import { flushUsage, recordUsage, usageFromBody, usageKey } from '../services/bedrock/core/usage';
+import { flushUsage, recordUsage, usageKey } from '../services/bedrock/core/usage';
 import { resolveSettings, saveSettings } from '../services/settings';
 import { getStored, resetS3Mock } from './helpers/s3Mock';
 
@@ -44,11 +44,7 @@ describe('models per task', () => {
 });
 
 describe('usage', () => {
-  test('reads tokens from a Claude response and tallies per task and model', async () => {
-    const body = new TextEncoder().encode(
-      JSON.stringify({ usage: { input_tokens: 1200, output_tokens: 300 } }),
-    );
-    expect(usageFromBody(body)).toEqual({ input: 1200, output: 300 });
+  test('tallies tokens per task and model', async () => {
     recordUsage('trivia', 'm1', 1200, 300);
     recordUsage('trivia', 'm1', 800, 100);
     await flushUsage();
