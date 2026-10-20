@@ -175,9 +175,10 @@
       "file": "season-opens.png",
       "story": "seasons-seasonletter--opens-on-its-own",
       "size": "phone",
+      "theme": "sunset",
       "selector": ".MuiDialog-paper",
       "storyFile": "frontend/src/components/SeasonLetter/SeasonLetter.stories.tsx",
-      "source": "e1f4a76dd9df"
+      "source": "5e8d53238f62"
     },
     {
       "file": "settings.png",

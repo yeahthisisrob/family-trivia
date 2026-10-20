@@ -24,7 +24,7 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { getMediaUrl, uploadImage } from '../../api/modules/admin';
 import { useAdmin } from '../../contexts/AdminContext';
-import { paper } from '../../shared/design-system';
+import { useLetterPaper } from '../../shared/design-system';
 import { currentCircleKind } from '../../shared/session/session';
 import { LetterPaper } from '../SeasonLetter/SeasonLetter';
 
@@ -39,6 +39,7 @@ interface SeasonLetterEditorProps {
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 
 export const SeasonLetterEditor: React.FC<SeasonLetterEditorProps> = ({ season, onClose }) => {
+  const paper = useLetterPaper();
   const admin = useAdmin();
   const [kind, setKind] = useState<Kind>('end');
   const [notes, setNotes] = useState<Record<Kind, SeasonNote>>({
