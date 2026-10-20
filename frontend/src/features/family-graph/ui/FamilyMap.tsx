@@ -26,7 +26,7 @@ import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D, { type ForceGraphMethods } from 'react-force-graph-2d';
 import { useCircleWords } from '../../../entities/circle';
-import { type GraphData, knowledgeApi } from '../../../entities/family';
+import { type GraphData, useKnowledge } from '../../../entities/family';
 import { asFamily } from '../model/buildGraph';
 import { buildMap, type MapTopic, ringFor } from '../model/buildMap';
 import {
@@ -72,18 +72,13 @@ export const FamilyMap: React.FC<{
   const fg = useRef<ForceGraphMethods | undefined>(undefined);
   const box = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(600);
-  const [knowledge, setKnowledge] = useState<FamilyKnowledge | null | undefined>(given);
+  const index = useKnowledge(given === undefined);
+  // Given (stories), else the index; one that didn't load shows the empty map.
+  const knowledge =
+    given !== undefined ? given : (index.data ?? (index.isError ? null : undefined));
   const [focus, setFocus] = useState<string | null>(null);
   const [hover, setHover] = useState<string | null>(null);
   const room = useRef(new LabelRoom());
-
-  useEffect(() => {
-    if (given !== undefined) return;
-    knowledgeApi
-      .get()
-      .then(setKnowledge)
-      .catch(() => setKnowledge(null));
-  }, [given]);
 
   useEffect(() => {
     const el = box.current;

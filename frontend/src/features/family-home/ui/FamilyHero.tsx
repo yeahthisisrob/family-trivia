@@ -9,7 +9,7 @@ import { Box, Card, Skeleton, Stack, Typography } from '@mui/material';
 import type React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useCircleWords } from '../../../entities/circle';
-import type { FamilyStory } from '../api/familyHomeApi';
+import type { FamilyStory } from '../model/familyStory';
 
 const Stat: React.FC<{ value: string | number; label: string }> = ({ value, label }) => (
   <Box>

@@ -36,7 +36,7 @@ import {
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useCircleWords } from '../../../entities/circle';
-import { familyApi, useFamily } from '../../../entities/family';
+import { useFamily, useSaveFamily } from '../../../entities/family';
 import { ApiError } from '../../../shared/api/ApiService';
 import { loadCircles } from '../../../shared/session/session';
 import { archiveApi } from '../../family-archive';
@@ -63,7 +63,8 @@ const initials = (name: string) =>
     .toUpperCase();
 
 export const FamilyEditor: React.FC<{ adminUserId: string }> = ({ adminUserId }) => {
-  const { family: saved, photoUrls, error: loadError, replace } = useFamily();
+  const { family: saved, photoUrls, error: loadError } = useFamily();
+  const saveFamily = useSaveFamily();
   const { words } = useCircleWords();
   const [draft, setDraft] = useState<Family | null>(null);
   const [editing, setEditing] = useState<{ person: FamilyPerson; isNew: boolean } | null>(null);
@@ -138,8 +139,8 @@ export const FamilyEditor: React.FC<{ adminUserId: string }> = ({ adminUserId })
     setSaving(true);
     setProblems(null);
     try {
-      const res = await familyApi.save(family);
-      replace(res.family, res.photoUrls);
+      // The saved family shows everywhere once this resolves.
+      await saveFamily.mutateAsync(family);
       setDraft(null);
       setSavedNote(true);
     } catch (e) {

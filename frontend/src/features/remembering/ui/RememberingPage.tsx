@@ -1,5 +1,5 @@
 /**
- * PersonStory someone: their page once the family has lost them. Top to
+ * Remembering someone: their page once the family has lost them. Top to
  * bottom by what the family comes for: who they were and the last things
  * they told us, what the family loved of theirs, what the family said about
  * them and wrote under their answers, the family's memories, and
@@ -11,7 +11,6 @@ import {
   type Comment,
   type FamilyPerson,
   LAST_WORDS,
-  type PersonStory,
   type StoryWord,
   spanLabel,
   type VisitorMemory,
@@ -31,7 +30,7 @@ import {
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useCircleWords } from '../../../entities/circle';
-import { storyApi } from '../../../entities/family';
+import { usePersonStory } from '../../../entities/family';
 import { usePaper } from '../../../shared/design-system';
 import { MemoryLinkPanel, memoryLinksApi } from '../../memory-links';
 import { PersonBookButton } from '../../person-book';
@@ -113,8 +112,9 @@ export const RememberingPage: React.FC<{
 }> = ({ person, photo, topics = [], nameOf, onClose }) => {
   const paper = usePaper();
   const { words } = useCircleWords();
-  const [data, setData] = useState<PersonStory | null>(null);
-  const [failed, setFailed] = useState(false);
+  const story = usePersonStory(person.id);
+  const data = story.data ?? null;
+  const failed = story.isError && !data;
   const [memories, setMemories] = useState<Comment[] | null>(null);
   const [visitors, setVisitors] = useState<VisitorMemory[]>([]);
   const loadVisitors = useCallback(
@@ -131,10 +131,6 @@ export const RememberingPage: React.FC<{
   const dedication = person.memorial?.dedication;
 
   useEffect(() => {
-    storyApi
-      .get(person.id)
-      .then(setData)
-      .catch(() => setFailed(true));
     rememberingApi
       .memories(person.id)
       .then(setMemories)

@@ -1,15 +1,19 @@
 /**
  * Today's question, as server data (docs/decisions/0035): the question, the
  * answers its catch-up queue is built from, and the starters that help type
- * an answer. An answer or a skip shows at once; then everything on Home it
- * changes is asked for again: who has played, the week's answers, the
- * timeline, and this question itself.
+ * an answer. An answer or a skip shows at once; then everything it changes
+ * is asked for again: who has played, the week's answers, the timeline, the
+ * answerer's profile and story, and this question itself. Editing a past
+ * answer (from the profile) changes the same reads.
  */
 import {
   generateDailyFactWithTheme,
   skipDailyFact,
   submitDailyFact,
+  submitHistoricalFact,
 } from '../../../api/modules/facts';
+import { PERSON_STORY } from '../../../entities/family';
+import { PROFILE } from '../../../entities/person';
 import { TIMELINE } from '../../../entities/timeline';
 import type { ResponseOf } from '../../../shared/api/contract';
 import { useCircleMutation, useCircleQuery } from '../../../shared/api/query';
@@ -21,8 +25,8 @@ export type FactHistory = ResponseOf<'/user-fact-history'>;
 
 const DAILY_QUESTION = ['daily-question'] as const;
 
-/** What an answer to today's question (or one waiting) changes on Home. */
-const ANSWERED = [DAILY_QUESTION, FACT_GRID, FACT_SUMMARY, TIMELINE];
+/** What an answer to today's question (or one waiting, or a past one) changes. */
+const ANSWERED = [DAILY_QUESTION, FACT_GRID, FACT_SUMMARY, TIMELINE, PROFILE, PERSON_STORY];
 
 export const useTodaysQuestion = (userId: string) =>
   useCircleQuery({ key: [...DAILY_QUESTION, 'today'], path: '/daily-fact', query: { userId } });
@@ -66,6 +70,10 @@ export const useSkipQuestion = () =>
     invalidates: ANSWERED,
     refreshInBackground: true,
   });
+
+/** A past question answered, or its answer changed: it shows once the reads are back. */
+export const useEditAnswer = () =>
+  useCircleMutation({ mutationFn: submitHistoricalFact, invalidates: ANSWERED });
 
 /** Today's creator picks the question everyone gets. */
 export const useChooseQuestion = () =>

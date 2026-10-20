@@ -14,6 +14,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import { currentCircleId } from '../../session/session';
 import { type ApiPath, callApi, type ResponseOf } from '../contract';
 
@@ -135,6 +136,22 @@ interface CircleMutation<TData, TVars> {
 interface Started {
   circle: string | null;
   rollback?: () => void;
+}
+
+/**
+ * Mark this circle's reads stale (and ask the ones on screen again) after a
+ * change saved outside useCircleMutation: for screens not on server data yet
+ * (the Trivia tab, until it moves) whose changes touch reads that are.
+ */
+export function useCircleInvalidate() {
+  const client = useQueryClient();
+  return useCallback(
+    (...stale: readonly (readonly KeyPart[])[]) => {
+      const cache = cacheOf(client, currentCircleId());
+      return Promise.all(stale.map((key) => cache.invalidate(key))).then(() => undefined);
+    },
+    [client],
+  );
 }
 
 /** Change something on the server, then bring this circle's cached reads up to date. */

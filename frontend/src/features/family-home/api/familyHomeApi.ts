@@ -1,36 +1,8 @@
-import { knowledgeApi } from '../../../entities/family';
-import { apiService } from '../../../shared/api/ApiService';
+import { callApi } from '../../../shared/api/contract';
 
-export interface FamilyStory {
-  markdown: string | null;
-  generatedAt: string | null;
-  stats: {
-    people: number;
-    playing: number;
-    households: number;
-    answers: number;
-    since: string | null;
-  };
-}
-
-export interface Words {
-  personId: string;
-  words: { question: string; answer: string; date: string | null }[];
-}
-
+/** What admins change on Us: the family's story, and its knowledge index. */
 export const familyHomeApi = {
-  story: () => apiService.request<FamilyStory>('/family/story', { method: 'GET' }, 'family_story'),
-  writeStory: () => apiService.request<FamilyStory>('/admin/family/story', { method: 'POST' }),
-  words: (personId: string) =>
-    apiService.request<Words>(
-      `/family/words?personId=${encodeURIComponent(personId)}`,
-      { method: 'GET' },
-      `words_${personId}`,
-    ),
-  knowledge: knowledgeApi.get,
-  buildKnowledge: () =>
-    apiService.request<{ read: number; personas: number; left: number; failures: string[] }>(
-      '/admin/knowledge/build',
-      { method: 'POST' },
-    ),
+  writeStory: () => callApi('/admin/family/story', { method: 'post' }),
+  /** Reads the next batch of answers into the index; call again while `left` > 0. */
+  buildKnowledge: () => callApi('/admin/knowledge/build', { method: 'post' }),
 };

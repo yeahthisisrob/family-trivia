@@ -1,66 +1,49 @@
+/**
+ * Everything one person answered (their profile's "See every trivia answer"):
+ * their trivia, their facts, and the ones the family commented on. It reads
+ * their own timeline (entities/timeline), page by page as it scrolls.
+ */
 import { Box, Typography } from '@mui/material';
 import type React from 'react';
-import { useEffect, useMemo, useState } from 'react';
-
-import { useTimeline } from '../../contexts/TimelineContext';
-import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
-import { useUserTimeline } from '../../hooks/useUserTimeline';
-import { createLogger } from '../../shared/lib/logger';
-import { getUserColor, getUserInitials } from '../../utils';
-import CommentsTimeline from '../TimelineBoard/CommentsTimeline';
-import FactTimeline from '../TimelineBoard/FactTimeline';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import CommentsTimeline from '../../../components/TimelineBoard/CommentsTimeline';
+import FactTimeline from '../../../components/TimelineBoard/FactTimeline';
 import ContentTypeSelector, {
   type ContentType,
-} from '../TimelineBoard/selectors/ContentTypeSelector';
-import TriviaTimeline from '../TimelineBoard/TriviaTimeline';
-import { LoadingDots } from '../ui/feedback';
+} from '../../../components/TimelineBoard/selectors/ContentTypeSelector';
+import TriviaTimeline from '../../../components/TimelineBoard/TriviaTimeline';
+import { LoadingDots } from '../../../components/ui/feedback';
+import { useTimeline } from '../../../contexts/TimelineContext';
+import { usePersonTimeline } from '../../../entities/timeline';
+import { useInfiniteScroll } from '../../../hooks/useInfiniteScroll';
+import { createLogger } from '../../../shared/lib/logger';
+import { getUserColor, getUserInitials } from '../../../utils';
 
 interface UserTimelineProps {
   userId: string;
   onUserClick?: (userId: string) => void;
-  refreshKey?: number;
 }
 
 const logger = createLogger('UserTimeline');
+const NOTHING_YET = { facts: [], trivia: [], familySides: {} };
+const ignoreLoading = () => undefined;
 
-const UserTimeline: React.FC<UserTimelineProps> = ({ userId, onUserClick, refreshKey = 0 }) => {
-  // Use user-specific timeline hook for efficient data loading
-  const {
-    timelineData,
-    loading: timelineLoading,
-    loadingMore,
-    refresh,
-    loadMore: loadMoreTimeline,
-    hasMoreFacts,
-    hasMoreTrivia,
-  } = useUserTimeline({ userId });
+export const UserTimeline: React.FC<UserTimelineProps> = ({ userId, onUserClick }) => {
+  const feed = usePersonTimeline(userId);
+  const isLoading = feed.isPending;
+  const loadingMore = feed.isFetchingNextPage;
+  const hasMoreFacts = feed.data?.hasMoreFacts ?? false;
+  const hasMoreTrivia = feed.data?.hasMoreTrivia ?? false;
+  const { fetchNextPage } = feed;
+  const loadMore = useCallback(() => void fetchNextPage(), [fetchNextPage]);
 
   // Get comment counts from the main timeline context
   const { commentCounts } = useTimeline();
 
-  // Local state
   const [contentType, setContentType] = useState<ContentType>('triviaHistory');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Update local loading state based on context loading state
-  useEffect(() => {
-    setIsLoading(timelineLoading);
-  }, [timelineLoading]);
-
-  // Refresh timeline when refreshKey changes
-  useEffect(() => {
-    if (refreshKey > 0) {
-      refresh();
-    }
-  }, [refreshKey, refresh]);
-
-  // No need to filter - data is already user-specific from the API
-  const filteredTimelineData = useMemo(() => {
-    if (!timelineData) {
-      return { facts: [], trivia: [], familySides: {} };
-    }
-    return timelineData;
-  }, [timelineData]);
+  // A timeline that didn't load shows as empty, as before.
+  const filteredTimelineData = useMemo(() => feed.data ?? NOTHING_YET, [feed.data]);
 
   // Filter and sort data based on content type
   const getFilteredData = () => {
@@ -116,7 +99,7 @@ const UserTimeline: React.FC<UserTimelineProps> = ({ userId, onUserClick, refres
 
   // Set up infinite scroll (disabled for now)
   const infiniteScrollRef = useInfiniteScroll({
-    onLoadMore: loadMoreTimeline,
+    onLoadMore: loadMore,
     hasMore,
     loading: loadingMore,
   });
@@ -182,11 +165,10 @@ const UserTimeline: React.FC<UserTimelineProps> = ({ userId, onUserClick, refres
         contentType === 'triviaHistory' &&
         (filteredTimelineData.trivia.length > 0 ? (
           <TriviaTimeline
-            refreshKey={refreshKey}
             onUserClick={onUserClick}
             currentUserId={userId}
             selectedSide="all"
-            setIsLoading={setIsLoading}
+            setIsLoading={ignoreLoading}
             timelineData={filteredTimelineData}
           />
         ) : (
@@ -236,5 +218,3 @@ const UserTimeline: React.FC<UserTimelineProps> = ({ userId, onUserClick, refres
     </Box>
   );
 };
-
-export default UserTimeline;

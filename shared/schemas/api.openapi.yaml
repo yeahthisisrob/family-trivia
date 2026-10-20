@@ -170,11 +170,11 @@ paths:
             type: string
       responses:
         "200":
-          description: User profile object
+          description: Their trivia, in numbers and the last ten answers
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/UserProfile"
 
   # ──────────────────────────────────────────────
   # Trivia Questions
@@ -5131,7 +5131,10 @@ components:
           required: [library, animal, color]
           properties:
             library: { type: string, enum: [animal] }
-            animal: { type: string }
+            animal:
+              type: string
+              description: One of ANIMALS in shared/src/avatar.ts
+              enum: [baby_chick, badger, bear, beaver, bison, butterfly, cat_face, cow_face, crab, deer, dodo, dog_face, dolphin, dragon_face, duck, eagle, elephant, flamingo, fox, frog, giraffe, hamster, hatching_chick, hedgehog, hippopotamus, honeybee, horse_face, kangaroo, koala, lady_beetle, lion, lizard, llama, monkey_face, mouse_face, octopus, orangutan, otter, owl, panda, parrot, peacock, penguin, pig_face, polar_bear, rabbit_face, raccoon, seal, shark, sloth, snail, spouting_whale, swan, tiger_face, turtle, unicorn, wolf, zebra]
             color: { type: string, enum: [sky, lilac, periwinkle, blush, peach, mint] }
 
     AfterPlan:
@@ -5388,7 +5391,7 @@ components:
             required: [name, kind, people]
             properties:
               name: { type: string }
-              kind: { type: string }
+              kind: { $ref: "#/components/schemas/KnowledgeKind" }
               people: { type: array, items: { type: string } }
         meet:
           type: array
@@ -6415,6 +6418,9 @@ components:
               fact:
                 type: string
                 description: The "did you know" that came back when they answered
+              from:
+                type: string
+                description: In a joined circle, the circle they said it in when it wasn't this one
         last:
           type: array
           items:
@@ -6468,7 +6474,8 @@ components:
             type: object
             required: [kind, name, count, says]
             properties:
-              kind: { type: string }
+              kind:
+                $ref: "#/components/schemas/KnowledgeKind"
               name: { type: string }
               count: { type: integer }
               says:
@@ -6757,18 +6764,113 @@ components:
         people:
           type: object
           additionalProperties:
-            type: object
-            additionalProperties: true
+            $ref: "#/components/schemas/FamilyPerson"
         ties:
           type: array
           items:
-            type: object
-            additionalProperties: true
+            $ref: "#/components/schemas/Tie"
         households:
           type: object
           additionalProperties:
-            type: object
-            additionalProperties: true
+            $ref: "#/components/schemas/Household"
+
+    Participation:
+      type: string
+      description: Whether someone takes part in the game, apart from being in the family
+      enum: [playing, paused, not-playing]
+
+    FamilyPerson:
+      type: object
+      required: [id, name, participation]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        fullName: { type: string }
+        born:
+          type: object
+          properties:
+            date: { type: string }
+            place: { type: string }
+        photo: { type: string }
+        participation:
+          $ref: "#/components/schemas/Participation"
+        memorial:
+          type: object
+          description: Present when the person has died
+          properties:
+            died: { type: string }
+            dedication: { type: string }
+            photo: { type: string }
+            onHome: { type: boolean }
+        noAiMentions: { type: boolean }
+        howWeMet: { type: string }
+        avatar:
+          $ref: "#/components/schemas/AvatarChoice"
+
+    Tie:
+      description: How two people are connected (shared/src/people.ts)
+      oneOf:
+        - type: object
+          required: [id, type, a, b, kind]
+          properties:
+            id: { type: string }
+            type: { type: string, enum: [partner] }
+            a: { type: string }
+            b: { type: string }
+            kind: { type: string, enum: [married, partnered, engaged] }
+            since: { type: string }
+            ended:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, enum: [separated, divorced, widowed] }
+                date: { type: string }
+        - type: object
+          required: [id, type, parent, child, kind]
+          properties:
+            id: { type: string }
+            type: { type: string, enum: [parent] }
+            parent: { type: string }
+            child: { type: string }
+            kind: { type: string, enum: [birth, adoptive, step, foster, guardian] }
+            since: { type: string }
+        - type: object
+          required: [id, type, a, b, relation]
+          properties:
+            id: { type: string }
+            type: { type: string, enum: [kin] }
+            a: { type: string }
+            b: { type: string }
+            relation:
+              type: string
+              enum: [sibling, cousin, aunt-uncle, grandparent, in-law, chosen-family, friend]
+        - type: object
+          required: [id, type, a, b]
+          properties:
+            id: { type: string }
+            type: { type: string, enum: [friend] }
+            a: { type: string }
+            b: { type: string }
+            met:
+              type: object
+              properties:
+                how:
+                  type: string
+                  enum: [school, college, work, neighbors, team, through-a-friend, online, family, other]
+                when: { type: string }
+                where: { type: string }
+
+    Household:
+      type: object
+      required: [id, name, members]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        color: { type: string }
+        members:
+          type: array
+          items: { type: string }
 
     FamilyResponse:
       type: object
@@ -6823,8 +6925,7 @@ components:
               name:
                 type: string
               participation:
-                type: string
-                enum: [playing, paused, not-playing]
+                $ref: "#/components/schemas/Participation"
               remembered:
                 type: boolean
               died:
@@ -6845,13 +6946,11 @@ components:
         ties:
           type: array
           items:
-            type: object
-            additionalProperties: true
+            $ref: "#/components/schemas/Tie"
         households:
           type: array
           items:
-            type: object
-            additionalProperties: true
+            $ref: "#/components/schemas/Household"
         likenesses:
           type: array
           items:
@@ -6870,6 +6969,7 @@ components:
                 type: array
                 items:
                   type: object
+                  required: [question, a, b]
                   properties:
                     question:
                       type: string
@@ -7053,7 +7153,7 @@ components:
               name:
                 type: string
               kind:
-                type: string
+                $ref: "#/components/schemas/KnowledgeKind"
               people:
                 type: array
                 items:
@@ -7062,6 +7162,7 @@ components:
                 type: array
                 items:
                   type: object
+                  required: [personId, says]
                   properties:
                     personId:
                       type: string
@@ -7069,14 +7170,147 @@ components:
                       type: string
         people:
           type: object
+          description: Each person's top things, persona and counted numbers
           additionalProperties:
             type: object
-            additionalProperties: true
+            required: [top, persona, stats]
+            properties:
+              top:
+                type: array
+                items:
+                  type: object
+                  required: [name, kind, count]
+                  properties:
+                    name: { type: string }
+                    kind:
+                      $ref: "#/components/schemas/KnowledgeKind"
+                    count: { type: integer }
+              persona:
+                type: object
+                nullable: true
+                required: [text, traits, at, items]
+                properties:
+                  text: { type: string }
+                  traits:
+                    type: array
+                    items: { type: string }
+                  at: { type: string }
+                  items: { type: integer }
+              stats:
+                type: object
+                required: [answers, words, bestStreak, first]
+                properties:
+                  answers: { type: integer }
+                  words: { type: integer }
+                  bestStreak: { type: integer }
+                  first: { type: string, nullable: true }
         stats:
           type: object
-          additionalProperties: true
+          required: [answers, words, people, busiestDay, longestAnswer]
+          properties:
+            answers: { type: integer }
+            words: { type: integer }
+            people: { type: integer }
+            busiestDay: { type: string, nullable: true }
+            longestAnswer:
+              type: object
+              nullable: true
+              required: [personId, question, words]
+              properties:
+                personId: { type: string }
+                question: { type: string }
+                words: { type: integer }
         unread:
           type: integer
         builtAt:
           type: string
           nullable: true
+
+    KnowledgeKind:
+      type: string
+      description: What a knowledge item is about (KNOWLEDGE_KINDS in shared/src/knowledge.ts)
+      enum: [place, food, person, pet, activity, media, work, value, memory]
+
+    UserProfile:
+      type: object
+      description: Someone's trivia (shared/src/profile.ts)
+      required:
+        - profile
+        - history
+        - totalScore
+        - streak
+        - facts
+        - categorySelections
+        - difficultyStats
+        - categoryBonusStats
+        - scoringHistory
+        - lastUpdated
+      properties:
+        profile:
+          type: object
+          description: Their answers to the daily question, by a short key made from the question
+          additionalProperties: { type: string }
+        history:
+          type: array
+          description: Their last ten trivia answers, newest first
+          items:
+            $ref: "#/components/schemas/HistoryEntry"
+        totalScore: { type: number }
+        streak: { type: integer }
+        facts:
+          type: array
+          items:
+            $ref: "#/components/schemas/FactItem"
+        categorySelections:
+          type: array
+          items:
+            type: object
+            required: [category, timestamp]
+            properties:
+              category: { type: string }
+              timestamp: { type: string }
+              isCustom: { type: boolean }
+        difficultyStats:
+          $ref: "#/components/schemas/DifficultyStats"
+        categoryBonusStats:
+          type: object
+          required: [timesBonusEarned, totalBonusPoints]
+          properties:
+            timesBonusEarned: { type: integer }
+            totalBonusPoints: { type: number }
+        scoringHistory:
+          type: array
+          description: Every trivia answer, with how many points it was worth
+          items:
+            $ref: "#/components/schemas/ScoreHistoryEntry"
+        lastUpdated: { type: string }
+
+    ScoreHistoryEntry:
+      type: object
+      required:
+        - date
+        - gameType
+        - category
+        - difficulty
+        - pointsAttempted
+        - pointsEarned
+        - correct
+        - question
+        - userAnswer
+        - correctAnswer
+      properties:
+        date: { type: string }
+        gameType: { type: string }
+        gameMode:
+          type: string
+          description: The game folder's id it came from, if any (docs/decisions/0032)
+        category: { type: string }
+        difficulty: { type: string }
+        pointsAttempted: { type: number }
+        pointsEarned: { type: number }
+        correct: { type: boolean }
+        question: { type: string }
+        userAnswer: { type: string }
+        correctAnswer: { type: string }
+        questionNumber: { type: integer }
+        totalQuestions: { type: integer }
