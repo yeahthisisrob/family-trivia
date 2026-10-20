@@ -46,6 +46,13 @@ each other (0015), so nobody sees that picture.
 - **The owner's admin** gets the same view with every circle in it, plus
   join, split and "same person" controls in Admin › Circles.
 
+## As built (Oct 20, 2026)
+- Your world is built (`GET /me/world`, the circle menu): constellations per
+  circle, the same sign-in in two circles as a bridge, threads (the same
+  knowledge item in more than one circle) and who should meet. Computed per
+  request for the caller; accounts are matched on the server and never sent.
+  The timeline, joining and splitting are still to come.
+
 ## Consequences
 Circles stay simple and separate in storage, and every combination is a
 reversible link on top. The knowledge index stays per circle; matching

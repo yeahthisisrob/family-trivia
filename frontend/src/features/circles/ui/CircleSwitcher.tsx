@@ -2,6 +2,7 @@ import type { MyCircle } from '@family-trivia/shared';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
+import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import {
   Box,
   Button,
@@ -21,6 +22,7 @@ import {
 import type React from 'react';
 import { useState } from 'react';
 import { KIND_ICON, KIND_LABEL } from '../../../entities/circle';
+import { YourWorld } from '../../your-world';
 import { useMyCircles } from '../model/useMyCircles';
 
 const JOIN_ERRORS: Record<string, string> = {
@@ -45,6 +47,7 @@ export const CircleSwitcher: React.FC<Props> = ({ fallbackTitle, color, mutedCol
   const { circles, current, join, open } = useMyCircles();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [joining, setJoining] = useState(false);
+  const [world, setWorld] = useState(false);
   const several = circles.length > 1;
 
   return (
@@ -87,6 +90,19 @@ export const CircleSwitcher: React.FC<Props> = ({ fallbackTitle, color, mutedCol
           />
         ))}
         {circles.length > 0 && <Divider />}
+        {several && (
+          <MenuItem
+            onClick={() => {
+              setAnchor(null);
+              setWorld(true);
+            }}
+          >
+            <ListItemIcon>
+              <PublicRoundedIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Your world" secondary="All your circles together" />
+          </MenuItem>
+        )}
         <MenuItem
           onClick={() => {
             setAnchor(null);
@@ -101,6 +117,7 @@ export const CircleSwitcher: React.FC<Props> = ({ fallbackTitle, color, mutedCol
       </Menu>
 
       <JoinDialog open={joining} onClose={() => setJoining(false)} onJoin={join} />
+      {world && <YourWorld onClose={() => setWorld(false)} />}
     </>
   );
 };
