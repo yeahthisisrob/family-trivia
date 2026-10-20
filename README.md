@@ -194,6 +194,10 @@ Home is in the order you'd use it: one card for coming back (what's new and what
 
 Nothing in an open season expires. Come back after two weeks and Home says what's waiting for you, oldest first, to play a few at a time or all at once. Answers count the same whenever they're given, the leaderboard shows what each person still has to play so a late start never looks like losing, and there are no streaks to break. Back after a while, Home says what's new since you were last here, never what you missed. A season can go at a daily pace or a weekly one (a handful of questions once a week), and friends circles start weekly.
 
+Every season opens with a letter, and ends with one. An admin can write either; if nobody writes the opening one, it's made from the season's settings: what the trivia is about, the pace, teams, and how last season went.
+
+![A season opens: a welcome, last season in a line, and what this one is](docs/screenshots/season-opens.png)
+
 ## Your world
 
 In more than one circle? Open **Your world** from the circle menu: all your circles in one sky, each its own constellation, with you as the bridge between them. It shows what comes up in more than one circle (the same beach, the same band) and who from different circles should meet. Under it, your story so far: when you met people, weddings, the plans you were in and what someone remembered, year by year, from what each circle knows. It's built just for you when you open it, from what you can already see, and never stored.

@@ -33,6 +33,7 @@ export * from './question';
 export * from './question-gen';
 export * from './reactions';
 export * from './season';
+export * from './season-opening';
 export * from './settings';
 export * from './similarity';
 export * from './slot-machine';

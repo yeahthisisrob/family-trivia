@@ -1,3 +1,4 @@
+import { openingLetter } from '@family-trivia/shared';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from 'storybook/test';
 import { SeasonLetter } from './SeasonLetter';
@@ -40,6 +41,23 @@ export const SeasonBegins: Story = {
       kind: 'start',
       markdown: `## Welcome back!\n\nThis season is all about **family**: every question comes from the stories you share.`,
     },
+  },
+};
+
+/** Nobody wrote a start letter: the season opens with one made from its settings. */
+const opening = openingLetter(
+  { name: 'Fall', trivia: 'mixed', play: 'teams', pace: 'weekly', perWeek: 5 },
+  { kind: 'family', first: false, last: { name: 'Summer of Stories', people: 9, answers: 214 } },
+);
+export const OpensOnItsOwn: Story = {
+  args: {
+    seasonName: 'Fall',
+    letter: { seasonNumber: 4, kind: 'start', title: opening.title, markdown: opening.markdown },
+  },
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    await expect(await body.findByText('Fall begins')).toBeInTheDocument();
+    await expect(body.getByText(/9 people shared 214 answers/)).toBeInTheDocument();
   },
 };
 

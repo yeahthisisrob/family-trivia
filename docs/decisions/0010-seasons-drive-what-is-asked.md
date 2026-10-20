@@ -21,6 +21,12 @@ the family's own words, shown once.
   browser uploads and reads them with short-lived presigned URLs
   (`backend/services/media.ts`); the bucket stays private.
 - The old plain-text `message` still works as an end letter.
+- A season with no start letter opens with one made from its settings
+  (`shared/src/season-opening.ts`): a welcome, how last season went (people
+  and answers given in this circle), and what this one is (trivia, pace,
+  teams, nothing expires). It shows only in the season's first 14 days, so
+  a season already under way doesn't announce itself. A written start
+  letter always wins; the editor previews the made one and can start from it.
 - Each season says what its trivia is about (`trivia`): **general** (the
   categories), **family** (only Our Family), or **mixed** (Our Family as one
   more category). Our Family questions come from the family itself
