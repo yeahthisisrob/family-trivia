@@ -3,7 +3,7 @@
  * One Google sign-in, any number of circles; a passphrase joins one more.
  */
 
-import { CIRCLE_KINDS } from '@family-trivia/shared';
+import { CIRCLE_KINDS, type Circle } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, OWNER_EMAIL, successResponse } from '../../config';
 import type { Caller } from '../../middleware/requireAuth';
@@ -11,15 +11,19 @@ import { verifyGoogleToken } from '../../services/auth';
 import {
   myCircles as circlesOf,
   createCircle,
+  findCircle,
+  isAdminIn,
   isOwner,
   isUnstarted,
   joinCircles,
   linkByPassphrase,
   listCircles,
   rebuildMemberships,
+  scopeOf,
   splitCircle,
   startFirstCircle,
 } from '../../services/circles';
+import { answerSame, sameSuggestions } from '../../services/family/joinedCircles';
 import { logger } from '../../services/logger';
 import { sessionFor } from '../../services/session';
 
@@ -206,4 +210,61 @@ export async function postSplit(
   const r = await splitCircle(circleId, caller.email);
   if (!r.ok) return errorResponse(r.error, r.status);
   return successResponse({ circle: r.circle, circles: await circlesOf(caller.email) });
+}
+
+// ── Same person (docs/decisions/0018) ───────────────────────────
+
+/** A joined circle the caller is an admin of, or why not. */
+async function joinedAdmin(
+  circleId: string | undefined,
+  email: string,
+): Promise<{ ok: true; circle: Circle } | { ok: false; res: APIGatewayProxyResult }> {
+  const circle = circleId ? await findCircle(circleId) : null;
+  if (!circle?.sources) return { ok: false, res: errorResponse('Not a joined circle', 400) };
+  if (!(await isAdminIn(circle, email)))
+    return { ok: false, res: errorResponse(`You need to be an admin in ${circle.name}`, 403) };
+  return { ok: true, circle };
+}
+
+/** GET /admin/circles/same?circleId=: who might be the same person there. */
+export async function getSame(
+  event: APIGatewayProxyEvent,
+  _userId: string,
+  caller: Caller,
+): Promise<APIGatewayProxyResult> {
+  const r = await joinedAdmin(event.queryStringParameters?.circleId, caller.email);
+  if (!r.ok) return r.res;
+  return successResponse({ suggestions: await sameSuggestions(scopeOf(r.circle)) });
+}
+
+const personIn = (v: unknown) => {
+  const p = v as { circleId?: unknown; id?: unknown } | null;
+  return typeof p?.circleId === 'string' && typeof p.id === 'string'
+    ? { circleId: p.circleId, id: p.id }
+    : null;
+};
+
+/** POST /admin/circles/same {circleId, a, b, same}: answer one suggestion. */
+export async function postSame(
+  event: APIGatewayProxyEvent,
+  _userId: string,
+  caller: Caller,
+): Promise<APIGatewayProxyResult> {
+  const body = parse(event);
+  const r = await joinedAdmin(text(body?.circleId), caller.email);
+  if (!r.ok) return r.res;
+  const a = personIn(body?.a);
+  const b = personIn(body?.b);
+  if (!a || !b || typeof body?.same !== 'boolean')
+    return errorResponse('a, b and same are required', 400);
+  const scope = scopeOf(r.circle);
+  // Only a pair that was suggested: two sign-ins are never made one by hand.
+  const key = (p: { circleId: string; id: string }) => `${p.circleId}/${p.id}`;
+  const asked = (await sameSuggestions(scope)).some(
+    (s) =>
+      (key(s.a) === key(a) && key(s.b) === key(b)) || (key(s.a) === key(b) && key(s.b) === key(a)),
+  );
+  if (!asked) return errorResponse('Not a pair to answer', 409);
+  await answerSame(scope, a, b, body.same);
+  return successResponse({ suggestions: await sameSuggestions(scope) });
 }

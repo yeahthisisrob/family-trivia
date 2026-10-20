@@ -352,7 +352,7 @@ export async function startFirstCircle(
 // ── Joining and splitting (docs/decisions/0018) ─────────────────
 
 /** Whether this email is an admin in a circle, by that circle's own people. */
-function isAdminIn(circle: Circle, email: string): Promise<boolean> {
+export function isAdminIn(circle: Circle, email: string): Promise<boolean> {
   return inCircle(scopeOf(circle), async () => {
     const userId = await memberIn(circle, email);
     if (!userId) return false;

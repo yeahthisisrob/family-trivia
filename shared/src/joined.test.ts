@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { joinPeople, type SourcePeople, sourceOfKey } from './joined';
+import { joinPeople, maybeSame, type SourcePeople, sourceOfKey } from './joined';
 import type { Family, FamilyPerson } from './people';
 
 const person = (id: string, extra: Partial<FamilyPerson> = {}): FamilyPerson => ({
@@ -104,5 +104,50 @@ describe('joinPeople', () => {
       'carol',
       'dave',
     ]);
+  });
+});
+
+describe('same person', () => {
+  // Grandma Jo is remembered in both circles; neither has a sign-in for her.
+  const withJo = (s: SourcePeople, id: string): SourcePeople => ({
+    ...s,
+    family: {
+      ...s.family,
+      people: { ...s.family.people, [id]: person(id, { name: 'Grandma Jo' }) },
+    },
+  });
+  const a = withJo(smiths, 'jo');
+  const b = withJo(crew, 'grandma');
+
+  it('suggests the same name in two circles', () => {
+    const j = joinPeople('x', [a, b]);
+    expect(maybeSame([a, b], j, { same: [], notSame: [] })).toEqual([
+      {
+        a: { circleId: 'smiths', id: 'jo' },
+        b: { circleId: 'crew', id: 'grandma' },
+        name: 'Grandma Jo',
+      },
+    ]);
+  });
+
+  it('makes one person of an admin\'s "same person" link, and stops asking', () => {
+    const link = { a: { circleId: 'smiths', id: 'jo' }, b: { circleId: 'crew', id: 'grandma' } };
+    const j = joinPeople('x', [a, b], [link]);
+    expect(j.homes.jo).toHaveLength(2);
+    expect(j.family.people.grandma).toBeUndefined();
+    expect(maybeSame([a, b], j, { same: [link], notSame: [] })).toEqual([]);
+  });
+
+  it('never asks again about a pair an admin said are different', () => {
+    const pair = { a: { circleId: 'smiths', id: 'jo' }, b: { circleId: 'crew', id: 'grandma' } };
+    expect(maybeSame([a, b], joinPeople('x', [a, b]), { same: [], notSame: [pair] })).toEqual([]);
+  });
+
+  it('two sign-ins are two people, whatever their names', () => {
+    const bobs = maybeSame([smiths, crew], joinPeople('x', [smiths, crew]), {
+      same: [],
+      notSame: [],
+    });
+    expect(bobs).toEqual([]);
   });
 });

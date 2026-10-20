@@ -72,8 +72,13 @@ each other (0015), so nobody sees that picture.
     record together with its sources'. No feature knows a circle is joined.
   - **One person per sign-in.** The same Google sign-in in two sources is one
     person; everyone else keeps their id, and an id two people share gets
-    the circle's id after it. An admin's "same person" link for people
-    without a sign-in is still to come.
+    the circle's id after it. For people without a sign-in (someone
+    remembered in both circles), the same name in two sources is suggested
+    in Admin › Circles, and an admin answers once: the same person (one here,
+    with everyone they're tied to) or not (never asked again). Answers live
+    in the joined circle (`config/same-people.json`); the sources are
+    untouched, and only a suggested pair can be answered, so two sign-ins
+    are never made one by hand.
   - **People are changed in the sources.** Writing a joined circle's people
     is refused (409, `PEOPLE_IN_SOURCES`); Admin › Family says so. Your own
     picture is the exception: it is saved in every source you're in.
