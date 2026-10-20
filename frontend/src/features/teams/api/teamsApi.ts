@@ -9,7 +9,6 @@ const post = (path: string, body: unknown = {}) =>
   });
 
 export const teamsApi = {
-  view: () => apiService.request<TeamsView>('/teams', { method: 'GET' }),
   start: (name: string) => post('/teams', { name }),
   join: (teamId: string) => post('/teams/ask', { teamId }),
   teamUp: (to: string) => post('/teams/ask', { to }),

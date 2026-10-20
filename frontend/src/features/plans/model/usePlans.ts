@@ -1,37 +1,56 @@
-import type { Drop, PlansView, Rsvp } from '@family-trivia/shared';
-import { useCallback, useEffect, useState } from 'react';
+import type { AfterPlan, Rsvp } from '@family-trivia/shared';
+import { useCircleMutation, useCircleQuery } from '../../../shared/api/query';
 import { plansApi } from '../api/plansApi';
+
+const VIEW = ['plans', 'view'] as const;
+const AFTER = ['plans', 'after'] as const;
 
 /** The weeks ahead, and the three things people do with them. */
 export function usePlans() {
-  const [view, setView] = useState<PlansView | null>(null);
-  const reload = useCallback(() => plansApi.view().then(setView), []);
+  const view = useCircleQuery({ key: VIEW, path: '/plans' });
+  // Each change brings the weeks back from the server before it resolves.
+  const dropIn = useCircleMutation({
+    mutationFn: (text: string) => plansApi.dropIn(text),
+    invalidates: [VIEW],
+  });
+  const remove = useCircleMutation({
+    mutationFn: (id: string) => plansApi.remove(id),
+    invalidates: [VIEW],
+  });
+  const rsvp = useCircleMutation({
+    mutationFn: ({ id, answer }: { id: string; answer: Rsvp | null }) => plansApi.rsvp(id, answer),
+    invalidates: [VIEW],
+  });
+  return {
+    view: view.data ?? null,
+    dropIn: async (text: string) => (await dropIn.mutateAsync(text)).added,
+    remove: async (id: string) => {
+      await remove.mutateAsync(id);
+    },
+    rsvp: async (id: string, answer: Rsvp | null) => {
+      await rsvp.mutateAsync({ id, answer });
+    },
+  };
+}
 
-  useEffect(() => {
-    reload().catch(() => setView(null));
-  }, [reload]);
-
-  const dropIn = useCallback(
-    async (text: string): Promise<Drop[]> => {
-      const { added } = await plansApi.dropIn(text);
-      await reload();
-      return added;
+/** Plans that just happened, asking how they went; the server answers each change with the list. */
+export function useAfterPlans() {
+  const after = useCircleQuery({ key: AFTER, path: '/plans/after', select: (r) => r.plans });
+  const remember = useCircleMutation({
+    mutationFn: ({ id, text }: { id: string; text: string }) => plansApi.remember(id, text),
+    onSuccess: (plans, _vars, cache) => cache.set<{ plans: AfterPlan[] }>(AFTER, () => ({ plans })),
+  });
+  const skip = useCircleMutation({
+    mutationFn: (id: string) => plansApi.skip(id),
+    onSuccess: (plans, _vars, cache) => cache.set<{ plans: AfterPlan[] }>(AFTER, () => ({ plans })),
+  });
+  return {
+    plans: after.data ?? [],
+    remember: async (id: string, text: string) => {
+      await remember.mutateAsync({ id, text });
     },
-    [reload],
-  );
-  const remove = useCallback(
-    async (id: string) => {
-      await plansApi.remove(id);
-      await reload();
+    skip: async (id: string) => {
+      await skip.mutateAsync(id);
     },
-    [reload],
-  );
-  const rsvp = useCallback(
-    async (id: string, answer: Rsvp | null) => {
-      await plansApi.rsvp(id, answer);
-      await reload();
-    },
-    [reload],
-  );
-  return { view, dropIn, remove, rsvp };
+  };
 }

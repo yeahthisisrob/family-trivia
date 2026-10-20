@@ -47,6 +47,12 @@
       "plugins": ["./biome-plugins/no-raw-colors.grit"]
     },
     {
+      // Server data is cached per circle through shared/api/query (0035); only
+      // that folder and the test helpers use TanStack Query directly.
+      "includes": ["frontend/src/shared/api/query/**", "frontend/src/test/**"],
+      "linter": { "rules": { "style": { "noRestrictedImports": "off" } } }
+    },
+    {
       // In tests and stories `x!` is an assertion: if it's missing, fail loudly.
       "includes": ["**/*.test.{ts,tsx}", "**/*.stories.tsx", "**/tests/**"],
       "linter": { "rules": { "style": { "noNonNullAssertion": "off" } } }
@@ -78,7 +84,17 @@
       "style": {
         // Paid off Oct 2026. Narrow instead; where an invariant really holds,
         // say why in a biome-ignore.
-        "noNonNullAssertion": "error"
+        "noNonNullAssertion": "error",
+        // Server data goes through shared/api/query, whose keys start with the
+        // tab's circle (docs/decisions/0035).
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "@tanstack/react-query": "Use shared/api/query: its keys start with the tab's circle (docs/decisions/0035)."
+            }
+          }
+        }
       }
     }
   }

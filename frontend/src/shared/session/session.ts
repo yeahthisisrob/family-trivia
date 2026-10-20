@@ -73,11 +73,20 @@ export function updateToken(token: string) {
   }
 }
 
-/** Clear session (logout). */
+const SIGNED_OUT_EVENT = 'ft:signed-out';
+
+/** Clear session (logout, or a session the server ended). */
 export function clearSession() {
   localStorage.removeItem(SESSION_KEY);
   localStorage.removeItem(CIRCLES_KEY);
   tab = null;
+  window.dispatchEvent(new Event(SIGNED_OUT_EVENT));
+}
+
+/** Signed out, however it happened: what was loaded for that person is dropped. */
+export function onSignedOut(handler: () => void): () => void {
+  window.addEventListener(SIGNED_OUT_EVENT, handler);
+  return () => window.removeEventListener(SIGNED_OUT_EVENT, handler);
 }
 
 // ── Circles (docs/decisions/0015) ────────────────────────────────

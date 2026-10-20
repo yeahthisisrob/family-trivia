@@ -24,6 +24,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@family-trivia/shared": ["../shared/src/index.ts"],
+      "@family-trivia/shared/generated": ["../shared/generated/index.ts"],
       "@family-trivia/shared/*": ["../shared/src/*"]
     }
   },

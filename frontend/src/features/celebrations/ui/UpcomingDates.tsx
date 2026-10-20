@@ -29,13 +29,10 @@ import ConfettiExplosion from 'react-confetti-explosion';
 import { LoadingDots } from '../../../components/ui/feedback';
 import { useCircleWords } from '../../../entities/circle';
 import { colors } from '../../../shared/design-system';
-import { createLogger } from '../../../shared/lib/logger';
 import { inThisCircle, loadSession } from '../../../shared/session/session';
-import { celebrationsApi } from '../api/celebrationsApi';
+import { useUpcomingDates } from '../model/useCelebrations';
 import AddCelebrationDialog from './AddCelebrationDialog';
 import AllCelebrationsDialog from './AllCelebrationsDialog';
-
-const logger = createLogger('UpcomingDates');
 
 const pulseGlow = keyframes`
   0%, 100% { box-shadow: 0 0 0 0 ${alpha(colors.accent.orange, 0.4)}; }
@@ -88,7 +85,6 @@ const BirthdayCard: React.FC<{ birthday: Birthday; isToday?: boolean }> = ({
   ) : (
     typeIcon[birthday.type || 'birthday']
   );
-  const bAny = birthday as any;
 
   return (
     <Box
@@ -127,7 +123,7 @@ const BirthdayCard: React.FC<{ birthday: Birthday; isToday?: boolean }> = ({
         {birthday.name}
       </Typography>
       <Typography sx={{ fontSize: '0.6rem', color: theme.palette.text.secondary, mb: 0.4 }}>
-        {fmt(birthday.month, birthday.day, !bAny.recurring ? bAny.year : undefined)}
+        {fmt(birthday.month, birthday.day, birthday.year)}
       </Typography>
       {birthday.description && (
         <Typography
@@ -170,17 +166,10 @@ const UpcomingDates: React.FC = () => {
   const { words } = useCircleWords();
   const currentUserId = loadSession() || '';
 
-  const [birthdays, setBirthdays] = useState<Birthday[]>([]);
-  const [todaysBirthdays, setTodaysBirthdays] = useState<Birthday[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
   const [displayLimit, setDisplayLimit] = useState(10);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showAllDialog, setShowAllDialog] = useState(false);
-  const [refreshAllDialog, setRefreshAllDialog] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -192,41 +181,37 @@ const UpcomingDates: React.FC = () => {
     return Date.now() - parseInt(dismissed, 10) > 7 * 24 * 60 * 60 * 1000; // 1 week
   });
 
+  // The rest of Home loads first: the dates are asked for two seconds in.
+  const [ready, setReady] = useState(false);
   useEffect(() => {
-    const timer = setTimeout(() => fetchBirthdays(), 2000);
+    const timer = setTimeout(() => setReady(true), 2000);
     return () => clearTimeout(timer);
   }, []);
 
-  const fetchBirthdays = async (limit = displayLimit, isLoadMore = false) => {
-    try {
-      if (isLoadMore) setLoadingMore(true);
-      else {
-        setLoading(true);
-        setError(false);
-      }
-      // Request one extra to detect if there are more
-      const response = await celebrationsApi.upcoming(limit + 1);
-      const upcoming = response.birthdays;
-      setHasMore(upcoming.length > limit);
-      setBirthdays(upcoming.slice(0, limit));
-      setTodaysBirthdays(response.todaysBirthdays);
-      // No confetti when the only day today is for remembering someone.
-      if (response.todaysBirthdays.some((b) => !b.remembered)) {
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 3000);
-      }
-      // If user has celebrations, hide CTA
-      if (response.birthdays.length + response.todaysBirthdays.length > 3) {
-        setShowCta(false);
-      }
-    } catch (err) {
-      logger.error('Failed to fetch birthdays', err);
-      if (!isLoadMore) setError(true);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  };
+  const upcoming = useUpcomingDates(displayLimit, ready);
+  const response = upcoming.data;
+  const loading = !response && !upcoming.isError;
+  const error = !response && upcoming.isError;
+  // A longer list is loading while the shorter one (10 fewer) stays on screen.
+  const loadingMore = upcoming.isPlaceholderData;
+  const shownLimit = loadingMore ? displayLimit - 10 : displayLimit;
+  const birthdays = response?.birthdays.slice(0, shownLimit) ?? [];
+  const todaysBirthdays = response?.todaysBirthdays ?? [];
+  const hasMore = loadingMore || (response?.birthdays.length ?? 0) > shownLimit;
+  // A circle with a few dates already doesn't need asking to add one.
+  const cta = showCta && !(response && response.birthdays.length + todaysBirthdays.length > 3);
+
+  // No confetti when the only day today is for remembering someone.
+  const celebrating = todaysBirthdays
+    .filter((b) => !b.remembered)
+    .map((b) => b.name)
+    .join('|');
+  useEffect(() => {
+    if (!celebrating) return undefined;
+    setShowConfetti(true);
+    const timer = setTimeout(() => setShowConfetti(false), 3000);
+    return () => clearTimeout(timer);
+  }, [celebrating]);
 
   const dismissCta = () => {
     setShowCta(false);
@@ -234,6 +219,9 @@ const UpcomingDates: React.FC = () => {
   };
 
   const loadMoreRef = useRef(false);
+  useEffect(() => {
+    if (!loadingMore) loadMoreRef.current = false;
+  }, [loadingMore]);
 
   const checkScroll = () => {
     if (scrollRef.current) {
@@ -245,11 +233,7 @@ const UpcomingDates: React.FC = () => {
       const nearEnd = scrollLeft > scrollWidth - clientWidth - 120;
       if (nearEnd && hasMore && !loadingMore && !loadMoreRef.current) {
         loadMoreRef.current = true;
-        const newLimit = displayLimit + 10;
-        setDisplayLimit(newLimit);
-        fetchBirthdays(newLimit, true).finally(() => {
-          loadMoreRef.current = false;
-        });
+        setDisplayLimit((limit) => limit + 10);
       }
     }
   };
@@ -310,7 +294,7 @@ const UpcomingDates: React.FC = () => {
   }
 
   // Empty + error → only show if CTA should be visible
-  if ((error || (birthdays.length === 0 && todaysBirthdays.length === 0)) && !showCta) return null;
+  if ((error || (birthdays.length === 0 && todaysBirthdays.length === 0)) && !cta) return null;
 
   return (
     <>
@@ -382,7 +366,7 @@ const UpcomingDates: React.FC = () => {
                   color: theme.palette.text.secondary,
                   '&:hover': { color: theme.palette.warning.main },
                   // Pulse animation when CTA is active
-                  ...(showCta && {
+                  ...(cta && {
                     animation: `${pulseGlow} 2s ease-in-out infinite`,
                     color: theme.palette.warning.main,
                   }),
@@ -404,7 +388,7 @@ const UpcomingDates: React.FC = () => {
           </Box>
 
           {/* CTA for new users */}
-          {showCta && birthdays.length + todaysBirthdays.length <= 3 && (
+          {cta && (
             <Box
               sx={{
                 px: 2,
@@ -588,9 +572,7 @@ const UpcomingDates: React.FC = () => {
         open={showAddDialog}
         onClose={() => setShowAddDialog(false)}
         onSuccess={() => {
-          fetchBirthdays();
           setShowAddDialog(false);
-          setRefreshAllDialog((p) => p + 1);
           dismissCta();
         }}
       />
@@ -598,8 +580,6 @@ const UpcomingDates: React.FC = () => {
         open={showAllDialog}
         onClose={() => setShowAllDialog(false)}
         currentUserId={currentUserId}
-        onDeleted={fetchBirthdays}
-        refreshTrigger={refreshAllDialog}
       />
     </>
   );

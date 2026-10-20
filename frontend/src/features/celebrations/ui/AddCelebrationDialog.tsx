@@ -31,7 +31,7 @@ import type React from 'react';
 import { useState } from 'react';
 import { useCircleWords } from '../../../entities/circle';
 import { createLogger } from '../../../shared/lib/logger';
-import { celebrationsApi } from '../api/celebrationsApi';
+import { useAddCelebration } from '../model/useCelebrations';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -84,7 +84,8 @@ const AddCelebrationDialog: React.FC<AddCelebrationDialogProps> = ({
   const [description, setDescription] = useState('');
   const [year, setYear] = useState('');
   const [recurring, setRecurring] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const add = useAddCelebration();
+  const loading = add.isPending;
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
@@ -97,12 +98,11 @@ const AddCelebrationDialog: React.FC<AddCelebrationDialogProps> = ({
       return;
     }
 
-    setLoading(true);
     setError(null);
     try {
       const month = String(date.month() + 1).padStart(2, '0');
       const day = String(date.date()).padStart(2, '0');
-      await celebrationsApi.add({
+      await add.mutateAsync({
         type,
         name: name.trim(),
         date: `${month}/${day}`,
@@ -121,8 +121,6 @@ const AddCelebrationDialog: React.FC<AddCelebrationDialogProps> = ({
     } catch (err) {
       logger.error('Failed to add celebration', err);
       setError('Failed to add. Please try again.');
-    } finally {
-      setLoading(false);
     }
   };
 

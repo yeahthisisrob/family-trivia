@@ -1369,15 +1369,27 @@ paths:
       summary: Get upcoming birthdays
       operationId: getUpcomingBirthdays
       tags: [Celebrations]
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: How many dates after today (default 10, at most 100)
+          schema:
+            type: integer
       responses:
         "200":
-          description: Upcoming birthdays
+          description: Today's dates, and the next ones in order
           content:
             application/json:
               schema:
                 type: object
+                required: [birthdays, todaysBirthdays]
                 properties:
                   birthdays:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Birthday"
+                  todaysBirthdays:
                     type: array
                     items:
                       $ref: "#/components/schemas/Birthday"
@@ -1434,6 +1446,7 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [celebrations, lastUpdated]
                 properties:
                   celebrations:
                     type: array
@@ -5214,15 +5227,24 @@ components:
         createdAt: { type: string }
 
     TeamRequest:
-      type: object
-      required: [id, kind, from, at]
-      properties:
-        id: { type: string }
-        kind: { type: string, enum: [join, team-up] }
-        from: { type: string }
-        teamId: { type: string }
-        to: { type: string }
-        at: { type: string }
+      description: '"Can I join your team?" (to a team) or "Team up with me?" (to a person on their own)'
+      oneOf:
+        - type: object
+          required: [id, kind, from, teamId, at]
+          properties:
+            id: { type: string }
+            kind: { type: string, enum: [join] }
+            from: { type: string }
+            teamId: { type: string }
+            at: { type: string }
+        - type: object
+          required: [id, kind, from, to, at]
+          properties:
+            id: { type: string }
+            kind: { type: string, enum: [team-up] }
+            from: { type: string }
+            to: { type: string }
+            at: { type: string }
 
     TeamsView:
       type: object
@@ -5749,7 +5771,7 @@ components:
 
     Birthday:
       type: object
-      required: [userId, name, birthday, month, day, daysUntil, isToday]
+      required: [userId, name, birthday, month, day, daysUntil, isToday, isPast]
       properties:
         userId:
           type: string
@@ -5765,6 +5787,22 @@ components:
           type: integer
         isToday:
           type: boolean
+        isPast:
+          type: boolean
+        type:
+          type: string
+          enum: [birthday, anniversary, holiday, other]
+        description:
+          type: string
+        year:
+          type: integer
+        celebrationId:
+          type: string
+        isFromFacts:
+          type: boolean
+        remembered:
+          type: boolean
+          description: The person has died; the day is for remembering
 
     Celebration:
       type: object

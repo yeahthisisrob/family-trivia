@@ -3,8 +3,7 @@
  * in one line. Never what was missed; asked once as Home opens.
  */
 import type { SinceSummary } from '@family-trivia/shared';
-import { useEffect, useState } from 'react';
-import { sinceApi } from '../api/sinceApi';
+import { useCircleQuery } from '../../../shared/api/query';
 
 const names = (ids: string[], nameOf: (id: string) => string) =>
   ids.length <= 2
@@ -31,13 +30,9 @@ export function sinceLine(
   return parts.length ? `Since ${day}: ${parts.join(' · ')}.` : 'Good to see you.';
 }
 
+/** Asked once while the app is open: asking also notes that I'm here now. */
 export function useSince(): SinceSummary | null {
-  const [since, setSince] = useState<SinceSummary | null>(null);
-  useEffect(() => {
-    sinceApi
-      .check()
-      .then(setSince)
-      .catch(() => setSince(null));
-  }, []);
-  return since;
+  return (
+    useCircleQuery({ key: ['since'], path: '/me/since', method: 'post', once: true }).data ?? null
+  );
 }

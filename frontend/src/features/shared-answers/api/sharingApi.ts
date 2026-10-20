@@ -10,7 +10,6 @@ export interface SharedFrom {
 }
 
 export const sharingApi = {
-  get: () => apiService.request<{ from: SharedFrom[] }>('/me/sharing'),
   set: (circleId: string, shared: boolean) =>
     apiService.request<{ from: SharedFrom[] }>('/me/sharing', {
       method: 'PUT',

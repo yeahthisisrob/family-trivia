@@ -9,7 +9,10 @@ import { Box, Button, Card, Chip, MenuItem, Stack, TextField, Typography } from 
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { Face } from '../../../entities/person';
+import { useCircleMutation, useCircleQuery } from '../../../shared/api/query';
 import { teamsApi } from '../api/teamsApi';
+
+const TEAMS = ['teams'] as const;
 
 const ordinal = (n: number) =>
   `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][n % 10] ?? 'th')}`;
@@ -219,12 +222,18 @@ export const TeamsCard: React.FC<{ me: string; people: { id: string; name: strin
   me,
   people,
 }) => {
-  const [view, setView] = useState<TeamsView | null>(null);
-  useEffect(() => {
-    teamsApi
-      .view()
-      .then(setView)
-      .catch(() => setView(null));
-  }, []);
-  return <TeamsCardView me={me} people={people} view={view} act={teamsApi} />;
+  const teams = useCircleQuery({ key: TEAMS, path: '/teams' });
+  // Every change answers with the whole view: it replaces the cached one.
+  const change = useCircleMutation({
+    mutationFn: (send: () => Promise<TeamsView>) => send(),
+    onSuccess: (next, _send, cache) => cache.set<TeamsView>(TEAMS, () => next),
+  });
+  const act: Actions = {
+    start: (name) => change.mutateAsync(() => teamsApi.start(name)),
+    join: (teamId) => change.mutateAsync(() => teamsApi.join(teamId)),
+    teamUp: (to) => change.mutateAsync(() => teamsApi.teamUp(to)),
+    answer: (id, accept) => change.mutateAsync(() => teamsApi.answer(id, accept)),
+    leave: () => change.mutateAsync(() => teamsApi.leave()),
+  };
+  return <TeamsCardView me={me} people={people} view={teams.data ?? null} act={act} />;
 };

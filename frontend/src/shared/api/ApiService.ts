@@ -131,6 +131,11 @@ export class ApiService {
       slow?: boolean;
       /** A bad body answers {} and isn't held against later requests. */
       lenient?: boolean;
+      /**
+       * The circle to ask in, instead of this tab's. A server-data query names
+       * the circle its key was made for, so its answer can only be cached there.
+       */
+      circle?: string | null;
     },
     legacyCacheKey?: string,
     legacyForceFresh = false,
@@ -174,8 +179,14 @@ export class ApiService {
       // Default request options — merge headers so caller-provided headers
       // don't clobber Authorization / Content-Type.
       const token = ApiService.getAuthToken();
-      const circle = currentCircleId();
-      const { headers: callerHeaders, slow, lenient: _lenient, ...restOptions } = options || {};
+      const circle = options && 'circle' in options ? options.circle : currentCircleId();
+      const {
+        headers: callerHeaders,
+        slow,
+        lenient: _lenient,
+        circle: _circle,
+        ...restOptions
+      } = options || {};
       const requestOptions: RequestInit = {
         headers: {
           'Content-Type': 'application/json',
