@@ -35,7 +35,8 @@ export function useMyCircles(): MyCircles {
         if (!live) return;
         // This tab stays in the circle it opened in (the server answers for
         // the one each request names); a first visit takes the server's.
-        const mineHere = currentCircleId() ?? current;
+        const pinned = currentCircleId();
+        const mineHere = pinned && circles.some((c) => c.id === pinned) ? pinned : current;
         const here = circles.find((c) => c.id === mineHere);
         const me = loadSession();
         // Someone else in it than this tab opened as: start over as them.
