@@ -140,8 +140,9 @@ interface Started {
 
 /**
  * Mark this circle's reads stale (and ask the ones on screen again) after a
- * change saved outside useCircleMutation: for screens not on server data yet
- * (the Trivia tab, until it moves) whose changes touch reads that are.
+ * change saved outside useCircleMutation: a game saves its own scores and
+ * rounds (the game kit, 0032), so the Arcade and the Trivia tab name what
+ * that changed once the game is over.
  */
 export function useCircleInvalidate() {
   const client = useQueryClient();

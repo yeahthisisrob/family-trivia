@@ -65,6 +65,21 @@ interface ConsolidatedLeaderboardData {
 }
 
 /**
+ * The season the leaderboard opens on (`season=current`): the active one, else
+ * the latest concluded one, else none (all time). One request instead of
+ * asking for all time first to learn the seasons.
+ */
+function currentSeasonNumber(
+  seasons: ReadonlyArray<{ seasonNumber: number; status: string }>,
+): number {
+  const active = seasons.find((s) => s.status === 'active');
+  const concluded = seasons
+    .filter((s) => s.status === 'concluded')
+    .sort((a, b) => b.seasonNumber - a.seasonNumber);
+  return (active ?? concluded[0])?.seasonNumber ?? Number.NaN;
+}
+
+/**
  * Filter history entries to those within a season's date range.
  */
 function filterHistoryBySeason(history: HistoryEntry[], filter: SeasonDateFilter): HistoryEntry[] {
@@ -285,7 +300,10 @@ export async function getConsolidatedLeaderboard(
     }));
 
     if (seasonParam) {
-      const seasonNum = parseInt(seasonParam, 10);
+      const seasonNum =
+        seasonParam === 'current'
+          ? currentSeasonNumber(seasonsConfig.seasons)
+          : parseInt(seasonParam, 10);
       if (!Number.isNaN(seasonNum)) {
         const season = seasonsConfig.seasons.find((s) => s.seasonNumber === seasonNum);
         if (season?.endDate) {

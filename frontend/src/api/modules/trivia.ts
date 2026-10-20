@@ -382,11 +382,8 @@ export async function submitAnswer(
   isCatchingUp = false,
   isCustomCategory?: boolean,
 ): Promise<SubmissionResult> {
-  const today = new Date().toISOString().split('T')[0];
-  cacheService.invalidate(`daily_question_${userId}_${today}`);
-  cacheService.invalidate(`leaderboard_${groupId}`);
-  cacheService.invalidate(`enhanced_leaderboard_${groupId}`);
-  cacheService.invalidate(`group_leaderboard`);
+  // The reads on server data an answer changes are asked again by the
+  // Trivia tab's answer mutation (features/trivia, docs/decisions/0035).
   cacheService.invalidate(`can_answer_${userId}`);
 
   return apiService.request<SubmissionResult>('/submit-answer', {

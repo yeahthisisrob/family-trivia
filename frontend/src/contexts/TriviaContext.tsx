@@ -16,7 +16,6 @@ interface TriviaContextType {
   refreshAllStatuses: (userId: string) => Promise<void>;
 
   // From CategoryRefreshContext
-  refreshTimestamp: number;
   invalidateCategories: () => void;
 }
 
@@ -37,7 +36,6 @@ const InnerTriviaProvider: React.FC<{ children: React.ReactNode }> = ({ children
       refreshAllStatuses: triviaStatus.refreshAllStatuses,
 
       // From CategoryRefreshContext
-      refreshTimestamp: categoryRefresh.refreshTimestamp,
       invalidateCategories: categoryRefresh.invalidateCategories,
     }),
     [triviaStatus, categoryRefresh],

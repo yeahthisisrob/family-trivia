@@ -8,8 +8,8 @@ import { useCircleQuery } from '../../../shared/api/query';
 export const PROFILE = ['profile'] as const;
 const SUMMARY = ['member-summary'] as const;
 
-export const useTriviaProfile = (userId: string) =>
-  useCircleQuery({ key: PROFILE, path: '/user-profile', query: { userId } });
+export const useTriviaProfile = (userId: string, enabled = true) =>
+  useCircleQuery({ key: PROFILE, path: '/user-profile', query: { userId }, enabled });
 
 /** The spotlight's few lines about them, kind or a roast. */
 export const useMemberSummary = (

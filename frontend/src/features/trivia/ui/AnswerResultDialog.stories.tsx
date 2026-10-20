@@ -1,0 +1,48 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import { StoryProviders } from '../../../test/storyContexts';
+import AnswerResultDialog from './AnswerResultDialog';
+
+const sampleQuestion = {
+  question: 'Which planet has the most moons in our solar system?',
+  choices: ['Earth', 'Jupiter', 'Saturn', 'Neptune'],
+  answer: 'Saturn',
+  category: 'Science & Nature',
+  difficulty: 'normal' as const,
+};
+
+const meta: Meta<typeof AnswerResultDialog> = {
+  title: 'TriviaCard/AnswerResultDialog',
+  component: AnswerResultDialog,
+  parameters: { layout: 'centered' },
+  args: {
+    open: true,
+    onClose: fn(),
+    onNext: fn(),
+    question: sampleQuestion,
+    selected: 'Saturn',
+    isCorrect: true,
+    pointsEarned: 10,
+    userId: 'alice',
+    answerTimestamp: '2026-04-10T14:30:00.000Z',
+  },
+  decorators: [
+    (Story) => (
+      <StoryProviders>
+        <Story />
+      </StoryProviders>
+    ),
+  ],
+};
+export default meta;
+type Story = StoryObj<typeof AnswerResultDialog>;
+
+export const Correct: Story = {};
+
+export const Incorrect: Story = {
+  args: { selected: 'Jupiter', isCorrect: false, pointsEarned: 0 },
+};
+
+export const CatchingUp: Story = {
+  args: { isCatchingUp: true },
+};
