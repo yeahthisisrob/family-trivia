@@ -1,4 +1,4 @@
-// File: src/components/TriviaCard/SlotMachine.tsx
+// The Slot Machine: a weekly round (spin, then one question) or the casino's slots.
 // Casino-style slot machine — one SPIN button, auto-flow, no clutter.
 
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -9,17 +9,17 @@ import { alpha, Box, Button, IconButton, keyframes, Typography, useTheme } from 
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { getCasinoBalance, updateCasinoBalance } from '../../api/modules/casino';
+import { LoadingDots } from '../../components/ui/feedback';
+import { colors } from '../../shared/design-system/tokens/colors';
+import { games } from '../../shared/design-system/tokens/games';
+import { createLogger } from '../../shared/lib/logger';
 import {
   arcadeSlotSpin,
   getSlotMachineQuestion,
   type SlotMachineQuestion,
   spinSlotMachine,
   submitSlotMachineAnswer,
-} from '../../api/modules/games';
-import { LoadingDots } from '../../components/ui/feedback';
-import { colors } from '../../shared/design-system/tokens/colors';
-import { games } from '../../shared/design-system/tokens/games';
-import { createLogger } from '../../shared/lib/logger';
+} from './api';
 
 const logger = createLogger('SlotMachine');
 const art = games.slots;
@@ -191,7 +191,6 @@ const Reel: React.FC<ReelProps> = ({ targetIndex, spinning, stopDelay, overlayTe
 // ── Props ─────────────────────────────────────────────────────────────
 interface SlotMachineProps {
   userId: string;
-  groupId: string;
   mode?: 'trivia' | 'arcade';
   onComplete?: (points: number) => void;
   onClose: () => void;
@@ -199,9 +198,8 @@ interface SlotMachineProps {
 }
 
 // ── Main Component ────────────────────────────────────────────────────
-export const SlotMachine: React.FC<SlotMachineProps> = ({
+const SlotMachine: React.FC<SlotMachineProps> = ({
   userId,
-  groupId,
   mode = 'trivia',
   onComplete,
   onClose,
@@ -348,7 +346,7 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
       if (selectedAnswer) return;
       setSelectedAnswer(choice);
       try {
-        const result = await submitSlotMachineAnswer(userId, choice, groupId);
+        const result = await submitSlotMachineAnswer(userId, choice);
         setAnswerCorrect(result.correct);
         setAnswerPoints(result.pointsEarned);
         setCorrectAnswer(result.correctAnswer || '');
@@ -361,7 +359,7 @@ export const SlotMachine: React.FC<SlotMachineProps> = ({
         logger.error('Answer failed', err);
       }
     },
-    [selectedAnswer, userId, groupId, onComplete],
+    [selectedAnswer, userId, onComplete],
   );
 
   // ── Bet helpers ─────────────────────────────────────────────────────

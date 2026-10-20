@@ -5,7 +5,6 @@ export * from './modules/admin';
 export * from './modules/auth';
 export * from './modules/facts';
 export * from './modules/family';
-export * from './modules/games';
 export * from './modules/init';
 export * from './modules/leaderboard';
 export * from './modules/seasons';

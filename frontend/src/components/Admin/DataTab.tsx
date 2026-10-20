@@ -39,6 +39,7 @@ import {
 } from '../../api/modules/admin';
 import { adminGetFamilyFeud, adminResetFamilyFeud } from '../../api/modules/familyFeud';
 import { useAdmin } from '../../contexts/AdminContext';
+import { gameOf } from '../../games/registry';
 import { colors } from '../../shared/design-system';
 import { createLogger } from '../../shared/lib/logger';
 import { LoadingDots } from '../ui/feedback';
@@ -203,10 +204,9 @@ const DataTab: React.FC = () => {
   const handleDeleteSession = async () => {
     if (!confirmDeleteSession) return;
     try {
-      const gameType = confirmDeleteSession.type === 'Casino Rush' ? 'casino-rush' : 'slot-machine';
       await resetGameSession(adminUserId, {
         userId: confirmDeleteSession.userId,
-        gameType: gameType as any,
+        gameType: confirmDeleteSession.game,
       });
       setConfirmDeleteSession(null);
       await loadSessions();
@@ -424,9 +424,9 @@ const DataTab: React.FC = () => {
                             sx={{ height: 20, fontSize: '0.55rem' }}
                           />
                         )}
-                        {entry.isCasinoRush && (
+                        {gameOf(entry as never) && (
                           <Chip
-                            label="Casino"
+                            label={gameOf(entry as never)?.label}
                             size="small"
                             variant="outlined"
                             color="warning"

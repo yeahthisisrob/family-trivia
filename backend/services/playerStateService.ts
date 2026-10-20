@@ -5,7 +5,7 @@
  * GAME RULES
  * ═══════════════════════════════════════════════════════════════════
  * 1. Each player gets 1 daily trivia play per day.
- * 2. Game modes (Casino Rush, Slot Machine, Curling, etc.) are just
+ * 2. Game modes and rounds (the games in src/games with a round) are just
  *    different ways to play that 1 daily trivia — they all count
  *    equally as 1 slot.
  * 3. Catch-up = answering daily questions you missed on previous days.

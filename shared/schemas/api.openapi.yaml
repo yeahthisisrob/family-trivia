@@ -92,6 +92,16 @@ paths:
                     type: object
                   gameStatuses:
                     type: object
+                    description: >-
+                      Each game with plays of its own (a server folder with a
+                      status, docs/decisions/0032), keyed by its id in camelCase.
+                    additionalProperties:
+                      type: object
+                      required: [canPlay, hasActiveSession, nextAvailable]
+                      properties:
+                        canPlay: { type: boolean }
+                        hasActiveSession: { type: boolean }
+                        nextAvailable: { type: string, nullable: true }
                   familyFeud:
                     type: object
 
@@ -1286,16 +1296,20 @@ paths:
                   type: string
       responses:
         "200":
-          description: Question with multiplier
+          description: Question with multiplier (the answer stays on the server)
           content:
             application/json:
               schema:
                 type: object
                 properties:
                   question:
-                    $ref: "#/components/schemas/Question"
+                    $ref: "#/components/schemas/SlotMachineQuestion"
                   multiplier:
                     type: number
+                  bonusFeatures:
+                    type: object
+                  hint:
+                    type: string
 
   /slot-machine/answer:
     post:
@@ -3751,6 +3765,10 @@ paths:
   /admin/game-sessions:
     get:
       summary: Admin — fetch game mode sessions
+      description: >-
+        Every game whose server folder has an admin part (docs/decisions/0032).
+        Without userId, the plays left open across the circle; with it, that
+        player's state in each game.
       operationId: adminGetGameSessions
       tags: [Admin]
       parameters:
@@ -3763,6 +3781,12 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [sessions]
+                properties:
+                  sessions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdminGameSession"
     delete:
       summary: Admin — delete game mode sessions
       operationId: adminDeleteGameSessions
@@ -3773,14 +3797,15 @@ paths:
           application/json:
             schema:
               type: object
-              required: [adminUserId]
+              required: [adminUserId, userId, gameType]
               properties:
                 adminUserId:
                   type: string
                 userId:
                   type: string
-                mode:
+                gameType:
                   type: string
+                  description: A game id, or `all`
       responses:
         "200":
           description: Deleted
@@ -3791,6 +3816,9 @@ paths:
                 properties:
                   success:
                     type: boolean
+                  deleted:
+                    type: array
+                    items: { type: string }
 
   /admin/daily-questions:
     get:
@@ -4887,12 +4915,28 @@ components:
       pattern: "^[a-z][a-z0-9-]{1,31}$"
       description: A game's folder name in frontend/src/games
       example: snake
+    AdminGameSession:
+      type: object
+      required: [type, game, status]
+      properties:
+        type: { type: string, description: The game's label }
+        game: { type: string, description: The game's id (its folder) }
+        status: { type: string }
+        userId: { type: string }
+        questions: { type: integer }
+        answered: { type: integer }
+        startTime: { type: string }
+        lastPlayed: { type: string, nullable: true }
+        details: { type: string }
     RoundStatus:
       type: object
       required: [canPlay, nextAvailable]
       properties:
         canPlay: { type: boolean }
         nextAvailable: { type: string, format: date-time, nullable: true }
+        active:
+          type: boolean
+          description: A play with steps of its own was started and not finished; opening the game resumes it.
     GameClue:
       type: object
       required: [clue, answer, from]
@@ -5775,6 +5819,21 @@ components:
           type: string
         updatedAt:
           type: string
+
+    SlotMachineQuestion:
+      type: object
+      required: [question, choices, category]
+      properties:
+        question:
+          type: string
+        choices:
+          type: array
+          items:
+            type: string
+        category:
+          type: string
+        isPersonal:
+          type: boolean
 
     SlotMachineResult:
       type: object

@@ -46,6 +46,7 @@ Everything a game needs from the app is in `../kit`:
 | `getClues({ count, minLength, maxLength })` | Clues with one-word answers, made from the circle's own trivia and what people answered about themselves. |
 | `useGameSave(game, initial)` | A small save per player (progress, settings; up to 16,000 characters of JSON), on every device. |
 | `lockRound`, `answerRound`, `getRoundStatus` | A weekly round: keep the multiplier, answer the question, and whether it can be played now. |
+| `gameRequest(path, init)` | A call to the game's own routes, for a game with a server folder (below). |
 | `gameLook(hue)` | A tile gradient and accent from one hue. |
 
 They call the generic `/games/*` endpoints (`shared/schemas/api.openapi.yaml`,
@@ -71,7 +72,44 @@ call `lockRound(id, { multiplier, score, catchUp })` (multiplier 0.5, 1, 2 or
 `answerRound(id, answer)` with the player's choice, show how it went, then
 `onComplete(pointsEarned)`. The rules are the same for every game
 (`ROUND_RULES` in `shared/src/game-modes.ts`); Curling and Tetris are
-examples.
+examples. Casino Rush and the Slot Machine are rounds with steps of their own.
+
+## A game with server code of its own
+
+Most games need only the kit. One that keeps its own state on the server
+(Casino Rush's three questions, the Slot Machine's spin) adds a folder of the
+same name in `backend/features/games/`:
+
+```
+backend/features/games/word-ladder/
+  index.ts          defineServerGame({...})
+  handlers.ts       the routes
+  keys.ts           where its files are kept
+  storage.test.ts   its keys and paths, held to what they are
+```
+
+```ts
+export default defineServerGame({
+  id: 'word-ladder',
+  label: 'Word Ladder',
+  storage: 'word-ladder/',               // keys are word-ladder/<userId>/...
+  routes: { 'POST climb': climb },       // served at POST /word-ladder/climb
+  status: (userId) => ...,               // its weekly play: can start, is one open
+  admin: { open, of, reset },            // the admin game-session views
+});
+```
+
+Then `just contract` (it lists the folder for the Lambda bundle) and add the
+routes to `shared/schemas/api.openapi.yaml`. Admin, the archive export,
+app-init and the member summary find the game from its declaration; nothing
+outside the two folders names it. `podium: true` makes its high-score board
+earn leaderboard points (Tetris, Curling and the Slot Machine have it). The
+frontend calls its routes with the kit's `gameRequest`.
+
+A round that is a session gets its own card on the timeline with
+`session: { result }` in `defineGame`. `Play` is optional: Casino Rush is only
+a round. `lobby: { of: 'casino', ... }` puts a game's tile in the Casino
+instead of the Arcade (the Slot Machine).
 
 ## Rules
 

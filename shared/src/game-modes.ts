@@ -2,12 +2,12 @@
  * Game modes: the ways a trivia question can be played for more than its
  * usual points (docs/decisions/0032).
  *
- * - **Rounds.** Any game can be a weekly round: play it, it sets a
- *   multiplier, then answer one trivia question for that many points. A
- *   game opts in from its own folder (`round` in frontend/src/games/<id>);
- *   nothing here lists them. Every round follows ROUND_RULES.
- * - **Sessions.** Casino Rush and Slot Machine run several steps of their
- *   own, with their own routes, and are listed below.
+ * Every game that can be played for trivia points is a folder: its round
+ * (`round` in frontend/src/games/<id>) and, when it has steps of its own
+ * (Casino Rush's three questions, the Slot Machine's spin), its server
+ * folder in backend/features/games/<id>. Nothing here lists them. Every
+ * game plays once a week (ROUND_RULES.cooldownMs); a plain round also
+ * follows the rest of ROUND_RULES.
  *
  * History entries name their mode in `gameMode`. Entries written before
  * that carry a flag per mode (`isCurling`, `isTetris`...), read by
@@ -24,52 +24,12 @@ export const ROUND_RULES = {
   multipliers: [0.5, 1, 2, 3] as readonly number[],
   /** Points for a right answer: the multiplier, plus this for a new best score in the game. */
   newBestBonus: 1,
-  /** One round per game per week. */
+  /** One play per game per week. */
   cooldownMs: WEEK_MS,
 } as const;
 
-export type GameModeId = 'casino-rush' | 'slot-machine';
-
-export interface GameModeConfig {
-  id: GameModeId;
-  /** Display label in the UI */
-  label: string;
-  /** Short description for the button subtitle */
-  description: string;
-  /** Cooldown in milliseconds between plays */
-  cooldownMs: number;
-  /** Which HistoryEntry flag marks entries from this mode */
-  historyFlag: 'isCasinoRush' | 'isSlotMachine';
-}
-
-/** The session modes. Rounds are not listed: they come from the game folders. */
-export const GAME_MODES: GameModeConfig[] = [
-  {
-    id: 'casino-rush',
-    label: 'Casino Rush',
-    description: '3 questions, 60s each — triple or bust',
-    cooldownMs: WEEK_MS,
-    historyFlag: 'isCasinoRush',
-  },
-  {
-    id: 'slot-machine',
-    label: 'Slot Machine',
-    description: 'Spin for a random category + multiplier',
-    cooldownMs: WEEK_MS,
-    historyFlag: 'isSlotMachine',
-  },
-];
-
-/** Lookup a session mode by id */
-export function getGameMode(id: string): GameModeConfig | undefined {
-  return GAME_MODES.find((m) => m.id === id);
-}
-
-/** How long between plays of a mode or a round. */
-export const cooldownOf = (id: string): number =>
-  getGameMode(id)?.cooldownMs ?? ROUND_RULES.cooldownMs;
-
-// Entries from before `gameMode`: one flag per mode.
+// Stored entries from before `gameMode`: one flag per mode. These are the
+// field names in people's answer history, so they stay as they are.
 const LEGACY_FLAGS: [keyof HistoryEntry, string][] = [
   ['isCasinoRush', 'casino-rush'],
   ['isSlotMachine', 'slot-machine'],
@@ -82,7 +42,19 @@ export function gameModeOf(h: HistoryEntry): string | undefined {
   return h.gameMode ?? LEGACY_FLAGS.find(([flag]) => !!h[flag])?.[1];
 }
 
+/** The stored per-mode flags an entry carries, for answers that pass them on as they were. */
+export function legacyFlagsOf(h: HistoryEntry): Partial<HistoryEntry> {
+  return Object.fromEntries(LEGACY_FLAGS.filter(([flag]) => !!h[flag]).map(([f]) => [f, true]));
+}
+
 /** True if a history entry came from any game mode or round */
 export function isGameModeEntry(h: HistoryEntry): boolean {
   return gameModeOf(h) !== undefined;
 }
+
+/**
+ * The play an answer belongs to, when one play asks several questions.
+ * Stored as `casinoSessionId`, the field's name in people's history. The
+ * answers of one play count as one question.
+ */
+export const playOf = (h: HistoryEntry): string | undefined => h.casinoSessionId;

@@ -5,13 +5,14 @@
  */
 import { type HistoryEntry, ROUND_RULES } from '@family-trivia/shared';
 import { S3_PATHS } from '../../constants';
-import { getAvailableCategories } from '../../routes/game-modes/shared';
 // Question writing is shared with the daily question; it lives with those routes.
 import { generateQuestionWithOptions } from '../../routes/questionGeneration/shared';
 import { submitScore } from '../../services/arcadeService';
 import { canPlayGameMode, canPlayGameModeAny } from '../../services/gameModeService';
+import { serverGame } from '../../services/gameRegistry';
 import { logger } from '../../services/logger';
 import { deleteObject, getJson, putJson } from '../../services/s3';
+import { getAvailableCategories } from './categories';
 
 interface Round {
   game: string;
@@ -43,17 +44,31 @@ const BLOCKED: Record<string, string> = {
   no_trivia_this_season: 'No trivia this season',
 };
 
-/** Which of these games can be played as a round now, and when the rest can. */
+/**
+ * Which of these games can be played as this week's round now, and when the
+ * rest can. A game with steps of its own (a session) answers for itself and
+ * says whether a play is under way (`active`).
+ */
 export async function roundStatus(userId: string, games: string[]) {
   const all = await Promise.all(
     games.map(async (g) => {
-      const s = await canPlayGameModeAny(userId, g);
-      return [g, { canPlay: s.canPlay, nextAvailable: s.nextAvailable?.toISOString() ?? null }];
+      const own = serverGame(g)?.status;
+      const s = own
+        ? await own(userId)
+        : { ...(await canPlayGameModeAny(userId, g)), active: false };
+      return [
+        g,
+        {
+          canPlay: s.canPlay,
+          nextAvailable: s.nextAvailable?.toISOString() ?? null,
+          active: s.active,
+        },
+      ];
     }),
   );
   return Object.fromEntries(all) as Record<
     string,
-    { canPlay: boolean; nextAvailable: string | null }
+    { canPlay: boolean; nextAvailable: string | null; active: boolean }
   >;
 }
 

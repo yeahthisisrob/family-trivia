@@ -1,28 +1,14 @@
-// File: lambda/routes/game-modes/shared.ts
-// Shared utilities and types for game modes (Casino Rush and Slot Machine)
-
+/**
+ * The categories a game's trivia question can come from: the circle's own
+ * categories and the player's custom ones, or the defaults when there are
+ * none. Shared by the games that ask questions (rounds and the session games).
+ */
 import { DEFAULT_CATEGORIES } from '@family-trivia/shared';
 import { S3_PATHS } from '../../constants';
 import { logger } from '../../services/logger';
 import { getJson } from '../../services/s3';
 
-// Shared interfaces
-export interface GameSession {
-  status: 'active' | 'completed' | 'failed';
-  startedAt: number;
-  completedAt?: number;
-  mode: 'casino-rush' | 'slot-machine';
-}
-
-export interface GameQuestion {
-  question: string;
-  choices: string[];
-  answer: string;
-  category: string;
-  difficulty: 'easy' | 'normal' | 'hard';
-}
-
-// Get all available categories for a user (system + custom)
+/** Every category for the player: the circle's, then their custom ones. */
 export async function getAvailableCategories(userId: string): Promise<string[]> {
   try {
     logger.info('Fetching categories for user', {
@@ -85,38 +71,4 @@ export async function getAvailableCategories(userId: string): Promise<string[]> 
     // Return empty array as fallback
     return [];
   }
-}
-
-// Format question for display (consistent across game modes)
-export function formatQuestion(question: GameQuestion): GameQuestion {
-  return {
-    question: question.question,
-    choices: question.choices,
-    answer: question.answer,
-    category: question.category,
-    difficulty: question.difficulty || 'normal',
-  };
-}
-
-// Calculate cooldown period (both modes use 7 days)
-export const GAME_MODE_COOLDOWN_DAYS = 7;
-
-export function getNextAvailableDate(lastPlayedDate: Date): Date {
-  const nextAvailable = new Date(lastPlayedDate);
-  nextAvailable.setDate(nextAvailable.getDate() + GAME_MODE_COOLDOWN_DAYS);
-  nextAvailable.setHours(0, 0, 0, 0); // Reset to start of day
-  return nextAvailable;
-}
-
-// Check if a date is today (Eastern time)
-export function isToday(date: Date): boolean {
-  const now = new Date();
-  const easternNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-  const easternDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-
-  return (
-    easternDate.getFullYear() === easternNow.getFullYear() &&
-    easternDate.getMonth() === easternNow.getMonth() &&
-    easternDate.getDate() === easternNow.getDate()
-  );
 }

@@ -5,7 +5,7 @@ import type { DifficultyLevel } from './question';
 export interface PointBreakdown {
   /** Points from daily trivia + catch-up questions */
   regularPoints: number;
-  /** Points from game modes (Casino Rush, Slot Machine, Curling, Tetris multipliers) */
+  /** Points from game modes and rounds (the games' multipliers) */
   gameModePoints: number;
   /** Bonus points for placing top 3 on arcade high score leaderboards */
   arcadeBonusPoints: number;

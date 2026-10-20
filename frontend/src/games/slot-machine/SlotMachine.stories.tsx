@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import React from 'react';
 import { fn } from 'storybook/test';
 import { StoryProviders } from '../../test/storyContexts';
-import { SlotMachine } from './SlotMachine';
+import SlotMachine from './SlotMachine';
 
 const installMockFetch = () => {
   const realFetch = window.fetch;
@@ -153,7 +153,6 @@ const meta: Meta<typeof SlotMachine> = {
   },
   args: {
     userId: 'storybook-user',
-    groupId: 'storybook-group',
     isCatchingUp: false,
     onClose: fn(),
     onComplete: fn(),

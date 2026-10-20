@@ -3,6 +3,7 @@
  * games, comments and Family Feud rounds. Read-only; nothing is changed.
  */
 import { ownerOf, type ReactionId, type ReactionRecord } from '@family-trivia/shared';
+import { camelId, serverGames } from '../../services/gameRegistry';
 import { getJson, listObjects } from '../../services/s3';
 
 interface HistoryEntry {
@@ -44,11 +45,11 @@ interface ArcadeScore {
 export interface PersonArchive {
   trivia: HistoryEntry[];
   facts: FactEntry[];
-  games: {
-    casinoRush: unknown[];
-    slotMachine: unknown[];
-    arcade: (ArcadeScore & { game: string })[];
-  };
+  /**
+   * Each game's own files under its storage prefix (services/gameRegistry),
+   * keyed by its id in camelCase, and every arcade score.
+   */
+  games: Record<string, unknown[]> & { arcade: (ArcadeScore & { game: string })[] };
   comments: { on: string; text: string; at: string }[];
   /** Reactions they gave, and the ones others gave to their answers and facts. */
   reactions: {
@@ -99,18 +100,21 @@ export async function collectPerson(
   id: string,
   shared: Awaited<ReturnType<typeof loadShared>>,
 ): Promise<PersonArchive> {
-  const [history, facts, casinoRush, slotMachine] = await Promise.all([
+  const stored = serverGames().filter((g) => g.storage);
+  const [history, facts, ...ownFiles] = await Promise.all([
     getJson<HistoryEntry[]>(`answers/history/${id}.json`),
     getJson<FactEntry[]>(`facts/answers/${id}.json`),
-    list(`casino-rush/${id}/`).then((k) => readAll<unknown>(k)),
-    list(`slot-machine/${id}/`).then((k) => readAll<unknown>(k)),
+    ...stored.map((g) => list(`${g.storage}${id}/`).then((k) => readAll<unknown>(k))),
   ]);
   return {
     trivia: Array.isArray(history) ? history : [],
     facts: (Array.isArray(facts) ? facts : []).filter(
       (f) => f.answered !== false && !f.skipped && f.answer,
     ),
-    games: { casinoRush, slotMachine, arcade: shared.arcade.filter((s) => s.userId === id) },
+    games: {
+      ...Object.fromEntries(stored.map((g, i) => [camelId(g.id), ownFiles[i] as unknown[]])),
+      arcade: shared.arcade.filter((s) => s.userId === id),
+    },
     comments: shared.commentFiles.flatMap((file) =>
       (file.comments ?? [])
         .filter((c) => c.userId === id)

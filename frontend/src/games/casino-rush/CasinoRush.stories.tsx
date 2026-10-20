@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import React from 'react';
 import { expect, fn, within } from 'storybook/test';
 import { StoryProviders } from '../../test/storyContexts';
-import { CasinoRush } from './CasinoRush';
+import CasinoRush from './CasinoRush';
 
 // Stub fetch for Casino Rush endpoints so the game is playable in Storybook.
 const installMockFetch = () => {

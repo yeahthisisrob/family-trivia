@@ -1,15 +1,15 @@
 // File: lambda/routes/consolidatedLeaderboard.ts
 
 import {
-  type ArcadeGameId,
   isGameModeEntry,
   type PointBreakdown,
+  playOf,
   type GroupLeaderboardEntry as SharedGroupLeaderboardEntry,
 } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
-import { getHighScores } from '../services/arcadeService';
+import { podiumPoints } from '../services/arcadeService';
 import { getRecentRounds } from '../services/familyFeudService';
 import { logger } from '../services/logger';
 import { getAllPlayerState, getSeasonSummary } from '../services/playerStateService';
@@ -136,18 +136,15 @@ async function computeLeaderboard(
 
     for (const h of history) {
       const diff = (h.question.difficulty || 'normal').toLowerCase() as 'easy' | 'normal' | 'hard';
-      // Casino sub-questions: only count the session once for difficulty
-      if (h.isCasinoRush && h.casinoSessionId) {
-        // Only count first entry per session for difficulty stats
-        const isFirst =
-          history.indexOf(h) ===
-          history.findIndex((e) => e.isCasinoRush && e.casinoSessionId === h.casinoSessionId);
+      // A play with several questions counts once for difficulty
+      const play = playOf(h);
+      if (play) {
+        // Only count first entry per play for difficulty stats
+        const isFirst = history.indexOf(h) === history.findIndex((e) => playOf(e) === play);
         if (isFirst) {
           difficultyStats[diff]++;
           difficultyStats.total++;
-          const session = history.filter(
-            (e) => e.isCasinoRush && e.casinoSessionId === h.casinoSessionId,
-          );
+          const session = history.filter((e) => playOf(e) === play);
           if (session.every((e) => e.correct)) correctCount++;
         }
       } else {
@@ -341,26 +338,12 @@ export async function getConsolidatedLeaderboard(
       });
     }
 
-    // Compute arcade high score bonus points (Gold=3, Silver=2, Bronze=1)
-    const ARCADE_GAMES: ArcadeGameId[] = ['tetris', 'curling', 'slot-machine'];
-    const PLACEMENT_BONUS = [3, 2, 1]; // 1st, 2nd, 3rd
-    const arcadeBonusMap = new Map<string, number>();
+    // Arcade podium points (Gold=3, Silver=2, Bronze=1) from the boards whose
+    // games say they count (`podium` in their server folders).
+    let arcadeBonusMap = new Map<string, number>();
 
     try {
-      const allScores = await Promise.all(ARCADE_GAMES.map((g) => getHighScores(g)));
-      for (const scores of allScores) {
-        // scores are sorted highest first; award top 3 unique users
-        const awarded = new Set<string>();
-        let rank = 0;
-        for (const entry of scores) {
-          if (awarded.has(entry.userId)) continue;
-          if (rank >= 3) break;
-          const bonus = PLACEMENT_BONUS[rank];
-          arcadeBonusMap.set(entry.userId, (arcadeBonusMap.get(entry.userId) ?? 0) + bonus);
-          awarded.add(entry.userId);
-          rank++;
-        }
-      }
+      arcadeBonusMap = await podiumPoints();
       logger.info(`Computed arcade bonus for ${arcadeBonusMap.size} users`);
     } catch (err) {
       logger.warn('Could not compute arcade bonus points', {

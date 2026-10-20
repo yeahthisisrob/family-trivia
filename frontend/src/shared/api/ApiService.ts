@@ -127,6 +127,10 @@ export class ApiService {
       cacheKey?: string;
       cacheDuration?: number;
       forceFresh?: boolean;
+      /** Allow the long timeout (AI work, big reads). */
+      slow?: boolean;
+      /** A bad body answers {} and isn't held against later requests. */
+      lenient?: boolean;
     },
     legacyCacheKey?: string,
     legacyForceFresh = false,
@@ -171,7 +175,7 @@ export class ApiService {
       // don't clobber Authorization / Content-Type.
       const token = ApiService.getAuthToken();
       const circle = currentCircleId();
-      const { headers: callerHeaders, ...restOptions } = options || {};
+      const { headers: callerHeaders, slow, lenient: _lenient, ...restOptions } = options || {};
       const requestOptions: RequestInit = {
         headers: {
           'Content-Type': 'application/json',
@@ -187,6 +191,7 @@ export class ApiService {
       const controller = new AbortController();
       // Increase timeout for specific endpoints that may take longer
       const isExpensiveOperation =
+        slow ||
         endpoint.includes('member-summary') ||
         endpoint.includes('timeline-data') ||
         endpoint.includes('consolidated-leaderboard') ||
@@ -196,7 +201,6 @@ export class ApiService {
         endpoint.includes('submit-daily-fact') ||
         endpoint.includes('daily-fact') ||
         endpoint.includes('recent-shared-questions') ||
-        endpoint.includes('casino-rush') ||
         endpoint.includes('app-init') ||
         endpoint.startsWith('/comments') ||
         endpoint.includes('members');
@@ -335,7 +339,7 @@ export class ApiService {
             );
 
             // For endpoints that are critical to the app, mark as fatal error
-            if (!endpoint.includes('/casino-rush') && !endpoint.includes('/comments')) {
+            if (!options?.lenient && !endpoint.includes('/comments')) {
               cacheService.markFatalError(errorKey);
             }
 
@@ -345,9 +349,9 @@ export class ApiService {
               return {} as T;
             }
 
-            // Log more details for casino rush endpoints
-            if (endpoint.includes('/casino-rush')) {
-              logger.error(`Casino Rush API parse error for ${endpoint}:`, {
+            // Lenient requests log the details and answer {}
+            if (options?.lenient) {
+              logger.error(`API parse error for ${endpoint}:`, {
                 parseError,
                 responseText: text ? text.substring(0, 200) : 'empty',
               });
@@ -364,7 +368,7 @@ export class ApiService {
         logger.error(`Failed to process response from ${endpoint}:`, error);
 
         // Don't mark non-critical endpoints as fatal
-        if (!endpoint.includes('/casino-rush') && !endpoint.includes('/comments')) {
+        if (!options?.lenient && !endpoint.includes('/comments')) {
           // Mark as fatal error - don't retry for most issues
           cacheService.markFatalError(errorKey);
         }
@@ -375,10 +379,10 @@ export class ApiService {
           return {} as T;
         }
 
-        // For casino rush endpoints, log detailed error but still return empty object
-        // The casinoRush.ts functions will check these empty responses
-        if (endpoint.includes('/casino-rush')) {
-          logger.error(`Casino Rush API process error for ${endpoint}:`, {
+        // Lenient requests log the details but still return an empty object;
+        // their callers check for it
+        if (options?.lenient) {
+          logger.error(`API process error for ${endpoint}:`, {
             error,
             endpoint,
           });

@@ -1,28 +1,31 @@
-// File: lambda/routes/slotMachine.ts
-// Purpose: Handle SlotMachine game mode - weekly multiplier with category spinner
-
-import type {
-  ArcadeGameId,
-  PlayMode,
-  HistoryEntry as SharedHistoryEntry,
-} from '@family-trivia/shared';
+/**
+ * The Slot Machine: once a week, a spin picks a category and a multiplier,
+ * then one question for that many points. The casino's slots spin here too
+ * (arcade-spin, no cooldown, bets from the casino's credits).
+ */
+import type { PlayMode, HistoryEntry as SharedHistoryEntry } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { errorResponse, FEATURE_FLAGS, successResponse } from '../../config';
-import { S3_PATHS } from '../../constants';
-import { getHighScores, submitScore } from '../../services/arcadeService';
-import { type DifficultyLevel, generateMultipleChoiceFromFact } from '../../services/bedrock';
-import { getFactContent } from '../../services/factHistoryService';
-import { getRecentRounds } from '../../services/familyFeudService';
-import { canPlayGameMode } from '../../services/gameModeService';
-import { logger } from '../../services/logger';
-import { getPlayerState, getSeasonSummary } from '../../services/playerStateService';
-import { getJson, putJson } from '../../services/s3';
-import { computePoints } from '../../services/scoring';
-import { generateQuestionWithOptions } from '../questionGeneration/shared';
-import { getUserFromSameFamily } from './familyUtils';
-import { getAvailableCategories } from './shared';
+import { errorResponse, successResponse } from '../../../config';
+import { S3_PATHS } from '../../../constants';
+// Question writing is shared with the daily question; it lives with those routes.
+import { generateQuestionWithOptions } from '../../../routes/questionGeneration/shared';
+import { podiumPoints, submitScore } from '../../../services/arcadeService';
+import { type DifficultyLevel, generateMultipleChoiceFromFact } from '../../../services/bedrock';
+import { getFactContent } from '../../../services/factHistoryService';
+import { getRecentRounds } from '../../../services/familyFeudService';
+import { canPlayGameMode } from '../../../services/gameModeService';
+import { logger } from '../../../services/logger';
+import { getPlayerState, getSeasonSummary } from '../../../services/playerStateService';
+import { getJson, putJson } from '../../../services/s3';
+import { computePoints } from '../../../services/scoring';
+import { getAvailableCategories } from '../categories';
+import { getUserFromSameFamily } from './family';
+import { keys } from './keys';
 
-interface SlotMachineSession {
+/** Switch off to take the Slot Machine out for a while. */
+export const ENABLED = true;
+
+export interface SlotMachineSession {
   userId: string;
   startTime: number;
   lastPlayedAt?: number;
@@ -70,8 +73,6 @@ interface SlotMachineStats {
 }
 
 const COOLDOWN_PERIOD = 7 * 24 * 60 * 60 * 1000; // 1 week
-const SLOT_MACHINE_SESSION_KEY = (userId: string) => `slot-machine/${userId}/session.json`;
-const SLOT_MACHINE_STATS_KEY = (userId: string) => `slot-machine/${userId}/stats.json`;
 
 // Enhanced multiplier options with dynamic weights based on performance
 const MULTIPLIER_OPTIONS = [
@@ -93,7 +94,7 @@ const SPECIAL_EVENT_MULTIPLIERS = {
  */
 async function getUserStats(userId: string): Promise<SlotMachineStats> {
   try {
-    const stats = await getJson<SlotMachineStats>(SLOT_MACHINE_STATS_KEY(userId));
+    const stats = await getJson<SlotMachineStats>(keys.stats(userId));
     return stats || createDefaultStats(userId);
   } catch {
     return createDefaultStats(userId);
@@ -159,7 +160,7 @@ async function updateUserStats(
     stats.bestStreak = session.streak;
   }
 
-  await putJson(SLOT_MACHINE_STATS_KEY(userId), stats);
+  await putJson(keys.stats(userId), stats);
 }
 
 /**
@@ -202,7 +203,7 @@ async function canPlaySlotMachine(
   // Active session blocks a new game
   let session: SlotMachineSession | undefined;
   try {
-    const s = await getJson<SlotMachineSession>(SLOT_MACHINE_SESSION_KEY(userId));
+    const s = await getJson<SlotMachineSession>(keys.session(userId));
     session = s ?? undefined;
     if (session?.status === 'active') {
       return { canPlay: false, session, blockedReason: 'active_session' };
@@ -349,7 +350,7 @@ async function generateSlotMachineQuestion(
 async function calculateStreak(userId: string): Promise<number> {
   try {
     // Check if there's an active or recently completed session with streak info
-    const session = await getJson<SlotMachineSession>(SLOT_MACHINE_SESSION_KEY(userId));
+    const session = await getJson<SlotMachineSession>(keys.session(userId));
     if (session && session.streak !== undefined) {
       return session.streak;
     }
@@ -366,7 +367,7 @@ async function calculateStreak(userId: string): Promise<number> {
  */
 export async function slotMachineSpin(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   // Check feature flag first
-  if (!FEATURE_FLAGS.SLOT_MACHINE_ENABLED) {
+  if (!ENABLED) {
     return errorResponse('Feature disabled', 503, 'Slot Machine is temporarily disabled');
   }
 
@@ -477,7 +478,7 @@ export async function slotMachineSpin(event: APIGatewayProxyEvent): Promise<APIG
     };
 
     // Save the session
-    await putJson(SLOT_MACHINE_SESSION_KEY(userId), session);
+    await putJson(keys.session(userId), session);
 
     // Return the spinning result
     return successResponse({
@@ -521,7 +522,7 @@ export async function slotMachineQuestion(
 
   try {
     // Get the active session
-    const session = await getJson<SlotMachineSession>(SLOT_MACHINE_SESSION_KEY(userId));
+    const session = await getJson<SlotMachineSession>(keys.session(userId));
 
     if (session?.status !== 'active') {
       return errorResponse('No active slot machine session', 400);
@@ -540,7 +541,7 @@ export async function slotMachineQuestion(
       delete session.question;
 
       // Save updated session
-      await putJson(SLOT_MACHINE_SESSION_KEY(userId), session);
+      await putJson(keys.session(userId), session);
     }
 
     if (session.question && !skipQuestion) {
@@ -571,7 +572,7 @@ export async function slotMachineQuestion(
 
     // Update the session with the question
     session.question = questionData;
-    await putJson(SLOT_MACHINE_SESSION_KEY(userId), session);
+    await putJson(keys.session(userId), session);
 
     // Prepare hint if available
     let hint: string | undefined;
@@ -623,7 +624,7 @@ export async function slotMachineAnswer(
 
   try {
     // Get the active session
-    const session = await getJson<SlotMachineSession>(SLOT_MACHINE_SESSION_KEY(userId));
+    const session = await getJson<SlotMachineSession>(keys.session(userId));
 
     if (session?.status !== 'active' || !session.question) {
       return errorResponse('No active slot machine session or question', 400);
@@ -645,7 +646,7 @@ export async function slotMachineAnswer(
       // First attempt failed, give them another chance
       question.userAnswer = answer; // Store first attempt
       session.bonusFeatures.doubleChance = false; // Use up the double chance
-      await putJson(SLOT_MACHINE_SESSION_KEY(userId), session);
+      await putJson(keys.session(userId), session);
 
       return successResponse({
         correct: false,
@@ -672,10 +673,10 @@ export async function slotMachineAnswer(
     }
 
     session.status = 'completed';
-    await putJson(SLOT_MACHINE_SESSION_KEY(userId), session);
+    await putJson(keys.session(userId), session);
 
     // Archive the completed session so all games show in timeline (not just the latest)
-    const archiveKey = `slot-machine/${userId}/sessions/${session.startTime}_${isCorrect ? 'won' : 'lost'}.json`;
+    const archiveKey = keys.finished(userId, session.startTime, isCorrect);
     await putJson(archiveKey, session);
 
     // Persist to answer history so leaderboard scoring picks it up
@@ -749,7 +750,7 @@ export async function slotMachineStatus(
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   // Check feature flag first
-  if (!FEATURE_FLAGS.SLOT_MACHINE_ENABLED) {
+  if (!ENABLED) {
     return successResponse({
       canPlay: false,
       reason: 'feature_disabled',
@@ -776,7 +777,7 @@ export async function slotMachineStatus(
         })
       | undefined;
     try {
-      const session = await getJson<SlotMachineSession>(SLOT_MACHINE_SESSION_KEY(userId));
+      const session = await getJson<SlotMachineSession>(keys.session(userId));
       if (session?.status === 'active') {
         activeSession = {
           hasActiveSession: true,
@@ -1008,23 +1009,10 @@ export async function slotMachineBalance(
       /* feud data may not exist */
     }
 
-    // Arcade high score bonus (Gold=3, Silver=2, Bronze=1)
+    // Arcade podium points (Gold=3, Silver=2, Bronze=1)
     let arcadeBonus = 0;
     try {
-      const ARCADE_GAMES: ArcadeGameId[] = ['tetris', 'curling', 'slot-machine'];
-      const PLACEMENT_BONUS = [3, 2, 1];
-      const allScores = await Promise.all(ARCADE_GAMES.map((g) => getHighScores(g)));
-      for (const scores of allScores) {
-        const awarded = new Set<string>();
-        let rank = 0;
-        for (const entry of scores) {
-          if (awarded.has(entry.userId)) continue;
-          if (rank >= 3) break;
-          if (entry.userId === userId) arcadeBonus += PLACEMENT_BONUS[rank];
-          awarded.add(entry.userId);
-          rank++;
-        }
-      }
+      arcadeBonus = (await podiumPoints()).get(userId) ?? 0;
     } catch {
       /* arcade data may not exist */
     }

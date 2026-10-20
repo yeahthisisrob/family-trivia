@@ -9,6 +9,7 @@ import type {
   ScoreSubmitResult,
 } from '@family-trivia/shared';
 import { S3_PATHS } from '../constants';
+import { podiumGames } from './gameRegistry';
 import { logger } from './logger';
 import { getJson, putJson } from './s3';
 
@@ -113,4 +114,28 @@ async function writeHighScoreEvent(
 
   // Keep only last 20 events
   await putJson(HIGH_SCORE_EVENTS_KEY, events.slice(0, 20));
+}
+
+// ── Podium points ─────────────────────────────────────────────────
+
+const PODIUM = [3, 2, 1];
+
+/**
+ * Leaderboard points for the top three players on each board whose game
+ * says it counts (`podium` in its server folder, services/gameRegistry):
+ * 3, 2 and 1, each player once per board.
+ */
+export async function podiumPoints(): Promise<Map<string, number>> {
+  const points = new Map<string, number>();
+  const boards = await Promise.all(podiumGames().map((g) => getHighScores(g)));
+  for (const scores of boards) {
+    const placed = new Set<string>();
+    for (const entry of scores) {
+      if (placed.has(entry.userId)) continue;
+      if (placed.size >= PODIUM.length) break;
+      points.set(entry.userId, (points.get(entry.userId) ?? 0) + (PODIUM[placed.size] as number));
+      placed.add(entry.userId);
+    }
+  }
+  return points;
 }

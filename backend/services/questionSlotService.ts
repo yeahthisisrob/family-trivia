@@ -5,8 +5,8 @@
  * A question slot = one playable question opportunity:
  *   - Regular trivia → 1 slot
  *   - Catch-up answer → 1 slot
- *   - Casino Rush session (3 sub-questions) → 1 slot (all-or-nothing)
- *   - Slot Machine game → 1 slot
+ *   - A play that asks several questions (one playOf id) → 1 slot (all-or-nothing)
+ *   - A game mode or round → 1 slot
  *   - Family Feud → not in history, excluded automatically
  *
  * Used by:
@@ -16,16 +16,16 @@
  *   - scoring-catchup.test.ts (integration tests)
  */
 
-import { gameModeOf, type HistoryEntry } from '@family-trivia/shared';
+import { gameModeOf, type HistoryEntry, playOf } from '@family-trivia/shared';
 
 // ── Types ─────────────────────────────────────────────────────────
 
 export interface QuestionSlot {
   /** Did the player get this slot correct? */
   correct: boolean;
-  /** Timestamp of the slot (first entry for casino rush sessions) */
+  /** Timestamp of the slot (the first answer of a play with several) */
   timestamp: string;
-  /** Was this a game mode slot? (casino rush or slot machine) */
+  /** Was this a game mode or round slot? */
   isGameMode: boolean;
   /** Was this a catch-up answer? */
   isCatchingUp: boolean;
@@ -36,7 +36,7 @@ export interface QuestionSlot {
 /**
  * Collapse a user's full answer history into sequential question slots.
  *
- * Casino Rush sessions (multiple entries sharing a casinoSessionId) are
+ * A play that asks several questions (entries sharing a playOf id) is
  * collapsed into a single slot. The slot is "correct" only if every
  * sub-question in the session was correct (all-or-nothing).
  *
@@ -48,16 +48,15 @@ export function toQuestionSlots(history: HistoryEntry[]): QuestionSlot[] {
   );
 
   const slots: QuestionSlot[] = [];
-  const seenCasinoSessions = new Set<string>();
+  const seenPlays = new Set<string>();
 
   for (const h of sorted) {
-    // Casino Rush: 1 slot per session
-    if (h.isCasinoRush && h.casinoSessionId) {
-      if (seenCasinoSessions.has(h.casinoSessionId)) continue;
-      seenCasinoSessions.add(h.casinoSessionId);
-      const sessionEntries = sorted.filter(
-        (e) => e.isCasinoRush && e.casinoSessionId === h.casinoSessionId,
-      );
+    // A play with several questions: 1 slot
+    const play = playOf(h);
+    if (play) {
+      if (seenPlays.has(play)) continue;
+      seenPlays.add(play);
+      const sessionEntries = sorted.filter((e) => playOf(e) === play);
       slots.push({
         correct: sessionEntries.every((e) => e.correct),
         timestamp: h.timestamp,
@@ -67,8 +66,7 @@ export function toQuestionSlots(history: HistoryEntry[]): QuestionSlot[] {
       continue;
     }
 
-    // Game mode detection via the shared registry (casino rush is handled
-    // above with its session grouping). Any other game mode = 1 slot each.
+    // Any other game mode or round = 1 slot each.
     const mode = gameModeOf(h);
     slots.push({
       correct: h.correct,
@@ -84,7 +82,7 @@ export function toQuestionSlots(history: HistoryEntry[]): QuestionSlot[] {
 // ── Derived counts ────────────────────────────────────────────────
 
 /**
- * Count "regular" question slots — excludes game modes (casino rush, slot machine).
+ * Count "regular" question slots — excludes game modes and rounds.
  * This is the benchmark count used for catch-up calculation.
  * Optionally filters by date range (season boundaries).
  */
@@ -107,7 +105,7 @@ export function countRegularSlots(
 
 /**
  * Total question slots (all modes). Matches the leaderboard's
- * questionsAnswered = regularEntries.length + casinoSessions.size.
+ * questionsAnswered = regular entries + one per play.
  */
 export function countAllSlots(history: HistoryEntry[]): number {
   return toQuestionSlots(history).length;

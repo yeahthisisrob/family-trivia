@@ -40,16 +40,6 @@ export const S3_PATHS = {
   // Seasons
   SEASONS_CONFIG: 'config/seasons.json',
 
-  // Casino Rush
-  CASINO_RUSH_CURRENT_SESSION: (userId: string) => `casino-rush/${userId}/current-session.json`,
-  CASINO_RUSH_SESSION: (userId: string, sessionId: string) =>
-    `casino-rush/${userId}/sessions/${sessionId}.json`,
-  CASINO_RUSH_SESSIONS_DIR: (userId: string) => `casino-rush/${userId}/sessions/`,
-  CASINO_RUSH_HISTORY: (userId: string) => `casino-rush/${userId}/history.json`,
-
-  // Slot Machine
-  SLOT_MACHINE_SESSION: (userId: string) => `slot-machine/${userId}/session.json`,
-
   // Arcade (unified high scores for all games)
   ARCADE_SCORES: (gameId: string) => `arcade/scores/${gameId}.json`,
 

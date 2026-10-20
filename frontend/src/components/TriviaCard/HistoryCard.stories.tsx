@@ -82,12 +82,12 @@ export const WithHighPoints: Story = {
     selectedAnswer: '476 AD',
     correct: true,
     pointsEarned: 5,
-    category: 'Casino Rush',
+    category: 'Triple Dare',
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByText('+5')).toBeInTheDocument();
-    await expect(canvas.getByText('Casino Rush')).toBeInTheDocument();
+    await expect(canvas.getByText('Triple Dare')).toBeInTheDocument();
   },
 };
 
@@ -136,13 +136,13 @@ export const NoCategoryChip: Story = {
 export const HighMultiplierWin: Story = {
   args: {
     ...baseArgs,
-    category: 'Slot Machine',
+    category: 'Spinner',
     pointsEarned: 10,
     selectedAnswer: '476 AD',
     correct: true,
   },
   parameters: {
-    docs: { description: { story: '10x slot machine jackpot win.' } },
+    docs: { description: { story: '10x multiplier win.' } },
   },
 };
 

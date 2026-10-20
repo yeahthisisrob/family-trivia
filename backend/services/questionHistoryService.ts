@@ -1,7 +1,7 @@
 // File: lambda/services/questionHistoryService.ts
 // Purpose: Cached question history loading.
 // Loads all users' answer histories once per Lambda invocation,
-// then serves from memory for subsequent calls (e.g., Casino Rush generating 3 questions).
+// then serves from memory for subsequent calls (e.g., a game writing 3 questions at once).
 
 import { S3_PATHS } from '../constants';
 import { logger } from './logger';
@@ -25,9 +25,9 @@ interface HistoryEntry {
 }
 
 // Per-invocation cache. Module-level variables persist across calls within a single
-// Lambda container but are reset between invocations in practice because Casino Rush
-// generates all 3 questions in a single handler call.
-const historiesCache = circleCache<Map<string, HistoryEntry[]>>(30_000); // covers a Casino Rush session
+// Lambda container but are reset between invocations in practice because a game
+// that asks several questions writes them all in a single handler call.
+const historiesCache = circleCache<Map<string, HistoryEntry[]>>(30_000); // covers one multi-question play
 
 /**
  * Load answer histories for all users, cached per invocation.

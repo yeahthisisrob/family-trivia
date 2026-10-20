@@ -49,15 +49,61 @@ leaderboard route not in it at all).
 - **History names its mode:** new entries carry `gameMode` and
   `multiplier`. Older entries keep their `isCurling` / `isTetris` flags and
   are read through `gameModeOf`, so nothing stored changes.
-- **Session modes stay as they are.** Casino Rush and Slot Machine run
-  several steps with routes of their own and are listed in `GAME_MODES`.
+- **Session modes (as first decided).** Casino Rush and Slot Machine ran
+  several steps with routes of their own and were listed in `GAME_MODES`.
+  The next section moved them into folders.
+
+## Sessions are folders too (Oct 20, 2026)
+- **A game that needs server code has a second folder,
+  `backend/features/games/<id>/`,** in the games slice, named like its
+  frontend folder. Its `index.ts` default-exports `defineServerGame({ id,
+  label, routes, storage, status, olderAnswers, admin, aboutPlayer,
+  podium })`; every part is optional.
+- **Found by pattern.** The Lambda is bundled by esbuild, which has no
+  `import.meta.glob`, so `scripts/game-folders.mjs` writes
+  `features/games/folders.generated.ts`, one export per folder (`just
+  contract` runs it; `just layout` fails while it is stale). The games
+  slice registers each folder in `services/gameRegistry`, which is how the
+  rest of the backend reads across games without importing the slice.
+- **Routes by pattern.** A folder's `routes` are keyed by method and
+  action (`'POST start'`) and served at `/<id>/<action>` behind the usual
+  sign-in. Casino Rush and the Slot Machine keep every path they had
+  (`/casino-rush/start`, `/slot-machine/spin`...), so an installed app that
+  is still cached keeps working. `backend/index.ts` lists none of them.
+- **Stored data does not move.** Each folder keeps its keys in `keys.ts`
+  and declares its `storage` prefix (`casino-rush/`, `slot-machine/`); the
+  keys are the same strings as before, and a test in each folder holds
+  them to it. History entries keep their `isCasinoRush`, `casinoSessionId`
+  and `isSlotMachine` fields; `gameModeOf` and `playOf` read them.
+- **Read through the registry, not by name:** app-init's `gameStatuses`
+  (same keys as before, the id in camelCase), the admin game-session views
+  and reset (`type` is the label; a new `game` field carries the id), the
+  archive export (`games.json`, one key per game with storage), the member
+  summary's prompt lines, older answers kept in a game's own files (for the
+  leaderboard and the profile), and the round status (`active` says a play
+  is open).
+- **Podium points come from the folders.** A game whose board earns 3, 2
+  and 1 leaderboard points says `podium: true` in its server folder. Tetris,
+  Curling and the Slot Machine do, so the boards that count are the same
+  three as before and standings don't change.
+- **On the frontend** Casino Rush and the Slot Machine are folders in
+  `frontend/src/games/` with a `round`; `GAME_MODES` is gone. A game may
+  leave out `Play` (a round only), say it is played in another game's
+  lobby (`lobby: { of: 'casino' }`: the Casino lists its guests from the
+  registry), and declare a `session` so its answers group into one card on
+  the timeline. Their calls go through the kit's `gameRequest`.
 
 ## Consequences
 - A new game is a folder, a story, and nothing else. A game that truly needs
   its own server logic (Crossword builds its grid on the server; the Casino
   keeps a credit pool) still adds a backend slice and its OpenAPI entries.
-- The arcade bonus on the leaderboard (podium points for the best Tetris,
-  Curling and Slot Machine scores) still names its games: changing which
-  boards count would change standings people already have.
+- The arcade bonus on the leaderboard counts the boards whose server
+  folders say `podium: true`; adding or removing one changes standings, so
+  it is a decision, not a default.
+- Some things still name these games outside their folders, because they
+  describe stored data or the contract: the legacy history flags read by
+  `gameModeOf`, the OpenAPI contract and its generated types, the design
+  system's game palettes (`colors.casinoRush`, `colors.gameMode.*`, as for
+  every game), and tests that use stored history shapes as fixtures.
 - Anyone can submit a score for any id. The scores are per circle and only
   members can post, so the cost of a junk id is a board nobody sees.

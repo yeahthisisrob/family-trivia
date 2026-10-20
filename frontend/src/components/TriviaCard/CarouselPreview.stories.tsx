@@ -120,7 +120,7 @@ export const MixedResults: Story = {
         answer="C"
         selectedAnswer="C"
         correct={true}
-        category="Slot Machine"
+        category="Spinner"
         pointsEarned={10}
         timestamp={new Date().toISOString()}
       />

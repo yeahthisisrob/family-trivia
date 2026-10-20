@@ -90,7 +90,7 @@ export const ViewOnly: Story = {
     await expect(canvas.getByText('Categories')).toBeInTheDocument();
     // All game modes locked (no "Play now")
     await expect(canvas.queryByText('Play now')).not.toBeInTheDocument();
-    await expect(canvas.getByText('Casino Rush')).toBeInTheDocument();
+    await expect(canvas.getByText('Curling')).toBeInTheDocument();
   },
 };
 
@@ -98,13 +98,7 @@ export const ViewOnly: Story = {
 export const GameModesLocked: Story = {
   decorators: [
     (Story) => (
-      <StoryProviders
-        trivia={{
-          canPlayCasinoRush: false,
-          canPlaySlotMachine: false,
-          roundsLocked: ['curling', 'tetris'],
-        }}
-      >
+      <StoryProviders trivia={{ roundsLocked: 'all' }}>
         <div style={{ maxWidth: 420 }}>
           <Story />
         </div>
@@ -123,7 +117,7 @@ export const GameModesLocked: Story = {
 export const GameModesAvailable: Story = {
   decorators: [
     (Story) => (
-      <StoryProviders trivia={{ canPlayCasinoRush: true, canPlaySlotMachine: true }}>
+      <StoryProviders trivia={{}}>
         <div style={{ maxWidth: 420 }}>
           <Story />
         </div>

@@ -32,12 +32,6 @@ export interface InitQuestionAvailability {
   isEndOfSeason?: boolean;
 }
 
-export interface GameModeStatus {
-  canPlay: boolean;
-  hasActiveSession: boolean;
-  nextAvailable: string | null;
-}
-
 export interface FamilyFeudInitData {
   currentRound: {
     roundId: string;
@@ -82,10 +76,6 @@ export interface AppInitDeferredResponse {
   timelinePagination?: PaginationInfo;
   familySides?: Record<string, FamilySideConfig>;
   catchupStatus?: CatchupStatus;
-  gameStatuses?: {
-    casinoRush: GameModeStatus;
-    slotMachine: GameModeStatus;
-  };
   familyFeud?: FamilyFeudInitData;
 }
 

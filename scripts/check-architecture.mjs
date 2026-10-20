@@ -19,6 +19,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, normalize, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { gameFoldersCurrent } from './game-folders.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const IMPORT = /(?:from|import\(|vi\.(?:mock|doMock)\()\s*['"](\.{1,2}\/[^'"]+)['"]/g;
@@ -159,6 +160,10 @@ if (proofs.some((p) => p.length !== 1) || allowed.some((p) => p.length !== 0)) {
 const found = [
   ...[...sourceFiles(backend)].flatMap((f) => backendViolations(f, readFileSync(f, 'utf8'))),
   ...[...sourceFiles(src)].flatMap((f) => frontendViolations(f, readFileSync(f, 'utf8'))),
+  // The games' server folders are found by pattern into one generated file (0032).
+  ...(gameFoldersCurrent()
+    ? []
+    : ['backend/features/games/folders.generated.ts is stale: run `just contract`']),
 ];
 if (found.length > 0) {
   console.error(

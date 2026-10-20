@@ -12,10 +12,9 @@ import {
   parentsOf,
   siblingsOf,
 } from '@family-trivia/shared';
-import { FEATURE_FLAGS } from '../../../config';
 import { loadFamily } from '../../family/roster';
+import { serverGames } from '../../gameRegistry';
 import { logger } from '../../logger';
-import { getJson } from '../../s3';
 import { askStructured, askText } from '../core/converse';
 import { hasListOf, listSchema } from '../core/shape';
 
@@ -153,80 +152,11 @@ async function analyzeMemberData(memberData: MemberData) {
     (a) => a.question?.mode === 'personal' || a.question?.category === 'personal',
   ).length;
 
-  // Initialize casino rush variables
-  const casinoRushAnswers: any[] = [];
-  let casinoRushSessionData: any = null;
-  let casinoRushTotal = 0;
-  let casinoRushCorrect = 0;
-  let casinoRushWrong = 0;
-  let casinoRushSuccessRate = 0;
-  let casinoRushWrongQuestions: string[] = [];
-  let topCasinoRushCategories: string[] = [];
-  let casinoRushStatus = 'none';
-  let casinoRushPotentialPoints = 0;
-
-  // Only get Casino Rush data if feature is enabled
-  if (FEATURE_FLAGS.CASINO_RUSH_ENABLED) {
-    try {
-      const casinoSession = await getJson<any>(`casino-rush/${memberData.userId}/session.json`);
-      if (casinoSession?.questions) {
-        casinoRushSessionData = casinoSession;
-        const isCompleted = casinoSession.status === 'completed';
-        const pointsPerQuestion = isCompleted
-          ? casinoSession.potentialPoints / casinoSession.questions.length
-          : 0;
-
-        // Convert casino rush session to answer format
-        casinoSession.questions
-          .filter((q: any) => q.answeredAt)
-          .forEach((q: any, index: number) => {
-            casinoRushAnswers.push({
-              question: {
-                ...q,
-                mode: 'casino-rush',
-                pointMultiplier: 3,
-              },
-              selectedAnswer: q.userAnswer,
-              correct: q.correct,
-              timestamp: new Date(q.answeredAt).toISOString(),
-              pointsEarned: pointsPerQuestion,
-              isCasinoRush: true,
-              questionNumber: index + 1,
-              totalQuestions: casinoSession.questions.length,
-            });
-          });
-      }
-    } catch {
-      // No casino rush data found
-    }
-
-    // Analyze Casino Rush gameplay
-    casinoRushTotal = casinoRushAnswers.length;
-    casinoRushCorrect = casinoRushAnswers.filter((a) => a.correct).length;
-    casinoRushWrong = casinoRushTotal - casinoRushCorrect;
-    casinoRushSuccessRate =
-      casinoRushTotal > 0 ? Math.round((casinoRushCorrect / casinoRushTotal) * 100) : 0;
-
-    // Get casino rush wrong questions
-    casinoRushWrongQuestions = casinoRushAnswers
-      .filter((a) => !a.correct && a.question?.question)
-      .map((a) => a.question.question);
-
-    // Analyze casino rush categories
-    const casinoRushCategories: Record<string, number> = {};
-    casinoRushAnswers.forEach((answer) => {
-      const category = answer.question?.category || 'unknown';
-      casinoRushCategories[category] = (casinoRushCategories[category] || 0) + 1;
-    });
-    topCasinoRushCategories = Object.entries(casinoRushCategories)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([name]) => name);
-
-    // Casino Rush session details
-    casinoRushStatus = casinoRushSessionData?.status || 'none';
-    casinoRushPotentialPoints = casinoRushSessionData?.potentialPoints || 0;
-  }
+  // What each game tells the writer about how they play it (its server folder).
+  const games = serverGames().filter((g) => g.aboutPlayer);
+  const gameFacts = (
+    await Promise.all(games.map((g) => g.aboutPlayer?.facts(memberData.userId).catch(() => '')))
+  ).join('');
 
   // Get detailed family hierarchy data to understand relationships
   let familyPosition: any = {};
@@ -455,15 +385,11 @@ async function analyzeMemberData(memberData: MemberData) {
     randomWrongQuestions,
     wrongByCategory,
     wrongByDifficulty,
-    // Casino Rush data
-    casinoRushTotal,
-    casinoRushCorrect,
-    casinoRushWrong,
-    casinoRushSuccessRate,
-    casinoRushWrongQuestions,
-    topCasinoRushCategories,
-    casinoRushStatus,
-    casinoRushPotentialPoints,
+    // Games with plays of their own: prompt sections and guidelines
+    gameFacts,
+    gameGuidelines: games.map((g) => g.aboutPlayer?.guideline ?? ''),
+    gameFocus: games.map((g) => `\n${g.aboutPlayer?.focus ?? ''}`).join(''),
+    gameRoast: games.map((g) => `\n${g.aboutPlayer?.roast ?? ''}`).join(''),
     // Family hierarchy data
     familySide,
     familyPosition,
@@ -533,30 +459,6 @@ async function buildMemberSummaryPrompts(memberData: MemberData): Promise<{
     if (rel.friends?.length) familyDesc.push(`friends with ${rel.friends.join(', ')}`);
     return familyDesc.length > 0 ? familyDesc.join(', ') : 'individual family member';
   };
-
-  // Build casino rush section only if feature is enabled
-  const casinoRushSection =
-    FEATURE_FLAGS.CASINO_RUSH_ENABLED && analysis.casinoRushTotal > 0
-      ? `
-CASINO RUSH PERFORMANCE:
-${
-  analysis.casinoRushTotal > 0
-    ? `- Casino Rush session status: ${analysis.casinoRushStatus}
-- Questions attempted: ${analysis.casinoRushTotal} (${analysis.casinoRushCorrect} correct, ${analysis.casinoRushWrong} wrong)
-- Potential points at stake: ${analysis.casinoRushPotentialPoints}
-- Preferred Casino Rush categories: ${analysis.topCasinoRushCategories.join(', ') || 'Various'}
-${
-  analysis.casinoRushWrongQuestions.length > 0
-    ? `- Questions they got wrong under pressure:\n${analysis.casinoRushWrongQuestions
-        .slice(0, 3)
-        .map((q) => `  * "${q}"`)
-        .join('\n')}`
-    : ''
-}`
-    : "- No Casino Rush attempts yet (cautious or hasn't discovered it)"
-}
-`
-      : '';
 
   // Build Family Feud section from completed rounds
   const buildFamilyFeudSection = () => {
@@ -647,7 +549,7 @@ GAMEPLAY PATTERNS (SECONDARY FOCUS - 30% OF SUMMARY):
 - Questions missed: ${analysis.incorrectAnswers}
 - Favorite categories: ${analysis.topCategories.join(', ') || 'No clear favorites yet'}
 - Preferred difficulty: ${analysis.topDifficulties.join(', ') || 'No clear preference'}
-${casinoRushSection}${familyFeudSection}
+${analysis.gameFacts}${familyFeudSection}
 TOUGH CATEGORY BONUS HUNTING:
 ${
   analysis.categoryBonusCount > 0
@@ -670,10 +572,8 @@ CUSTOM CATEGORIES:
 - Questions answered from custom categories: ${analysis.customCategoriesPlayedList.length > 0 ? analysis.customCategoriesPlayedList.join(', ') : 'None yet'}
 `;
 
-  // Common instructions for both regular and roast prompts - with conditional Casino Rush
-  const casinoRushInstruction = FEATURE_FLAGS.CASINO_RUSH_ENABLED
-    ? "- Include Casino Rush performance if they've participated (successes, failures, favorite categories)"
-    : '';
+  // Common instructions for both regular and roast prompts, with each game's line
+  const gameInstructions = analysis.gameGuidelines.join('\n');
   const familyFeudInstruction = familyFeudSection
     ? '- Include Family Feud insights: what their answers reveal about them, how well family knows them'
     : '';
@@ -688,7 +588,7 @@ IMPORTANT GUIDELINES:
 - Highlight interesting, funny, or revealing personal details they've shared
 - Comment on their sharing comfort level - what they're willing to share vs. what they skip
 - When mentioning gameplay, connect it to their personality or family role when possible
-${casinoRushInstruction}
+${gameInstructions}
 ${familyFeudInstruction}
 - Do NOT mention accuracy rates or percentages
 - Write as if you're describing them to another family member who knows the family structure
@@ -733,7 +633,7 @@ PRIMARY FOCUS (70% - Personal Facts with Family Context):
 - Connect their personal experiences to their role as parent/child/partner/sibling
 
 SECONDARY FOCUS (30% - Gameplay in Family Context):
-- Their trivia preferences and how these might connect to their family interests${FEATURE_FLAGS.CASINO_RUSH_ENABLED ? '\n- Casino Rush participation (are they the family risk-taker or cautious one?)' : ''}
+- Their trivia preferences and how these might connect to their family interests${analysis.gameFocus}
 - How their gameplay style fits their family personality
 - Custom categories that reveal their unique interests within the family
 
@@ -777,7 +677,7 @@ PRIMARY ROAST TARGETS (70% - Personal Facts):
 - Reference their family role/relationships when it adds humor (e.g., "typical parent behavior" or "classic sibling rivalry")
 
 SECONDARY ROAST TARGETS (30% - Gameplay):
-- Their trivia struggles and funny wrong answers (use specific examples)${FEATURE_FLAGS.CASINO_RUSH_ENABLED ? "\n- Casino Rush performance - whether they're overconfident, cautious, or hilariously unsuccessful" : ''}
+- Their trivia struggles and funny wrong answers (use specific examples)${analysis.gameRoast}
 - Their custom categories and the types of questions they create
 - Their oddly specific category interests or preferences
 - Patterns in the types of questions that consistently trip them up

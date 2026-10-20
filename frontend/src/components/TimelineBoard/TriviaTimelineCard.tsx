@@ -1,11 +1,11 @@
 // Individual card component for timeline
-import CasinoIcon from '@mui/icons-material/Casino';
 import SchoolIcon from '@mui/icons-material/School';
 import { Box, Card, Chip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useState } from 'react';
 import { PersonAvatar } from '../../entities/person';
+import type { Game } from '../../games/kit';
 import { colors } from '../../shared/design-system';
 import AnswerResultDialog from '../TriviaCard/AnswerResultDialog';
 import CustomCategoryBanner from './CustomCategoryBanner';
@@ -25,7 +25,8 @@ interface TriviaEntry {
   difficulty?: 'easy' | 'normal' | 'hard';
   pointsEarned?: number;
   streak?: number;
-  isCasinoRush?: boolean;
+  /** The session game it was played in, shown with its icon and color. */
+  game?: Game;
   questionNumber?: number;
   totalQuestions?: number;
   isCustomCategory?: boolean;
@@ -48,6 +49,8 @@ const TimelineCard: React.FC<TimelineCardProps> = ({
 }) => {
   const theme = useTheme();
   const [showAnswerDialog, setShowAnswerDialog] = useState(false);
+  const gameColor = entry.game ? (entry.game.look.frame ?? entry.game.look.accent) : undefined;
+  const GameIcon = entry.game?.icon;
 
   const cardContent = (
     <>
@@ -243,7 +246,7 @@ const TimelineCard: React.FC<TimelineCardProps> = ({
                   </>
                 )}
 
-                {entry.isCasinoRush && !isGrouped && (
+                {entry.game && !isGrouped && (
                   <>
                     <Box
                       sx={{
@@ -263,9 +266,7 @@ const TimelineCard: React.FC<TimelineCardProps> = ({
                           : theme.palette.error.main,
                       }}
                     >
-                      {entry.correct
-                        ? `🎰 ${entry.questionNumber}/${entry.totalQuestions}`
-                        : '🎰 BUST'}
+                      {entry.correct ? `${entry.questionNumber}/${entry.totalQuestions}` : 'BUST'}
                     </Typography>
                   </>
                 )}
@@ -284,27 +285,15 @@ const TimelineCard: React.FC<TimelineCardProps> = ({
                 sx={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  backgroundColor: alpha(
-                    entry.isCasinoRush ? theme.palette.warning.main : entry.color,
-                    0.08,
-                  ),
+                  backgroundColor: alpha(gameColor ?? entry.color, 0.08),
                   borderRadius: 2,
                   px: 1.5,
                   py: 0.5,
-                  border: `1px solid ${alpha(
-                    entry.isCasinoRush ? theme.palette.warning.main : entry.color,
-                    0.2,
-                  )}`,
+                  border: `1px solid ${alpha(gameColor ?? entry.color, 0.2)}`,
                 }}
               >
-                {entry.isCasinoRush ? (
-                  <CasinoIcon
-                    sx={{
-                      fontSize: '1rem',
-                      mr: 0.5,
-                      color: theme.palette.warning.main,
-                    }}
-                  />
+                {GameIcon ? (
+                  <GameIcon sx={{ fontSize: '1rem', mr: 0.5, color: gameColor }} />
                 ) : (
                   <SchoolIcon sx={{ fontSize: '1rem', mr: 0.5, color: entry.color }} />
                 )}
@@ -312,13 +301,13 @@ const TimelineCard: React.FC<TimelineCardProps> = ({
                   variant="body2"
                   sx={{
                     fontSize: '0.75rem',
-                    color: entry.isCasinoRush ? theme.palette.warning.main : entry.color,
+                    color: gameColor ?? entry.color,
                     lineHeight: 1.3,
                     fontWeight: 600,
                     letterSpacing: '0.3px',
                   }}
                 >
-                  {entry.isCasinoRush ? `Casino Rush - ${entry.category}` : entry.category}
+                  {entry.game ? `${entry.game.label} - ${entry.category}` : entry.category}
                 </Typography>
               </Box>
             </Box>

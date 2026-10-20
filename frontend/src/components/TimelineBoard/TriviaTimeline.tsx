@@ -3,6 +3,8 @@
 import { Box, Divider, Typography } from '@mui/material';
 import { format, isToday, isYesterday, parseISO } from 'date-fns';
 import React, { useMemo } from 'react';
+import type { Game } from '../../games/kit';
+import { gameOf } from '../../games/registry';
 import { createLogger } from '../../shared/lib/logger';
 import { getUserColor, getUserInitials } from '../../utils';
 import { isCustomCategory } from '../../utils/categoryUtils';
@@ -36,12 +38,12 @@ interface TriviaTimelineProps {
       familySide?: FamilySide;
       pointsEarned?: number;
       streak?: number;
-      isCasinoRush?: boolean;
+      /** The game mode it came from (older entries carry a flag per mode instead). */
+      gameMode?: string;
       questionNumber?: number;
       totalQuestions?: number;
       reason?: string;
       isCustomCategory?: boolean;
-      isSlotMachine?: boolean;
       multiplier?: number;
     }[];
   };
@@ -63,12 +65,12 @@ interface TriviaEntry {
   difficulty?: 'easy' | 'normal' | 'hard';
   pointsEarned?: number;
   streak?: number;
-  isCasinoRush?: boolean;
+  /** The session game it was played in (`session` in the game's folder), if any. */
+  game?: Game;
   questionNumber?: number;
   totalQuestions?: number;
   reason?: string;
   isCustomCategory?: boolean;
-  isSlotMachine?: boolean;
   multiplier?: number;
   isFamilyFeud?: boolean;
   feudGuesses?: Array<{ userName: string; guess: string; correct: boolean }>;
@@ -78,8 +80,7 @@ interface TriviaEntry {
 
 interface GroupedTriviaEntry {
   entries: TriviaEntry[];
-  isCasinoRush: boolean;
-  isSlotMachine?: boolean;
+  game: Game;
   userId: string;
   timestamp: string;
   color: string;
@@ -112,19 +113,9 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
 
     try {
       const entries: TriviaEntry[] = timelineData.trivia.map((item) => {
-        const isCasinoRush = Boolean(
-          item.isCasinoRush ||
-            (item.question &&
-              typeof item.question === 'object' &&
-              item.question.mode === 'casino-rush'),
-        );
-
-        const isSlotMachine = Boolean(
-          item.isSlotMachine ||
-            (item.question &&
-              typeof item.question === 'object' &&
-              item.question.mode === 'slot-machine'),
-        );
+        // A session game's answers group into one card per play.
+        const played = gameOf(item);
+        const game = played?.session ? played : undefined;
 
         // Handle both nested question object and flat question string
         // (timelineService returns flat, old format uses nested)
@@ -156,13 +147,12 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
           difficulty: q.difficulty,
           pointsEarned: item.pointsEarned,
           streak: item.streak,
-          isCasinoRush,
+          game,
           questionNumber: item.questionNumber,
           totalQuestions: item.totalQuestions,
           reason: item.reason,
           isCustomCategory:
             item.isCustomCategory || (q.category ? isCustomCategory(q.category) : false),
-          isSlotMachine,
           multiplier: item.multiplier,
           isFamilyFeud:
             !!(item as any).isFamilyFeud ||
@@ -186,144 +176,53 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
     }
   }, [timelineData, selectedSide, logger]);
 
-  // Group entries by date and process Casino Rush and Slot Machine
+  // Group entries by date; a session game's answers become one card per
+  // player, game and day.
   const groupedByDate = useMemo(() => {
     const dateGroups = new Map<string, (TriviaEntry | GroupedTriviaEntry)[]>();
-    const casinoGroups: { [key: string]: TriviaEntry[] } = {};
-    const slotMachineGroups: { [key: string]: TriviaEntry[] } = {};
-
-    // First, process Casino Rush entries
-    filteredEntries.forEach((entry) => {
-      if (entry.isCasinoRush === true) {
-        const entryDate = new Date(entry.timestamp);
-        const dateKey = `${entryDate.getFullYear()}-${entryDate.getMonth()}-${entryDate.getDate()}`;
-        const sessionKey = `${entry.userId}-${dateKey}`;
-
-        if (!casinoGroups[sessionKey]) {
-          casinoGroups[sessionKey] = [];
-        }
-        casinoGroups[sessionKey].push(entry);
-      } else if (entry.isSlotMachine === true) {
-        // Process Slot Machine entries
-        const entryDate = new Date(entry.timestamp);
-        const dateKey = `${entryDate.getFullYear()}-${entryDate.getMonth()}-${entryDate.getDate()}`;
-        const sessionKey = `${entry.userId}-${dateKey}-slot`;
-
-        if (!slotMachineGroups[sessionKey]) {
-          slotMachineGroups[sessionKey] = [];
-        }
-        slotMachineGroups[sessionKey].push(entry);
-      }
-    });
-
-    // Create grouped Casino Rush entries
-    const groupedCasinoRush = new Map<string, GroupedTriviaEntry>();
-    Object.entries(casinoGroups).forEach(([_sessionKey, casinoGroup]) => {
-      if (casinoGroup.length === 0) return;
-
-      const sorted = casinoGroup.sort((a, b) => (a.questionNumber || 0) - (b.questionNumber || 0));
-      const validEntries = sorted.filter(
-        (entry) => entry.questionNumber !== undefined && entry.totalQuestions !== undefined,
+    const dateKeyOf = (timestamp: string) =>
+      format(
+        parseISO(typeof timestamp === 'string' ? timestamp : new Date(timestamp).toISOString()),
+        'yyyy-MM-dd',
       );
+    const add = (item: TriviaEntry | GroupedTriviaEntry) => {
+      const key = dateKeyOf(item.timestamp);
+      if (!dateGroups.has(key)) dateGroups.set(key, []);
+      dateGroups.get(key)?.push(item);
+    };
 
-      if (validEntries.length > 0) {
-        const groupTimestamp = validEntries[0].timestamp;
-        groupedCasinoRush.set(groupTimestamp, {
-          entries: validEntries,
-          isCasinoRush: true,
-          userId: validEntries[0].userId,
-          timestamp: groupTimestamp,
-          color: validEntries[0].color,
-          initials: validEntries[0].initials,
-          isCustomCategory: validEntries[0].isCustomCategory,
-        });
+    const plays = new Map<string, TriviaEntry[]>();
+    for (const entry of filteredEntries) {
+      if (!entry.game) {
+        // Family Feud entries are standalone too
+        add(entry);
+        continue;
       }
-    });
+      const d = new Date(entry.timestamp);
+      const key = `${entry.userId}-${d.getFullYear()}-${d.getMonth()}-${d.getDate()}-${entry.game.id}`;
+      plays.set(key, [...(plays.get(key) ?? []), entry]);
+    }
 
-    // Create grouped Slot Machine entries
-    const groupedSlotMachine = new Map<string, GroupedTriviaEntry>();
-    Object.entries(slotMachineGroups).forEach(([_sessionKey, slotGroup]) => {
-      if (slotGroup.length === 0) return;
-
-      const sorted = slotGroup.sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
-
-      // Calculate best multiplier and total points
-      let bestMultiplier = 1;
-      let totalPoints = 0;
-
-      sorted.forEach((entry) => {
-        if (entry.multiplier && entry.multiplier > bestMultiplier) {
-          bestMultiplier = entry.multiplier;
-        }
-        if (entry.correct) {
-          totalPoints += entry.pointsEarned || 0;
-        }
-      });
-
-      const groupTimestamp = sorted[0].timestamp;
-      groupedSlotMachine.set(groupTimestamp, {
+    for (const play of plays.values()) {
+      const sorted = [...play].sort(
+        (a, b) =>
+          (a.questionNumber ?? 0) - (b.questionNumber ?? 0) ||
+          Date.parse(a.timestamp) - Date.parse(b.timestamp),
+      );
+      const first = sorted[0] as TriviaEntry;
+      const multipliers = sorted.map((e) => e.multiplier ?? 0).filter((m) => m > 0);
+      add({
         entries: sorted,
-        isCasinoRush: false,
-        isSlotMachine: true,
-        userId: sorted[0].userId,
-        timestamp: groupTimestamp,
-        color: sorted[0].color,
-        initials: sorted[0].initials,
-        bestMultiplier,
-        totalPoints,
+        game: first.game as Game,
+        userId: first.userId,
+        timestamp: first.timestamp,
+        color: first.color,
+        initials: first.initials,
+        isCustomCategory: first.isCustomCategory,
+        bestMultiplier: multipliers.length ? Math.max(...multipliers) : undefined,
+        totalPoints: sorted.reduce((sum, e) => sum + (e.correct ? e.pointsEarned || 0 : 0), 0),
       });
-    });
-
-    // Now group all entries by date
-    filteredEntries.forEach((entry) => {
-      if (entry.isCasinoRush === true || entry.isSlotMachine === true) {
-        // Skip individual Casino Rush and Slot Machine entries, we'll add the grouped versions
-        return;
-      }
-      // Family Feud entries are standalone — don't skip them
-
-      const timestampString =
-        typeof entry.timestamp === 'string'
-          ? entry.timestamp
-          : new Date(entry.timestamp).toISOString();
-      const date = parseISO(timestampString);
-      const dateKey = format(date, 'yyyy-MM-dd');
-
-      if (!dateGroups.has(dateKey)) {
-        dateGroups.set(dateKey, []);
-      }
-      dateGroups.get(dateKey)?.push(entry);
-    });
-
-    // Add grouped Casino Rush entries to their respective dates
-    groupedCasinoRush.forEach((groupedEntry) => {
-      const timestampString =
-        typeof groupedEntry.timestamp === 'string'
-          ? groupedEntry.timestamp
-          : new Date(groupedEntry.timestamp).toISOString();
-      const date = parseISO(timestampString);
-      const dateKey = format(date, 'yyyy-MM-dd');
-
-      if (!dateGroups.has(dateKey)) {
-        dateGroups.set(dateKey, []);
-      }
-      dateGroups.get(dateKey)?.push(groupedEntry);
-    });
-
-    // Add grouped Slot Machine entries to their respective dates
-    groupedSlotMachine.forEach((groupedEntry) => {
-      const timestampString =
-        typeof groupedEntry.timestamp === 'string'
-          ? groupedEntry.timestamp
-          : new Date(groupedEntry.timestamp).toISOString();
-      const date = parseISO(timestampString);
-      const dateKey = format(date, 'yyyy-MM-dd');
-
-      if (!dateGroups.has(dateKey)) {
-        dateGroups.set(dateKey, []);
-      }
-      dateGroups.get(dateKey)?.push(groupedEntry);
-    });
+    }
 
     // Sort entries within each date group
     dateGroups.forEach((entries) => {
@@ -391,13 +290,11 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
 
                 return (
                   <Box key={`${displayEntry.userId}_${displayEntry.timestamp}`}>
-                    {isGrouped && (e.isCasinoRush || e.isSlotMachine) ? (
+                    {isGroupedEntry(e) ? (
                       <GameModeCard
-                        mode={e.isCasinoRush ? 'casino-rush' : 'slot-machine'}
-                        entries={e.entries.map((en: any) => ({
-                          question:
-                            en.question ||
-                            (typeof en.question === 'object' ? en.question.question : ''),
+                        game={e.game}
+                        entries={e.entries.map((en) => ({
+                          question: en.question,
                           choices: en.choices,
                           answer: en.answer,
                           selectedAnswer: en.selectedAnswer,
@@ -412,10 +309,7 @@ const TriviaTimeline: React.FC<TriviaTimelineProps> = ({
                         group={e.entries[0]?.group || ''}
                         timestamp={e.timestamp}
                         totalPoints={e.totalPoints || 0}
-                        allCorrect={
-                          e.isCasinoRush ? e.entries.every((en: any) => en.correct) : undefined
-                        }
-                        multiplier={e.isSlotMachine ? e.bestMultiplier : undefined}
+                        multiplier={e.bestMultiplier}
                         onUserClick={onUserClick}
                       />
                     ) : displayEntry.isFamilyFeud ? (

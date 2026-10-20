@@ -223,22 +223,12 @@ export const useMockUserStatus = (): UserStatusContextType => {
 // ---------------------------------------------------------------------------
 
 interface TriviaStatusContextType {
-  slotMachine: {
-    canPlay: boolean;
-    nextAvailable: Date | null;
-    hasActiveSession: boolean;
-    loading: boolean;
-    lastUpdated: number;
-  };
-  casinoRush: {
-    canPlay: boolean;
-    nextAvailable: Date | null;
-    hasActiveSession: boolean;
-    loading: boolean;
-    lastUpdated: number;
-  };
-  refreshSlotMachineStatus: (userId: string) => Promise<void>;
-  refreshCasinoRushStatus: (userId: string) => Promise<void>;
+  /** Games played as this week's round, by id (docs/decisions/0032). */
+  rounds: Record<
+    string,
+    { canPlay: boolean; nextAvailable: Date | null; active: boolean; loading: boolean }
+  >;
+  refreshRounds: () => Promise<void>;
   refreshAllStatuses: (userId: string) => Promise<void>;
   refreshCategories: () => void;
 }
@@ -246,22 +236,8 @@ interface TriviaStatusContextType {
 const TriviaStatusContext = createContext<TriviaStatusContextType | undefined>(undefined);
 
 const defaultTriviaStatus: TriviaStatusContextType = {
-  slotMachine: {
-    canPlay: true,
-    nextAvailable: null,
-    hasActiveSession: false,
-    loading: false,
-    lastUpdated: Date.now(),
-  },
-  casinoRush: {
-    canPlay: true,
-    nextAvailable: null,
-    hasActiveSession: false,
-    loading: false,
-    lastUpdated: Date.now(),
-  },
-  refreshSlotMachineStatus: async () => {},
-  refreshCasinoRushStatus: async () => {},
+  rounds: {},
+  refreshRounds: async () => {},
   refreshAllStatuses: async () => {},
   refreshCategories: () => {},
 };

@@ -17,7 +17,7 @@ export {
   generateQuestionStream,
   generateQuestionWithProgress,
 } from './questions/triviaWithProgress';
-// Export slot machine utilities
+// Questions made from facts and duplicate checks
 export {
   generateMultipleChoiceFromFact,
   isDuplicateQuestion,

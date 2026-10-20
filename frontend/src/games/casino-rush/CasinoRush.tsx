@@ -1,4 +1,4 @@
-// File: src/components/TriviaCard/CasinoRush.tsx
+// Casino Rush: three questions, 60 seconds each, triple or nothing (played as a weekly round).
 
 import MoveToNextIcon from '@mui/icons-material/ArrowForward';
 import CasinoIcon from '@mui/icons-material/Casino';
@@ -19,16 +19,16 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { ProgressMessage } from '../../api/modules/trivia';
+import { LoadingDots } from '../../components/ui/feedback';
+import { useTrivia } from '../../contexts/TriviaContext';
+import { createLogger } from '../../shared/lib/logger';
 import {
   type CasinoRushResult,
   type CasinoRushSession,
   startCasinoRush,
   submitCasinoRushAnswer,
-} from '../../api/modules/games';
-import type { ProgressMessage } from '../../api/modules/trivia';
-import { useTrivia } from '../../contexts/TriviaContext';
-import { createLogger } from '../../shared/lib/logger';
-import { LoadingDots } from '../ui/feedback';
+} from './api';
 import CasinoRushProgress from './CasinoRushProgress';
 
 const logger = createLogger('CasinoRush');
@@ -40,7 +40,7 @@ interface CasinoRushProps {
   isCatchingUp?: boolean;
 }
 
-export const CasinoRush: React.FC<CasinoRushProps> = ({
+const CasinoRush: React.FC<CasinoRushProps> = ({
   userId,
   onComplete,
   onClose,
@@ -49,19 +49,17 @@ export const CasinoRush: React.FC<CasinoRushProps> = ({
   const theme = useTheme();
   const timerRef = useRef<number | null>(null);
 
-  // Use our new context hook without automatic polling
-  const { casinoRush, refreshCasinoRushStatus } = useTrivia();
-
-  // Destructure the values from the context
-  const { canPlay, nextAvailable, hasActiveSession, loading: statusLoading } = casinoRush;
+  // This week's round status, like every game's (no polling)
+  const { rounds, refreshRounds } = useTrivia();
+  const {
+    canPlay = false,
+    nextAvailable = null,
+    active: hasActiveSession = false,
+    loading: statusLoading = true,
+  } = rounds['casino-rush'] ?? {};
 
   // Explicit refresh function for when we need to refresh status
-  const refresh = useCallback(() => {
-    if (userId) {
-      return refreshCasinoRushStatus(userId);
-    }
-    return Promise.resolve();
-  }, [userId, refreshCasinoRushStatus]);
+  const refresh = useCallback(() => refreshRounds(), [refreshRounds]);
 
   // Status is already loaded by CategorySelect — no need to refresh on mount
 

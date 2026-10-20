@@ -26,15 +26,15 @@ vi.mock('../routes/questionGeneration/shared', () => ({
   }),
   validateGeneratedQuestion: vi.fn().mockReturnValue(true),
 }));
-// Stub out game-modes/shared so getAvailableCategories doesn't hit S3
-vi.mock('../routes/game-modes/shared', () => ({
+// Stub out the games' categories so getAvailableCategories doesn't hit S3
+vi.mock('../features/games/categories', () => ({
   getAvailableCategories: vi
     .fn()
     .mockResolvedValue(['Science & Nature', 'History & Politics', 'Geography & Travel']),
 }));
 
 import type { HistoryEntry } from '@family-trivia/shared';
-import { casinoRushStartGame } from '../routes/game-modes/casinoRush';
+import { casinoRushStartGame } from '../features/games/casino-rush/handlers';
 import { invalidateGameModeCache } from '../services/gameModeService';
 import { invalidatePlayerStateCache } from '../services/playerStateService';
 import { invalidateSeasonsCache } from '../services/seasonService';

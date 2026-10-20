@@ -1,10 +1,12 @@
 // File: lambda/routes/userProfile.ts
+
+import { gameModeOf, legacyFlagsOf, playOf } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
 import { getFactHistory } from '../services/factHistoryService';
+import { olderAnswersOf, serverGame } from '../services/gameRegistry';
 import { logger } from '../services/logger';
 import { getJson } from '../services/s3';
-import { getAllCasinoRushSessions } from './game-modes/casinoRushUtils';
 
 interface FactItem {
   id: string;
@@ -31,57 +33,9 @@ interface HistoryItem {
   correct: boolean;
   timestamp: string;
   pointsEarned: number;
-  isCasinoRush?: boolean;
   questionNumber?: number;
   totalQuestions?: number;
   categoryBonus?: number;
-}
-
-export async function getCasinoRushHistory(userId: string): Promise<HistoryItem[]> {
-  const historyEntries: HistoryItem[] = [];
-
-  try {
-    // Get all sessions using utility (checks both old and new paths)
-    const sessions = await getAllCasinoRushSessions(userId);
-
-    // Process each session
-    for (const session of sessions) {
-      if (!session?.questions) continue;
-
-      // Casino Rush only awards points if ALL questions are correct (status = 'completed')
-      const isCompleted = session.status === 'completed';
-      const allCorrect = session.questions.every((q) => q.correct === true);
-      const totalSessionPoints = isCompleted && allCorrect ? session.potentialPoints : 0;
-      // Divide points evenly among questions to avoid triple counting
-      const pointsPerQuestion =
-        totalSessionPoints > 0 ? totalSessionPoints / session.questions.length : 0;
-
-      // Process each question in the session
-      session.questions.forEach((q, index) => {
-        if (q.userAnswer !== undefined) {
-          historyEntries.push({
-            question: {
-              ...q,
-              mode: 'casino-rush',
-              pointMultiplier: 3,
-            },
-            selectedAnswer: q.userAnswer,
-            correct: q.correct || false,
-            timestamp: new Date(q.answeredAt || session.lastPlayedAt || Date.now()).toISOString(),
-            pointsEarned: q.correct && isCompleted && allCorrect ? pointsPerQuestion : 0,
-            isCasinoRush: true,
-            questionNumber: index + 1,
-            totalQuestions: session.questions.length,
-          });
-        }
-      });
-    }
-  } catch (error) {
-    // If no casino rush sessions exist, return empty array
-    logger.info(`No casino rush sessions for user ${userId}:`, error as Error);
-  }
-
-  return historyEntries;
 }
 
 interface DifficultyStats {
@@ -101,15 +55,15 @@ export async function userProfile(event: APIGatewayProxyEvent): Promise<APIGatew
     // 1) Load raw history from regular answers
     const rawHistory = (await getJson<any[]>(`answers/history/${userId}.json`)) || [];
 
-    // 2) Load casino rush history
-    const casinoHistory = await getCasinoRushHistory(userId);
+    // 2) Load the answers games keep in their own files (older plays)
+    const older = await olderAnswersOf(userId);
 
     // 3) Combine and enrich with pointsEarned
-    const combinedHistory = [...rawHistory, ...casinoHistory];
+    const combinedHistory = [...rawHistory, ...older];
     const allHistory: HistoryItem[] = combinedHistory
       .map((h) => {
-        // Casino rush entries already have pointsEarned set
-        if (h.isCasinoRush && h.pointsEarned !== undefined) {
+        // A play of several questions split its points when it was stored
+        if ((older.includes(h) || playOf(h)) && h.pointsEarned !== undefined) {
           return h;
         }
         const multiplier = h.question?.pointMultiplier ?? 1;
@@ -124,7 +78,8 @@ export async function userProfile(event: APIGatewayProxyEvent): Promise<APIGatew
     // 3.5) Create detailed scoring history with game type info
     const scoringHistory = allHistory.map((h) => ({
       date: h.timestamp,
-      gameType: h.isCasinoRush ? 'Casino Rush' : 'Regular Trivia',
+      gameMode: gameModeOf(h as any),
+      gameType: serverGame(gameModeOf(h as any) ?? '')?.label ?? 'Regular Trivia',
       category: h.question?.category || 'Unknown',
       difficulty: h.question?.difficulty || 'normal',
       pointsAttempted: h.correct ? h.pointsEarned : h.question?.pointMultiplier || 1,
@@ -133,7 +88,8 @@ export async function userProfile(event: APIGatewayProxyEvent): Promise<APIGatew
       question: h.question?.question || '',
       userAnswer: h.selectedAnswer,
       correctAnswer: h.question?.answer || '',
-      isCasinoRush: h.isCasinoRush || false,
+      // The stored per-mode flags, as the app read them before gameMode.
+      ...legacyFlagsOf(h as any),
       questionNumber: h.questionNumber,
       totalQuestions: h.totalQuestions,
     }));

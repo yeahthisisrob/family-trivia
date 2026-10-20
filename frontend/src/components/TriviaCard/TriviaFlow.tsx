@@ -32,7 +32,6 @@ import { useTrivia } from '../../contexts/TriviaContext';
 import { useTriviaFlowDispatch } from '../../contexts/TriviaFlowContext';
 import { useUserStatus } from '../../contexts/UserStatusContext';
 import { CommentsThread } from '../../features/comments';
-import SlotMachine from '../../games/casino/SlotMachine';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
@@ -42,7 +41,6 @@ import { getUserColor, getUserInitials } from '../../utils';
 import { isCustomCategory } from '../../utils/categoryUtils';
 import CustomCategoryForm from '../CustomCategoryForm';
 import { LoadingDots } from '../ui/feedback';
-import { CasinoRush } from './CasinoRush';
 import CategorySelect from './CategorySelect';
 import { CHALLENGES, challengeByLabel } from './challenges';
 
@@ -182,7 +180,7 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
   const [categorySelections, setCategorySelections] = useState<CategorySelection[]>([]);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [latestHistory, setLatestHistory] = useState<QuestionHistory | null>(null);
-  // Active challenge (null = none): a session mode or a game's round (0032).
+  // Active challenge (null = none): a game's round (0032).
   const [activeGameMode, setActiveGameMode] = useState<string | null>(null);
   const [showCustomForm, setShowCustomForm] = useState(false);
 
@@ -535,25 +533,8 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
 
   if (forceDisabled) return null;
 
-  // A challenge: framed in its color; a session mode, or the game's round.
+  // A challenge: the game's round, framed in its color.
   const challenge = activeGameMode ? CHALLENGES_BY_ID.get(activeGameMode) : undefined;
-  const sessionGame =
-    activeGameMode === 'casino-rush' ? (
-      <CasinoRush
-        userId={userId}
-        onComplete={handleGameComplete}
-        onClose={handleGameClose}
-        isCatchingUp={catchingUp}
-      />
-    ) : activeGameMode === 'slot-machine' ? (
-      <SlotMachine
-        userId={userId}
-        groupId={groupId}
-        onComplete={handleGameComplete}
-        onClose={handleGameClose}
-        isCatchingUp={catchingUp}
-      />
-    ) : null;
   const Round = challenge?.game?.round?.Round;
 
   if (challenge) {
@@ -568,17 +549,16 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
           overflow: 'hidden',
         }}
       >
-        {sessionGame ??
-          (Round && (
-            <Suspense fallback={<LoadingDots mt={2} />}>
-              <Round
-                userId={userId}
-                catchUp={catchingUp}
-                onComplete={handleGameComplete}
-                onClose={handleGameClose}
-              />
-            </Suspense>
-          ))}
+        {Round && (
+          <Suspense fallback={<LoadingDots mt={2} />}>
+            <Round
+              userId={userId}
+              catchUp={catchingUp}
+              onComplete={handleGameComplete}
+              onClose={handleGameClose}
+            />
+          </Suspense>
+        )}
       </Box>
     );
   }

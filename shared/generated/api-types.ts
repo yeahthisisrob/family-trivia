@@ -1896,7 +1896,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Admin — fetch game mode sessions */
+        /**
+         * Admin — fetch game mode sessions
+         * @description Every game whose server folder has an admin part (docs/decisions/0032). Without userId, the plays left open across the circle; with it, that player's state in each game.
+         */
         get: operations["adminGetGameSessions"];
         put?: never;
         post?: never;
@@ -2535,10 +2538,25 @@ export interface components {
          * @example snake
          */
         GameId: string;
+        AdminGameSession: {
+            /** @description The game's label */
+            type: string;
+            /** @description The game's id (its folder) */
+            game: string;
+            status: string;
+            userId?: string;
+            questions?: number;
+            answered?: number;
+            startTime?: string;
+            lastPlayed?: string | null;
+            details?: string;
+        };
         RoundStatus: {
             canPlay: boolean;
             /** Format: date-time */
             nextAvailable: string | null;
+            /** @description A play with steps of its own was started and not finished; opening the game resumes it. */
+            active?: boolean;
         };
         GameClue: {
             clue: string;
@@ -3052,6 +3070,12 @@ export interface components {
             createdAt: string;
             updatedAt?: string;
         };
+        SlotMachineQuestion: {
+            question: string;
+            choices: string[];
+            category: string;
+            isPersonal?: boolean;
+        };
         SlotMachineResult: {
             multiplier: number;
             category: string;
@@ -3543,7 +3567,14 @@ export interface operations {
                         timelinePagination?: Record<string, never>;
                         familySides?: Record<string, never>;
                         catchupStatus?: Record<string, never>;
-                        gameStatuses?: Record<string, never>;
+                        /** @description Each game with plays of its own (a server folder with a status, docs/decisions/0032), keyed by its id in camelCase. */
+                        gameStatuses?: {
+                            [key: string]: {
+                                canPlay: boolean;
+                                hasActiveSession: boolean;
+                                nextAvailable: string | null;
+                            };
+                        };
                         familyFeud?: Record<string, never>;
                     };
                 };
@@ -4683,15 +4714,17 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Question with multiplier */
+            /** @description Question with multiplier (the answer stays on the server) */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        question?: components["schemas"]["Question"];
+                        question?: components["schemas"]["SlotMachineQuestion"];
                         multiplier?: number;
+                        bonusFeatures?: Record<string, never>;
+                        hint?: string;
                     };
                 };
             };
@@ -7720,7 +7753,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        sessions: components["schemas"]["AdminGameSession"][];
+                    };
                 };
             };
         };
@@ -7736,8 +7771,9 @@ export interface operations {
             content: {
                 "application/json": {
                     adminUserId: string;
-                    userId?: string;
-                    mode?: string;
+                    userId: string;
+                    /** @description A game id, or `all` */
+                    gameType: string;
                 };
             };
         };
@@ -7750,6 +7786,7 @@ export interface operations {
                 content: {
                     "application/json": {
                         success?: boolean;
+                        deleted?: string[];
                     };
                 };
             };
