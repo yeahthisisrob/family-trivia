@@ -33,17 +33,18 @@ export function useMyCircles(): MyCircles {
       .mine()
       .then(({ circles, current }) => {
         if (!live) return;
-        const here = circles.find((c) => c.id === current);
+        // This tab stays in the circle it opened in (the server answers for
+        // the one each request names); a first visit takes the server's.
+        const mineHere = currentCircleId() ?? current;
+        const here = circles.find((c) => c.id === mineHere);
         const me = loadSession();
-        // Another circle, or another person in it, than this tab opened as:
-        // start over there rather than mix two circles on one screen.
-        const tabs = currentCircleId();
-        if (here && ((me && me !== here.userId) || (tabs && current !== tabs))) {
+        // Someone else in it than this tab opened as: start over as them.
+        if (here && me && me !== here.userId) {
           enterCircle(here, circles);
           return;
         }
-        saveCircles(current, circles);
-        setState({ current, circles });
+        saveCircles(mineHere, circles);
+        setState({ current: mineHere, circles });
       })
       .catch(() => {
         /* offline or signed out: keep what we had */
