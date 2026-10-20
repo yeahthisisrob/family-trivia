@@ -90,7 +90,7 @@
       "size": "desktop",
       "selector": ".MuiDialog-paper",
       "storyFile": "frontend/src/features/family-editor/ui/FamilyEditor.stories.tsx",
-      "source": "e1f9b33af4f9"
+      "source": "e3690f860ea0"
     },
     {
       "file": "install-card.png",
@@ -106,6 +106,13 @@
       "height": 640,
       "source": "8157592db409",
       "storyFile": "frontend/src/features/invites/ui/InvitesAdmin.stories.tsx"
+    },
+    {
+      "file": "join-circles.png",
+      "story": "features-circles-circlesadmin--join-circles",
+      "size": "phone",
+      "storyFile": "frontend/src/features/circles/ui/CirclesAdmin.stories.tsx",
+      "source": "dd5b20fe09f1"
     },
     {
       "file": "join.png",

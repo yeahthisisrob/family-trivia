@@ -855,6 +855,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/circles/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Join circles into one (docs/decisions/0018): its people are read from them, nothing is copied. The same circles joined again pick up the circle they had. */
+        post: operations["joinCircles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/circles/split": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End a joined circle. Nothing is deleted; its season pauses and the circles it joined carry on. */
+        post: operations["splitCircle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/avatar": {
         parameters: {
             query?: never;
@@ -2414,6 +2448,12 @@ export interface components {
             kind: "family" | "friends" | "mixed";
             root?: boolean;
             createdAt?: string;
+            /** @description A joined circle (docs/decisions/0018): the circles it joins, whose people it reads */
+            sources?: string[];
+            /** @description Set when a joined circle has been split */
+            endedAt?: string;
+            /** @description The season a split paused, opened again when joined again */
+            pausedSeason?: number;
         };
         Session: {
             token: string;
@@ -2655,6 +2695,10 @@ export interface components {
             kind: "family" | "friends" | "mixed";
             /** @description Who this person is in that circle */
             userId: string;
+            /** @description A joined circle (docs/decisions/0018): the circles it joins, whose people it reads */
+            sources?: string[];
+            /** @description Set when a joined circle has been split */
+            endedAt?: string;
         };
         /** @description Result of a play-eligibility check — single source of truth for "can this user play?" */
         PlayEligibility: {
@@ -5117,6 +5161,104 @@ export interface operations {
                 };
             };
             /** @description Not the owner */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    joinCircles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Defaults to the circles' names together */
+                    name?: string;
+                    sources: string[];
+                    themeId?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The joined circle, and the caller's circles after it */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        circle: components["schemas"]["Circle"];
+                        /** @description Joined before and split; picked up again */
+                        again: boolean;
+                        circles: components["schemas"]["MyCircle"][];
+                    };
+                };
+            };
+            /** @description Fewer than two circles, or a joined one among them */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not an admin in every circle joined */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description These circles are joined already */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    splitCircle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    circleId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The ended circle, and the caller's circles after it */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        circle: components["schemas"]["Circle"];
+                        circles: components["schemas"]["MyCircle"][];
+                    };
+                };
+            };
+            /** @description Not a joined circle */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not an admin there */
             403: {
                 headers: {
                     [name: string]: unknown;

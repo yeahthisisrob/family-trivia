@@ -1,19 +1,24 @@
 import type { Circle, MyCircle } from '@family-trivia/shared';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import MergeRoundedIcon from '@mui/icons-material/MergeRounded';
 import {
   Alert,
   Box,
   Button,
   Card,
+  Checkbox,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { KIND_ICON, KIND_LABEL } from '../../../entities/circle';
 import { enterCircle } from '../../../session';
 import { circlesApi } from '../api/circlesApi';
@@ -28,31 +33,61 @@ interface Props {
 }
 
 /**
- * Admin › Circles for the deployment's owner: every circle, and starting a
- * new one (a family, friends, or both) with its own theme. Others see nothing.
+ * Admin › Circles for the deployment's owner: every circle, starting a new
+ * one (a family, friends, or both) with its own theme, and joining circles
+ * into one and splitting them again (docs/decisions/0018). Others see nothing.
  */
 export const CirclesAdmin: React.FC<Props> = ({ currentId, yourName }) => {
   const [circles, setCircles] = useState<Circle[] | null>(null);
   const [starting, setStarting] = useState(false);
+  const [joining, setJoining] = useState(false);
+  const [splitting, setSplitting] = useState<Circle | null>(null);
+  const [problem, setProblem] = useState<string | null>(null);
+  const reload = useCallback(
+    () =>
+      circlesApi
+        .all()
+        .then((r) => setCircles(r.owner ? r.circles : null))
+        .catch(() => setCircles(null)),
+    [],
+  );
 
   useEffect(() => {
-    circlesApi
-      .all()
-      .then((r) => setCircles(r.owner ? r.circles : null))
-      .catch(() => setCircles(null));
-  }, []);
+    void reload();
+  }, [reload]);
 
   if (!circles) return null;
+  const nameOf = (id: string) => circles.find((c) => c.id === id)?.name ?? id;
+  const joinable = circles.filter((c) => !c.sources);
+  const joinAgain = async (c: Circle) => {
+    setProblem(null);
+    try {
+      await circlesApi.joinCircles({ name: c.name, sources: c.sources ?? [] });
+      await reload();
+    } catch (e) {
+      setProblem(e instanceof Error ? e.message : "Couldn't join them again.");
+    }
+  };
   return (
     <Card sx={{ p: 2.5, borderRadius: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, flex: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.5, mb: 1.5 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, flex: 1, minWidth: 140 }}>
           Your circles
         </Typography>
+        {joinable.length > 1 && (
+          <Button startIcon={<MergeRoundedIcon />} onClick={() => setJoining(true)}>
+            Join circles
+          </Button>
+        )}
         <Button startIcon={<AddRoundedIcon />} onClick={() => setStarting(true)}>
           Start a circle
         </Button>
       </Box>
+      {problem && (
+        <Alert severity="error" sx={{ mb: 1.5 }}>
+          {problem}
+        </Alert>
+      )}
       <Stack spacing={1}>
         {circles.map((c) => {
           const Icon = KIND_ICON[c.kind];
@@ -62,17 +97,193 @@ export const CirclesAdmin: React.FC<Props> = ({ currentId, yourName }) => {
               <Box sx={{ flex: 1 }}>
                 <Typography sx={{ fontWeight: 600 }}>{c.name}</Typography>
                 <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
-                  {KIND_LABEL[c.kind]}
+                  {c.sources ? `Joins ${c.sources.map(nameOf).join(' and ')}` : KIND_LABEL[c.kind]}
                   {c.id === currentId && ' · you are here'}
                 </Typography>
               </Box>
-              <InviteButton circleId={c.id} circleName={c.name} />
+              {c.endedAt ? (
+                <>
+                  <Chip size="small" label="Split" />
+                  <Button size="small" onClick={() => void joinAgain(c)}>
+                    Join again
+                  </Button>
+                </>
+              ) : c.sources ? (
+                <Button size="small" color="inherit" onClick={() => setSplitting(c)}>
+                  Split
+                </Button>
+              ) : (
+                <InviteButton circleId={c.id} circleName={c.name} />
+              )}
             </Box>
           );
         })}
       </Stack>
       <StartCircle open={starting} yourName={yourName} onClose={() => setStarting(false)} />
+      {joining && (
+        <JoinCirclesDialog
+          circles={joinable}
+          onClose={() => setJoining(false)}
+          onJoined={() => void reload()}
+        />
+      )}
+      {splitting && (
+        <SplitDialog
+          circle={splitting}
+          sourceNames={(splitting.sources ?? []).map(nameOf)}
+          onClose={() => setSplitting(null)}
+          onSplit={async () => {
+            await circlesApi.split(splitting.id);
+            setSplitting(null);
+            await reload();
+          }}
+        />
+      )}
     </Card>
+  );
+};
+
+/** Pick two or more circles and a name: everyone plays together, nothing is copied. */
+export const JoinCirclesDialog: React.FC<{
+  circles: Circle[];
+  onClose: () => void;
+  onJoined: () => void;
+}> = ({ circles, onClose, onJoined }) => {
+  const [picked, setPicked] = useState<string[]>([]);
+  const [name, setName] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [made, setMade] = useState<{ circle: Circle; circles: MyCircle[] } | null>(null);
+  const names = circles.filter((c) => picked.includes(c.id)).map((c) => c.name);
+
+  const join = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await circlesApi.joinCircles({ name: name.trim(), sources: picked });
+      setMade(r);
+      onJoined();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't join them. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (made) {
+    const mine = made.circles.find((c) => c.id === made.circle.id);
+    return (
+      <Dialog open onClose={onClose} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontWeight: 700 }}>{made.circle.name} is ready</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: 'text.secondary' }}>
+            Everyone in {names.join(' and ')} can open it from their circle menu. Season 1 has
+            started.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={onClose}>Stay here</Button>
+          <Button
+            variant="outlined"
+            onClick={() => (mine ? enterCircle(mine, made.circles) : window.location.assign('/'))}
+          >
+            Open {made.circle.name}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Dialog open onClose={onClose} fullWidth maxWidth="xs">
+      <DialogTitle sx={{ fontWeight: 700 }}>Join circles</DialogTitle>
+      <DialogContent>
+        <Typography sx={{ color: 'text.secondary', mb: 1.5 }}>
+          Everyone in them plays together in one more circle, with its own seasons. People and how
+          they're connected come from the circles they're in, so nothing is copied, and splitting
+          later loses nothing.
+        </Typography>
+        <Stack>
+          {circles.map((c) => (
+            <FormControlLabel
+              key={c.id}
+              label={c.name}
+              control={
+                <Checkbox
+                  checked={picked.includes(c.id)}
+                  onChange={(e) =>
+                    setPicked((p) =>
+                      e.target.checked ? [...p, c.id] : p.filter((x) => x !== c.id),
+                    )
+                  }
+                />
+              }
+            />
+          ))}
+        </Stack>
+        <TextField
+          fullWidth
+          size="small"
+          label="Name"
+          placeholder={names.join(' + ') || 'Everyone'}
+          value={name}
+          onChange={(e) => setName(e.target.value.slice(0, 60))}
+          slotProps={{ inputLabel: { shrink: true } }}
+          sx={{ mt: 2 }}
+        />
+        {error && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {error}
+          </Alert>
+        )}
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          variant="contained"
+          disabled={busy || picked.length < 2}
+          onClick={() => void join()}
+        >
+          Join them
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+/** Splitting ends the joined circle; everything in it is kept. */
+const SplitDialog: React.FC<{
+  circle: Circle;
+  sourceNames: string[];
+  onClose: () => void;
+  onSplit: () => Promise<void>;
+}> = ({ circle, sourceNames, onClose, onSplit }) => {
+  const [busy, setBusy] = useState(false);
+  return (
+    <Dialog open onClose={onClose} fullWidth maxWidth="xs">
+      <DialogTitle sx={{ fontWeight: 700 }}>Split {circle.name}?</DialogTitle>
+      <DialogContent>
+        <Typography sx={{ color: 'text.secondary' }}>
+          Its season pauses and nothing is deleted: its answers stay, and{' '}
+          {sourceNames.join(' and ')} carry on as they are. Join them again any time to pick up
+          where you left off.
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          variant="contained"
+          color="warning"
+          disabled={busy}
+          onClick={() => {
+            setBusy(true);
+            void onSplit().finally(() => setBusy(false));
+          }}
+        >
+          Split
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 

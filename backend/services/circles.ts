@@ -41,6 +41,7 @@ interface AccountIndex {
 export const scopeOf = (circle: Circle): Scope => ({
   circleId: circle.id,
   root: circle.root === true,
+  ...(circle.sources?.length && { sources: circle.sources }),
 });
 
 export async function listCircles(): Promise<Circle[]> {
@@ -82,6 +83,8 @@ const asMine = (circle: Circle, userId: string): MyCircle => ({
   name: circle.name,
   kind: circle.kind,
   userId,
+  ...(circle.sources && { sources: circle.sources }),
+  ...(circle.endedAt && { endedAt: circle.endedAt }),
 });
 
 /**
@@ -344,4 +347,141 @@ export async function startFirstCircle(
   await seedCircle(circle, input, maker);
   logger.info('First circle started', { kind: input.kind });
   return circle;
+}
+
+// ── Joining and splitting (docs/decisions/0018) ─────────────────
+
+/** Whether this email is an admin in a circle, by that circle's own people. */
+function isAdminIn(circle: Circle, email: string): Promise<boolean> {
+  return inCircle(scopeOf(circle), async () => {
+    const userId = await memberIn(circle, email);
+    if (!userId) return false;
+    const users = (await getJson<UsersConfig>(USERS_KEY))?.users ?? {};
+    return (users[userId] as { isAdmin?: boolean } | undefined)?.isAdmin === true;
+  });
+}
+
+export type JoinResult =
+  | { ok: true; circle: Circle; again: boolean }
+  | { ok: false; status: 400 | 403 | 404 | 409; error: string };
+
+const sameSet = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((x) => b.includes(x));
+
+const kindOf = (kinds: CircleKind[]): CircleKind =>
+  kinds.every((k) => k === kinds[0]) ? (kinds[0] as CircleKind) : 'mixed';
+
+async function writeRegistry(circles: Circle[]): Promise<void> {
+  await putJson(REGISTRY_KEY, { version: 1, circles } satisfies CircleRegistry);
+  forgetCached(REGISTRY_KEY);
+}
+
+/** Everyone who signs in to a circle (a joined one: everyone in its sources) sees it in their list. */
+async function refreshMembersOf(circle: Circle): Promise<void> {
+  const map = await inCircle(
+    scopeOf(circle),
+    async () => (await getJson<SignInMap>(SIGN_IN_MAP_KEY)) ?? {},
+  );
+  await Promise.all(Object.keys(map).map((email) => rebuildMemberships(email)));
+}
+
+/** The joined circle's season: paused when it's split, picked up when joined again. */
+async function setSeasonOpen(
+  circle: Circle,
+  open: boolean,
+  seasonNumber?: number,
+): Promise<number | undefined> {
+  return inCircle(scopeOf(circle), async () => {
+    const config = await getJson<SeasonsConfig>(S3_PATHS.SEASONS_CONFIG);
+    if (!config) return undefined;
+    const today = new Date().toISOString().slice(0, 10);
+    const number = open ? seasonNumber : (config.currentSeasonNumber ?? undefined);
+    const season = config.seasons.find((x) => x.seasonNumber === number);
+    if (!season) return undefined;
+    season.status = open ? 'active' : 'concluded';
+    season.endDate = open ? null : today;
+    config.currentSeasonNumber = open ? season.seasonNumber : null;
+    await putJson(S3_PATHS.SEASONS_CONFIG, config);
+    return season.seasonNumber;
+  });
+}
+
+/**
+ * Join two or more circles into one (docs/decisions/0018). Nothing moves:
+ * the joined circle reads its sources' people, and keeps its own seasons and
+ * answers. The same circles joined again pick up the circle they had.
+ */
+export async function joinCircles(
+  input: { name: string; sources: string[]; themeId?: string },
+  email: string,
+): Promise<JoinResult> {
+  const ids = [...new Set(input.sources)];
+  if (ids.length < 2) return { ok: false, status: 400, error: 'Pick at least two circles' };
+  const circles = await listCircles();
+  const sources = ids.map((id) => circles.find((c) => c.id === id));
+  if (sources.some((c) => !c)) return { ok: false, status: 404, error: 'Circle not found' };
+  const found = sources as Circle[];
+  if (found.some((c) => c.sources))
+    return { ok: false, status: 400, error: 'Join the circles themselves, not a joined one' };
+  for (const c of found)
+    if (!(await isAdminIn(c, email)))
+      return { ok: false, status: 403, error: `You need to be an admin in ${c.name}` };
+
+  const before = circles.find((c) => c.sources && sameSet(c.sources, ids));
+  if (before && !before.endedAt)
+    return { ok: false, status: 409, error: `These are joined already, as ${before.name}` };
+
+  if (before) {
+    const { endedAt: _ended, pausedSeason, ...again } = before;
+    await writeRegistry(circles.map((c) => (c.id === before.id ? again : c)));
+    if (pausedSeason) await setSeasonOpen(again, true, pausedSeason);
+    await refreshMembersOf(again);
+    logger.info('Circles joined again', { circleId: again.id });
+    return { ok: true, circle: again, again: true };
+  }
+
+  const name = input.name.trim().slice(0, 60) || found.map((c) => c.name).join(' + ');
+  const id = idFor(
+    idFor(name, () => false),
+    (c) => circles.some((x) => x.id === c) || !CIRCLE_ID.test(c),
+  );
+  const circle: Circle = {
+    id,
+    name,
+    kind: kindOf(found.map((c) => c.kind)),
+    sources: ids,
+    createdAt: new Date().toISOString(),
+  };
+  await writeRegistry([...circles, circle]);
+  await inCircle(scopeOf(circle), async () => {
+    if (input.themeId) await putJson(S3_PATHS.APPEARANCE, { themeId: input.themeId });
+    await putJson(S3_PATHS.SEASONS_CONFIG, firstSeason(circle.kind));
+  });
+  await refreshMembersOf(circle);
+  logger.info('Circles joined', { circleId: id, sources: ids.length });
+  return { ok: true, circle, again: false };
+}
+
+/**
+ * Split a joined circle: it ends, and nothing is deleted. Its season pauses;
+ * its answers stay. The sources carry on as they were.
+ */
+export async function splitCircle(id: string, email: string): Promise<JoinResult> {
+  const circles = await listCircles();
+  const circle = circles.find((c) => c.id === id);
+  if (!circle) return { ok: false, status: 404, error: 'Circle not found' };
+  if (!circle.sources)
+    return { ok: false, status: 400, error: 'Only a joined circle can be split' };
+  if (circle.endedAt) return { ok: false, status: 409, error: 'Split already' };
+  if (!(await isAdminIn(circle, email)))
+    return { ok: false, status: 403, error: `You need to be an admin in ${circle.name}` };
+  const pausedSeason = await setSeasonOpen(circle, false);
+  const ended = {
+    ...circle,
+    endedAt: new Date().toISOString(),
+    ...(pausedSeason && { pausedSeason }),
+  };
+  await writeRegistry(circles.map((c) => (c.id === id ? ended : c)));
+  logger.info('Circle split', { circleId: id });
+  return { ok: true, circle: ended, again: false };
 }

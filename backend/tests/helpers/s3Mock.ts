@@ -13,7 +13,13 @@
  *   getHistory(user)      — read a user's history
  */
 import type { HistoryEntry } from '@family-trivia/shared';
-import { isGlobalKey, logicalKey, physicalKey } from '../../services/scope';
+import {
+  assertWritable,
+  isGlobalKey,
+  linkedRead,
+  logicalKey,
+  physicalKey,
+} from '../../services/scope';
 import type { Season, SeasonsConfig } from '../../services/seasonService';
 
 const store = new Map<string, unknown>();
@@ -92,11 +98,14 @@ export function seedEndedSeason(): void {
 // in tests/helpers/setup.ts those are the same as a feature's keys.
 
 async function getJson<T>(key: string): Promise<T | null> {
+  const linked = await linkedRead(key, async () => store.get(physicalKey(key)) ?? null);
+  if (linked) return linked.value as T | null;
   const v = store.get(physicalKey(key));
   return v === undefined ? null : (v as T);
 }
 
 async function putJson(key: string, data: unknown): Promise<void> {
+  assertWritable(key);
   // Deep-clone to simulate round-trip serialization
   store.set(physicalKey(key), JSON.parse(JSON.stringify(data)));
 }
@@ -112,6 +121,7 @@ async function listObjects(prefix: string, _maxKeys = 1000): Promise<string[]> {
 }
 
 async function deleteObject(key: string): Promise<void> {
+  assertWritable(key);
   store.delete(physicalKey(key));
 }
 

@@ -6,8 +6,10 @@
  */
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { sourceOfKey } from '@family-trivia/shared';
 import { BUCKET, REGION } from '../config';
-import { physicalKey } from './scope';
+import { findCircle, scopeOf } from './circles';
+import { currentScope, inCircle, physicalKey } from './scope';
 
 const s3 = new S3Client({ region: REGION });
 
@@ -42,9 +44,24 @@ export async function uploadUrl(
   return { key, url };
 }
 
+/**
+ * The stored key for a picture. One from a joined circle's source
+ * (media/from/{circleId}/...) is read in that circle, and only from a
+ * circle this one joins (docs/decisions/0018).
+ */
+async function storedKey(key: string): Promise<string | null> {
+  const from = sourceOfKey(key);
+  if (!from) return physicalKey(key);
+  if (!currentScope().sources?.includes(from.circleId)) return null;
+  const circle = await findCircle(from.circleId);
+  return circle ? inCircle(scopeOf(circle), async () => physicalKey(from.key)) : null;
+}
+
 export async function readUrl(key: string): Promise<string | null> {
   if (!isMediaKey(key)) return null;
-  return getSignedUrl(s3, new GetObjectCommand({ Bucket: BUCKET, Key: physicalKey(key) }), {
+  const stored = await storedKey(key);
+  if (!stored) return null;
+  return getSignedUrl(s3, new GetObjectCommand({ Bucket: BUCKET, Key: stored }), {
     expiresIn: READ_SECONDS,
   });
 }

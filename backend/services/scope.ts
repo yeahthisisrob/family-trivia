@@ -12,6 +12,8 @@ export interface Scope {
   circleId: string;
   /** Stored at the bucket root (the deployment's first circle, before import). */
   root: boolean;
+  /** A joined circle's source circles (docs/decisions/0018). */
+  sources?: string[];
 }
 
 /** Sign-in data and invite links, shared by every circle. Everything else belongs to one. */
@@ -49,6 +51,60 @@ export function logicalKey(physical: string): string | null {
   if (scope.root) return physical.startsWith('circles/') || isGlobalKey(physical) ? null : physical;
   const prefix = prefixOf(scope);
   return physical.startsWith(prefix) ? physical.slice(prefix.length) : null;
+}
+
+// ── Linked keys: what a joined circle reads from its sources ─────
+
+/**
+ * Keys a joined circle reads through from its sources, by the reader
+ * services/family/joinedCircles.ts registers. Storage asks here first, so no
+ * feature knows a circle is joined.
+ * - people: the sources' alone; the joined circle can't write them.
+ * - overlay: its own, together with the sources' (who has played).
+ */
+const LINKED_KEYS: Record<string, 'people' | 'overlay'> = {
+  'family/family.json': 'people',
+  'family/hierarchy.json': 'people',
+  'config/users.json': 'people',
+  'config/google-auth-map.json': 'people',
+  'config/member-activation.json': 'overlay',
+};
+
+type LinkedReader = (key: string, scope: Scope, own: unknown) => Promise<unknown>;
+let linkedReader: LinkedReader | null = null;
+
+export const setLinkedReader = (reader: LinkedReader) => {
+  linkedReader = reader;
+};
+
+/** Thrown for a write a joined circle can't take: its people live in its sources. */
+export class PeopleLiveInSources extends Error {
+  constructor() {
+    super("This circle's people come from the circles it joins: change them there.");
+    this.name = 'PeopleLiveInSources';
+  }
+}
+
+const linkOf = (key: string, scope: Scope) =>
+  scope.sources?.length ? LINKED_KEYS[key] : undefined;
+
+/**
+ * For a linked key in a joined circle, what its sources say (with the
+ * circle's own copy, read by `own`, for an overlay); undefined otherwise.
+ */
+export async function linkedRead(
+  key: string,
+  own: () => Promise<unknown>,
+): Promise<{ value: unknown } | undefined> {
+  const scope = currentScope();
+  const link = linkOf(key, scope);
+  if (!link || !linkedReader) return undefined;
+  return { value: await linkedReader(key, scope, link === 'overlay' ? await own() : null) };
+}
+
+/** Throws for a write to a joined circle's people. */
+export function assertWritable(key: string): void {
+  if (linkOf(key, currentScope()) === 'people') throw new PeopleLiveInSources();
 }
 
 // ── Running work in a circle ────────────────────────────────────

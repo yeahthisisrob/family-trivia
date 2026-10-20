@@ -11,7 +11,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { BUCKET, REGION } from '../config';
 import { logger } from './logger';
-import { isGlobalKey, logicalKey, physicalKey } from './scope';
+import { assertWritable, isGlobalKey, linkedRead, logicalKey, physicalKey } from './scope';
 
 // Initialize S3 client
 const s3 = new S3Client({
@@ -58,6 +58,9 @@ export function invalidateS3ReadCache(): void {
  * @returns Parsed JSON data or null if object doesn't exist
  */
 export async function getJson<T>(logical: string): Promise<T | null> {
+  // A joined circle's people come from its sources (docs/decisions/0018).
+  const linked = await linkedRead(logical, () => getJsonUncached(physicalKey(logical)));
+  if (linked) return linked.value as T | null;
   const key = physicalKey(logical);
   const stable = STABLE_KEYS.has(logical);
   // 1. Check cross-invocation TTL cache for stable config files
@@ -154,6 +157,7 @@ async function getJsonUncached<T>(key: string): Promise<T | null> {
  * @param data Data to store as JSON
  */
 export async function putJson(logical: string, data: any): Promise<void> {
+  assertWritable(logical);
   const key = physicalKey(logical);
   try {
     await s3.send(
@@ -216,6 +220,7 @@ export async function putBytes(
 }
 
 export async function putJsonIfNotExists(logical: string, data: any): Promise<boolean> {
+  assertWritable(logical);
   const key = physicalKey(logical);
   try {
     // Use IfNoneMatch condition to only write if object doesn't exist
@@ -302,6 +307,7 @@ export async function listObjects(logicalPrefix: string, maxKeys = 1000): Promis
  * @param key S3 object key
  */
 export async function deleteObject(logical: string): Promise<void> {
+  assertWritable(logical);
   const key = physicalKey(logical);
   try {
     await s3.send(

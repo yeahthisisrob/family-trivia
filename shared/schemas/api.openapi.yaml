@@ -1867,6 +1867,66 @@ paths:
         "403":
           description: Not the owner
 
+  /admin/circles/join:
+    post:
+      summary: "Join circles into one (docs/decisions/0018): its people are read from them, nothing is copied. The same circles joined again pick up the circle they had."
+      operationId: joinCircles
+      tags: [Circles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sources]
+              properties:
+                name: { type: string, description: "Defaults to the circles' names together" }
+                sources: { type: array, minItems: 2, items: { type: string } }
+                themeId: { type: string }
+      responses:
+        "200":
+          description: The joined circle, and the caller's circles after it
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [circle, again, circles]
+                properties:
+                  circle: { $ref: "#/components/schemas/Circle" }
+                  again: { type: boolean, description: Joined before and split; picked up again }
+                  circles: { type: array, items: { $ref: "#/components/schemas/MyCircle" } }
+        "400": { description: "Fewer than two circles, or a joined one among them" }
+        "403": { description: Not an admin in every circle joined }
+        "409": { description: These circles are joined already }
+
+  /admin/circles/split:
+    post:
+      summary: End a joined circle. Nothing is deleted; its season pauses and the circles it joined carry on.
+      operationId: splitCircle
+      tags: [Circles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [circleId]
+              properties:
+                circleId: { type: string }
+      responses:
+        "200":
+          description: The ended circle, and the caller's circles after it
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [circle, circles]
+                properties:
+                  circle: { $ref: "#/components/schemas/Circle" }
+                  circles: { type: array, items: { $ref: "#/components/schemas/MyCircle" } }
+        "400": { description: Not a joined circle }
+        "403": { description: Not an admin there }
+
   /me/avatar:
     put:
       summary: Choose your picture (one made for you, or an animal), or null for initials
@@ -4629,6 +4689,16 @@ components:
           type: boolean
         createdAt:
           type: string
+        sources:
+          type: array
+          items: { type: string }
+          description: "A joined circle (docs/decisions/0018): the circles it joins, whose people it reads"
+        endedAt:
+          type: string
+          description: Set when a joined circle has been split
+        pausedSeason:
+          type: integer
+          description: The season a split paused, opened again when joined again
     Session:
       type: object
       required: [token, userId, circleId, circles, email, isNewLink]
@@ -5032,6 +5102,13 @@ components:
         userId:
           type: string
           description: Who this person is in that circle
+        sources:
+          type: array
+          items: { type: string }
+          description: "A joined circle (docs/decisions/0018): the circles it joins, whose people it reads"
+        endedAt:
+          type: string
+          description: Set when a joined circle has been split
     # ──────────────────────────────────────────────
     # Reusable Schemas
     # ──────────────────────────────────────────────

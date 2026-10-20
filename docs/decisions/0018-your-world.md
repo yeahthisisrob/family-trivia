@@ -51,7 +51,32 @@ each other (0015), so nobody sees that picture.
   circle, the same sign-in in two circles as a bridge, threads (the same
   knowledge item in more than one circle) and who should meet. Computed per
   request for the caller; accounts are matched on the server and never sent.
-  The timeline, joining and splitting are still to come.
+  The timeline is still to come.
+- Joining and splitting are built (Admin › Circles; `POST /admin/circles/join`,
+  `POST /admin/circles/split`):
+  - **The link lives in storage, not in features.** A joined circle's scope
+    carries its `sources`. Its people files (`family/family.json`,
+    `config/users.json`, the sign-in map, and the old hierarchy) are read
+    through from the sources by one reader (`services/family/joinedCircles.ts`,
+    registered with `services/scope.ts`), merged by `joinPeople` in
+    `shared/src/joined.ts`. Who has played is an overlay: the circle's own
+    record together with its sources'. No feature knows a circle is joined.
+  - **One person per sign-in.** The same Google sign-in in two sources is one
+    person; everyone else keeps their id, and an id two people share gets
+    the circle's id after it. An admin's "same person" link for people
+    without a sign-in is still to come.
+  - **People are changed in the sources.** Writing a joined circle's people
+    is refused (409, `PEOPLE_IN_SOURCES`); Admin › Family says so. Your own
+    picture is the exception: it is saved in every source you're in.
+    Pictures keep living where they were made (`media/from/{circle}/...`);
+    new AI pictures are made in your own circles.
+  - **Answers start fresh.** The joined circle keeps its own seasons and
+    answers; the sources' past answers are not read through yet, so nobody's
+    answers reach another circle without a choice (`share into joined
+    circles` comes with that).
+  - **Split** marks the circle ended and pauses its season; nothing is
+    deleted. Joining the same circles again reopens it and its season.
+  - An admin of every source circle is needed to join them.
 
 ## Consequences
 Circles stay simple and separate in storage, and every combination is a

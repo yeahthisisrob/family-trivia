@@ -13,9 +13,11 @@ import {
   createCircle,
   isOwner,
   isUnstarted,
+  joinCircles,
   linkByPassphrase,
   listCircles,
   rebuildMemberships,
+  splitCircle,
   startFirstCircle,
 } from '../../services/circles';
 import { logger } from '../../services/logger';
@@ -167,4 +169,41 @@ export async function postCircle(
     { email: caller.email, name: yourName },
   );
   return successResponse({ circle, circles: await circlesOf(caller.email) });
+}
+
+// ── Joining and splitting (docs/decisions/0018) ─────────────────
+
+/** POST /admin/circles/join {name, sources: [circleId...], themeId?}: join circles, or join them again. */
+export async function postJoin(
+  event: APIGatewayProxyEvent,
+  _userId: string,
+  caller: Caller,
+): Promise<APIGatewayProxyResult> {
+  const body = parse(event);
+  const sources = Array.isArray(body?.sources)
+    ? body.sources.filter((s): s is string => typeof s === 'string')
+    : [];
+  const r = await joinCircles(
+    { name: text(body?.name) ?? '', sources, themeId: text(body?.themeId) },
+    caller.email,
+  );
+  if (!r.ok) return errorResponse(r.error, r.status);
+  return successResponse({
+    circle: r.circle,
+    again: r.again,
+    circles: await circlesOf(caller.email),
+  });
+}
+
+/** POST /admin/circles/split {circleId}: end a joined circle; nothing is deleted. */
+export async function postSplit(
+  event: APIGatewayProxyEvent,
+  _userId: string,
+  caller: Caller,
+): Promise<APIGatewayProxyResult> {
+  const circleId = text(parse(event)?.circleId);
+  if (!circleId) return errorResponse('circleId is required', 400);
+  const r = await splitCircle(circleId, caller.email);
+  if (!r.ok) return errorResponse(r.error, r.status);
+  return successResponse({ circle: r.circle, circles: await circlesOf(caller.email) });
 }

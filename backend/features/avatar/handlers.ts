@@ -6,7 +6,7 @@
 import { isAiAvatarKeyOf, isAvatarChoice } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
-import { loadFamily, storeFamily } from '../../services/family/roster';
+import { updatePerson } from '../../services/family/joinedCircles';
 import { fileExists } from '../../services/s3';
 import { makePicture } from './pictures';
 
@@ -30,12 +30,11 @@ export async function putMyAvatar(
   )
     return errorResponse('That picture wasn’t made for you', 400);
 
-  const family = await loadFamily();
-  const me = family.people[userId];
-  if (!me) return errorResponse("You're not in this circle's people yet", 404);
-  const { avatar: _old, ...rest } = me;
-  const next = avatar ? { ...rest, avatar } : rest;
-  await storeFamily({ ...family, people: { ...family.people, [userId]: next } }, userId);
+  const saved = await updatePerson(userId, (me) => {
+    const { avatar: _old, ...rest } = me;
+    return avatar ? { ...rest, avatar } : rest;
+  });
+  if (!saved) return errorResponse("You're not in this circle's people yet", 404);
   return successResponse({ avatar: avatar ?? null });
 }
 
