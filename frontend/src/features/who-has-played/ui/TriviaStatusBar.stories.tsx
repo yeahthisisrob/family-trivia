@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { HttpResponse, http } from 'msw';
-import { StoryProviders } from '../../test/storyContexts';
+import { StoryProviders } from '../../../test/storyContexts';
 import TriviaStatusBar from './TriviaStatusBar';
 
 const API = '/api';

@@ -32,12 +32,18 @@ the same loading, refresh-after-save and stale-data code.
 - **Reads are typed by the contract.** `useCircleQuery` takes a path and
   method from `shared/generated` (`shared/api/contract.ts`, `callApi`) and its
   data has the contract's type. Requests still go through ApiService (its
-  cap of six in flight, retries, `ApiError`).
+  cap of six in flight, retries, `ApiError`). A `read` can stand in for the
+  request when one request answers many reads (every reaction bar on screen
+  in one), still in the contract's shape. `useCircleInfiniteQuery` reads a
+  list page by page (the timeline), with the same circle-first key.
 - **Changes say what they make stale.** `useCircleMutation` takes
   `invalidates` (feature keys, as prefixes) and resolves after those reads
   have answered again; `onSuccess` can put the server's answer straight in
   the cache, and `onMutate` can show a change at once and put it back on
-  failure. Both act on the circle the change was made in.
+  failure. Both act on the circle the change was made in. With
+  `refreshInBackground` it resolves once saved and asks those reads again
+  without waiting: for a change whose own answer is what the person waits
+  for (an answer to today's question shows its fact at once).
 - **Status, not Suspense.** Cards keep their own skeletons and empty states
   and read `data`, `isPending` and `isError`; each card keeps its own
   `ErrorBoundary`.
@@ -47,10 +53,15 @@ the same loading, refresh-after-save and stale-data code.
 ## Migration plan
 Slice by slice, one PR each, each with a test that two circles never share a
 cached read:
-1. Home's feature cards (this record): the welcome line, sharing, plans,
-   threads, teams, the memory a day, celebrations.
-2. Home's older cards in `components/` (today's question, Family Feud, who
-   has played, today's answers, the timeline) and the reactions store.
+1. Done: Home's feature cards (this record): the welcome line, sharing,
+   plans, threads, teams, the memory a day, celebrations.
+2. Done: Home's older cards and the reactions store. Today's question
+   (`features/daily-question`), Family Feud (`features/family-feud`), who
+   has played (`features/who-has-played`) and the week's answers
+   (`features/fact-summary`) moved out of `components/`; the timeline reads
+   `entities/timeline` through `TimelineContext`, whose comments wait for
+   step 5. The trivia grid still asks again on the Trivia tab's
+   `refreshTimestamp` until step 3.
 3. Profile, Us (family home, graph, map), the Arcade, the leaderboard.
 4. Admin and settings.
 5. The contexts that hold server data (`FamilyDataContext`,

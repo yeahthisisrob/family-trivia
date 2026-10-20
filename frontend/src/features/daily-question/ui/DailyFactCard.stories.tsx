@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { delay, HttpResponse, http } from 'msw';
-import { StoryProviders } from '../../test/storyContexts';
+import { StoryProviders } from '../../../test/storyContexts';
 import DailyFactCard from './DailyFactCard';
 
 const API = '/api';

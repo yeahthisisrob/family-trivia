@@ -6,11 +6,7 @@ import React from 'react';
 import { markSeasonLetterSeen } from './api/modules/seasons';
 import { AppHeader } from './components/AppShell';
 import { TriviaTabs } from './components/AppShell/TriviaTabs';
-import { DailyFactCard } from './components/DailyFact';
-import DailyFactSummary from './components/DailyFactSummary';
-import FamilyFeud from './components/FamilyFeud';
 import { SeasonLetter } from './components/SeasonLetter/SeasonLetter';
-import StatusGridToggle from './components/StatusGridToggle';
 import TimelineBoard from './components/TimelineBoard';
 import TriviaTab from './components/TriviaCard';
 import { ErrorBoundary as Safe } from './components/ui/feedback';
@@ -21,11 +17,15 @@ import { appearanceApi } from './entities/appearance';
 import { useFeatures } from './entities/settings';
 import { UpcomingDates } from './features/celebrations';
 import { DailyMemory } from './features/daily-memory';
+import { DailyFactCard } from './features/daily-question';
+import { DailyFactSummary } from './features/fact-summary';
+import { FamilyFeud } from './features/family-feud';
 import { InstallCard } from './features/install-app';
 import { AfterCard, PlansCard } from './features/plans';
 import { inJoinedCircle, SharingCard } from './features/shared-answers';
 import { TeamsCard } from './features/teams';
 import { ThreadCard } from './features/threads';
+import { StatusGridToggle } from './features/who-has-played';
 import { ROUTES, useApp } from './hooks/useApp';
 import { colors, tint, useAppearance } from './shared/design-system';
 import { createLogger } from './shared/lib/logger';
@@ -75,7 +75,6 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
     profileUser,
     authValid,
     currentPath,
-    factRefreshKey,
     debugMode,
     endOfSeasonStatus,
     myGroup,
@@ -253,7 +252,6 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
       <Safe label="the timeline">
         <TimelineBoard
           members={familyData.members}
-          refreshKey={factRefreshKey}
           onUserClick={navigateToProfile}
           currentUserId={user}
           highlightContentId={highlightContentId}

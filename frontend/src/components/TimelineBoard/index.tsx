@@ -1,8 +1,8 @@
-// File: src/components/TimelineBoard/TimelineBoardOptimized.tsx
+// The family timeline on Home: everyone's answers, trivia, and what's being talked about.
 import TimelineIcon from '@mui/icons-material/Timeline';
 import { Box, Button, Card, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import type { MemberStatus } from '../../api';
 import { useTimeline } from '../../contexts/TimelineContext';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
@@ -18,7 +18,6 @@ import TriviaTimeline from './TriviaTimeline';
 
 interface TimelineBoardOptimizedProps {
   members: MemberStatus[];
-  refreshKey?: number;
   onUserClick?: (userId: string) => void;
   currentUserId?: string;
   /** "fact:contentId" or "trivia:contentId" — switches to comments tab and scrolls to item */
@@ -27,7 +26,6 @@ interface TimelineBoardOptimizedProps {
 }
 
 const TimelineBoardOptimized: React.FC<TimelineBoardOptimizedProps> = ({
-  refreshKey = 0,
   onUserClick,
   currentUserId,
   highlightContentId,
@@ -48,10 +46,6 @@ const TimelineBoardOptimized: React.FC<TimelineBoardOptimizedProps> = ({
   } = useTimeline();
 
   const [contentType, setContentType] = useState<ContentType>('funFacts');
-
-  useEffect(() => {
-    if (refreshKey > 0) refreshTimeline(true);
-  }, [refreshKey, refreshTimeline]);
 
   // Handle notification highlight: switch to comments tab via callback
   const handleContentChange = React.useCallback((type: ContentType) => {
@@ -182,7 +176,6 @@ const TimelineBoardOptimized: React.FC<TimelineBoardOptimizedProps> = ({
 
         {contentType === 'triviaHistory' && (
           <TriviaTimeline
-            refreshKey={refreshKey}
             onUserClick={onUserClick}
             currentUserId={currentUserId}
             selectedSide={selectedSide}

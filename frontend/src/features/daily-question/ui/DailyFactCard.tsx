@@ -1,4 +1,4 @@
-import { tint } from '../../shared/design-system/tint';
+import { tint } from '../../../shared/design-system/tint';
 /**
  * DailyFactCard — sleek presentational shell for the daily fact flow.
  *
@@ -28,13 +28,13 @@ import {
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useState } from 'react';
-import type { QuestionOption } from '../../api/modules/facts';
-import { useSeasonPace } from '../../hooks/useSeasonPace';
-import { colors } from '../../shared/design-system/tokens/colors';
-import { radii } from '../../shared/design-system/tokens/radii';
-import { LoadingDots } from '../ui/feedback';
+import type { QuestionOption } from '../../../api/modules/facts';
+import { LoadingDots } from '../../../components/ui/feedback';
+import { useSeasonPace } from '../../../hooks/useSeasonPace';
+import { colors } from '../../../shared/design-system/tokens/colors';
+import { radii } from '../../../shared/design-system/tokens/radii';
+import { useDailyFactFlow } from '../model/useDailyFactFlow';
 import FactAnswerInput from './FactAnswerInput';
-import { useDailyFactFlow } from './useDailyFactFlow';
 
 // ── Constants ────────────────────────────────────────────────────
 

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { HttpResponse, http } from 'msw';
 import type React from 'react';
 import { useState } from 'react';
-import { StoryProviders } from '../../test/storyContexts';
+import { StoryProviders } from '../../../test/storyContexts';
 import FactAnswerInput from './FactAnswerInput';
 
 const API = '/api';

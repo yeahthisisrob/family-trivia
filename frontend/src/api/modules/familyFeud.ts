@@ -45,37 +45,7 @@ export interface FamilyFeudRoundInfo {
   results: FamilyFeudResults | null;
 }
 
-export interface FamilyFeudRecentRound {
-  roundId: string;
-  targetUserName: string;
-  question: string;
-  realAnswer: string | null;
-  status: string;
-  startedAt: string;
-  guessCount: number;
-  allGuesses: FamilyFeudGuess[] | null;
-  results: FamilyFeudResults | null;
-}
-
-export interface FamilyFeudStatus {
-  currentRound: FamilyFeudRoundInfo | null;
-  isMyTurn: boolean;
-  nextTargetUserId: string;
-  nextTargetUserName: string;
-  timesAsTarget: number;
-  /** How many players have never been the target yet (rotation progress) */
-  neverGone: number;
-  /** Total players in the rotation */
-  totalPeople: number;
-  recentRounds: FamilyFeudRecentRound[];
-}
-
-export async function getFamilyFeudStatus(userId: string): Promise<FamilyFeudStatus> {
-  return apiService.request<FamilyFeudStatus>(
-    `/family-feud/status?userId=${encodeURIComponent(userId)}`,
-    { method: 'GET' },
-  );
-}
+// The status Home reads is in features/family-feud (server data, 0035).
 
 interface FamilyFeudRoundResponse {
   round: { roundId: string; question: string; status: string; expiresAt: string };

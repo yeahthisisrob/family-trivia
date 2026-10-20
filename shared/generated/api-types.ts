@@ -3136,12 +3136,124 @@ export interface components {
             updatedAt: string;
         };
         DailyFactResponse: {
+            /** @description Empty when today's question is still to be made by its creator */
             question: string;
+            answered?: boolean;
+            fact?: string;
             /** @enum {string} */
             questionType: "basic" | "shared";
             questionIndex?: number;
+            needsBasicCatchup?: boolean;
+            isShared?: boolean;
+            /** @description This person makes today's question */
+            isFirstPerson?: boolean;
+            catchupMode?: boolean;
+            date?: string;
             basicQuestionsTotal?: number;
             basicQuestionsCompleted?: number;
+        };
+        FactHistoryItem: {
+            question: string;
+            answer?: string;
+            fact?: string;
+            timestamp: string;
+            answered: boolean;
+            skipped?: boolean;
+            /** @enum {string} */
+            questionType: "basic" | "shared";
+            questionIndex?: number;
+            date?: string;
+        };
+        SharedQuestionItem: {
+            question: string;
+            date?: string;
+            timestamp?: string;
+            theme?: string;
+            /** @enum {string} */
+            questionType: "shared";
+            isGlobal?: boolean;
+        };
+        /** @description shared/src/facts.ts; a week's answers, summed up */
+        DailyFactSummary: {
+            date?: string;
+            weekStartDate?: string;
+            weekEndDate?: string;
+            summary: string;
+            lastUpdated: string;
+            totalResponses: number;
+            sideAResponses: number;
+            sideBResponses: number;
+            /** @enum {string} */
+            factType: "personal" | "shared" | "mixed";
+            totalQuestions?: number;
+            uniqueParticipants?: number;
+            participationRate?: number;
+            isNewlyGenerated?: boolean;
+            dailyBreakdown?: {
+                [key: string]: {
+                    responses: number;
+                    question?: string;
+                    /** @enum {string} */
+                    questionType: "basic" | "shared";
+                };
+            };
+        };
+        /** @description Who has played, one row per person (answer grid and fact grid) */
+        StatusGrid: {
+            rows: {
+                userId: string;
+                cells: {
+                    /** @description true answered (or right), false skipped (or wrong), null not yet */
+                    result: boolean | null;
+                    isGameMode?: boolean;
+                }[];
+                streak?: number;
+                answered: number;
+                seasonGaps: number;
+            }[];
+            totalColumns: number;
+            seasonMarkers: {
+                column: number;
+                label: string;
+            }[];
+            seasonStartCol: number;
+            todayColumn: number;
+        };
+        FamilySide: {
+            id: string;
+            name: string;
+            color: string;
+            groups: string[];
+        };
+        TimelinePagination: {
+            hasMoreFacts: boolean;
+            hasMoreTrivia: boolean;
+            nextFactCursor: string | null;
+            nextTriviaCursor: string | null;
+        };
+        /** @description An answer to a daily question, or a finished Family Feud round */
+        TimelineFact: {
+            userId: string;
+            username: string;
+            groupId: string;
+            familySide?: string;
+            question: string;
+            answer: string;
+            fact: string;
+            timestamp: string;
+            date?: string;
+            questionType?: string;
+            answered?: boolean;
+            skipped?: boolean;
+            category?: string;
+            isFamilyFeud?: boolean;
+        };
+        /** @description A trivia answer (HistoryEntry), with who gave it */
+        TimelineTrivia: components["schemas"]["HistoryEntry"] & {
+            userId: string;
+            username: string;
+            groupId: string;
+            familySide?: string;
         };
         Comment: {
             id: string;
@@ -3340,17 +3452,31 @@ export interface components {
             choices?: string[] | null;
             realAnswer?: string | null;
             allGuesses?: components["schemas"]["FamilyFeudGuess"][] | null;
-            results?: components["schemas"]["FamilyFeudResults"];
+            results?: components["schemas"]["FamilyFeudResults"] | null;
         };
         FamilyFeudStatus: {
-            currentRound?: components["schemas"]["FamilyFeudRoundInfo"];
+            currentRound: components["schemas"]["FamilyFeudRoundInfo"] | null;
             isMyTurn: boolean;
-            nextTargetUserId: string;
-            nextTargetUserName: string;
             timesAsTarget: number;
             neverGone: number;
             totalPeople: number;
-            recentRounds: Record<string, never>[];
+            recentRounds: components["schemas"]["FamilyFeudRecentRound"][];
+        };
+        FamilyFeudRecentRound: {
+            roundId: string;
+            targetUserId: string;
+            targetUserName: string;
+            question: string;
+            category?: string;
+            realAnswer?: string | null;
+            choices?: string[] | null;
+            /** @enum {string} */
+            status: "waiting_for_target" | "active" | "completed";
+            startedAt: string;
+            expiresAt: string;
+            guessCount: number;
+            allGuesses: components["schemas"]["FamilyFeudGuess"][];
+            results?: components["schemas"]["FamilyFeudResults"] | null;
         };
         /** @description The people model (shared/src/people.ts, docs/decisions/0009) */
         Family: {
@@ -4011,10 +4137,11 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        facts?: components["schemas"]["FactItem"][];
-                        basicQuestions?: string[];
-                        basicQuestionsTotal?: number;
-                        allSharedQuestions?: components["schemas"]["FactItem"][];
+                        history: components["schemas"]["FactHistoryItem"][];
+                        basicQuestions: string[];
+                        basicQuestionsTotal: number;
+                        /** @description Every shared question asked so far (only with includeGlobal) */
+                        allSharedQuestions: components["schemas"]["SharedQuestionItem"][];
                     };
                 };
             };
@@ -4128,7 +4255,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["DailyFactSummary"];
                 };
             };
         };
@@ -4500,7 +4627,20 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        timelineData: {
+                            facts: components["schemas"]["TimelineFact"][];
+                            trivia: components["schemas"]["TimelineTrivia"][];
+                        };
+                        familySides: {
+                            [key: string]: components["schemas"]["FamilySide"];
+                        };
+                        hierarchyData?: {
+                            [key: string]: unknown;
+                        };
+                        pagination: components["schemas"]["TimelinePagination"];
+                        success: boolean;
+                    };
                 };
             };
         };
@@ -7062,56 +7202,46 @@ export interface operations {
     };
     getAnswerGrid: {
         parameters: {
-            query?: never;
+            query: {
+                /** @description Whose row comes first */
+                userId: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Matrix keyed by userId with slot status */
+            /** @description One row per person, one cell per question slot */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        maxSlots?: number;
-                        users?: {
-                            userId?: string;
-                            slots?: {
-                                correct?: boolean;
-                                isCatchingUp?: boolean;
-                                isGameMode?: boolean;
-                            }[];
-                        }[];
-                    };
+                    "application/json": components["schemas"]["StatusGrid"];
                 };
             };
         };
     };
     getFactGrid: {
         parameters: {
-            query?: never;
+            query: {
+                /** @description Whose row comes first */
+                userId: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Matrix of which days each user answered the daily fact */
+            /** @description One row per person, one cell per question asked */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        dates?: string[];
-                        users?: {
-                            userId?: string;
-                            answered?: boolean[];
-                        }[];
-                    };
+                    "application/json": components["schemas"]["StatusGrid"];
                 };
             };
         };

@@ -6,8 +6,10 @@
  * only in this folder (biome.jsonc).
  */
 import {
+  type InfiniteData,
   type QueryClient,
   type UseQueryResult,
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -35,6 +37,12 @@ interface CircleQuery<P extends ApiPath, M extends Method, S> {
   keepPrevious?: boolean;
   /** Ask once while the app is open: for reads that note a visit (POST /me/since). */
   once?: boolean;
+  /**
+   * How to ask, when one request answers many reads (reactions: every bar on
+   * screen in one request). It answers in the contract's shape for `path`,
+   * asked in the circle it is given.
+   */
+  read?: (circle: string | null) => Promise<ResponseOf<P, M>>;
 }
 
 /** Read one route of the contract, cached in this tab's circle. */
@@ -45,13 +53,50 @@ export function useCircleQuery<P extends ApiPath, M extends Method = 'get', S = 
   const circle = queryKey[1];
   return useQuery({
     queryKey,
-    queryFn: () => callApi(q.path, { method: q.method, query: q.query, circle }),
+    queryFn: () =>
+      q.read ? q.read(circle) : callApi(q.path, { method: q.method, query: q.query, circle }),
     select: q.select,
     enabled: q.enabled,
     placeholderData: q.keepPrevious
       ? (previous, previousQuery) => (previousQuery?.queryKey[1] === circle ? previous : undefined)
       : undefined,
     ...(q.once ? { staleTime: Number.POSITIVE_INFINITY, refetchOnWindowFocus: false } : {}),
+  });
+}
+
+type PageQuery = Record<string, string | number>;
+
+interface CircleInfiniteQuery<P extends ApiPath, S> {
+  /** The feature's key, as in useCircleQuery. */
+  key: readonly KeyPart[];
+  path: P;
+  /** The first page's query string. */
+  query: PageQuery;
+  /** The query string for the page after `page`, or undefined at the end. */
+  next: (page: ResponseOf<P, 'get'>) => PageQuery | undefined;
+  /** All the pages so far, as one answer. */
+  select: (pages: ResponseOf<P, 'get'>[]) => S;
+  /** While a new key loads (another filter), keep showing this circle's last answer. */
+  keepPrevious?: boolean;
+}
+
+/**
+ * Read a route page by page (a list that loads more as you scroll), cached in
+ * this tab's circle. Asked again (on focus, after a change) it starts over
+ * from the first page and asks for each page it had again.
+ */
+export function useCircleInfiniteQuery<P extends ApiPath, S>(q: CircleInfiniteQuery<P, S>) {
+  const queryKey = keys.circle(...q.key, q.path, JSON.stringify(q.query));
+  const circle = queryKey[1];
+  return useInfiniteQuery<ResponseOf<P, 'get'>, Error, S, typeof queryKey, PageQuery>({
+    queryKey,
+    queryFn: ({ pageParam }) => callApi(q.path, { query: pageParam, circle }),
+    initialPageParam: q.query,
+    getNextPageParam: (last) => q.next(last),
+    select: (data: InfiniteData<ResponseOf<P, 'get'>, PageQuery>) => q.select(data.pages),
+    placeholderData: q.keepPrevious
+      ? (previous, previousQuery) => (previousQuery?.queryKey[1] === circle ? previous : undefined)
+      : undefined,
   });
 }
 
@@ -79,6 +124,12 @@ interface CircleMutation<TData, TVars> {
   onMutate?: (vars: TVars, cache: CircleCache) => (() => void) | undefined;
   /** Saved: put the server's answer in the cache. */
   onSuccess?: (data: TData, vars: TVars, cache: CircleCache) => void;
+  /**
+   * Resolve once it's saved, and ask the `invalidates` reads again without
+   * waiting for them: for a change whose own answer is what the person is
+   * waiting to see (an answer to today's question shows its fact at once).
+   */
+  refreshInBackground?: boolean;
 }
 
 interface Started {
@@ -92,6 +143,7 @@ export function useCircleMutation<TData, TVars = void>({
   invalidates = [],
   onMutate,
   onSuccess,
+  refreshInBackground = false,
 }: CircleMutation<TData, TVars>) {
   const client = useQueryClient();
   return useMutation<TData, Error, TVars, Started>({
@@ -104,7 +156,8 @@ export function useCircleMutation<TData, TVars = void>({
     onSuccess: async (data, vars, started) => {
       const cache = cacheOf(client, started?.circle ?? currentCircleId());
       onSuccess?.(data, vars, cache);
-      await Promise.all(invalidates.map((key) => cache.invalidate(key)));
+      const refreshed = Promise.all(invalidates.map((key) => cache.invalidate(key)));
+      if (!refreshInBackground) await refreshed;
     },
   });
 }

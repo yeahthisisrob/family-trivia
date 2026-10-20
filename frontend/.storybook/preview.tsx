@@ -51,7 +51,7 @@ const preview: Preview = {
   loaders: [mswLoader(startWorker)],
   // Reset ephemeral state before every story so one story can't bleed
   // into the next:
-  //   - apiService cache (cached `daily_fact_alice_today` etc.)
+  //   - apiService cache (CacheService, for screens not on server data yet)
   //   - this page's localStorage and sessionStorage (isolateStorage.ts)
   //   - the tab's pinned circle and person (session.ts)
   //   - the server-data cache (a fresh QueryClient)

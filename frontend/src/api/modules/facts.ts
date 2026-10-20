@@ -96,13 +96,11 @@ export async function shouldShowDailyFact(userId: string): Promise<boolean> {
  * @param forceShared Whether to force fetch the shared daily question
  * @returns The daily fact question
  */
-export async function getDailyFact(
+async function getDailyFact(
   userId: string,
   catchup = false,
   forceShared = false,
 ): Promise<DailyFactQuestion> {
-  const today = new Date().toISOString().split('T')[0];
-
   // If catchup mode is enabled, include it in the request and bypass cache
   if (catchup) {
     return apiService.request<DailyFactQuestion>(
@@ -121,11 +119,10 @@ export async function getDailyFact(
     );
   }
 
-  return apiService.request<DailyFactQuestion>(
-    `/daily-fact?userId=${encodeURIComponent(userId)}`,
-    { method: 'GET' },
-    `daily_fact_${userId}_${today}`,
-  );
+  // Home reads today's question as server data (features/daily-question).
+  return apiService.request<DailyFactQuestion>(`/daily-fact?userId=${encodeURIComponent(userId)}`, {
+    method: 'GET',
+  });
 }
 
 /**
@@ -144,8 +141,6 @@ export async function submitDailyFact(
   catchupMode = false,
   questionIndex?: number,
 ): Promise<DailyFactResult> {
-  const today = new Date().toISOString().split('T')[0];
-  cacheService.invalidate(`daily_fact_${userId}_${today}`);
   cacheService.invalidate(`user_profile_${userId}`);
 
   return apiService.request<DailyFactResult>('/submit-daily-fact', {
@@ -174,8 +169,6 @@ export async function skipDailyFact(
   catchupMode = false,
   questionIndex?: number,
 ): Promise<DailyFactResult> {
-  const today = new Date().toISOString().split('T')[0];
-  cacheService.invalidate(`daily_fact_${userId}_${today}`);
   cacheService.invalidate(`user_profile_${userId}`);
 
   return apiService.request<DailyFactResult>('/submit-daily-fact', {
@@ -203,9 +196,6 @@ export async function generateDailyFactWithTheme(
   theme: string,
   regenerate = false,
 ): Promise<DailyFactQuestion> {
-  const today = new Date().toISOString().split('T')[0];
-  cacheService.invalidate(`daily_fact_${userId}_${today}`);
-
   return apiService.request<DailyFactQuestion>('/daily-fact', {
     method: 'POST',
     body: JSON.stringify({
@@ -288,21 +278,4 @@ export async function submitHistoricalFact(params: {
     method: 'POST',
     body: JSON.stringify(params),
   });
-}
-
-/**
- * Get all family fact answers for client-side fuzzy autocomplete.
- * Returns deduplicated answers with author names.
- */
-/**
- * Get common opening phrases extracted from real family answers.
- * Used for autocomplete starters — just patterns, no individual answers.
- */
-export async function getFactStarters(): Promise<string[]> {
-  const result = await apiService.request<{ starters: string[] }>(
-    '/fact-suggestions',
-    { method: 'GET' },
-    'fact_suggestions',
-  );
-  return result.starters || [];
 }

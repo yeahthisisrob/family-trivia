@@ -30,9 +30,27 @@ interface Spec {
   paths: Record<string, Record<string, Operation>>;
 }
 
+/**
+ * OpenAPI 3.0 writes "this schema, or null" as `nullable: true` beside an
+ * `allOf` of the $ref. ajv would hold null to the $ref as well, so it reads
+ * that as JSON Schema says it: null, or the schema.
+ */
+function nullableRefs(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(nullableRefs);
+  if (!node || typeof node !== 'object') return node;
+  const schema = Object.fromEntries(
+    Object.entries(node).map(([key, value]) => [key, nullableRefs(value)]),
+  );
+  if (schema.nullable !== true || !Array.isArray(schema.allOf)) return schema;
+  const { nullable: _, ...rest } = schema;
+  return { anyOf: [{ type: 'null' }, rest] };
+}
+
 const SPEC_ID = 'api.openapi';
-const spec = parse(
-  readFileSync(join(import.meta.dirname, '../../../shared/schemas/api.openapi.yaml'), 'utf8'),
+const spec = nullableRefs(
+  parse(
+    readFileSync(join(import.meta.dirname, '../../../shared/schemas/api.openapi.yaml'), 'utf8'),
+  ),
 ) as Spec;
 
 // OpenAPI 3.0 schemas: `nullable` is OpenAPI's, unknown keywords (example)

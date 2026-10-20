@@ -1,3 +1,4 @@
+import { CIRCLE_HEADER } from '@family-trivia/shared';
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
@@ -8,7 +9,7 @@ vi.mock('../../config/config', () => ({
 import { fakeApi, later, openTabIn, renderWithServerData } from '../../../test/serverData';
 import { clearSession } from '../../session/session';
 import { apiService } from '../ApiService';
-import { keys, useCircleMutation, useCircleQuery } from './circleQueries';
+import { keys, useCircleInfiniteQuery, useCircleMutation, useCircleQuery } from './circleQueries';
 
 const answered = (circle: string | null, limit: string | null) => ({
   birthdays: [{ name: `${circle} date ${limit}` }],
@@ -109,6 +110,92 @@ describe('server data is kept per circle', () => {
     });
     await vi.waitFor(() => expect(view.container.textContent).toBe('crew#1 date 10'));
     expect(fetch.mock.calls.filter(([url]) => String(url).includes('upcoming'))).toHaveLength(2);
+    view.unmount();
+  });
+
+  test('a mutation that refreshes in the background resolves before its reads answer', async () => {
+    let asks = 0;
+    const second = later<unknown>();
+    fakeApi({
+      'GET /upcoming-birthdays': (circle) =>
+        ++asks === 1 ? answered(circle, '10') : second.promise,
+      'POST /celebrations': () => ({ success: true }),
+    });
+    let add: () => Promise<unknown> = async () => undefined;
+    const Adder: React.FC = () => {
+      const m = useCircleMutation({
+        mutationFn: () => apiService.request('/celebrations', { method: 'POST' }),
+        invalidates: [['celebrations']],
+        refreshInBackground: true,
+      });
+      add = () => m.mutateAsync();
+      return <Dates limit={10} />;
+    };
+    openTabIn('crew');
+    const view = renderWithServerData(<Adder />);
+    await vi.waitFor(() => expect(view.container.textContent).toBe('crew date 10'));
+
+    await act(async () => {
+      await add();
+    });
+    expect(asks).toBe(2);
+    await act(async () => second.settle(answered('crew', 'again')));
+    await vi.waitFor(() => expect(view.container.textContent).toBe('crew date again'));
+    view.unmount();
+  });
+
+  test('a list read page by page asks for every page in the circle of its key', async () => {
+    const fetch = fakeApi({
+      'GET /timeline-data': (circle, url) => {
+        const before = url.searchParams.get('before');
+        return {
+          timelineData: { facts: [], trivia: [] },
+          familySides: {},
+          pagination: {
+            hasMoreFacts: !before,
+            hasMoreTrivia: false,
+            nextFactCursor: before ? null : `${circle}-cursor`,
+            nextTriviaCursor: null,
+          },
+          success: true,
+        };
+      },
+    });
+    let more: () => Promise<unknown> = async () => undefined;
+    const Pages: React.FC = () => {
+      const q = useCircleInfiniteQuery({
+        key: ['timeline'],
+        path: '/timeline-data',
+        query: { side: 'all' },
+        next: (page) =>
+          page.pagination.nextFactCursor
+            ? { side: 'all', before: page.pagination.nextFactCursor }
+            : undefined,
+        select: (pages) => pages.length,
+      });
+      more = () => q.fetchNextPage();
+      return <p>{q.data ?? 0} pages</p>;
+    };
+    openTabIn('crew');
+    const view = renderWithServerData(<Pages />);
+    await vi.waitFor(() => expect(view.container.textContent).toBe('1 pages'));
+    await act(async () => {
+      await more();
+    });
+    await vi.waitFor(() => expect(view.container.textContent).toBe('2 pages'));
+    const asked = fetch.mock.calls.map(([url, init]) => ({
+      before: new URL(url).searchParams.get('before'),
+      circle: (init?.headers as Record<string, string> | undefined)?.[CIRCLE_HEADER],
+    }));
+    expect(asked).toEqual([
+      { before: null, circle: 'crew' },
+      { before: 'crew-cursor', circle: 'crew' },
+    ]);
+    expect(view.client.getQueryCache().getAll()[0]?.queryKey.slice(0, 3)).toEqual([
+      'circle',
+      'crew',
+      'timeline',
+    ]);
     view.unmount();
   });
 });

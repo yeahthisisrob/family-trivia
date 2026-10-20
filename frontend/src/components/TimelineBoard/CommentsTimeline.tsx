@@ -4,32 +4,15 @@ import { alpha } from '@mui/material/styles';
 import { format, isToday, isYesterday, parseISO } from 'date-fns';
 import type React from 'react';
 import { useCallback, useMemo, useRef } from 'react';
-import type { FactItem, QuestionHistory } from '../../api/modules/user';
-import type { FamilySide } from '../../utils/familyUtils';
+import type { TimelineFact, TimelineTrivia } from '../../entities/timeline';
 import FactComments from './FactComments';
 import FactTimelineCard from './FactTimelineCard';
 import TriviaComments from './TriviaComments';
 import TriviaTimelineCard from './TriviaTimelineCard';
 
-// Type for merged fact items with comment count and extra metadata
-type FactWithComments = FactItem & {
-  userId: string;
-  username: string;
-  groupId: string;
-  familySide: FamilySide;
-  type: 'fact';
-  commentCount: number;
-};
-
-// Type for merged trivia items with comment count and extra metadata
-type TriviaWithComments = QuestionHistory & {
-  userId: string;
-  username: string;
-  groupId: string;
-  familySide: FamilySide;
-  type: 'trivia';
-  commentCount: number;
-};
+// Timeline items (as the API sends them), with their comment count
+type FactWithComments = TimelineFact & { type: 'fact'; commentCount: number };
+type TriviaWithComments = TimelineTrivia & { type: 'trivia'; commentCount: number };
 
 // Union type for merged items
 type MergedItem = FactWithComments | TriviaWithComments;

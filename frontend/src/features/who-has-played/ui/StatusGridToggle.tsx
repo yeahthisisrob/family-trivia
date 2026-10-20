@@ -1,5 +1,3 @@
-// File: src/components/StatusGridToggle.tsx
-//
 // Toggle between the Facts grid and the Trivia grid on the home tab.
 // Both grids show the family's answer matrix — this lets users switch
 // between them without navigating to a different tab.
@@ -11,7 +9,7 @@ import type React from 'react';
 import { useState } from 'react';
 
 import FactStatusBar from './FactStatusBar';
-import TriviaStatusBar from './TriviaCard/TriviaStatusBar';
+import TriviaStatusBar from './TriviaStatusBar';
 
 interface StatusGridToggleProps {
   userId: string;

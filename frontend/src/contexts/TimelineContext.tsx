@@ -1,5 +1,4 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { getTimelineData, type TimelineData } from '../api/modules/timeline';
 import {
   type Comment,
   type CommentContentType,
@@ -13,9 +12,9 @@ const {
   getCommentThread: fetchThread,
 } = commentsApi;
 
+import { type TimelineFeed, useTimelineFeed } from '../entities/timeline';
 import { createLogger } from '../shared/lib/logger';
 import type { FamilySide } from '../utils/familyUtils';
-import { useFamilyData } from './FamilyDataContext';
 
 // Initialize logger
 const logger = createLogger('TimelineContext');
@@ -23,15 +22,16 @@ const logger = createLogger('TimelineContext');
 // Re-export unified types for consumers
 export type { Comment, CommentContentType, CommentThread };
 
-// Cache duration in milliseconds (5 minutes)
-const CACHE_DURATION = 5 * 60 * 1000;
+/** The family timeline Home shows (server data: entities/timeline). */
+type TimelineData = Pick<TimelineFeed, 'facts' | 'trivia' | 'familySides'>;
+
+const NOTHING_YET: TimelineData = { facts: [], trivia: [], familySides: {} };
 
 // Timeline context type
 interface TimelineContextType {
   // Timeline data
   timelineData: TimelineData;
   selectedSide: FamilySide | 'all';
-  lastRefreshed: number;
 
   // Comments data
   commentCounts: Map<string, number>;
@@ -40,10 +40,8 @@ interface TimelineContextType {
   commentsLastRefreshed: number;
 
   // Loading states
-  loading: boolean;
   loadingMore: boolean;
   error: string | null;
-  initialLoadDone: boolean;
 
   // Pagination
   hasMoreFacts: boolean;
@@ -51,7 +49,8 @@ interface TimelineContextType {
 
   // Timeline actions
   setSelectedSide: (side: FamilySide | 'all') => void;
-  refreshTimeline: (forceRefresh?: boolean) => Promise<boolean>;
+  /** Ask for the timeline again (after an answer the timeline shows). */
+  refreshTimeline: (forceRefresh?: boolean) => Promise<void>;
   loadMoreTimeline: () => Promise<void>;
 
   // Comments actions — unified for both fact and trivia
@@ -86,40 +85,21 @@ interface TimelineProviderProps {
 }
 
 export const TimelineProvider: React.FC<TimelineProviderProps> = ({ children }) => {
-  // Get init data from FamilyDataContext (loaded in consolidated /app-init call)
-  const { initTimelineData, appInitComplete, hierarchyData } = useFamilyData();
-  const initConsumedRef = React.useRef(false);
-
-  // Timeline data state
-  const [timelineData, setTimelineData] = useState<TimelineData>({
-    facts: [],
-    trivia: [],
-    familySides: {},
-  });
-
-  // Selected family side
+  // Selected family side: each side is its own list (a side kept on screen while another loads)
   const [selectedSide, setSelectedSide] = useState<FamilySide | 'all'>('all');
+  const feed = useTimelineFeed(selectedSide);
+  const timelineData = feed.data ?? NOTHING_YET;
+  const initialLoadDone = feed.data !== undefined || feed.isError;
+  // A failed refresh keeps what's on screen; only a timeline that never came says so.
+  const error = feed.isError && !feed.data ? feed.error.message : null;
 
-  // Loading and error states — start false, set true only when actively fetching
-  const [loading, setLoading] = useState<boolean>(false);
-  const [loadingMore, setLoadingMore] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [initialLoadDone, setInitialLoadDone] = useState(false);
-
-  // Track last refresh for cache invalidation
-  const [lastRefreshed, setLastRefreshed] = useState<number>(0);
-
-  // Use refs to avoid dependency issues
-  const lastRefreshedRef = React.useRef(lastRefreshed);
-  const hasDataRef = React.useRef(false);
-  const retryCountRef = React.useRef(0);
-  const retryTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Pagination state
-  const [hasMoreFacts, setHasMoreFacts] = useState<boolean>(false);
-  const [hasMoreTrivia, setHasMoreTrivia] = useState<boolean>(false);
-  const [nextFactCursor, setNextFactCursor] = useState<string | null>(null);
-  const [nextTriviaCursor, setNextTriviaCursor] = useState<string | null>(null);
+  const { refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = feed;
+  const refreshTimeline = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
+  const loadMoreTimeline = useCallback(async () => {
+    if (hasNextPage && !isFetchingNextPage) await fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Unified comments state
   // Full threads keyed by "fact:contentId" or "trivia:contentId"
@@ -132,239 +112,6 @@ export const TimelineProvider: React.FC<TimelineProviderProps> = ({ children }) 
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsLastRefreshed, setCommentsLastRefreshed] = useState(0);
   const [commentsInitialized, setCommentsInitialized] = useState(false);
-
-  // Update refs when values change
-  React.useEffect(() => {
-    lastRefreshedRef.current = lastRefreshed;
-  }, [lastRefreshed]);
-
-  React.useEffect(() => {
-    hasDataRef.current = timelineData.trivia.length > 0 || timelineData.facts.length > 0;
-  }, [timelineData]);
-
-  // Fetch timeline data. Returns true if data was loaded, false if empty/error.
-  const fetchTimelineData = useCallback(
-    async (forceRefresh = false): Promise<boolean> => {
-      try {
-        setLoading(true);
-
-        // Only use in-memory cache if initial load is done, we have REAL data, and it's fresh
-        const now = Date.now();
-        const hasMeaningfulData =
-          hasDataRef.current && (timelineData.trivia.length > 0 || timelineData.facts.length > 0);
-        if (
-          !forceRefresh &&
-          initialLoadDone &&
-          hasMeaningfulData &&
-          now - lastRefreshedRef.current < CACHE_DURATION
-        ) {
-          logger.debug('Using cached timeline data');
-          setLoading(false);
-          return true;
-        }
-
-        logger.info(`Fetching timeline data for side: ${selectedSide}`);
-
-        // Initial load - get the most recent data without date restrictions
-        const data = await getTimelineData({
-          side: selectedSide,
-          limit: 20, // Load 20 items of each type initially
-        });
-
-        const hasData = data.trivia.length > 0 || data.facts.length > 0;
-        if (!hasData) {
-          logger.warn('Timeline data is empty');
-        }
-
-        // Update state with new data
-        logger.info(
-          `Timeline data received: facts=${data.facts.length}, trivia=${data.trivia.length}, hasData=${data.trivia.length > 0 || data.facts.length > 0}`,
-        );
-        setTimelineData(data);
-        setLastRefreshed(now);
-        setError(null);
-        // Mark initial load done only when we have data or retries are exhausted
-        if (!initialLoadDone && (hasData || retryCountRef.current >= 3)) {
-          setInitialLoadDone(true);
-        }
-
-        // Update pagination state
-        if (data.pagination) {
-          setHasMoreFacts(data.pagination.hasMoreFacts);
-          setHasMoreTrivia(data.pagination.hasMoreTrivia);
-          setNextFactCursor(data.pagination.nextFactCursor);
-          setNextTriviaCursor(data.pagination.nextTriviaCursor);
-        }
-
-        return hasData;
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Unknown error loading timeline data';
-        logger.error('Error fetching timeline data:', errorMessage);
-        setError(errorMessage);
-        // Don't block the app forever — mark done after retries exhausted or on error
-        if (!initialLoadDone && retryCountRef.current >= 3) {
-          setInitialLoadDone(true);
-        }
-        return false;
-      } finally {
-        setLoading(false);
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedSide], // timelineData intentionally excluded to avoid infinite loop
-  );
-
-  // Refresh timeline data (exposed to consumers)
-  const refreshTimeline = useCallback(
-    async (forceRefresh = false) => {
-      return fetchTimelineData(forceRefresh);
-    },
-    [fetchTimelineData],
-  );
-
-  // Load more timeline data
-  const loadMoreTimeline = useCallback(async () => {
-    if (loadingMore || (!hasMoreFacts && !hasMoreTrivia)) {
-      return;
-    }
-
-    try {
-      setLoadingMore(true);
-      logger.info('Loading more timeline data');
-
-      // Use the oldest cursor available
-      const cursor = nextFactCursor || nextTriviaCursor;
-      if (!cursor) {
-        logger.warn('No cursor available for pagination');
-        return;
-      }
-
-      const moreData = await getTimelineData({
-        side: selectedSide,
-        before: cursor,
-        limit: 20,
-      });
-
-      // Merge new data with existing, deduplicating by userId+timestamp
-      setTimelineData((prevData) => {
-        const factKeys = new Set(prevData.facts.map((f) => `${f.userId}_${f.timestamp}`));
-        const triviaKeys = new Set(prevData.trivia.map((t) => `${t.userId}_${t.timestamp}`));
-        const newFacts = moreData.facts.filter((f) => !factKeys.has(`${f.userId}_${f.timestamp}`));
-        const newTrivia = moreData.trivia.filter(
-          (t) => !triviaKeys.has(`${t.userId}_${t.timestamp}`),
-        );
-        return {
-          ...prevData,
-          facts: [...prevData.facts, ...newFacts],
-          trivia: [...prevData.trivia, ...newTrivia],
-        };
-      });
-
-      // Update pagination state
-      if (moreData.pagination) {
-        logger.info('Pagination update:', {
-          hasMoreFacts: moreData.pagination.hasMoreFacts,
-          hasMoreTrivia: moreData.pagination.hasMoreTrivia,
-          nextFactCursor: moreData.pagination.nextFactCursor,
-          nextTriviaCursor: moreData.pagination.nextTriviaCursor,
-          newDataCount: { facts: moreData.facts.length, trivia: moreData.trivia.length },
-        });
-        setHasMoreFacts(moreData.pagination.hasMoreFacts);
-        setHasMoreTrivia(moreData.pagination.hasMoreTrivia);
-        setNextFactCursor(moreData.pagination.nextFactCursor);
-        setNextTriviaCursor(moreData.pagination.nextTriviaCursor);
-      }
-    } catch (err) {
-      logger.error('Error loading more timeline data:', err);
-    } finally {
-      setLoadingMore(false);
-    }
-  }, [loadingMore, hasMoreFacts, hasMoreTrivia, nextFactCursor, nextTriviaCursor, selectedSide]);
-
-  // Hydrate from consolidated /app-init response when available.
-  // This avoids a separate /timeline-data API call at init.
-  useEffect(() => {
-    if (initConsumedRef.current || !appInitComplete || !initTimelineData) return;
-    initConsumedRef.current = true;
-
-    logger.info('Hydrating timeline from app-init data', {
-      facts: initTimelineData.facts.length,
-      trivia: initTimelineData.trivia.length,
-    });
-
-    const data: TimelineData = {
-      facts: initTimelineData.facts || [],
-      trivia: initTimelineData.trivia || [],
-      familySides: initTimelineData.familySides || {},
-      hierarchyData: (hierarchyData as unknown as TimelineData['hierarchyData']) || undefined,
-      pagination: initTimelineData.pagination,
-    };
-
-    setTimelineData(data);
-    setLastRefreshed(Date.now());
-    setError(null);
-
-    if (initTimelineData.pagination) {
-      setHasMoreFacts(initTimelineData.pagination.hasMoreFacts);
-      setHasMoreTrivia(initTimelineData.pagination.hasMoreTrivia);
-      setNextFactCursor(initTimelineData.pagination.nextFactCursor);
-      setNextTriviaCursor(initTimelineData.pagination.nextTriviaCursor);
-    }
-
-    setInitialLoadDone(true);
-  }, [appInitComplete, initTimelineData, hierarchyData]);
-
-  // Fallback: if app-init didn't include timeline data (no userId), load separately.
-  // Also handles side changes after init (pagination uses /timeline-data endpoint).
-  useEffect(() => {
-    // Skip if init data will handle it
-    if (!initConsumedRef.current && initTimelineData) return;
-    // Skip on first mount if we already hydrated from init
-    if (initConsumedRef.current && selectedSide === 'all' && initialLoadDone) return;
-
-    retryCountRef.current = 0;
-    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-
-    const loadWithRetry = async () => {
-      const gotData = await fetchTimelineData();
-
-      if (!gotData && retryCountRef.current < 3) {
-        retryCountRef.current++;
-        const delay = retryCountRef.current * 3000;
-        logger.info(`Timeline empty, scheduling retry ${retryCountRef.current}/3 in ${delay}ms`);
-        retryTimerRef.current = setTimeout(() => {
-          lastRefreshedRef.current = 0;
-          loadWithRetry();
-        }, delay);
-      } else if (!gotData) {
-        setInitialLoadDone(true);
-      }
-    };
-
-    loadWithRetry();
-
-    return () => {
-      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSide, fetchTimelineData]); // fetchTimelineData closes over selectedSide
-
-  // Handle side selection
-  const handleSideChange = useCallback(
-    (side: FamilySide | 'all') => {
-      if (side !== selectedSide) {
-        // Reset pagination and cache so the effect-triggered fetch gets fresh data
-        setHasMoreFacts(false);
-        setHasMoreTrivia(false);
-        setNextFactCursor(null);
-        setNextTriviaCursor(null);
-        lastRefreshedRef.current = 0; // invalidate cache so effect fetch is not skipped
-        setSelectedSide(side); // triggers the useEffect which calls fetchTimelineData
-      }
-    },
-    [selectedSide],
-  );
 
   // Track if comments are currently being refreshed to prevent duplicate calls
   const isRefreshingCommentsRef = React.useRef(false);
@@ -608,16 +355,13 @@ export const TimelineProvider: React.FC<TimelineProviderProps> = ({ children }) 
     // Timeline data
     timelineData,
     selectedSide,
-    loading,
-    loadingMore,
+    loadingMore: isFetchingNextPage,
     error,
-    initialLoadDone,
-    hasMoreFacts,
-    hasMoreTrivia,
-    setSelectedSide: handleSideChange,
+    hasMoreFacts: feed.data?.hasMoreFacts ?? false,
+    hasMoreTrivia: feed.data?.hasMoreTrivia ?? false,
+    setSelectedSide,
     refreshTimeline,
     loadMoreTimeline,
-    lastRefreshed,
 
     // Comments data
     commentCounts,

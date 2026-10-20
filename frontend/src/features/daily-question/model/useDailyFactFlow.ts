@@ -14,23 +14,25 @@
  *     No timer, no auto-advance ever calls skip — skips are explicit.
  *   - The submitted question text is the EXACT one we received from the
  *     backend. We never send a stale or mutated question string.
- *   - After submit, we advance via local queue state, never re-fetching.
+ *   - After submit, we advance via local queue state: the reads it starts
+ *     from (dailyQuestion.ts) are asked again for the rest of Home, but the
+ *     queue is built once, from answers that aren't being asked again.
  */
 
-import type { FactHistoryItem } from '@family-trivia/shared';
 import { getTodayET } from '@family-trivia/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { generateQuestionOptions, type QuestionOption } from '../../../api/modules/facts';
+import { knowledgeApi } from '../../../entities/family';
+import { createLogger } from '../../../shared/lib/logger';
 import {
-  generateDailyFactWithTheme,
-  generateQuestionOptions,
-  getDailyFact,
-  getUserFactHistory,
-  type QuestionOption,
-  skipDailyFact,
-  submitDailyFact,
-} from '../../api/modules/facts';
-import { knowledgeApi } from '../../entities/family';
-import { createLogger } from '../../shared/lib/logger';
+  type FactHistory,
+  type TodaysQuestion,
+  useChooseQuestion,
+  useFactHistory,
+  useSkipQuestion,
+  useSubmitAnswer,
+  useTodaysQuestion,
+} from './dailyQuestion';
 
 const logger = createLogger('useDailyFactFlow');
 
@@ -92,6 +94,42 @@ interface UseDailyFactFlowOptions {
   onDone?: () => void;
 }
 
+// ── The queue ────────────────────────────────────────────────────
+
+/** Today's creator still has to make today's question. */
+const makesTodaysQuestion = (today: TodaysQuestion) =>
+  !today.answered && (today.isFirstPerson || !today.question);
+
+/** Past shared questions not answered or skipped, oldest first, then unanswered basics. */
+function catchupQueue(history: FactHistory, now: number): CatchupItem[] {
+  const answeredDates = new Set(
+    history.history
+      .filter((h) => h.questionType === 'shared' && (h.answered || h.skipped))
+      .map((h) => h.date),
+  );
+
+  const today = getTodayET();
+  const missed: CatchupItem[] = [];
+  for (const sq of history.allSharedQuestions) {
+    if (sq.date && sq.date !== today && !answeredDates.has(sq.date) && sq.question) {
+      const diff = Math.floor((now - new Date(`${sq.date}T12:00:00`).getTime()) / 86400000);
+      missed.push({ question: sq.question, date: sq.date, daysAgo: diff });
+    }
+  }
+  // Oldest first: one queue that works back to now (docs/decisions/0016).
+  missed.sort((a, b) => b.daysAgo - a.daysAgo);
+
+  const basics: CatchupItem[] = [];
+  history.basicQuestions.forEach((q, i) => {
+    const done = history.history.some(
+      (h) => h.questionType === 'basic' && h.questionIndex === i && h.answered,
+    );
+    if (!done) basics.push({ question: q, date: '', daysAgo: 999 });
+  });
+
+  return [...missed, ...basics];
+}
+
 // ── Hook ─────────────────────────────────────────────────────────
 
 const initialState: DailyFactFlowState = {
@@ -117,101 +155,82 @@ export function useDailyFactFlow({
   const queueRef = useRef<CatchupItem[]>([]);
   const loadedRef = useRef(false);
 
-  // ── Initial load ─────────────────────────────────────────────
+  const today = useTodaysQuestion(userId);
+  const history = useFactHistory(userId, !!today.data && !makesTodaysQuestion(today.data));
+  const submitAnswer = useSubmitAnswer();
+  const skipQuestion = useSkipQuestion();
+  const chooseQuestion = useChooseQuestion();
 
-  const loadQuestions = useCallback(async () => {
-    try {
-      const todayResult = await getDailyFact(userId, false);
-
-      // First-person flow — user creates today's question
-      if (!todayResult.answered && (todayResult.isFirstPerson || !todayResult.question)) {
-        setState((s) => ({ ...s, step: 'firstPerson' }));
-        return;
-      }
-
-      // Build catch-up queue from history
-      const history = await getUserFactHistory(userId, true);
-      const answeredDates = new Set(
-        history.history
-          .filter((h: FactHistoryItem) => h.questionType === 'shared' && (h.answered || h.skipped))
-          .map((h: FactHistoryItem) => h.date),
-      );
-
-      const today = getTodayET();
-      const missed: CatchupItem[] = [];
-      for (const sq of history.allSharedQuestions) {
-        if (
-          sq.date &&
-          sq.date !== today &&
-          !answeredDates.has(sq.date) &&
-          !sq.skipped &&
-          sq.question
-        ) {
-          const diff = Math.floor(
-            (Date.now() - new Date(`${sq.date}T12:00:00`).getTime()) / 86400000,
-          );
-          missed.push({ question: sq.question, date: sq.date, daysAgo: diff });
-        }
-      }
-      // Oldest first: one queue that works back to now (docs/decisions/0016).
-      missed.sort((a, b) => b.daysAgo - a.daysAgo);
-
-      const basics: CatchupItem[] = [];
-      history.basicQuestions.forEach((q: string, i: number) => {
-        const done = history.history.some(
-          (h: FactHistoryItem) => h.questionType === 'basic' && h.questionIndex === i && h.answered,
-        );
-        if (!done) basics.push({ question: q, date: '', daysAgo: 999 });
-      });
-
-      const catchupItems = [...missed, ...basics];
-      queueRef.current = catchupItems;
-
-      // Today's question takes priority
-      if (!todayResult.answered && todayResult.question) {
-        setState((s) => ({
-          ...s,
-          step: 'question',
-          question: todayResult.question,
-          questionDate: null,
-          isCatchup: false,
-          totalCatchup: catchupItems.length,
-          catchupRemaining: catchupItems.length,
-        }));
-        return;
-      }
-
-      // Today already done — start catch-up if any
-      if (catchupItems.length > 0) {
-        const first = catchupItems[0];
-        queueRef.current = catchupItems.slice(1);
-        setState((s) => ({
-          ...s,
-          step: 'question',
-          question: first.question,
-          questionDate: first.date || null,
-          isCatchup: true,
-          totalCatchup: catchupItems.length,
-          catchupRemaining: catchupItems.length - 1,
-        }));
-        return;
-      }
-
-      setState((s) => ({ ...s, step: 'done' }));
-      onDone?.();
-    } catch (err) {
-      logger.error('Failed to load fact questions', { err });
-      setState((s) => ({ ...s, step: 'done' }));
-      onDone?.();
-    }
-  }, [userId, onDone]);
-
+  // ── Start, once: from today's question and, when there may be a queue, the history ──
+  // Only from answers that have settled: a cached copy being asked again may be from
+  // before the last answer.
   useEffect(() => {
     if (loadedRef.current) return;
+    if (today.isError || history.isError) {
+      loadedRef.current = true;
+      logger.error('Failed to load fact questions', { err: today.error ?? history.error });
+      setState((s) => ({ ...s, step: 'done' }));
+      onDone?.();
+      return;
+    }
+    if (!today.data || today.isFetching) return;
+    const todayResult = today.data;
+
+    // First-person flow — user creates today's question
+    if (makesTodaysQuestion(todayResult)) {
+      loadedRef.current = true;
+      setState((s) => ({ ...s, step: 'firstPerson' }));
+      return;
+    }
+    if (!history.data || history.isFetching) return;
     loadedRef.current = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate fetch-on-mount
-    void loadQuestions();
-  }, [loadQuestions]);
+
+    const catchupItems = catchupQueue(history.data, Date.now());
+    queueRef.current = catchupItems;
+
+    // Today's question takes priority
+    if (!todayResult.answered && todayResult.question) {
+      setState((s) => ({
+        ...s,
+        step: 'question',
+        question: todayResult.question,
+        questionDate: null,
+        isCatchup: false,
+        totalCatchup: catchupItems.length,
+        catchupRemaining: catchupItems.length,
+      }));
+      return;
+    }
+
+    // Today already done — start catch-up if any
+    const [first, ...rest] = catchupItems;
+    if (first) {
+      queueRef.current = rest;
+      setState((s) => ({
+        ...s,
+        step: 'question',
+        question: first.question,
+        questionDate: first.date || null,
+        isCatchup: true,
+        totalCatchup: catchupItems.length,
+        catchupRemaining: catchupItems.length - 1,
+      }));
+      return;
+    }
+
+    setState((s) => ({ ...s, step: 'done' }));
+    onDone?.();
+  }, [
+    today.data,
+    today.isFetching,
+    today.isError,
+    today.error,
+    history.data,
+    history.isFetching,
+    history.isError,
+    history.error,
+    onDone,
+  ]);
 
   // ── Advance to next item in queue ────────────────────────────
 
@@ -242,6 +261,7 @@ export function useDailyFactFlow({
 
   // ── Submit answer ────────────────────────────────────────────
 
+  const { mutateAsync: saveAnswer } = submitAnswer;
   const submit = useCallback(
     async (answer: string): Promise<boolean> => {
       const trimmed = answer.trim();
@@ -259,12 +279,12 @@ export function useDailyFactFlow({
       setState((s) => ({ ...s, step: 'submitting', errorMessage: null }));
 
       try {
-        const result = await submitDailyFact(
+        const result = await saveAnswer({
           userId,
-          submittedQuestion,
-          trimmed,
-          submittedIsCatchup,
-        );
+          question: submittedQuestion,
+          answer: trimmed,
+          catchup: submittedIsCatchup,
+        });
         if (!result.fact) {
           // Defensive: backend should always return a fact for non-skipped submissions.
           logger.warn('submit returned no fact', { userId });
@@ -287,11 +307,12 @@ export function useDailyFactFlow({
         return false;
       }
     },
-    [state.question, state.isCatchup, userId, onFactSubmitted],
+    [state.question, state.isCatchup, userId, onFactSubmitted, saveAnswer],
   );
 
   // ── Skip (explicit user action only) ─────────────────────────
 
+  const { mutateAsync: saveSkip } = skipQuestion;
   const skip = useCallback(async (): Promise<boolean> => {
     const skippedQuestion = state.question;
     const skippedIsCatchup = state.isCatchup;
@@ -299,7 +320,7 @@ export function useDailyFactFlow({
 
     setState((s) => ({ ...s, step: 'submitting', errorMessage: null }));
     try {
-      await skipDailyFact(userId, skippedQuestion, skippedIsCatchup);
+      await saveSkip({ userId, question: skippedQuestion, catchup: skippedIsCatchup });
       onFactSubmitted?.();
       advance();
       return true;
@@ -312,7 +333,7 @@ export function useDailyFactFlow({
       }));
       return false;
     }
-  }, [state.question, state.isCatchup, userId, onFactSubmitted, advance]);
+  }, [state.question, state.isCatchup, userId, onFactSubmitted, advance, saveSkip]);
 
   // ── First-person flow ────────────────────────────────────────
 
@@ -339,11 +360,12 @@ export function useDailyFactFlow({
     }
   }, [userId, state.fpTheme]);
 
+  const { mutateAsync: saveQuestion } = chooseQuestion;
   const selectFpQuestion = useCallback(
     async (question: string) => {
       setState((s) => ({ ...s, step: 'firstPersonDone' }));
       try {
-        const result = await generateDailyFactWithTheme(userId, question, false);
+        const result = await saveQuestion({ userId, question });
         const finalQuestion = result.question || question;
         // Brief celebration, then transition to question step
         setTimeout(() => {
@@ -366,19 +388,19 @@ export function useDailyFactFlow({
         }));
       }
     },
-    [userId],
+    [userId, saveQuestion],
   );
 
   const skipFirstPerson = useCallback(async () => {
     setState((s) => ({ ...s, step: 'submitting' }));
     try {
-      await skipDailyFact(userId, '');
+      await saveSkip({ userId, question: '', catchup: false });
     } catch {
       // It's OK if this fails — moving on either way
     }
     setState((s) => ({ ...s, step: 'done' }));
     onDone?.();
-  }, [userId, onDone]);
+  }, [userId, onDone, saveSkip]);
 
   // Auto-advance from response → next question after the fact has been read
   useEffect(() => {

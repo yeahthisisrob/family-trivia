@@ -1,4 +1,3 @@
-// File: src/components/FamilyFeud/index.tsx
 // Family Feud round-robin game — shows on the home timeline as a highlighted card.
 
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -23,22 +22,18 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import React, { useCallback, useEffect, useState } from 'react';
-
+import type React from 'react';
+import { useState } from 'react';
+import { LoadingDots } from '../../../components/ui/feedback';
+import { useFamilyData } from '../../../contexts/FamilyDataContext';
+import { colors } from '../../../shared/design-system';
 import {
-  type FamilyFeudStatus,
-  getFamilyFeudStatus,
-  passFamilyFeudTurn,
-  startFamilyFeudRound,
-  submitFamilyFeudAnswer,
-  submitFamilyFeudGuess,
-} from '../../api/modules/familyFeud';
-import { useFamilyData } from '../../contexts/FamilyDataContext';
-import { colors } from '../../shared/design-system';
-import { createLogger } from '../../shared/lib/logger';
-import { LoadingDots } from '../ui/feedback';
-
-const logger = createLogger('FamilyFeud');
+  useAnswerRound,
+  useFeudStatus,
+  useGuess,
+  usePassTurn,
+  useStartRound,
+} from '../model/familyFeud';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(8px); }
@@ -51,37 +46,17 @@ interface FamilyFeudProps {
 
 const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
   const theme = useTheme();
-  const [status, setStatus] = useState<FamilyFeudStatus | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [answer, setAnswer] = useState('');
   const [message, setMessage] = useState<string | null>(null);
 
-  // Hydrate from app-init first, then refresh from server (triggers expiry check)
-  const { initFamilyFeud, appInitComplete } = useFamilyData();
-  const refreshedRef = React.useRef(false);
-
-  useEffect(() => {
-    if (appInitComplete && initFamilyFeud && !status) {
-      setStatus(initFamilyFeud as unknown as FamilyFeudStatus);
-    }
-  }, [appInitComplete, initFamilyFeud, status]);
-
-  const refresh = useCallback(async () => {
-    try {
-      const data = await getFamilyFeudStatus(userId);
-      setStatus(data);
-    } catch (err) {
-      logger.error('Failed to load Family Feud status', err);
-    }
-  }, [userId]);
-
-  // Always refresh on mount — this triggers server-side expiry check
-  useEffect(() => {
-    if (appInitComplete && !refreshedRef.current) {
-      refreshedRef.current = true;
-      refresh();
-    }
-  }, [appInitComplete, refresh]);
+  // Asked once the app has started; the read also finishes a round whose time is up.
+  const { appInitComplete } = useFamilyData();
+  const status = useFeudStatus(userId, appInitComplete).data;
+  const start = useStartRound();
+  const pass = usePassTurn();
+  const answerRound = useAnswerRound();
+  const guess = useGuess();
+  const submitting = start.isPending || pass.isPending || answerRound.isPending || guess.isPending;
 
   if (!status) return null;
 
@@ -170,17 +145,9 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
                 bgcolor: theme.palette.secondary.main,
                 '&:hover': { bgcolor: theme.palette.secondary.dark },
               }}
-              onClick={async () => {
-                setSubmitting(true);
+              onClick={() => {
                 setMessage(null);
-                try {
-                  await startFamilyFeudRound(userId);
-                  await refresh();
-                } catch {
-                  setMessage('Failed to start round.');
-                } finally {
-                  setSubmitting(false);
-                }
+                start.mutate(userId, { onError: () => setMessage('Failed to start round.') });
               }}
             >
               {submitting ? 'Generating...' : "I'll Go!"}
@@ -191,17 +158,11 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
               color="inherit"
               startIcon={<SkipNextIcon />}
               disabled={submitting}
-              onClick={async () => {
-                setSubmitting(true);
-                try {
-                  await passFamilyFeudTurn(userId);
-                  setMessage('Passed! Someone else can start.');
-                  await refresh();
-                } catch {
-                  setMessage('Failed to pass.');
-                } finally {
-                  setSubmitting(false);
-                }
+              onClick={() => {
+                pass.mutate(userId, {
+                  onSuccess: () => setMessage('Passed! Someone else can start.'),
+                  onError: () => setMessage('Failed to pass.'),
+                });
               }}
             >
               Not Now
@@ -271,18 +232,17 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
                 variant="contained"
                 color="info"
                 disabled={!answer.trim() || submitting}
-                onClick={async () => {
-                  setSubmitting(true);
-                  try {
-                    await submitFamilyFeudAnswer(userId, answer.trim());
-                    setAnswer('');
-                    setMessage('Locked in! Let the guessing begin.');
-                    await refresh();
-                  } catch {
-                    setMessage('Failed to submit.');
-                  } finally {
-                    setSubmitting(false);
-                  }
+                onClick={() => {
+                  answerRound.mutate(
+                    { userId, answer: answer.trim() },
+                    {
+                      onSuccess: () => {
+                        setAnswer('');
+                        setMessage('Locked in! Let the guessing begin.');
+                      },
+                      onError: () => setMessage('Failed to submit.'),
+                    },
+                  );
                 }}
               >
                 Lock In
@@ -635,16 +595,11 @@ const FamilyFeud: React.FC<FamilyFeudProps> = ({ userId }) => {
                         </Box>
                       }
                       endIcon={isMyPick ? <CheckCircleIcon sx={{ fontSize: 20 }} /> : undefined}
-                      onClick={async () => {
-                        setSubmitting(true);
-                        try {
-                          await submitFamilyFeudGuess(userId, choice);
-                          await refresh();
-                        } catch {
-                          setMessage('Failed to submit guess.');
-                        } finally {
-                          setSubmitting(false);
-                        }
+                      onClick={() => {
+                        guess.mutate(
+                          { userId, guess: choice },
+                          { onError: () => setMessage('Failed to submit guess.') },
+                        );
                       }}
                     >
                       {choice}

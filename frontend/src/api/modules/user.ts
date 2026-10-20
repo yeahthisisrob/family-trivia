@@ -17,7 +17,6 @@ export type {
   BasicQA,
   CategorySelection,
   DifficultyStats,
-  FactItem,
   MemberInsight,
   MemberSummaryResponse,
   ScoreHistoryEntry,
