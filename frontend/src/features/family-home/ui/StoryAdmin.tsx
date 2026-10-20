@@ -7,36 +7,22 @@ import { capitalized } from '@family-trivia/shared';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import { Alert, Box, Button, Paper, Stack, Typography } from '@mui/material';
 import type React from 'react';
-import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useCircleWords } from '../../../entities/circle';
 import { ApiError } from '../../../shared/api/ApiService';
-import { type FamilyStory, familyHomeApi } from '../api/familyHomeApi';
+import { useFamilyStory, useWriteStory } from '../model/familyStory';
 
 export const StoryAdmin: React.FC = () => {
   const { words } = useCircleWords();
-  const [story, setStory] = useState<FamilyStory | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState<string | null>(null);
-
-  useEffect(() => {
-    familyHomeApi
-      .story()
-      .then(setStory)
-      .catch(() => undefined);
-  }, []);
-
-  const write = async () => {
-    setBusy(true);
-    setProblem(null);
-    try {
-      setStory(await familyHomeApi.writeStory());
-    } catch (e) {
-      setProblem(e instanceof ApiError ? e.message : 'The story could not be written right now.');
-    } finally {
-      setBusy(false);
-    }
-  };
+  const story = useFamilyStory().data ?? null;
+  const writing = useWriteStory();
+  const busy = writing.isPending;
+  const problem = writing.error
+    ? writing.error instanceof ApiError
+      ? writing.error.message
+      : 'The story could not be written right now.'
+    : null;
+  const write = () => writing.mutate();
 
   return (
     <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>

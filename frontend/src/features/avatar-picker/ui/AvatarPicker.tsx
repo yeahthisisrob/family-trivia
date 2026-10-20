@@ -27,7 +27,9 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { FAMILY } from '../../../entities/family';
 import { animalSrc, Face, rememberPictureUrl, setAvatarChoice } from '../../../entities/person';
+import { useCircleMutation } from '../../../shared/api/query';
 import { useToast } from '../../../shared/toast';
 import { avatarApi, type MadePicture } from '../api/avatarApi';
 
@@ -60,6 +62,12 @@ export const AvatarPicker: React.FC<Props> = ({
   const [problem, setProblem] = useState<string | null>(null);
   const started = useRef(false);
   const toast = useToast();
+  // The family read carries everyone's picture: it's asked again, without holding up the toast.
+  const saving = useCircleMutation({
+    mutationFn: (choice: AvatarChoice | null) => save(choice),
+    invalidates: [FAMILY],
+    refreshInBackground: true,
+  });
 
   const makeOne = useCallback(
     async (words?: string) => {
@@ -90,7 +98,7 @@ export const AvatarPicker: React.FC<Props> = ({
     setBusy(true);
     setProblem(null);
     try {
-      await save(choice);
+      await saving.mutateAsync(choice);
       setAvatarChoice(personId, choice);
       toast({ message: choice ? 'Picture saved' : 'Back to your initials', tone: 'success' });
       onClose();

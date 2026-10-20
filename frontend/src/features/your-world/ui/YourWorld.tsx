@@ -20,7 +20,7 @@ import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import { colors, identityColor } from '../../../shared/design-system';
-import { worldApi } from '../api/worldApi';
+import { useYourWorld } from '../model/world';
 
 const EVENT_ICON: Record<LifeEvent['kind'], SvgIconComponent> = {
   born: CakeRoundedIcon,
@@ -280,22 +280,18 @@ export const YourWorldView: React.FC<ViewProps> = ({ world, onClose }) => {
 
 /** Opened from the circle menu. */
 export const YourWorld: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const [world, setWorld] = useState<WorldView | null>(null);
-  useEffect(() => {
-    worldApi
-      .get()
-      .then(setWorld)
-      .catch(() =>
-        setWorld({
-          circles: [],
-          enough: false,
-          nodes: [],
-          links: [],
-          threads: [],
-          meet: [],
-          timeline: [],
-        }),
-      );
-  }, []);
+  const read = useYourWorld();
+  // A world that didn't load shows as one with too few circles to draw.
+  const world = read.data ?? (read.isError ? NOT_ENOUGH : null);
   return <YourWorldView world={world} onClose={onClose} />;
+};
+
+const NOT_ENOUGH: WorldView = {
+  circles: [],
+  enough: false,
+  nodes: [],
+  links: [],
+  threads: [],
+  meet: [],
+  timeline: [],
 };

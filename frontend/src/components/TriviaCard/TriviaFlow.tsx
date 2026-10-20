@@ -31,7 +31,10 @@ import { useTimeline } from '../../contexts/TimelineContext';
 import { useTrivia } from '../../contexts/TriviaContext';
 import { useTriviaFlowDispatch } from '../../contexts/TriviaFlowContext';
 import { useUserStatus } from '../../contexts/UserStatusContext';
+import { PERSON_STORY } from '../../entities/family';
+import { PROFILE } from '../../entities/person';
 import { CommentsThread } from '../../features/comments';
+import { useCircleInvalidate } from '../../shared/api/query';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
@@ -157,6 +160,9 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
   const { refreshTimestamp, invalidateCategories, refreshAllStatuses } = useTrivia();
   const { refreshTimeline } = useTimeline();
   const flowDispatch = useTriviaFlowDispatch();
+  // A trivia answer changes the answerer's points and story on their profile.
+  const invalidate = useCircleInvalidate();
+  const triviaAnswered = useCallback(() => void invalidate(PROFILE, PERSON_STORY), [invalidate]);
 
   // Context — derived state from UserStatusContext (mirrors backend).
   // loading=true until eligibility data is ready.
@@ -398,6 +404,7 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
     try {
       const isCustomCat = question.category ? isCustomCategory(question.category) : false;
       const res = await submitAnswer(userId, groupId, question, choice, catchingUp, isCustomCat);
+      triviaAnswered();
       const answerRes: AnswerResult = {
         correct: res.correct,
         streak: res.streak,
@@ -510,9 +517,11 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
       }
 
       refreshProfile();
+      triviaAnswered();
       onAnswerResult?.({ correct: true, streak: 0, pointsEarned: pts });
     },
     [
+      triviaAnswered,
       catchingUp,
       catchupBehind,
       dailyUsed,

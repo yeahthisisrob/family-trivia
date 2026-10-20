@@ -1,8 +1,8 @@
 /**
  * The family timeline, as server data (docs/decisions/0035): everyone's
  * answers to the daily question and to trivia, newest first, twenty of each
- * at a time. Each family side is its own list. Anything that adds to it (an
- * answer, a Feud round) invalidates `TIMELINE`.
+ * at a time. Each family side is its own list, and so is each person's.
+ * Anything that adds to it (an answer, a Feud round) invalidates `TIMELINE`.
  */
 import type { ResponseOf } from '../../../shared/api/contract';
 import { useCircleInfiniteQuery } from '../../../shared/api/query';
@@ -48,11 +48,15 @@ function asFeed(pages: Page[]): TimelineFeed {
   };
 }
 
+type Filter = { side: string } | { side: string; userId: string };
+
 /** The next page goes back from the oldest cursor the last page gave. */
-const nextPage = (side: string) => (page: Page) => {
+const nextPage = (filter: Filter) => (page: Page) => {
   const { hasMoreFacts, hasMoreTrivia, nextFactCursor, nextTriviaCursor } = page.pagination;
   const before = nextFactCursor || nextTriviaCursor;
-  return (hasMoreFacts || hasMoreTrivia) && before ? { side, limit: PAGE_SIZE, before } : undefined;
+  return (hasMoreFacts || hasMoreTrivia) && before
+    ? { ...filter, limit: PAGE_SIZE, before }
+    : undefined;
 };
 
 export const useTimelineFeed = (side: string) =>
@@ -60,7 +64,17 @@ export const useTimelineFeed = (side: string) =>
     key: TIMELINE,
     path: '/timeline-data',
     query: { side, limit: PAGE_SIZE },
-    next: nextPage(side),
+    next: nextPage({ side }),
     select: asFeed,
     keepPrevious: true,
+  });
+
+/** One person's answers (their profile): every family side, theirs only. */
+export const usePersonTimeline = (userId: string) =>
+  useCircleInfiniteQuery({
+    key: TIMELINE,
+    path: '/timeline-data',
+    query: { side: 'all', userId, limit: PAGE_SIZE },
+    next: nextPage({ side: 'all', userId }),
+    select: asFeed,
   });

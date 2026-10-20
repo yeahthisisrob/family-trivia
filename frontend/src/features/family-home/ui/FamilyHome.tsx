@@ -5,7 +5,7 @@
  * (docs/decisions/0009). Whatever opens behind a door is passed in, so this
  * feature doesn't reach into others.
  */
-import type { Family, FamilyKnowledge, FamilyPerson } from '@family-trivia/shared';
+import type { Family, FamilyPerson } from '@family-trivia/shared';
 import CloseIcon from '@mui/icons-material/Close';
 import {
   Alert,
@@ -19,10 +19,10 @@ import {
   Typography,
 } from '@mui/material';
 import type React from 'react';
-import { useEffect, useMemo, useState } from 'react';
-import { type GraphData, graphApi, useFamily } from '../../../entities/family';
+import { useMemo, useState } from 'react';
+import { type GraphData, useFamily, useFamilyGraph, useKnowledge } from '../../../entities/family';
 import { RememberingPage } from '../../remembering';
-import { type FamilyStory, familyHomeApi } from '../api/familyHomeApi';
+import { useFamilyStory } from '../model/familyStory';
 import { peopleFor, rememberedOf, sortForMe, spotlightOf } from '../model/people';
 import { FamilyHero } from './FamilyHero';
 import { InMemory } from './InMemory';
@@ -39,6 +39,8 @@ export interface FamilyDoor {
   render: (graph: GraphData, openPerson: (id: string) => void) => React.ReactNode;
 }
 
+const NO_GRAPH: GraphData = { people: [], ties: [], households: [], likenesses: [] };
+
 export const FamilyHome: React.FC<{
   meId: string | null;
   doors?: FamilyDoor[];
@@ -47,26 +49,13 @@ export const FamilyHome: React.FC<{
   footer?: React.ReactNode;
 }> = ({ meId, doors = [], onOpenPerson, footer }) => {
   const { family, photoUrls, error } = useFamily();
-  const [graph, setGraph] = useState<GraphData | null>(null);
-  const [story, setStory] = useState<FamilyStory | null>(null);
-  const [knowledge, setKnowledge] = useState<FamilyKnowledge | null>(null);
+  const graphRead = useFamilyGraph();
+  // A graph that didn't load shows the family without its connections.
+  const graph = graphRead.data ?? (graphRead.isError ? NO_GRAPH : null);
+  const story = useFamilyStory().data ?? null;
+  const knowledge = useKnowledge().data ?? null;
   const [openId, setOpenId] = useState<string | null>(null);
   const [door, setDoor] = useState<FamilyDoor | null>(null);
-
-  useEffect(() => {
-    graphApi
-      .get()
-      .then(setGraph)
-      .catch(() => setGraph({ people: [], ties: [], households: [], likenesses: [] }));
-    familyHomeApi
-      .story()
-      .then(setStory)
-      .catch(() => undefined);
-    familyHomeApi
-      .knowledge()
-      .then(setKnowledge)
-      .catch(() => undefined);
-  }, []);
 
   const people = useMemo(
     () => (graph && family ? sortForMe(peopleFor(graph, family, meId), meId) : []),

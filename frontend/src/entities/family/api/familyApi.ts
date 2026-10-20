@@ -1,21 +1,14 @@
 /** The family: people, ties and households (docs/decisions/0009). */
 import type { Family } from '@family-trivia/shared';
-import { apiService } from '../../../shared/api/ApiService';
+import { callApi, type ResponseOf } from '../../../shared/api/contract';
 
-export interface FamilyResponse {
-  family: Family;
-  /** Photo key → short-lived URL to show it. */
-  photoUrls: Record<string, string>;
-}
+/** The family, and photo key → short-lived URL to show it. */
+export type FamilyResponse = ResponseOf<'/family'>;
 
 export const familyApi = {
-  get: () => apiService.request<FamilyResponse>('/family', { method: 'GET' }, undefined, true),
+  /** For the avatar store; screens read the family with useFamily. */
+  get: () => callApi('/family'),
 
   /** Admins only. The server keeps the version this replaces. */
-  save: (family: Family) =>
-    apiService.request<FamilyResponse>('/admin/family', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ family }),
-    }),
+  save: (family: Family) => callApi('/admin/family', { method: 'put', body: { family } }),
 };

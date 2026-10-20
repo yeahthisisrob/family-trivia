@@ -6,10 +6,8 @@ import type {
   DailyFactResult,
   GenerateOptionsResponse,
   RecentQuestion,
-  UserFactHistory,
 } from '@family-trivia/shared';
 import { apiService } from '../../shared/api/ApiService';
-import { cacheService } from '../../shared/api/CacheService';
 import { createLogger } from '../../shared/lib/logger';
 
 export type {
@@ -19,7 +17,6 @@ export type {
   GenerateOptionsResponse,
   QuestionOption,
   RecentQuestion,
-  UserFactHistory,
 } from '@family-trivia/shared';
 
 const logger = createLogger('FactsAPI');
@@ -141,8 +138,6 @@ export async function submitDailyFact(
   catchupMode = false,
   questionIndex?: number,
 ): Promise<DailyFactResult> {
-  cacheService.invalidate(`user_profile_${userId}`);
-
   return apiService.request<DailyFactResult>('/submit-daily-fact', {
     method: 'POST',
     body: JSON.stringify({
@@ -169,8 +164,6 @@ export async function skipDailyFact(
   catchupMode = false,
   questionIndex?: number,
 ): Promise<DailyFactResult> {
-  cacheService.invalidate(`user_profile_${userId}`);
-
   return apiService.request<DailyFactResult>('/submit-daily-fact', {
     method: 'POST',
     body: JSON.stringify({
@@ -242,22 +235,6 @@ export async function getRecentSharedQuestions(limit = 6): Promise<RecentQuestio
 }
 
 /**
- * Get all historical daily facts for a user
- * @param userId User ID to get history for
- * @param includeGlobal Whether to include all global shared questions
- * @returns User's fact history with basic questions and optionally all shared questions
- */
-export async function getUserFactHistory(
-  userId: string,
-  includeGlobal = true,
-): Promise<UserFactHistory> {
-  return apiService.request<UserFactHistory>(
-    `/user-fact-history?userId=${encodeURIComponent(userId)}&includeGlobal=${includeGlobal}`,
-    { method: 'GET' },
-  );
-}
-
-/**
  * Submit or update a historical daily fact answer
  * @param params Parameters for submitting historical fact
  * @returns Result with generated fact
@@ -271,9 +248,6 @@ export async function submitHistoricalFact(params: {
   questionIndex?: number;
   skipped?: boolean;
 }): Promise<DailyFactResult> {
-  // Invalidate caches
-  cacheService.invalidate(`user_profile_${params.userId}`);
-
   return apiService.request<DailyFactResult>('/submit-historical-fact', {
     method: 'POST',
     body: JSON.stringify(params),

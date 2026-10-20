@@ -9,14 +9,11 @@
  */
 import {
   byMonth,
-  type FamilyKnowledge,
   householdsOf,
-  type Likeness,
   type PersonStory,
   relationOf,
   type StoryWord,
   spanLabel,
-  type UserProfile,
 } from '@family-trivia/shared';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
@@ -34,21 +31,20 @@ import {
   useTheme,
 } from '@mui/material';
 import type React from 'react';
-import { useEffect, useMemo, useState } from 'react';
-import { getMemberSummary, getUserProfile } from '../../../api/modules/user';
-import PersonalQuestionsHistory from '../../../components/PersonalQuestionsHistory';
-import ScoreHistory from '../../../components/Profile/ScoreHistory';
-import UserTimeline from '../../../components/Profile/UserTimeline';
+import { useMemo, useState } from 'react';
 import { useCircleWords } from '../../../entities/circle';
-import { graphApi, knowledgeApi, storyApi, useFamily } from '../../../entities/family';
-import { PersonAvatar } from '../../../entities/person';
+import { useFamily, useFamilyGraph, useKnowledge, usePersonStory } from '../../../entities/family';
+import { PersonAvatar, useMemberSummary, useTriviaProfile } from '../../../entities/person';
 import { identityColor } from '../../../shared/design-system';
 import { AvatarPicker } from '../../avatar-picker';
 import { FillIn } from '../../fill-in';
 import { PersonBookButton } from '../../person-book';
 import { RememberingPage } from '../../remembering';
 import { inJoinedCircle, SharingChoices } from '../../shared-answers';
+import { EditAnswers } from './EditAnswers';
 import { Loves } from './Loves';
+import { ScoreHistory } from './ScoreHistory';
+import { UserTimeline } from './UserTimeline';
 
 const LATELY = 5;
 const emptyStory = (personId: string): PersonStory => ({
@@ -130,12 +126,18 @@ export const StoryProfile: React.FC<{
   onBack: () => void;
 }> = ({ userId, meId, onBack }) => {
   const { family, photoUrls } = useFamily();
-  const [story, setStory] = useState<PersonStory | null>(null);
-  const [knowledge, setKnowledge] = useState<FamilyKnowledge | null>(null);
-  const [likenesses, setLikenesses] = useState<Likeness[]>([]);
-  const [trivia, setTrivia] = useState<UserProfile | null>(null);
-  const [summary, setSummary] = useState<string | null>(null);
-  const [allMonths, setAllMonths] = useState(false);
+  const storyRead = usePersonStory(userId);
+  // A story that didn't load reads as one with nothing in it yet.
+  const story = useMemo(
+    () => storyRead.data ?? (storyRead.isError ? emptyStory(userId) : null),
+    [storyRead.data, storyRead.isError, userId],
+  );
+  const knowledge = useKnowledge().data ?? null;
+  const likenesses = useFamilyGraph().data?.likenesses ?? [];
+  const trivia = useTriviaProfile(userId).data ?? null;
+  // Whose answers are all shown: a different person starts with the first months again.
+  const [allMonthsOf, setAllMonthsOf] = useState<string | null>(null);
+  const allMonths = allMonthsOf === userId;
   const [triviaOpen, setTriviaOpen] = useState(false);
   const [scoresOpen, setScoresOpen] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -149,35 +151,9 @@ export const StoryProfile: React.FC<{
   // Text on their color: dark on the light ones (yellow, lime), light on the rest.
   const ink = theme.palette.getContrastText(color);
   const known = knowledge?.people[userId];
-
-  useEffect(() => {
-    setStory(null);
-    setSummary(null);
-    setAllMonths(false);
-    storyApi
-      .get(userId)
-      .then(setStory)
-      .catch(() => setStory(emptyStory(userId)));
-    knowledgeApi
-      .get()
-      .then(setKnowledge)
-      .catch(() => undefined);
-    graphApi
-      .get()
-      .then((g) => setLikenesses(g.likenesses))
-      .catch(() => undefined);
-    getUserProfile(userId)
-      .then(setTrivia)
-      .catch(() => undefined);
-  }, [userId]);
-
   // The persona from the family's index leads; the member summary fills in until there is one.
-  useEffect(() => {
-    if (!knowledge || known?.persona) return;
-    getMemberSummary(userId, 'regular')
-      .then((r) => setSummary(r.summary))
-      .catch(() => undefined);
-  }, [knowledge, known?.persona, userId]);
+  const summary =
+    useMemberSummary(userId, 'regular', !!knowledge && !known?.persona).data?.summary ?? null;
 
   const byId = useMemo(() => new Map(story?.words.map((w) => [w.id, w]) ?? []), [story]);
   const months = useMemo(() => (story ? byMonth(story.words).reverse() : []), [story]);
@@ -453,7 +429,7 @@ export const StoryProfile: React.FC<{
             ))}
           </Stack>
           {!allMonths && months.length > FIRST_MONTHS && (
-            <Button onClick={() => setAllMonths(true)} sx={{ mt: 2 }}>
+            <Button onClick={() => setAllMonthsOf(userId)} sx={{ mt: 2 }}>
               Read all {story?.words.length} answers
             </Button>
           )}
@@ -484,7 +460,7 @@ export const StoryProfile: React.FC<{
           </Button>
           <Collapse in={editing} unmountOnExit>
             <Box sx={{ mt: 2 }}>
-              <PersonalQuestionsHistory userId={userId} />
+              <EditAnswers userId={userId} />
             </Box>
           </Collapse>
         </Box>

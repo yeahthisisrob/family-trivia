@@ -1,4 +1,9 @@
-// components/PersonalQuestionsHistory/index.tsx
+/**
+ * Your answers to every daily question so far, to read again, change, or
+ * answer one you missed (from your profile's "Edit your answers"). The list
+ * is today's question's history (features/daily-question); saving one asks
+ * again for everything an answer changes.
+ */
 import {
   CalendarToday as CalendarTodayIcon,
   Cancel as CancelIcon,
@@ -30,18 +35,13 @@ import {
   useTheme,
 } from '@mui/material';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
+import type { FactHistoryItem } from '../../../api/modules/facts';
+import { LoadingDots } from '../../../components/ui/feedback';
+import { createLogger } from '../../../shared/lib/logger';
+import { useEditAnswer, useFactHistory } from '../../daily-question';
 
-import {
-  type FactHistoryItem,
-  getUserFactHistory,
-  submitHistoricalFact,
-  type UserFactHistory,
-} from '../../api/modules/facts';
-import { createLogger } from '../../shared/lib/logger';
-import { LoadingDots } from '../ui/feedback';
-
-interface PersonalQuestionsHistoryProps {
+interface EditAnswersProps {
   userId: string;
   onClose?: () => void;
 }
@@ -51,33 +51,19 @@ interface EditingState {
   answer: string;
 }
 
-const logger = createLogger('PersonalQuestionsHistory');
+const logger = createLogger('EditAnswers');
 
-const PersonalQuestionsHistory: React.FC<PersonalQuestionsHistoryProps> = ({ userId }) => {
+export const EditAnswers: React.FC<EditAnswersProps> = ({ userId }) => {
   const theme = useTheme();
-  const [loading, setLoading] = useState(true);
+  const read = useFactHistory(userId, true);
+  const loading = read.isPending;
+  // A list that didn't load shows as empty, as before.
+  const history = read.data ?? null;
+  const editAnswer = useEditAnswer();
   const [submitting, setSubmitting] = useState<string | null>(null);
-  const [history, setHistory] = useState<UserFactHistory | null>(null);
   const [editingStates, setEditingStates] = useState<Record<string, EditingState>>({});
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState(0); // 0: All, 1: Unanswered, 2: Basic, 3: Shared
-
-  // Load user's fact history
-  useEffect(() => {
-    const loadHistory = async () => {
-      setLoading(true);
-      try {
-        const data = await getUserFactHistory(userId, true);
-        setHistory(data);
-      } catch (error) {
-        logger.error('Failed to load fact history:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadHistory();
-  }, [userId]);
 
   // Create unique ID for each question
   const getQuestionId = (item: FactHistoryItem): string => {
@@ -219,7 +205,8 @@ const PersonalQuestionsHistory: React.FC<PersonalQuestionsHistoryProps> = ({ use
 
     setSubmitting(id);
     try {
-      await submitHistoricalFact({
+      // Resolves once the list (and everything else the answer changes) is back.
+      await editAnswer.mutateAsync({
         userId,
         question: item.question,
         answer: editingState.answer.trim(),
@@ -227,10 +214,6 @@ const PersonalQuestionsHistory: React.FC<PersonalQuestionsHistoryProps> = ({ use
         questionType: item.questionType,
         questionIndex: item.questionIndex,
       });
-
-      // Update local state by refetching
-      const data = await getUserFactHistory(userId, true);
-      setHistory(data);
 
       // Clear editing state
       cancelEditing(item);
@@ -586,5 +569,3 @@ const PersonalQuestionsHistory: React.FC<PersonalQuestionsHistoryProps> = ({ use
     </Box>
   );
 };
-
-export default PersonalQuestionsHistory;

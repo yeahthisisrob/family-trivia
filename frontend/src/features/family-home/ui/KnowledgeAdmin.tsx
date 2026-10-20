@@ -9,48 +9,46 @@ import { Alert, Button, LinearProgress, Paper, Stack, Typography } from '@mui/ma
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useCircleWords } from '../../../entities/circle';
+import { useKnowledge } from '../../../entities/family';
 import { ApiError } from '../../../shared/api/ApiService';
-import { familyHomeApi } from '../api/familyHomeApi';
+import { useBuildKnowledge } from '../model/familyStory';
 
 export const KnowledgeAdmin: React.FC = () => {
   const { words } = useCircleWords();
-  const [unread, setUnread] = useState<number | null>(null);
-  const [builtAt, setBuiltAt] = useState<string | null>(null);
+  const index = useKnowledge().data;
+  // What the last batch of a run here left; before any run, the index says.
+  const [left, setLeft] = useState<number | null>(null);
   const [running, setRunning] = useState<{ start: number; read: number; personas: number } | null>(
     null,
   );
   const [problem, setProblem] = useState<string | null>(null);
   const stop = useRef(false);
+  const unread = left ?? index?.unread ?? null;
+  const builtAt = index?.builtAt ?? null;
 
+  // Leaving the page stops a run between batches.
   useEffect(() => {
-    familyHomeApi
-      .knowledge()
-      .then((k) => {
-        setUnread(k.unread);
-        setBuiltAt(k.builtAt);
-      })
-      .catch(() => undefined);
+    stop.current = false;
     return () => {
       stop.current = true;
     };
   }, []);
 
+  const build = useBuildKnowledge({
+    onBatch: (r) => {
+      setLeft(r.left);
+      setRunning(
+        (at) => at && { ...at, read: at.read + r.read, personas: at.personas + r.personas },
+      );
+    },
+    stopped: () => stop.current,
+  });
+
   const run = async () => {
     setProblem(null);
-    const start = unread ?? 0;
-    let read = 0;
-    let personas = 0;
-    setRunning({ start, read, personas });
+    setRunning({ start: unread ?? 0, read: 0, personas: 0 });
     try {
-      for (let guard = 0; guard < 200 && !stop.current; guard++) {
-        const r = await familyHomeApi.buildKnowledge();
-        read += r.read;
-        personas += r.personas;
-        setUnread(r.left);
-        setRunning({ start, read, personas });
-        if (r.left === 0 || (r.read === 0 && r.personas === 0)) break;
-      }
-      setBuiltAt(new Date().toISOString());
+      await build.mutateAsync();
     } catch (e) {
       setProblem(
         e instanceof ApiError ? e.message : 'The index stopped partway. Run it again to carry on.',

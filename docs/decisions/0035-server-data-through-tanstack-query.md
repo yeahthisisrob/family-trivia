@@ -43,7 +43,10 @@ the same loading, refresh-after-save and stale-data code.
   failure. Both act on the circle the change was made in. With
   `refreshInBackground` it resolves once saved and asks those reads again
   without waiting: for a change whose own answer is what the person waits
-  for (an answer to today's question shows its fact at once).
+  for (an answer to today's question shows its fact at once). A screen not
+  on server data yet that saves something a migrated read shows calls
+  `useCircleInvalidate` with those keys (the Trivia tab, after an answer,
+  marks the answerer's profile stale).
 - **Status, not Suspense.** Cards keep their own skeletons and empty states
   and read `data`, `isPending` and `isError`; each card keeps its own
   `ErrorBoundary`.
@@ -63,6 +66,21 @@ cached read:
    step 5. The trivia grid still asks again on the Trivia tab's
    `refreshTimestamp` until step 3.
 3. Profile, Us (family home, graph, map), the Arcade, the leaderboard.
+   Done: Profile and Us. The family, its graph, the knowledge index and
+   each person's story are `entities/family` reads; someone's trivia and
+   their spotlight are `entities/person` reads. Profile's parts moved from
+   `components/` into `features/profile` (`ScoreHistory`, `UserTimeline`
+   on `entities/timeline`, and `EditAnswers`, which edits past answers
+   through `features/daily-question`). Us's story, its spotlight, the map
+   and Your world are queries; the admin's story and index buttons and the
+   family editor's save are mutations. Any answer invalidates the
+   answerer's profile and story. Left for step 3: the Arcade's high
+   scores, the leaderboard (`LeaderboardContext`, with the CacheService
+   keys `enhanced_leaderboard_*`, `group_leaderboard` and
+   `consolidated_leaderboard_*`), and the Trivia tab, whose profile reads
+   (`getUserProfile`, now uncached) and the trivia grid's
+   `refreshTimestamp` move with it. The Remembering page's memories and
+   visitors wait for the comments in step 5.
 4. Admin and settings.
 5. The contexts that hold server data (`FamilyDataContext`,
    `UserStatusContext`, `TimelineContext`, ...) become queries.

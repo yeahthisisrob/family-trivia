@@ -1,4 +1,4 @@
-// File: frontend/src/components/Profile/ScoreHistory.tsx
+// How someone's trivia points add up, answer by answer (opened from their profile).
 import {
   Cancel as CancelIcon,
   CheckCircle as CheckIcon,
@@ -22,8 +22,8 @@ import {
   useTheme,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
-import { gameById } from '../../games/registry';
-import { colors } from '../../shared/design-system';
+import { gameById } from '../../../games/registry';
+import { colors } from '../../../shared/design-system';
 
 interface ScoreHistoryEntry {
   date: string;
@@ -66,12 +66,7 @@ const GameIconOf = (entry: ScoreHistoryEntry) => {
   return Icon ? <Icon sx={{ fontSize: 14 }} /> : undefined;
 };
 
-export default function ScoreHistory({
-  open,
-  onClose,
-  scoringHistory,
-  totalScore,
-}: ScoreHistoryProps) {
+export function ScoreHistory({ open, onClose, scoringHistory, totalScore }: ScoreHistoryProps) {
   const theme = useTheme();
   const [gameTypeFilter, setGameTypeFilter] = useState<string>('all');
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);

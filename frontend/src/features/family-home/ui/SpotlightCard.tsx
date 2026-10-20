@@ -3,13 +3,11 @@
  * button that flips to the roast. People the family remembers never flip.
  */
 
-import type { MemberInsight } from '@family-trivia/shared';
 import { Box, Button, Card, Chip, Skeleton, Stack, Typography } from '@mui/material';
 import type React from 'react';
-import { useEffect, useState } from 'react';
-import { getMemberSummary } from '../../../api/modules/user';
+import { useState } from 'react';
 import { useCircleWords } from '../../../entities/circle';
-import { Face } from '../../../entities/person';
+import { Face, useMemberSummary } from '../../../entities/person';
 import { type PersonView, relationLabel } from '../model/people';
 
 export const SpotlightCard: React.FC<{
@@ -21,23 +19,12 @@ export const SpotlightCard: React.FC<{
 }> = ({ person, next, meId, photo, onOpen }) => {
   const { kind } = useCircleWords();
   const [roast, setRoast] = useState(false);
-  const [text, setText] = useState<Record<'regular' | 'roast', string | null>>({
-    regular: null,
-    roast: null,
-  });
-  const [insights, setInsights] = useState<MemberInsight[]>([]);
-  const [failed, setFailed] = useState(false);
   const mode = roast && !person.remembered ? 'roast' : 'regular';
-
-  useEffect(() => {
-    if (text[mode] !== null) return;
-    getMemberSummary(person.id, mode)
-      .then((r) => {
-        setText((t) => ({ ...t, [mode]: r.summary }));
-        if (mode === 'regular') setInsights(r.insights ?? []);
-      })
-      .catch(() => setFailed(true));
-  }, [person.id, mode, text]);
+  // Each mode is its own read: flipping back shows the one already asked for.
+  const summary = useMemberSummary(person.id, mode);
+  const text = summary.data?.summary || null;
+  const failed = summary.isError;
+  const insights = summary.data?.insights ?? [];
 
   const homes = person.homes.map((h) => h.name).join(' & ');
 
@@ -85,8 +72,8 @@ export const SpotlightCard: React.FC<{
         </Box>
       </Stack>
 
-      {text[mode] ? (
-        <Typography sx={{ fontSize: '0.98rem', lineHeight: 1.6 }}>{text[mode]}</Typography>
+      {text ? (
+        <Typography sx={{ fontSize: '0.98rem', lineHeight: 1.6 }}>{text}</Typography>
       ) : failed ? (
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           The spotlight isn't ready yet. It's written from what {person.name} has shared.

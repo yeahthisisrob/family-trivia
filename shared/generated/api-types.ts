@@ -2646,7 +2646,11 @@ export interface components {
         } | {
             /** @enum {string} */
             library: "animal";
-            animal: string;
+            /**
+             * @description One of ANIMALS in shared/src/avatar.ts
+             * @enum {string}
+             */
+            animal: "baby_chick" | "badger" | "bear" | "beaver" | "bison" | "butterfly" | "cat_face" | "cow_face" | "crab" | "deer" | "dodo" | "dog_face" | "dolphin" | "dragon_face" | "duck" | "eagle" | "elephant" | "flamingo" | "fox" | "frog" | "giraffe" | "hamster" | "hatching_chick" | "hedgehog" | "hippopotamus" | "honeybee" | "horse_face" | "kangaroo" | "koala" | "lady_beetle" | "lion" | "lizard" | "llama" | "monkey_face" | "mouse_face" | "octopus" | "orangutan" | "otter" | "owl" | "panda" | "parrot" | "peacock" | "penguin" | "pig_face" | "polar_bear" | "rabbit_face" | "raccoon" | "seal" | "shark" | "sloth" | "snail" | "spouting_whale" | "swan" | "tiger_face" | "turtle" | "unicorn" | "wolf" | "zebra";
             /** @enum {string} */
             color: "sky" | "lilac" | "periwinkle" | "blush" | "peach" | "mint";
         };
@@ -2827,7 +2831,7 @@ export interface components {
             }[];
             threads: {
                 name: string;
-                kind: string;
+                kind: components["schemas"]["KnowledgeKind"];
                 people: string[];
             }[];
             meet: {
@@ -3337,6 +3341,8 @@ export interface components {
                 date: string;
                 /** @description The "did you know" that came back when they answered */
                 fact?: string;
+                /** @description In a joined circle, the circle they said it in when it wasn't this one */
+                from?: string;
             }[];
             last: string[];
             loved: {
@@ -3362,7 +3368,7 @@ export interface components {
             }[];
             /** @description What they love most, from the knowledge index, in their words, with a note */
             loves: {
-                kind: string;
+                kind: components["schemas"]["KnowledgeKind"];
                 name: string;
                 count: number;
                 says: string[];
@@ -3484,18 +3490,90 @@ export interface components {
             version: 2;
             name: string;
             people: {
-                [key: string]: {
-                    [key: string]: unknown;
-                };
+                [key: string]: components["schemas"]["FamilyPerson"];
             };
-            ties: {
-                [key: string]: unknown;
-            }[];
+            ties: components["schemas"]["Tie"][];
             households: {
-                [key: string]: {
-                    [key: string]: unknown;
-                };
+                [key: string]: components["schemas"]["Household"];
             };
+        };
+        /**
+         * @description Whether someone takes part in the game, apart from being in the family
+         * @enum {string}
+         */
+        Participation: "playing" | "paused" | "not-playing";
+        FamilyPerson: {
+            id: string;
+            name: string;
+            fullName?: string;
+            born?: {
+                date?: string;
+                place?: string;
+            };
+            photo?: string;
+            participation: components["schemas"]["Participation"];
+            /** @description Present when the person has died */
+            memorial?: {
+                died?: string;
+                dedication?: string;
+                photo?: string;
+                onHome?: boolean;
+            };
+            noAiMentions?: boolean;
+            howWeMet?: string;
+            avatar?: components["schemas"]["AvatarChoice"];
+        };
+        /** @description How two people are connected (shared/src/people.ts) */
+        Tie: {
+            id: string;
+            /** @enum {string} */
+            type: "partner";
+            a: string;
+            b: string;
+            /** @enum {string} */
+            kind: "married" | "partnered" | "engaged";
+            since?: string;
+            ended?: {
+                /** @enum {string} */
+                reason: "separated" | "divorced" | "widowed";
+                date?: string;
+            };
+        } | {
+            id: string;
+            /** @enum {string} */
+            type: "parent";
+            parent: string;
+            child: string;
+            /** @enum {string} */
+            kind: "birth" | "adoptive" | "step" | "foster" | "guardian";
+            since?: string;
+        } | {
+            id: string;
+            /** @enum {string} */
+            type: "kin";
+            a: string;
+            b: string;
+            /** @enum {string} */
+            relation: "sibling" | "cousin" | "aunt-uncle" | "grandparent" | "in-law" | "chosen-family" | "friend";
+        } | {
+            id: string;
+            /** @enum {string} */
+            type: "friend";
+            a: string;
+            b: string;
+            met?: {
+                /** @enum {string} */
+                how?: "school" | "college" | "work" | "neighbors" | "team" | "through-a-friend" | "online" | "family" | "other";
+                when?: string;
+                where?: string;
+            };
+        };
+        Household: {
+            id: string;
+            name: string;
+            description?: string;
+            color?: string;
+            members: string[];
         };
         FamilyResponse: {
             family: components["schemas"]["Family"];
@@ -3519,8 +3597,7 @@ export interface components {
             people: {
                 id: string;
                 name: string;
-                /** @enum {string} */
-                participation: "playing" | "paused" | "not-playing";
+                participation: components["schemas"]["Participation"];
                 remembered: boolean;
                 died: string | null;
                 activity?: {
@@ -3530,21 +3607,17 @@ export interface components {
                     since?: string | null;
                 };
             }[];
-            ties: {
-                [key: string]: unknown;
-            }[];
-            households: {
-                [key: string]: unknown;
-            }[];
+            ties: components["schemas"]["Tie"][];
+            households: components["schemas"]["Household"][];
             likenesses: {
                 a: string;
                 b: string;
                 count: number;
                 strength: number;
                 examples: {
-                    question?: string;
-                    a?: string;
-                    b?: string;
+                    question: string;
+                    a: string;
+                    b: string;
                 }[];
             }[];
         };
@@ -3628,23 +3701,94 @@ export interface components {
         FamilyKnowledge: {
             themes: {
                 name: string;
-                kind: string;
+                kind: components["schemas"]["KnowledgeKind"];
                 people: string[];
                 quotes: {
-                    personId?: string;
-                    says?: string;
+                    personId: string;
+                    says: string;
                 }[];
             }[];
+            /** @description Each person's top things, persona and counted numbers */
             people: {
                 [key: string]: {
-                    [key: string]: unknown;
+                    top: {
+                        name: string;
+                        kind: components["schemas"]["KnowledgeKind"];
+                        count: number;
+                    }[];
+                    persona: {
+                        text: string;
+                        traits: string[];
+                        at: string;
+                        items: number;
+                    } | null;
+                    stats: {
+                        answers: number;
+                        words: number;
+                        bestStreak: number;
+                        first: string | null;
+                    };
                 };
             };
             stats: {
-                [key: string]: unknown;
+                answers: number;
+                words: number;
+                people: number;
+                busiestDay: string | null;
+                longestAnswer: {
+                    personId: string;
+                    question: string;
+                    words: number;
+                } | null;
             };
             unread: number;
             builtAt: string | null;
+        };
+        /**
+         * @description What a knowledge item is about (KNOWLEDGE_KINDS in shared/src/knowledge.ts)
+         * @enum {string}
+         */
+        KnowledgeKind: "place" | "food" | "person" | "pet" | "activity" | "media" | "work" | "value" | "memory";
+        /** @description Someone's trivia (shared/src/profile.ts) */
+        UserProfile: {
+            /** @description Their answers to the daily question, by a short key made from the question */
+            profile: {
+                [key: string]: string;
+            };
+            /** @description Their last ten trivia answers, newest first */
+            history: components["schemas"]["HistoryEntry"][];
+            totalScore: number;
+            streak: number;
+            facts: components["schemas"]["FactItem"][];
+            categorySelections: {
+                category: string;
+                timestamp: string;
+                isCustom?: boolean;
+            }[];
+            difficultyStats: components["schemas"]["DifficultyStats"];
+            categoryBonusStats: {
+                timesBonusEarned: number;
+                totalBonusPoints: number;
+            };
+            /** @description Every trivia answer, with how many points it was worth */
+            scoringHistory: components["schemas"]["ScoreHistoryEntry"][];
+            lastUpdated: string;
+        };
+        ScoreHistoryEntry: {
+            date: string;
+            gameType: string;
+            /** @description The game folder's id it came from, if any (docs/decisions/0032) */
+            gameMode?: string;
+            category: string;
+            difficulty: string;
+            pointsAttempted: number;
+            pointsEarned: number;
+            correct: boolean;
+            question: string;
+            userAnswer: string;
+            correctAnswer: string;
+            questionNumber?: number;
+            totalQuestions?: number;
         };
     };
     responses: never;
@@ -3785,13 +3929,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description User profile object */
+            /** @description Their trivia, in numbers and the last ten answers */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["UserProfile"];
                 };
             };
         };

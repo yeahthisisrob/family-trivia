@@ -9,7 +9,13 @@ vi.mock('../../config/config', () => ({
 import { fakeApi, later, openTabIn, renderWithServerData } from '../../../test/serverData';
 import { clearSession } from '../../session/session';
 import { apiService } from '../ApiService';
-import { keys, useCircleInfiniteQuery, useCircleMutation, useCircleQuery } from './circleQueries';
+import {
+  keys,
+  useCircleInfiniteQuery,
+  useCircleInvalidate,
+  useCircleMutation,
+  useCircleQuery,
+} from './circleQueries';
 
 const answered = (circle: string | null, limit: string | null) => ({
   birthdays: [{ name: `${circle} date ${limit}` }],
@@ -142,6 +148,44 @@ describe('server data is kept per circle', () => {
     await act(async () => second.settle(answered('crew', 'again')));
     await vi.waitFor(() => expect(view.container.textContent).toBe('crew date again'));
     view.unmount();
+  });
+
+  test('a change saved elsewhere asks again for the reads it names, in this circle only', async () => {
+    let saved = 0;
+    const fetch = fakeApi({
+      'GET /upcoming-birthdays': (circle) => answered(`${circle}#${saved}`, '10'),
+    });
+    let refresh: () => Promise<void> = async () => undefined;
+    const Card: React.FC = () => {
+      const invalidate = useCircleInvalidate();
+      refresh = () => invalidate(['celebrations']);
+      return <Dates limit={10} />;
+    };
+    openTabIn('crew');
+    const crew = renderWithServerData(<Card />);
+    await vi.waitFor(() => expect(crew.container.textContent).toBe('crew#0 date 10'));
+    crew.unmount();
+    openTabIn('home');
+    const home = renderWithServerData(<Card />, crew.client);
+    await vi.waitFor(() => expect(home.container.textContent).toBe('home#0 date 10'));
+    const asked = () => fetch.mock.calls.filter(([url]) => String(url).includes('upcoming'));
+
+    saved++;
+    await act(async () => {
+      await refresh();
+    });
+    await vi.waitFor(() => expect(home.container.textContent).toBe('home#1 date 10'));
+    expect(asked()).toHaveLength(3);
+    const crewDates = [
+      'circle',
+      'crew',
+      'celebrations',
+      'upcoming',
+      '/upcoming-birthdays',
+      '{"limit":10}',
+    ];
+    expect(crew.client.getQueryState(crewDates)?.isInvalidated).toBe(false);
+    home.unmount();
   });
 
   test('a list read page by page asks for every page in the circle of its key', async () => {

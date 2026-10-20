@@ -384,7 +384,6 @@ export async function submitAnswer(
 ): Promise<SubmissionResult> {
   const today = new Date().toISOString().split('T')[0];
   cacheService.invalidate(`daily_question_${userId}_${today}`);
-  cacheService.invalidate(`user_profile_${userId}`);
   cacheService.invalidate(`leaderboard_${groupId}`);
   cacheService.invalidate(`enhanced_leaderboard_${groupId}`);
   cacheService.invalidate(`group_leaderboard`);

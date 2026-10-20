@@ -6,7 +6,7 @@
       "size": "phone",
       "selector": ".MuiDialog-paper",
       "storyFile": "frontend/src/features/avatar-picker/ui/AvatarPicker.stories.tsx",
-      "source": "a014d24cc712"
+      "source": "c8d94a8c426a"
     },
     {
       "file": "book-dialog.png",
@@ -65,7 +65,7 @@
       "file": "family-home.png",
       "story": "family-familyhome--story-first",
       "size": "desktop",
-      "source": "64b9605bb41b",
+      "source": "7365d8e1c03f",
       "storyFile": "frontend/src/features/family-home/ui/FamilyHome.stories.tsx"
     },
     {
@@ -73,7 +73,7 @@
       "story": "family-familymap--our-map",
       "size": "desktop",
       "scheme": "dark",
-      "source": "80815adf6d4b",
+      "source": "90de4ac03921",
       "height": 640,
       "storyFile": "frontend/src/features/family-graph/ui/FamilyMap.stories.tsx"
     },
@@ -90,7 +90,7 @@
       "size": "desktop",
       "selector": ".MuiDialog-paper",
       "storyFile": "frontend/src/features/family-editor/ui/FamilyEditor.stories.tsx",
-      "source": "8c9177b31cba"
+      "source": "ba61a3ec3c34"
     },
     {
       "file": "install-card.png",
@@ -147,7 +147,7 @@
       "file": "profile.png",
       "story": "profile-storyprofile--you",
       "size": "desktop",
-      "source": "e2310589067a",
+      "source": "fe8be91178c7",
       "storyFile": "frontend/src/features/profile/ui/StoryProfile.stories.tsx"
     },
     {
@@ -161,7 +161,7 @@
       "file": "remembering.png",
       "story": "family-rememberingpage--remembering",
       "size": "desktop",
-      "source": "332805cd49bf",
+      "source": "97d9d5488260",
       "storyFile": "frontend/src/features/remembering/ui/RememberingPage.stories.tsx"
     },
     {
@@ -206,7 +206,7 @@
       "file": "spotlight.png",
       "story": "family-spotlightcard--today",
       "size": "phone",
-      "source": "a96693de0749",
+      "source": "2bc0fba74134",
       "storyFile": "frontend/src/features/family-home/ui/SpotlightCard.stories.tsx"
     },
     {
@@ -234,7 +234,7 @@
       "file": "trivia.png",
       "story": "trivia-flow-triviaflow--game-modes-available",
       "size": "phone",
-      "source": "1e7afdfbb633",
+      "source": "606d6bf35d9e",
       "storyFile": "frontend/src/components/TriviaCard/TriviaFlow.stories.tsx"
     },
     {
@@ -244,7 +244,7 @@
       "scheme": "dark",
       "height": 900,
       "storyFile": "frontend/src/features/your-world/ui/YourWorld.stories.tsx",
-      "source": "cf3ef289b203"
+      "source": "5b5cabc1baa4"
     }
   ]
 }
