@@ -46,7 +46,8 @@ same script enforces it. A change to one feature touches one folder.
 
 **OpenAPI-first**: `shared/schemas/api.openapi.yaml` is the contract. Change
 the schema, run `just contract`, and the generated types drive both the
-typed client and the handlers. CI fails if the generated types drift.
+typed client and the handlers. CI fails if the generated types drift,
+and backend tests fail when a response does not fit the contract (0034).
 
 **Tests and stories**: every UI component has a Storybook story (MSW mocks
 the API); stories with `play` functions are tests. Backend rules get Vitest

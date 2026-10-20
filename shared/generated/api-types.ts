@@ -447,6 +447,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/season-letters/seen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remember that the caller read a season letter, so it is not shown again */
+        post: operations["markSeasonLetterSeen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/family-hierarchy": {
         parameters: {
             query?: never;
@@ -594,6 +611,41 @@ export interface paths {
         get: operations["getCasinoRushStatus"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/casino/balance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's casino credits, never below their trivia score this season */
+        get: operations["getCasinoBalance"];
+        put?: never;
+        /** Save the caller's casino credits (and their casino high score) */
+        post: operations["updateCasinoBalance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/game-ai/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The computer's move in an arcade game (null when the model fails; the game falls back) */
+        post: operations["gameAIMove"];
         delete?: never;
         options?: never;
         head?: never;
@@ -775,6 +827,40 @@ export interface paths {
         get: operations["getAdminFamilyTree"];
         /** Update family tree hierarchy */
         put: operations["updateAdminFamilyTree"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/media/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A short-lived URL to upload one image straight to the circle's storage (admins) */
+        post: operations["getMediaUploadUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/media/url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A short-lived URL to show an uploaded image (admins) */
+        get: operations["getMediaReadUrl"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -1949,10 +2035,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Get categories for the daily fact first-person flow, worded for the circle */
+        get: operations["getDailyFactCategories"];
         put?: never;
-        /** Get categories for the daily fact first-person flow */
-        post: operations["getDailyFactCategories"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2976,7 +3062,14 @@ export interface components {
             currentQuestion: Record<string, never>;
             difficulty: components["schemas"]["DifficultyLevel"];
             potentialPoints: number;
+            /** @description True when this is the caller's active session, picked up again */
+            resumed?: boolean;
             messages?: components["schemas"]["ProgressMessage"][];
+        };
+        CasinoBalance: {
+            balance: number;
+            /** @description The caller's trivia score this season; 0 after a save */
+            floor: number;
         };
         MemberSummaryResponse: {
             userId: string;
@@ -4162,6 +4255,43 @@ export interface operations {
             };
         };
     };
+    markSeasonLetterSeen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    seasonNumber: number;
+                    /** @enum {string} */
+                    kind: "start" | "end";
+                };
+            };
+        };
+        responses: {
+            /** @description Remembered */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        seen: boolean;
+                    };
+                };
+            };
+            /** @description Missing seasonNumber or kind */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     getFamilyHierarchy: {
         parameters: {
             query?: never;
@@ -4345,13 +4475,15 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Casino Rush session */
+            /** @description Casino Rush session (a new one, or the active one resumed) */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CasinoRushSession"];
+                    "application/json": {
+                        session: components["schemas"]["CasinoRushSession"];
+                    };
                 };
             };
         };
@@ -4403,6 +4535,108 @@ export interface operations {
                 content: {
                     "application/json": Record<string, never>;
                 };
+            };
+        };
+    };
+    getCasinoBalance: {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Balance and floor */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CasinoBalance"];
+                };
+            };
+            /** @description Missing userId */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateCasinoBalance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userId: string;
+                    balance: number;
+                };
+            };
+        };
+        responses: {
+            /** @description The saved balance */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CasinoBalance"];
+                };
+            };
+            /** @description Missing userId or balance */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    gameAIMove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    game: "curling" | "blackjack";
+                    /** @description The game's state, shaped per game */
+                    state: Record<string, never>;
+                };
+            };
+        };
+        responses: {
+            /** @description The move */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Shaped per game */
+                        move: Record<string, never> | null;
+                    };
+                };
+            };
+            /** @description Missing game or state, or not a game with an AI */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -4960,6 +5194,94 @@ export interface operations {
                         success?: boolean;
                     };
                 };
+            };
+        };
+    };
+    getMediaUploadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    adminUserId?: string;
+                    /** @enum {string} */
+                    contentType: "image/jpeg" | "image/png" | "image/webp" | "image/gif";
+                    /** @description a-z, 0-9 and -, up to 40; uploads when left out */
+                    folder?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Where to PUT the file, and the key to store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        key: string;
+                        /** Format: uri */
+                        url: string;
+                    };
+                };
+            };
+            /** @description Not a JPEG, PNG, WebP or GIF image */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getMediaReadUrl: {
+        parameters: {
+            query: {
+                adminUserId: string;
+                key: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The image's URL */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uri */
+                        url: string;
+                    };
+                };
+            };
+            /** @description Unknown media key */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -7673,13 +7995,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": {
-                    userId: string;
-                };
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Category list */
             200: {
@@ -7688,7 +8004,12 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        categories?: string[];
+                        categories: {
+                            id: string;
+                            label: string;
+                            emoji: string;
+                            hint: string;
+                        }[];
                     };
                 };
             };
