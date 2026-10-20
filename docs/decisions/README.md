@@ -43,3 +43,4 @@ when the decision is made, so the reason survives the people who made it.
 | [0030](0030-teams.md) | Teams: made while playing | Accepted |
 | [0031](0031-home-screen-app.md) | The home-screen app, and notifications inside it | Accepted |
 | [0032](0032-games-are-folders.md) | Games are folders | Accepted |
+| [0033](0033-one-way-to-the-model.md) | One way to the model: Converse, structured answers, checked | Accepted |

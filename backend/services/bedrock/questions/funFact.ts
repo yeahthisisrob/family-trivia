@@ -1,13 +1,9 @@
-import { modelFor } from '../core/models';
-// File: services/bedrock/questions/funFact.ts
-// Purpose: Generate fun facts based on user answers
-
+// Fun facts after an answer: one short "did you know", in words.
 import { topItems } from '@family-trivia/shared';
 import { readKnowledge } from '../../knowledge';
 import { logger } from '../../logger';
-import { invokeBedrockPrompt } from '../core/bedrockClient';
-import { collectResponseBody } from '../core/responseParser';
-import { extractTextContent } from '../core/textExtractor';
+import { askText } from '../core/converse';
+import { modelFor } from '../core/models';
 import { buildFunFactPrompt } from './prompts';
 
 /**
@@ -24,21 +20,13 @@ export async function generateFunFact(
   const prompt = buildFunFactPrompt(question, answer, loves);
 
   try {
-    const funFactModel = modelFor('familyQuestions');
-    const bodyStream = await invokeBedrockPrompt(
+    const fact = await askText({
+      task: 'familyQuestions',
       prompt,
-      512,
-      0.7,
-      { task: 'familyQuestions' },
-      funFactModel,
-    );
-
-    // Collect response and extract content
-    const responseBuffer = await collectResponseBody(bodyStream);
-
-    // Extract text content using utility
-    const factText = extractTextContent(responseBuffer, funFactModel, 'fact');
-    return factText || "That's a neat answer!";
+      maxTokens: 512,
+      model: modelFor('familyQuestions'),
+    });
+    return fact || "That's a neat answer!";
   } catch (error) {
     logger.error('Error generating fun fact', {
       error: error instanceof Error ? error.message : String(error),

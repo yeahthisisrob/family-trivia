@@ -15,20 +15,6 @@ export function recordUsage(task: string, model: string, input: number, output: 
   pending.push({ task, model, input, output });
 }
 
-/** Read the input/output token counts from a Bedrock Claude response body. */
-export function usageFromBody(body: Uint8Array): { input: number; output: number } | null {
-  try {
-    const u = (
-      JSON.parse(new TextDecoder().decode(body)) as {
-        usage?: { input_tokens?: number; output_tokens?: number };
-      }
-    ).usage;
-    return u ? { input: u.input_tokens ?? 0, output: u.output_tokens ?? 0 } : null;
-  } catch {
-    return null;
-  }
-}
-
 export async function flushUsage(): Promise<void> {
   if (!pending.length) return;
   const batch = pending.splice(0);
