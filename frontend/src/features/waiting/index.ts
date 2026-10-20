@@ -1,1 +1,1 @@
-export { WaitingCard } from './ui/WaitingCard';
+export { waitingLine } from './model/waiting';

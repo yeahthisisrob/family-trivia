@@ -11,6 +11,9 @@ import { useEffect, useState } from 'react';
 import { Face } from '../../../entities/person';
 import { teamsApi } from '../api/teamsApi';
 
+const ordinal = (n: number) =>
+  `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][n % 10] ?? 'th')}`;
+
 interface Actions {
   start: (name: string) => Promise<TeamsView>;
   join: (teamId: string) => Promise<TeamsView>;
@@ -32,6 +35,7 @@ export const TeamsCardView: React.FC<ViewProps> = ({ me, people, view: given, ac
   const [name, setName] = useState('');
   const [partner, setPartner] = useState('');
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
   useEffect(() => setView(given), [given]);
   if (!view?.on) return null;
 
@@ -48,6 +52,27 @@ export const TeamsCardView: React.FC<ViewProps> = ({ me, people, view: given, ac
     }
   };
   const mine = view.teams.find((t) => t.id === view.myTeam);
+
+  // On a team with nothing to answer: one quiet line, open for the rest.
+  if (mine && !view.toMe.length && !open) {
+    const place = view.standings.findIndex((s) => s.teamId === mine.id);
+    const standing = view.standings[place];
+    return (
+      <Card sx={{ px: 2, py: 1.25, mb: 2, borderRadius: 3 }}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          <GroupsRoundedIcon sx={{ color: 'primary.main' }} />
+          <Typography sx={{ flex: 1 }}>
+            <b>{mine.name}</b>
+            {standing &&
+              ` · ${ordinal(place + 1)} of ${view.standings.length} · ${standing.average} each`}
+          </Typography>
+          <Button size="small" onClick={() => setOpen(true)}>
+            Teams
+          </Button>
+        </Stack>
+      </Card>
+    );
+  }
 
   return (
     <Card sx={{ p: 2.5, mb: 2, borderRadius: 3 }}>

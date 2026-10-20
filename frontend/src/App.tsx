@@ -19,13 +19,12 @@ import { useFeatures } from './entities/settings';
 import { UpcomingDates } from './features/celebrations';
 import { DailyMemory } from './features/daily-memory';
 import { AfterCard, PlansCard } from './features/plans';
-import { SinceCard } from './features/since';
 import { TeamsCard } from './features/teams';
 import { ThreadCard } from './features/threads';
-import { WaitingCard } from './features/waiting';
 import { ROUTES, useApp } from './hooks/useApp';
 import { colors, tint, useAppearance } from './shared/design-system';
 import { createLogger } from './utils/logger';
+import { WelcomeCard } from './widgets/welcome';
 
 // Lazy-loaded: these chunks are deferred until the route is first visited
 const AdminPage = React.lazy(() => import('./components/Admin'));
@@ -132,6 +131,8 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
 
   // --- Page components defined inline to keep props in scope ---
 
+  const nameOf = (id: string) => familyData.members.find((m) => m.userId === id)?.name ?? id;
+
   const HomePage = (
     <Box>
       {/* The season letter: shown once per person, remembered on every device */}
@@ -153,17 +154,15 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
         />
       )}
 
-      {/* Back after a while: what's new since (0016) */}
-      <SinceCard nameOf={(id) => familyData.members.find((m) => m.userId === id)?.name ?? id} />
+      {/* Coming back: what's new since, and what's waiting, oldest first (0016) */}
+      <WelcomeCard
+        trivia={isSeasonActive ? (catchupStatus?.questionsBehind ?? 0) : 0}
+        questions={isSeasonActive ? (catchupStatus?.factsWaiting ?? 0) : 0}
+        nameOf={nameOf}
+        onPlay={() => navigateTo(ROUTES.PLAY)}
+      />
 
-      {/* What's waiting, oldest first; nothing expires in an open season (0016) */}
-      {isSeasonActive && (
-        <WaitingCard
-          trivia={catchupStatus?.questionsBehind ?? 0}
-          questions={catchupStatus?.factsWaiting ?? 0}
-          onPlay={() => navigateTo(ROUTES.PLAY)}
-        />
-      )}
+      {/* ── Your turn: what's yours to do today ── */}
 
       {/* Between seasons nothing new is asked: no daily fact prompt */}
       {isSeasonActive && !factInlineDismissed && (
@@ -174,7 +173,13 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
         />
       )}
 
-      {/* A season played in teams: requests, standings, and making one (0030) */}
+      {/* Just after a plan: how was it? It only asks for two weeks (0026) */}
+      <AfterCard me={user} nameOf={nameOf} />
+
+      {/* One connection a day, while the season asks questions (0022) */}
+      {isSeasonActive && <ThreadCard />}
+
+      {/* A season played in teams: requests first; otherwise one line (0030) */}
       {isSeasonActive && (
         <TeamsCard
           me={user}
@@ -182,34 +187,22 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
         />
       )}
 
-      {/* One connection a day, while the season asks questions (docs/decisions/0022) */}
-      {isSeasonActive && <ThreadCard />}
+      {/* ── Together: plans, the past, the games everyone's in ── */}
 
-      {/* A page from our past, every day: at the top between seasons, under the day's question in one */}
-      <DailyMemory
-        me={user}
-        nameOf={(id) => familyData.members.find((m) => m.userId === id)?.name ?? id}
-        onOpenPerson={navigateToProfile}
-      />
+      {/* What's on: plans keep running between seasons (0026) */}
+      <PlansCard me={user} nameOf={nameOf} />
 
-      {/* Just after a plan: how was it? (docs/decisions/0026) */}
-      <AfterCard
-        me={user}
-        nameOf={(id) => familyData.members.find((m) => m.userId === id)?.name ?? id}
-      />
-
-      {/* What's on: plans keep running between seasons (docs/decisions/0026) */}
-      <PlansCard
-        me={user}
-        nameOf={(id) => familyData.members.find((m) => m.userId === id)?.name ?? id}
-      />
-
-      <StatusGridToggle userId={user} />
+      {/* A page from our past, every day */}
+      <DailyMemory me={user} nameOf={nameOf} onOpenPerson={navigateToProfile} />
 
       {/* Family Feud asks questions too, so it also waits for a season */}
       {isSeasonActive && features.familyFeud && <FamilyFeud userId={user} />}
 
       <UpcomingDates />
+
+      {/* ── Lately: what everyone's been saying ── */}
+
+      <StatusGridToggle userId={user} />
 
       <DailyFactSummary onUserClick={navigateToProfile} />
 
