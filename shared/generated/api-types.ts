@@ -1131,6 +1131,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/world": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Your world — one view across the caller's own circles, built for them alone and never stored */
+        get: operations["getYourWorld"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/threads/today": {
         parameters: {
             query?: never;
@@ -2501,6 +2518,39 @@ export interface components {
                 /** @description Points per member */
                 average: number;
                 total: number;
+            }[];
+        };
+        WorldView: {
+            circles: {
+                id: string;
+                name: string;
+                /** @enum {string} */
+                kind: "family" | "friends" | "mixed";
+            }[];
+            enough: boolean;
+            nodes: {
+                id: string;
+                circleId: string;
+                personId: string;
+                name: string;
+                me?: boolean;
+                bridge?: boolean;
+            }[];
+            links: {
+                a: string;
+                b: string;
+                /** @enum {string} */
+                kind: "tie" | "same";
+            }[];
+            threads: {
+                name: string;
+                kind: string;
+                people: string[];
+            }[];
+            meet: {
+                a: string;
+                b: string;
+                because: string;
             }[];
         };
         ThreadChoice: {
@@ -5656,6 +5706,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    getYourWorld: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The view (enough is false with fewer than two circles) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorldView"];
+                };
             };
         };
     };

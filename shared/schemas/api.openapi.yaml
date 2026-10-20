@@ -2288,6 +2288,19 @@ paths:
                 $ref: "#/components/schemas/TeamsView"
         "409": { description: "Not now: not a teams season, already on a team, or the team is full" }
 
+  /me/world:
+    get:
+      summary: Your world — one view across the caller's own circles, built for them alone and never stored
+      operationId: getYourWorld
+      tags: [Circles]
+      responses:
+        "200":
+          description: The view (enough is false with fewer than two circles)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorldView"
+
   /threads/today:
     get:
       summary: Today's one "How do you know ...?" question (or none), and how many threads are tied
@@ -4738,6 +4751,60 @@ components:
               members: { type: array, items: { type: string } }
               average: { type: number, description: Points per member }
               total: { type: number }
+
+    WorldView:
+      type: object
+      required: [circles, enough, nodes, links, threads, meet]
+      properties:
+        circles:
+          type: array
+          items:
+            type: object
+            required: [id, name, kind]
+            properties:
+              id: { type: string }
+              name: { type: string }
+              kind: { type: string, enum: [family, friends, mixed] }
+        enough: { type: boolean }
+        nodes:
+          type: array
+          items:
+            type: object
+            required: [id, circleId, personId, name]
+            properties:
+              id: { type: string }
+              circleId: { type: string }
+              personId: { type: string }
+              name: { type: string }
+              me: { type: boolean }
+              bridge: { type: boolean }
+        links:
+          type: array
+          items:
+            type: object
+            required: [a, b, kind]
+            properties:
+              a: { type: string }
+              b: { type: string }
+              kind: { type: string, enum: [tie, same] }
+        threads:
+          type: array
+          items:
+            type: object
+            required: [name, kind, people]
+            properties:
+              name: { type: string }
+              kind: { type: string }
+              people: { type: array, items: { type: string } }
+        meet:
+          type: array
+          items:
+            type: object
+            required: [a, b, because]
+            properties:
+              a: { type: string }
+              b: { type: string }
+              because: { type: string }
 
     ThreadChoice:
       type: object

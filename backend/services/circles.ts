@@ -108,6 +108,17 @@ export async function rebuildMemberships(email: string): Promise<MyCircle[]> {
 }
 
 /** This email's circles from the account index (rebuilt if it's missing). */
+/** Who signs in to a circle: account id → their person there. Emails stay on the server. */
+export async function accountsIn(circle: Circle): Promise<Record<string, string>> {
+  const map = await inCircle(
+    scopeOf(circle),
+    async () => (await getJson<SignInMap>(SIGN_IN_MAP_KEY)) ?? {},
+  );
+  return Object.fromEntries(
+    Object.entries(map).map(([email, userId]) => [accountIdOf(email), userId]),
+  );
+}
+
 export async function myCircles(email: string): Promise<MyCircle[]> {
   const index = await getJson<AccountIndex>(accountKey(email));
   if (!index) return rebuildMemberships(email);

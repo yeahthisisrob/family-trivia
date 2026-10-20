@@ -27,6 +27,7 @@ import { reactionsRoutes } from './features/reactions/routes';
 import { settingsRoutes } from './features/settings/routes';
 import { teamsRoutes } from './features/teams/routes';
 import { threadsRoutes } from './features/threads/routes';
+import { yourWorldRoutes } from './features/your-world/routes';
 import * as adminHandlers from './routes/admin';
 // Answer grid for trivia status matrix
 import { getAnswerGrid } from './routes/answerGrid';
@@ -180,6 +181,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...plansRoutes,
   ...avatarRoutes,
   ...threadsRoutes,
+  ...yourWorldRoutes,
   ...teamsRoutes,
 
   // ── Protected: identity comes from the token (middleware/requireAuth.ts) ──

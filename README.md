@@ -190,6 +190,12 @@ The people with the most to say about someone you've lost often aren't in the ap
 
 Nothing in an open season expires. Come back after two weeks and Home says what's waiting for you, oldest first, to play a few at a time or all at once. Answers count the same whenever they're given, the leaderboard shows what each person still has to play so a late start never looks like losing, and there are no streaks to break. A season can go at a daily pace or a weekly one (a handful of questions once a week), and friends circles start weekly.
 
+## Your world
+
+In more than one circle? Open **Your world** from the circle menu: all your circles in one sky, each its own constellation, with you as the bridge between them. It shows what comes up in more than one circle (the same beach, the same band) and who from different circles should meet. It's built just for you when you open it, from what you can already see, and never stored.
+
+![Your world: two circles, you between them, and who should meet](docs/screenshots/your-world.png)
+
 ## Teams
 
 A season can be played as teams (one setting in Admin › Seasons). Nobody assigns them: start a team, ask someone to team up, or ask to join one, and a yes from them puts you together, any time in the season. Teams rank by points per member, so two can beat five.

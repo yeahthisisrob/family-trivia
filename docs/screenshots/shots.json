@@ -198,6 +198,15 @@
       "size": "phone",
       "storyFile": "frontend/src/features/teams/ui/TeamsCard.stories.tsx",
       "source": "cde7093cc00c"
+    },
+    {
+      "file": "your-world.png",
+      "story": "circles-yourworld--two-circles",
+      "size": "desktop",
+      "scheme": "dark",
+      "height": 900,
+      "storyFile": "frontend/src/features/your-world/ui/YourWorld.stories.tsx",
+      "source": "c83fa141d5fc"
     }
   ]
 }
