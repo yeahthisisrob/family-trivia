@@ -17,7 +17,7 @@ import { toQuestionSlots } from '../services/questionSlotService';
 import { getJson, putJson } from '../services/s3';
 import { computePoints, type HistoryEntry, type LeaderboardEntry } from '../services/scoring';
 import { getSeasonsConfig } from '../services/seasonService';
-import { getAllGroups, getAllUsers, getUsersInGroup } from '../services/users';
+import { getAllUsers, getEveryAccount, getEveryGroup, getEveryoneInGroup } from '../services/users';
 
 /** Backend-specific group description (stored in S3, differs from shared GroupDescription) */
 interface GroupDescription {
@@ -306,17 +306,19 @@ export async function getConsolidatedLeaderboard(
       }
     }
 
-    // Get all users and groups
-    const allUsers = await getAllUsers();
+    // Everyone with an account: remembered and paused people keep their
+    // results. Someone not playing now with nothing in the range is left off below.
+    const allUsers = await getEveryAccount();
+    const playing = new Set(await getAllUsers());
     logger.info(`Retrieved ${allUsers.length} users`);
 
-    const allGroups = await getAllGroups();
+    const allGroups = await getEveryGroup();
     logger.info(`Retrieved ${allGroups.length} groups`);
 
     // Build user to group mapping
     const userGroups: Record<string, string> = {};
     for (const groupId of allGroups) {
-      const groupUsers = await getUsersInGroup(groupId);
+      const groupUsers = await getEveryoneInGroup(groupId);
       for (const userId of groupUsers) {
         userGroups[userId] = groupId;
       }
@@ -353,6 +355,12 @@ export async function getConsolidatedLeaderboard(
 
     // Compute leaderboard for all users (with optional season filter)
     const userLeaderboardData = await computeLeaderboard(allUsers, seasonFilter, arcadeBonusMap);
+    for (const [id, data] of Object.entries(userLeaderboardData)) {
+      const entry = data.leaderboardEntry;
+      if (!playing.has(id) && !entry.questionsAnswered && !entry.score) {
+        delete userLeaderboardData[id];
+      }
+    }
 
     // Calculate group leaderboard data
     const groupLeaderboardData: Record<string, GroupLeaderboardEntry> = {};
@@ -367,7 +375,7 @@ export async function getConsolidatedLeaderboard(
     // Process groups in parallel to speed up calculation
     await Promise.all(
       allGroups.map(async (groupId) => {
-        const groupUsers = await getUsersInGroup(groupId);
+        const groupUsers = await getEveryoneInGroup(groupId);
         let totalScore = 0;
         let memberCount = 0;
         let topScorer = '';
