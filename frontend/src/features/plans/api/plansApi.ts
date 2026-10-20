@@ -1,5 +1,5 @@
 import type { AfterPlan, Drop, PlansView, Rsvp } from '@family-trivia/shared';
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 const post = <T>(path: string, body: unknown) =>
   apiService.request<T>(path, {

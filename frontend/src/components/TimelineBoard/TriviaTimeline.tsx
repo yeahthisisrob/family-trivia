@@ -3,10 +3,10 @@
 import { Box, Divider, Typography } from '@mui/material';
 import { format, isToday, isYesterday, parseISO } from 'date-fns';
 import React, { useMemo } from 'react';
+import { createLogger } from '../../shared/lib/logger';
 import { getUserColor, getUserInitials } from '../../utils';
 import { isCustomCategory } from '../../utils/categoryUtils';
 import { type FamilySide, shouldIncludeInFamilySide } from '../../utils/familyUtils';
-import { createLogger } from '../../utils/logger';
 import FamilyFeudTimelineCard from './FamilyFeudTimelineCard';
 import GameModeCard from './GameModeCard';
 import TriviaComments from './TriviaComments';

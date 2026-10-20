@@ -7,7 +7,7 @@ import type { GameClue, HighScoreEntry, ScoreSubmitResult } from '@family-trivia
 import type { SvgIconComponent } from '@mui/icons-material';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { apiService } from '../../services/ApiService';
+import { apiService } from '../../shared/api/ApiService';
 
 export { gameLook } from '../../shared/design-system';
 

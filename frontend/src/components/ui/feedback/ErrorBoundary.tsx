@@ -5,7 +5,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import { Alert, AlertTitle, Box, Button } from '@mui/material';
 import React from 'react';
 
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../shared/lib/logger';
 
 const logger = createLogger('ErrorBoundary');
 

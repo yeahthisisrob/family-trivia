@@ -19,7 +19,7 @@ import { LoadingDots } from '../../components/ui/feedback';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
 import { radii } from '../../shared/design-system/tokens/radii';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../shared/lib/logger';
 
 const logger = createLogger('RouletteGame');
 

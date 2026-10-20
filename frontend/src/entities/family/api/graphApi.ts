@@ -1,5 +1,5 @@
 import type { Household, Likeness, Participation, Tie } from '@family-trivia/shared';
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 export interface GraphPerson {
   id: string;

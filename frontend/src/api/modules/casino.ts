@@ -1,6 +1,6 @@
 // Module: casino — shared credit pool for slots + blackjack
 
-import { apiService } from '../../services/ApiService';
+import { apiService } from '../../shared/api/ApiService';
 
 export interface CasinoBalanceResponse {
   balance: number;

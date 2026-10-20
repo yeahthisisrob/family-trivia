@@ -1,5 +1,5 @@
 import type { FillInView } from '@family-trivia/shared';
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 export const fillInApi = {
   view: () => apiService.request<FillInView>('/fill-in', { method: 'GET' }),

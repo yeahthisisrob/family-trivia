@@ -7,7 +7,6 @@ import { useCallback, useEffect, useState } from 'react';
 
 import App from './App';
 import { LoginScreen } from './components/AppShell';
-import { configureLogging, loadConfig } from './config';
 import { FamilyDataProvider } from './contexts/FamilyDataContext';
 import { TimelineProvider } from './contexts/TimelineContext';
 import { TriviaProvider } from './contexts/TriviaContext';
@@ -15,9 +14,10 @@ import { UserStatusProvider } from './contexts/UserStatusContext';
 import { FeaturesProvider } from './entities/settings';
 import { JoinScreen } from './features/invites';
 import { RememberScreen } from './features/memory-links';
-import { apiService } from './services/ApiService';
-import { loadSession, onSessionExpired, saveSession } from './session';
-import { createLogger, LogLevel } from './utils/logger';
+import { apiService } from './shared/api/ApiService';
+import { configureLogging, loadConfig } from './shared/config/config';
+import { createLogger, LogLevel } from './shared/lib/logger';
+import { loadSession, onSessionExpired, saveSession } from './shared/session/session';
 
 const logger = createLogger('AppProvider');
 

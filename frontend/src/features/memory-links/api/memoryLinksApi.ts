@@ -5,7 +5,7 @@ import type {
   VisitorMemory,
 } from '@family-trivia/shared';
 import { publicRequest } from '../../../api/modules/auth';
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 const q = encodeURIComponent;
 const post = <T>(path: string, body: unknown) =>

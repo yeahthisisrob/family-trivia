@@ -11,8 +11,8 @@ import {
   getNotifications,
 } from '../api/modules/notifications';
 import { notificationMessage } from '../components/Notifications/notificationText';
+import { createLogger } from '../shared/lib/logger';
 import { useToast } from '../shared/toast';
-import { createLogger } from '../utils/logger';
 
 const logger = createLogger('NotificationContext');
 

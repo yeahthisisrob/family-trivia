@@ -34,7 +34,7 @@ import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { type AdminSettings, settingsApi } from '../../../entities/settings';
-import { ApiError } from '../../../services/ApiService';
+import { ApiError } from '../../../shared/api/ApiService';
 import { BackupsPanel } from './BackupsPanel';
 import { AppearanceSection, ArchiveSection } from './OtherSections';
 

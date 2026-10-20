@@ -6,9 +6,9 @@ import * as api from '../api';
 import type { EndOfSeasonStatus } from '../api/modules/seasons';
 import { useFamilyData } from '../contexts/FamilyDataContext';
 import { useUserStatus } from '../contexts/UserStatusContext';
-import { cacheService } from '../services/CacheService';
 import { prefetchService } from '../services/PrefetchService';
-import { clearSession, loadSession, saveSession } from '../session';
+import { cacheService } from '../shared/api/CacheService';
+import { clearSession, loadSession, saveSession } from '../shared/session/session';
 import { useAppReady } from './useAppReady';
 
 interface UseAppOptions {

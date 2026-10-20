@@ -7,9 +7,9 @@ import type {
   UserConfigResponse,
   UserProfile,
 } from '@family-trivia/shared';
-import { apiService } from '../../services/ApiService';
+import { apiService } from '../../shared/api/ApiService';
 import { identityColor } from '../../shared/design-system';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../shared/lib/logger';
 
 // ── Type re-exports ────────────────────────────────────────────────
 

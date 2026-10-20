@@ -2,7 +2,7 @@
 // Admin CRUD endpoints for players, groups, family tree, and seasons
 
 import type { Season } from '@family-trivia/shared';
-import { apiService } from '../../services/ApiService';
+import { apiService } from '../../shared/api/ApiService';
 
 // ── Types ────────────────────────────────────────────────────────
 

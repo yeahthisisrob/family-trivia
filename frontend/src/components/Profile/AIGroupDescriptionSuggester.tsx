@@ -23,7 +23,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { type GroupDescriptionSuggestion, suggestGroupDescription } from '../../api';
 import { colors } from '../../shared/design-system';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../shared/lib/logger';
 import { LoadingDots } from '../ui/feedback';
 
 interface AIGroupDescriptionSuggesterProps {

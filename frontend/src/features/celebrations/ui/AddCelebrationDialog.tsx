@@ -30,7 +30,7 @@ import utc from 'dayjs/plugin/utc';
 import type React from 'react';
 import { useState } from 'react';
 import { useCircleWords } from '../../../entities/circle';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../shared/lib/logger';
 import { celebrationsApi } from '../api/celebrationsApi';
 
 dayjs.extend(utc);

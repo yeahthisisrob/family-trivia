@@ -19,8 +19,8 @@ import type { CustomCategory } from '../../api';
 import * as api from '../../api';
 import appStrings from '../../constants/strings';
 import { useTrivia } from '../../contexts/TriviaContext';
-import { loadSession } from '../../session';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../shared/lib/logger';
+import { loadSession } from '../../shared/session/session';
 import { LoadingDots } from '../ui/feedback';
 import FormFeedback from './FormFeedback';
 

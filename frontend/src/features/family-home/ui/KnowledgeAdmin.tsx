@@ -9,7 +9,7 @@ import { Alert, Button, LinearProgress, Paper, Stack, Typography } from '@mui/ma
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useCircleWords } from '../../../entities/circle';
-import { ApiError } from '../../../services/ApiService';
+import { ApiError } from '../../../shared/api/ApiService';
 import { familyHomeApi } from '../api/familyHomeApi';
 
 export const KnowledgeAdmin: React.FC = () => {

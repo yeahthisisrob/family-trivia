@@ -2,7 +2,7 @@
 // Utilities for working with categories
 
 import type { CategoryResponse, SystemCategory } from '../api/modules/trivia';
-import { cacheService } from '../services/CacheService';
+import { cacheService } from '../shared/api/CacheService';
 import { colors } from '../shared/design-system/tokens/colors';
 
 // Default color in case the category doesn't have one

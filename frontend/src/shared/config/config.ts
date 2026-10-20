@@ -1,5 +1,5 @@
 // File: frontend/src/config.ts
-import { createLogger, LogLevel, setLogLevel } from './utils/logger';
+import { createLogger, LogLevel, setLogLevel } from '../lib/logger';
 
 /**
  * Application configuration
@@ -32,7 +32,7 @@ let _cfg: FrontendConfig | undefined;
  *
  * To use the logger in any file:
  * ```typescript
- * import { createLogger } from './utils/logger';
+ * import { createLogger } from '../lib/logger';
  *
  * const logger = createLogger('ModuleName');
  *

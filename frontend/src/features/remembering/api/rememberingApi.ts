@@ -1,5 +1,5 @@
 import type { Comment, CommentThread } from '@family-trivia/shared';
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 const q = encodeURIComponent;
 

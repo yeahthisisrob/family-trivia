@@ -1,5 +1,5 @@
 import type { PersonStory } from '@family-trivia/shared';
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 /** Someone's story in their own words (GET /family/person-story). */
 export const storyApi = {

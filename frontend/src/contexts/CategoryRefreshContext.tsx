@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 
-import { cacheService } from '../services/CacheService';
+import { cacheService } from '../shared/api/CacheService';
 
 interface CategoryRefreshContextType {
   refreshTimestamp: number;

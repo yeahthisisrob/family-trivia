@@ -1,5 +1,5 @@
 import type { TeamsView } from '@family-trivia/shared';
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 const post = (path: string, body: unknown = {}) =>
   apiService.request<TeamsView>(path, {

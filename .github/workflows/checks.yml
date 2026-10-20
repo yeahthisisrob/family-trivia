@@ -39,6 +39,10 @@ jobs:
         env:
           LEAKGUARD_TERMS: ${{ secrets.LEAKGUARD_TERMS }}
 
+      # No slice imports another; each frontend layer imports only below it (0008).
+      - name: Layout rules
+        run: node scripts/check-architecture.mjs
+
       - name: Dead code
         run: pnpm exec knip --no-progress
 

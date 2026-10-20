@@ -30,7 +30,7 @@ import {
   submitDailyFact,
 } from '../../api/modules/facts';
 import { knowledgeApi } from '../../entities/family';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../shared/lib/logger';
 
 const logger = createLogger('useDailyFactFlow');
 

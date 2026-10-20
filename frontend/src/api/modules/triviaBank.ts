@@ -1,7 +1,7 @@
 // Module: triviaBank
 // Admin trivia bank management API
 
-import { apiService } from '../../services/ApiService';
+import { apiService } from '../../shared/api/ApiService';
 
 export interface BankStats {
   totalQuestions: number;

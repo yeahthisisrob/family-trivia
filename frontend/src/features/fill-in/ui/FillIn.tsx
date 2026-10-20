@@ -24,7 +24,7 @@ import {
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { knowledgeApi } from '../../../entities/family';
-import { ApiError } from '../../../services/ApiService';
+import { ApiError } from '../../../shared/api/ApiService';
 import { fillInApi } from '../api/fillInApi';
 
 const PROMPT: Record<FillInItem['state'], string> = {

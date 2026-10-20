@@ -27,9 +27,9 @@ import { inJoinedCircle, SharingCard } from './features/shared-answers';
 import { TeamsCard } from './features/teams';
 import { ThreadCard } from './features/threads';
 import { ROUTES, useApp } from './hooks/useApp';
-import { inThisCircle } from './session';
 import { colors, tint, useAppearance } from './shared/design-system';
-import { createLogger } from './utils/logger';
+import { createLogger } from './shared/lib/logger';
+import { inThisCircle } from './shared/session/session';
 import { WelcomeCard } from './widgets/welcome';
 
 // Lazy-loaded: these chunks are deferred until the route is first visited

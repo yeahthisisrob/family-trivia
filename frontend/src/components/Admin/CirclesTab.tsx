@@ -3,7 +3,7 @@ import type React from 'react';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
 import { CirclesAdmin } from '../../features/circles';
 import { InvitesAdmin } from '../../features/invites';
-import { currentCircleId, loadCircles, loadSession } from '../../session';
+import { currentCircleId, loadCircles, loadSession } from '../../shared/session/session';
 
 /** Admin › Circles: invite people to this circle; the owner also starts circles. */
 const CirclesTab: React.FC = () => {

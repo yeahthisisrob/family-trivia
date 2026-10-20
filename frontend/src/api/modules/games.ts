@@ -10,8 +10,8 @@ import type {
   SlotMachineResult,
   SlotMachineStatus,
 } from '@family-trivia/shared';
-import { apiService } from '../../services/ApiService';
-import { createLogger } from '../../utils/logger';
+import { apiService } from '../../shared/api/ApiService';
+import { createLogger } from '../../shared/lib/logger';
 
 // Casino Rush type exports
 // Slot Machine type exports

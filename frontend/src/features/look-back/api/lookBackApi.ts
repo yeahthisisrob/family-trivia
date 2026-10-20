@@ -5,7 +5,7 @@ import type {
   SeasonBook,
   SeasonReview,
 } from '@family-trivia/shared';
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 /** Writing a book's foreword takes the AI up to half a minute; give it a full one. */
 const BOOK_TIMEOUT_MS = 60_000;

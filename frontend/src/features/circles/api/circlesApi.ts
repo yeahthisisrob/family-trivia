@@ -10,7 +10,7 @@ export interface SameSuggestion {
   b: PersonIn & { name: string; circleName: string };
 }
 
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 export const circlesApi = {
   mine: () => apiService.request<{ circles: MyCircle[]; current: string }>('/me/circles'),

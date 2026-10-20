@@ -40,7 +40,7 @@ import {
 import { adminGetFamilyFeud, adminResetFamilyFeud } from '../../api/modules/familyFeud';
 import { useAdmin } from '../../contexts/AdminContext';
 import { colors } from '../../shared/design-system';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../shared/lib/logger';
 import { LoadingDots } from '../ui/feedback';
 import AdminCard from './shared/AdminCard';
 import ConfirmDialog from './shared/ConfirmDialog';

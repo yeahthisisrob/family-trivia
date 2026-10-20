@@ -20,7 +20,7 @@ import {
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { KIND_ICON, KIND_LABEL } from '../../../entities/circle';
-import { enterCircle } from '../../../session';
+import { enterCircle } from '../../../shared/session/session';
 import { circlesApi, type SameSuggestion } from '../api/circlesApi';
 import { CircleFields, isReady, type NewCircle, newCircle } from './CircleFields';
 import { InviteButton } from './InviteButton';

@@ -56,8 +56,13 @@ storybook:
 
 # Everything CI runs
 [group('check')]
-check: lint leaks deadcode typecheck test screenshots-current
+check: lint leaks layout deadcode typecheck test screenshots-current
     @echo "All checks passed."
+
+# The layout rules (0008): no slice imports another, layers import only below
+[group('check')]
+layout:
+    {{x}} node scripts/check-architecture.mjs
 
 # Format and lint the whole repo (Biome)
 [group('check')]
@@ -102,6 +107,7 @@ test *args:
 ci:
     {{x}} pnpm exec biome ci .
     {{x}} node scripts/leak-guard.mjs
+    {{x}} node scripts/check-architecture.mjs
     {{x}} pnpm exec knip --no-progress
     {{x}} pnpm -r run typecheck
     {{x}} pnpm -r run test

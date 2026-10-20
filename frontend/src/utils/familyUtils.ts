@@ -3,9 +3,9 @@
 
 import { alpha } from '@mui/material/styles';
 import type { UserConfigResponse } from '../api/modules/user';
-import { cacheService } from '../services/CacheService';
+import { cacheService } from '../shared/api/CacheService';
 import { colors } from '../shared/design-system/tokens/colors';
-import { createLogger } from './logger';
+import { createLogger } from '../shared/lib/logger';
 
 // Initialize logger
 const logger = createLogger('FamilyUtils');

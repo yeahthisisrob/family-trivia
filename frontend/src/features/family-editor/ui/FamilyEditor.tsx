@@ -37,8 +37,8 @@ import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useCircleWords } from '../../../entities/circle';
 import { familyApi, useFamily } from '../../../entities/family';
-import { ApiError } from '../../../services/ApiService';
-import { loadCircles } from '../../../session';
+import { ApiError } from '../../../shared/api/ApiService';
+import { loadCircles } from '../../../shared/session/session';
 import { archiveApi } from '../../family-archive';
 import { PersonDialog, participationLabel } from './PersonDialog';
 

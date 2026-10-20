@@ -14,8 +14,8 @@ import type {
   TimelineTriviaEntry,
   UserConfigResponse,
 } from '@family-trivia/shared';
-import { apiService } from '../../services/ApiService';
-import { cacheService } from '../../services/CacheService';
+import { apiService } from '../../shared/api/ApiService';
+import { cacheService } from '../../shared/api/CacheService';
 import type { FamilyFeudResults } from './familyFeud';
 
 export interface GroupDescriptionData {

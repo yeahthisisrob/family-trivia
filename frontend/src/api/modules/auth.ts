@@ -2,8 +2,8 @@
 // Google OAuth login + account linking + legacy passphrase validation.
 
 import type { MyCircle } from '@family-trivia/shared';
-import { apiService } from '../../services/ApiService';
-import { saveCircles } from '../../session';
+import { apiService } from '../../shared/api/ApiService';
+import { saveCircles } from '../../shared/session/session';
 
 export interface AuthResponse {
   token: string;

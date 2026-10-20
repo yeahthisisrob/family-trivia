@@ -1,17 +1,20 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { getTimelineData, type TimelineData } from '../api/modules/timeline';
-import type {
-  Comment,
-  CommentContentType,
-  CommentThread,
-} from '../features/comments/api/commentsApi';
 import {
-  addComment as apiAddComment,
-  getCommentCounts as fetchCounts,
-  getCommentThread as fetchThread,
-} from '../features/comments/api/commentsApi';
+  type Comment,
+  type CommentContentType,
+  type CommentThread,
+  commentsApi,
+} from '../features/comments';
+
+const {
+  addComment: apiAddComment,
+  getCommentCounts: fetchCounts,
+  getCommentThread: fetchThread,
+} = commentsApi;
+
+import { createLogger } from '../shared/lib/logger';
 import type { FamilySide } from '../utils/familyUtils';
-import { createLogger } from '../utils/logger';
 import { useFamilyData } from './FamilyDataContext';
 
 // Initialize logger

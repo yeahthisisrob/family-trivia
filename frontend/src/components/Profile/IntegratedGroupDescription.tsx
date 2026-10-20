@@ -19,8 +19,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { type GroupDescription, updateGroupDescription } from '../../api';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
 import { colors } from '../../shared/design-system';
+import { createLogger } from '../../shared/lib/logger';
 import { getUserGroup } from '../../utils';
-import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
 import AIGroupDescriptionSuggester from './AIGroupDescriptionSuggester';
 

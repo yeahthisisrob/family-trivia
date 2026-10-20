@@ -27,7 +27,7 @@ import {
 } from '../../api/modules/games';
 import type { ProgressMessage } from '../../api/modules/trivia';
 import { useTrivia } from '../../contexts/TriviaContext';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../shared/lib/logger';
 import { LoadingDots } from '../ui/feedback';
 import CasinoRushProgress from './CasinoRushProgress';
 

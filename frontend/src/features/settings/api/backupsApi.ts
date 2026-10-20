@@ -1,4 +1,4 @@
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 export interface BackupRun {
   at: string;

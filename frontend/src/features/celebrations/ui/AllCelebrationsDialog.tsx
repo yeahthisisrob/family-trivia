@@ -25,7 +25,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import { LoadingDots } from '../../../components/ui/feedback';
 import { colors } from '../../../shared/design-system';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../shared/lib/logger';
 import { celebrationsApi } from '../api/celebrationsApi';
 
 const logger = createLogger('AllCelebrationsDialog');
