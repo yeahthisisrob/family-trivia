@@ -1,4 +1,6 @@
 // File: src/App.tsx
+// One part failing never blanks the app: each page and Home card is caught on its own.
+
 import { Box, Container, Typography } from '@mui/material';
 import React from 'react';
 import { markSeasonLetterSeen } from './api/modules/seasons';
@@ -11,6 +13,7 @@ import { SeasonLetter } from './components/SeasonLetter/SeasonLetter';
 import StatusGridToggle from './components/StatusGridToggle';
 import TimelineBoard from './components/TimelineBoard';
 import TriviaTab from './components/TriviaCard';
+import { ErrorBoundary as Safe } from './components/ui/feedback';
 import { LeaderboardProvider } from './contexts/LeaderboardContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { useUserStatus } from './contexts/UserStatusContext';
@@ -156,68 +159,98 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
       )}
 
       {/* Coming back: what's new since, and what's waiting, oldest first (0016) */}
-      <WelcomeCard
-        trivia={isSeasonActive ? (catchupStatus?.questionsBehind ?? 0) : 0}
-        questions={isSeasonActive ? (catchupStatus?.factsWaiting ?? 0) : 0}
-        nameOf={nameOf}
-        onPlay={() => navigateTo(ROUTES.PLAY)}
-      />
+      <Safe label="coming back">
+        <WelcomeCard
+          trivia={isSeasonActive ? (catchupStatus?.questionsBehind ?? 0) : 0}
+          questions={isSeasonActive ? (catchupStatus?.factsWaiting ?? 0) : 0}
+          nameOf={nameOf}
+          onPlay={() => navigateTo(ROUTES.PLAY)}
+        />
+      </Safe>
 
       {/* On a phone that hasn't added the app: once, how to (0031) */}
-      <InstallCard />
+      <Safe label="the home screen tip">
+        <InstallCard />
+      </Safe>
 
       {/* ── Your turn: what's yours to do today ── */}
 
       {/* Between seasons nothing new is asked: no daily fact prompt */}
       {isSeasonActive && !factInlineDismissed && (
-        <DailyFactCard
-          userId={user}
-          onFactSubmitted={handleFactSubmit}
-          onDismiss={dismissInlineFact}
-        />
+        <Safe label="today's question">
+          <DailyFactCard
+            userId={user}
+            onFactSubmitted={handleFactSubmit}
+            onDismiss={dismissInlineFact}
+          />
+        </Safe>
       )}
 
       {/* Just after a plan: how was it? It only asks for two weeks (0026) */}
-      <AfterCard me={user} nameOf={nameOf} />
+      <Safe label="how plans went">
+        <AfterCard me={user} nameOf={nameOf} />
+      </Safe>
 
       {/* One connection a day, while the season asks questions (0022) */}
-      {isSeasonActive && <ThreadCard />}
+      {isSeasonActive && (
+        <Safe label="connections">
+          <ThreadCard />
+        </Safe>
+      )}
 
       {/* A season played in teams: requests first; otherwise one line (0030) */}
       {isSeasonActive && (
-        <TeamsCard
-          me={user}
-          people={familyData.members.map((m) => ({ id: m.userId, name: m.name }))}
-        />
+        <Safe label="teams">
+          <TeamsCard
+            me={user}
+            people={familyData.members.map((m) => ({ id: m.userId, name: m.name }))}
+          />
+        </Safe>
       )}
 
       {/* ── Together: plans, the past, the games everyone's in ── */}
 
       {/* What's on: plans keep running between seasons (0026) */}
-      <PlansCard me={user} nameOf={nameOf} />
+      <Safe label="what's on">
+        <PlansCard me={user} nameOf={nameOf} />
+      </Safe>
 
       {/* A page from our past, every day */}
-      <DailyMemory me={user} nameOf={nameOf} onOpenPerson={navigateToProfile} />
+      <Safe label="a memory a day">
+        <DailyMemory me={user} nameOf={nameOf} onOpenPerson={navigateToProfile} />
+      </Safe>
 
       {/* Family Feud asks questions too, so it also waits for a season */}
-      {isSeasonActive && features.familyFeud && <FamilyFeud userId={user} />}
+      {isSeasonActive && features.familyFeud && (
+        <Safe label="Family Feud">
+          <FamilyFeud userId={user} />
+        </Safe>
+      )}
 
-      <UpcomingDates />
+      <Safe label="dates coming up">
+        <UpcomingDates />
+      </Safe>
 
       {/* ── Lately: what everyone's been saying ── */}
 
-      <StatusGridToggle userId={user} />
+      <Safe label="who has played">
+        <StatusGridToggle userId={user} />
+      </Safe>
 
-      <DailyFactSummary onUserClick={navigateToProfile} />
+      <Safe label="today's answers">
+        <DailyFactSummary onUserClick={navigateToProfile} />
+      </Safe>
 
-      <TimelineBoard
-        members={familyData.members}
-        refreshKey={factRefreshKey}
-        onUserClick={navigateToProfile}
-        currentUserId={user}
-        highlightContentId={highlightContentId}
-        onHighlightConsumed={() => setHighlightContentId(null)}
-      />
+      <Safe label="the timeline">
+        <TimelineBoard
+          members={familyData.members}
+          refreshKey={factRefreshKey}
+          onUserClick={navigateToProfile}
+          currentUserId={user}
+          highlightContentId={highlightContentId}
+          onHighlightConsumed={() => setHighlightContentId(null)}
+        />
+      </Safe>
     </Box>
   );
 
@@ -362,7 +395,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
                   <>
                     {/* Home Tab */}
                     <Box sx={{ display: currentPath === ROUTES.HOME ? 'block' : 'none' }}>
-                      {HomePage}
+                      <Safe label="Home">{HomePage}</Safe>
                     </Box>
 
                     {(currentPath === ROUTES.PLAY || currentPath === ROUTES.LEADERBOARD) && (
@@ -375,35 +408,43 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
 
                     {/* Trivia Tab — kept mounted to preserve TriviaCard state */}
                     <Box sx={{ display: currentPath === ROUTES.PLAY ? 'block' : 'none' }}>
-                      {TriviaPage}
+                      <Safe label="Trivia">{TriviaPage}</Safe>
                     </Box>
 
                     {/* Trivia › Leaderboard — lazy-mounted on first visit, kept mounted after */}
                     {(currentPath === ROUTES.LEADERBOARD || leaderboardMounted) && (
                       <Box sx={{ display: currentPath === ROUTES.LEADERBOARD ? 'block' : 'none' }}>
-                        <React.Suspense fallback={null}>{LeaderboardPage}</React.Suspense>
+                        <Safe label="the leaderboard">
+                          <React.Suspense fallback={null}>{LeaderboardPage}</React.Suspense>
+                        </Safe>
                       </Box>
                     )}
 
                     {/* Family Tree Tab — lazy-mounted on first visit, kept mounted after */}
                     {(currentPath === ROUTES.FAMILY || familyMounted) && (
                       <Box sx={{ display: currentPath === ROUTES.FAMILY ? 'block' : 'none' }}>
-                        <React.Suspense fallback={null}>{FamilyPage}</React.Suspense>
+                        <Safe label="Us">
+                          <React.Suspense fallback={null}>{FamilyPage}</React.Suspense>
+                        </Safe>
                       </Box>
                     )}
 
                     {/* Arcade Tab — lazy-mounted on first visit, kept mounted after */}
                     {(currentPath === ROUTES.ARCADE || arcadeMounted) && (
                       <Box sx={{ display: currentPath === ROUTES.ARCADE ? 'block' : 'none' }}>
-                        <React.Suspense fallback={null}>{ArcadePageContent}</React.Suspense>
+                        <Safe label="the Arcade">
+                          <React.Suspense fallback={null}>{ArcadePageContent}</React.Suspense>
+                        </Safe>
                       </Box>
                     )}
 
                     {/* Admin — uses nested Routes for sub-tabs */}
                     {currentPath.startsWith(ROUTES.ADMIN) && isAdmin && (
-                      <React.Suspense fallback={null}>
-                        <AdminPage userId={user} />
-                      </React.Suspense>
+                      <Safe label="Admin">
+                        <React.Suspense fallback={null}>
+                          <AdminPage userId={user} />
+                        </React.Suspense>
+                      </Safe>
                     )}
                   </>
                 )}

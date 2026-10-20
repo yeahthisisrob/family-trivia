@@ -20,9 +20,12 @@ interface CacheEntry<T> {
 // Initialize logger
 const logger = createLogger('CacheService');
 
+/** How long a failed request waits before it's tried again. */
+const FATAL_PAUSE_MS = 15_000;
+
 export class CacheService {
   private cache: Record<string, CacheEntry<unknown>> = {};
-  private fatalErrors: Record<string, boolean> = {};
+  private fatalErrors: Record<string, number> = {}; // when each request last failed
   private errorCounts: Record<string, number> = {};
   private endpointCircuitBreakers: Record<string, number> = {}; // Tracks timestamps when endpoints are circuit broken
   private cacheTTL: number;
@@ -91,14 +94,17 @@ export class CacheService {
    * Check if this request has a fatal error
    */
   hasFatalError(key: string): boolean {
-    return !!this.fatalErrors[key];
+    // A failure pauses that request briefly, never for the whole session:
+    // most failures (a busy server, a dropped connection) pass in seconds.
+    const at = this.fatalErrors[key];
+    return !!at && Date.now() - at < FATAL_PAUSE_MS;
   }
 
   /**
    * Mark a request as having a fatal error
    */
   markFatalError(key: string): void {
-    this.fatalErrors[key] = true;
+    this.fatalErrors[key] = Date.now();
   }
 
   /**

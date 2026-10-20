@@ -18,6 +18,52 @@ import { createLogger } from '../utils/logger';
 import { cacheService } from './CacheService';
 
 /** Structured API error thrown when the server returns an error envelope */
+const unavailable = () =>
+  new ApiError(
+    'This is not available right now. Try again in a moment.',
+    503,
+    undefined,
+    'UNAVAILABLE',
+  );
+
+// ── Sending requests ───────────────────────────────────────────────
+// Opening the app asks for a lot at once. A few at a time keeps the server
+// from turning some away; one turned away (busy, 429/502/503/504) or lost on
+// the way is tried again after a short wait.
+
+const MAX_IN_FLIGHT = 6;
+const RETRIES = 3;
+const RETRY_STATUS = new Set([429, 502, 503, 504]);
+let inFlight = 0;
+const waiting: (() => void)[] = [];
+
+async function slot<T>(f: () => Promise<T>): Promise<T> {
+  if (inFlight >= MAX_IN_FLIGHT) await new Promise<void>((go) => waiting.push(go));
+  inFlight++;
+  try {
+    return await f();
+  } finally {
+    inFlight--;
+    waiting.shift()?.();
+  }
+}
+
+const pause = (attempt: number) =>
+  new Promise((done) => setTimeout(done, 300 * 2 ** attempt + Math.random() * 250));
+
+async function fetchPolitely(url: string, init: RequestInit): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const response = await slot(() => fetch(url, init));
+      if (!RETRY_STATUS.has(response.status) || attempt >= RETRIES) return response;
+    } catch (err) {
+      // A timeout is final; a dropped connection is worth another try.
+      if ((err as Error).name === 'AbortError' || attempt >= RETRIES) throw err;
+    }
+    await pause(attempt);
+  }
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -99,14 +145,14 @@ export class ApiService {
     }
     // For other endpoints, check for fatal errors
     else if (cacheService.hasFatalError(errorKey)) {
-      logger.warn(`Skipping request to ${endpoint} due to previous fatal error`);
-      return this.getEmptyResult<T>(endpoint);
+      logger.warn(`Skipping request to ${endpoint} due to a failure moments ago`);
+      throw unavailable();
     }
 
     // Check if the endpoint is circuit broken
     if (cacheService.isCircuitBroken(endpoint)) {
       logger.warn(`Skipping request to ${endpoint} due to active circuit breaker`);
-      return this.getEmptyResult<T>(endpoint);
+      throw unavailable();
     }
 
     // Check cache if applicable
@@ -165,7 +211,7 @@ export class ApiService {
 
       logger.debug(`Making request to: ${url} (timeout: ${timeoutDuration}ms)`);
       const startTime = Date.now();
-      const response = await fetch(url, requestOptions);
+      const response = await fetchPolitely(url, requestOptions);
       const endTime = Date.now();
       clearTimeout(timeoutId);
 
@@ -380,8 +426,9 @@ export class ApiService {
 
       logger.error(`API request to ${endpoint} failed:`, error);
 
-      // For certain endpoints, return empty results to avoid UI breakage
-      return this.getEmptyResult<T>(endpoint);
+      // Fail honestly: an empty stand-in looks like an answer and breaks the
+      // screen that reads it. Callers show their own "couldn't load".
+      throw error instanceof ApiError ? error : unavailable();
     }
   }
 
@@ -414,22 +461,6 @@ export class ApiService {
       return envelope.data as T;
     }
     return data as T;
-  }
-
-  /**
-   * Helper to return appropriate empty results for different endpoint types
-   */
-  private getEmptyResult<T>(endpoint: string): T {
-    if (endpoint.includes('/members')) {
-      logger.warn('Returning empty members array due to error');
-      return [] as unknown as T;
-    }
-
-    // Default empty result
-    if (Array.isArray([] as unknown as T)) {
-      return [] as unknown as T;
-    }
-    return {} as T;
   }
 
   /**
