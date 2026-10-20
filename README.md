@@ -196,7 +196,7 @@ Nothing in an open season expires. Come back after two weeks and Home says what'
 
 ## Your world
 
-In more than one circle? Open **Your world** from the circle menu: all your circles in one sky, each its own constellation, with you as the bridge between them. It shows what comes up in more than one circle (the same beach, the same band) and who from different circles should meet. It's built just for you when you open it, from what you can already see, and never stored.
+In more than one circle? Open **Your world** from the circle menu: all your circles in one sky, each its own constellation, with you as the bridge between them. It shows what comes up in more than one circle (the same beach, the same band) and who from different circles should meet. Under it, your story so far: when you met people, weddings, the plans you were in and what someone remembered, year by year, from what each circle knows. It's built just for you when you open it, from what you can already see, and never stored.
 
 ![Your world: two circles, you between them, and who should meet](docs/screenshots/your-world.png)
 

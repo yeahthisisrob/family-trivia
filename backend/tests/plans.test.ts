@@ -10,11 +10,12 @@ import {
   afterPlans,
   answerPlan,
   dropIn,
+  pastPlans,
   rememberPlan,
   removeDrop,
   viewPlans,
 } from '../features/plans/service';
-import { resetS3Mock, seedRaw } from './helpers/s3Mock';
+import { getStored, resetS3Mock, seedRaw } from './helpers/s3Mock';
 
 const today = getTodayET();
 const day = (n: number) => addDays(today, n);
@@ -96,6 +97,38 @@ describe('after the day', () => {
     ]);
     expect(await rememberPlan('bob', 'bob-hike', 'skip')).toBe(true);
     expect(await afterPlans('bob')).toEqual([]);
+  });
+
+  test('a memory keeps its plan, so it outlives the plan being let go', async () => {
+    seedRaw('plans/people/bob.json', {
+      drops: [
+        { id: 'bob-hike', by: 'bob', kind: 'plan', title: 'Hike', start: day(-2), createdAt: 'x' },
+      ],
+    });
+    seedRaw('plans/rsvp/bob-hike.json', { alice: 'in' });
+    seedRaw('family/family.json', {
+      version: 2,
+      name: 'The Crew',
+      people: Object.fromEntries(
+        ['alice', 'bob'].map((id) => [id, { id, name: id, participation: 'playing' }]),
+      ),
+      ties: [],
+      households: {},
+    });
+    await rememberPlan('alice', 'bob-hike', { text: 'The view.' });
+    expect(getStored('plans/memories/bob-hike.json')).toMatchObject({
+      plan: { title: 'Hike', start: day(-2), who: ['bob', 'alice'] },
+    });
+    // The plan itself is let go; the memory and its plan stay.
+    seedRaw('plans/people/bob.json', { drops: [] });
+    expect(await pastPlans('alice')).toEqual([
+      {
+        title: 'Hike',
+        date: day(-2),
+        with: ['bob'],
+        memory: expect.objectContaining({ text: 'The view.' }),
+      },
+    ]);
   });
 
   test('a plan still to come, or long past, asks nothing', async () => {

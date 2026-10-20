@@ -39,6 +39,22 @@ export interface WorldMeet {
   because: string;
 }
 
+/**
+ * A moment in someone's life as one of their circles knows it: when they met
+ * someone, a wedding, a plan they were in (docs/decisions/0018). Each
+ * feature adds its own (backend services/lifeEvents.ts).
+ */
+export interface LifeEvent {
+  /** YYYY, YYYY-MM or YYYY-MM-DD: as much as the circle knows. */
+  date: string;
+  kind: 'born' | 'met' | 'partner' | 'parent' | 'remembered' | 'joined' | 'plan';
+  /** In the viewer's words: "You met Bob", "You joined The Crew". */
+  title: string;
+  /** A line more: where, how, what someone remembered. */
+  detail?: string;
+  circleId: string;
+}
+
 export interface WorldView {
   circles: { id: string; name: string; kind: CircleKind }[];
   /** False with fewer than two circles: there's nothing to see across. */
@@ -47,4 +63,6 @@ export interface WorldView {
   links: WorldLink[];
   threads: WorldThread[];
   meet: WorldMeet[];
+  /** The viewer's life as their circles saw it, oldest first. */
+  timeline: LifeEvent[];
 }

@@ -2621,7 +2621,19 @@ export interface components {
                 total: number;
             }[];
         };
+        /** @description A moment in someone's life one of their circles knows (docs/decisions/0018) */
+        LifeEvent: {
+            /** @description YYYY, YYYY-MM or YYYY-MM-DD */
+            date: string;
+            /** @enum {string} */
+            kind: "born" | "met" | "partner" | "parent" | "remembered" | "joined" | "plan";
+            title: string;
+            detail?: string;
+            circleId: string;
+        };
         WorldView: {
+            /** @description The viewer's life as their circles saw it, oldest first */
+            timeline: components["schemas"]["LifeEvent"][];
             circles: {
                 id: string;
                 name: string;

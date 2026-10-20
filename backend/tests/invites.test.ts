@@ -175,12 +175,12 @@ describe('invite links', () => {
     const crew = await makeCrew();
     await inCircle(scopeOf(crew), async () => {
       seedRaw('circles/the-crew/config/users.json', {
-        users: { alice: { isAdmin: true }, joey: { group: '', color: '#222' } },
+        users: { alice: { isAdmin: true }, sam: { group: '', color: '#222' } },
       });
     });
     const invite = await createInvite({
       circleId: crew.id,
-      for: { kind: 'person', userId: 'joey' },
+      for: { kind: 'person', userId: 'sam' },
       lifetime: 'month',
       maxUses: 5,
       approval: true,
@@ -189,7 +189,7 @@ describe('invite links', () => {
     expect(invite).toMatchObject({ maxUses: 1, approval: false });
     expect(await acceptInvite(invite.token, 'j@example.com', null)).toMatchObject({
       ok: true,
-      userId: 'joey',
+      userId: 'sam',
     });
     expect(await acceptInvite(invite.token, 'other@example.com', null)).toMatchObject({
       ok: false,

@@ -1,4 +1,6 @@
 import { requireAuth } from '../../middleware/requireAuth';
+// Plans add their moments to people's life timelines (docs/decisions/0018).
+import './lifeEvents';
 import { getAfter, getPlans, postPlan, postPlanMemory, postRemovePlan, postRsvp } from './handlers';
 
 export const plansRoutes = {
