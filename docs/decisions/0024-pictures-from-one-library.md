@@ -16,7 +16,7 @@ bad one. Admins can already add a photo of someone the circle remembers.
   illustration of an animal or a thing that suggests what they love (from
   their knowledge index), or what they ask for in a few words. Never a
   person, a face or text. It lives in the circle's private media
-  (`media/avatars/{userId}/…`); at most three a day per person. Nothing is
+  (`media/avatars/{userId}/…jpg`); at most three a day per person. Nothing is
   used until they choose it.
 - **Or an animal, then its color:** 58 bundled animals (Microsoft Fluent
   Emoji, MIT), each on one of six soft colors chosen as a second step.

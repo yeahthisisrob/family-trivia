@@ -4494,7 +4494,7 @@ components:
           required: [library, key]
           properties:
             library: { type: string, enum: [ai] }
-            key: { type: string, description: "media/avatars/{userId}/{uuid}.webp" }
+            key: { type: string, description: "media/avatars/{userId}/{uuid}.jpg" }
         - type: object
           required: [library, animal, color]
           properties:

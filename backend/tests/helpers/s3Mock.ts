@@ -139,4 +139,5 @@ export const s3MockModule = {
   deleteObject,
   fileExists,
   putJsonIfNotExists,
+  forgetCached: () => undefined,
 };

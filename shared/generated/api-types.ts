@@ -2323,7 +2323,7 @@ export interface components {
         AvatarChoice: {
             /** @enum {string} */
             library: "ai";
-            /** @description media/avatars/{userId}/{uuid}.webp */
+            /** @description media/avatars/{userId}/{uuid}.jpg */
             key: string;
         } | {
             /** @enum {string} */

@@ -2,6 +2,7 @@ vi.mock('../services/s3', async () => (await import('./helpers/s3Mock')).s3MockM
 
 import type { APIGatewayProxyEvent } from 'aws-lambda';
 import { getCircles, postCircle } from '../features/circles/handlers';
+import { postInvite } from '../features/invites/handlers';
 import type { Caller } from '../middleware/requireAuth';
 import { appInit, appInitDeferred } from '../routes/appInit';
 import { createCircle, findCircle, scopeOf } from '../services/circles';
@@ -116,7 +117,31 @@ describe('starting a circle', () => {
       owner: false,
       circles: [],
     });
-    expect((await postCircle(body, 'alice', as('alice@example.com'))).statusCode).toBe(200);
+    const made = await postCircle(body, 'alice', as('alice@example.com'));
+    expect(made.statusCode).toBe(200);
+    // The answer lists the new circle, so the app can open it straight away.
+    const { circle, circles } = JSON.parse(made.body).data;
+    expect(circles.map((c: { id: string }) => c.id)).toContain(circle.id);
+  });
+
+  test('an owner invites to a circle from Admin › Circles without opening it', async () => {
+    const crew = await makeCrew();
+    const as = { email: 'alice@example.com', circle: home } as Caller;
+    const r = await postInvite(
+      { body: JSON.stringify({ circleId: crew.id, lifetime: 'week' }) } as APIGatewayProxyEvent,
+      'alice',
+      as,
+    );
+    expect(r.statusCode).toBe(200);
+    expect(JSON.parse(r.body).data.invite.circleIds).toEqual([crew.id]);
+    // Someone who isn't an admin there can't.
+    const bob = { email: 'bob@example.com', circle: home } as Caller;
+    const no = await postInvite(
+      { body: JSON.stringify({ circleId: crew.id }) } as APIGatewayProxyEvent,
+      'bob',
+      bob,
+    );
+    expect(no.statusCode).toBe(403);
   });
 });
 

@@ -8,6 +8,7 @@ import { errorResponse, successResponse } from '../../config';
 import type { Caller } from '../../middleware/requireAuth';
 import { requireAdmin } from '../../services/adminAuth';
 import { verifyGoogleToken } from '../../services/auth';
+import { findCircle, memberIn, scopeOf } from '../../services/circles';
 import { loadUsers } from '../../services/family/members';
 import {
   acceptInvite,
@@ -18,6 +19,7 @@ import {
   previewInvite,
   revokeInvite,
 } from '../../services/invites';
+import { inCircle } from '../../services/scope';
 import { sessionFor } from '../../services/session';
 
 type Body = Record<string, unknown>;
@@ -85,16 +87,37 @@ export async function getInvites(
   return successResponse({ invites, joins });
 }
 
-/** POST /admin/invites {for, lifetime, maxUses, approval}: make a link for this circle. */
+/**
+ * POST /admin/invites {for, lifetime, maxUses, approval, circleId?}: make a
+ * link for this circle, or for another circle the caller is an admin of
+ * (an owner inviting to a circle from Admin › Circles without opening it).
+ */
 export async function postInvite(
   event: APIGatewayProxyEvent,
   userId: string,
   caller: Caller,
 ): Promise<APIGatewayProxyResult> {
-  const denied = await asAdmin(userId);
-  if (denied) return denied;
   const body = parse(event);
   if (!body) return errorResponse('Body must be JSON', 400);
+  const other = text(body.circleId);
+  if (other && other !== caller.circle.id) {
+    const circle = await findCircle(other);
+    const there = circle && (await memberIn(circle, caller.email));
+    const notAdmin =
+      !circle || !there || (await inCircle(scopeOf(circle), () => requireAdmin(there)));
+    if (notAdmin || !circle) return errorResponse('Only an admin of that circle can invite', 403);
+    const invite = await createInvite({
+      circleId: circle.id,
+      for: { kind: 'anyone' },
+      lifetime: isLifetime(body.lifetime) ? body.lifetime : 'week',
+      maxUses: null,
+      approval: body.approval === true,
+      createdBy: there,
+    });
+    return successResponse({ invite });
+  }
+  const denied = await asAdmin(userId);
+  if (denied) return denied;
   const lifetime = isLifetime(body.lifetime) ? body.lifetime : 'week';
   const maxUses =
     typeof body.maxUses === 'number' && body.maxUses >= 1 ? Math.floor(body.maxUses) : null;

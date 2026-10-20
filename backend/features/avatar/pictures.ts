@@ -57,7 +57,8 @@ export async function makePicture(userId: string, hint?: string): Promise<MakeRe
           prompt: picturePrompt(loves, hint),
           negative_prompt: 'person, human, face, text, letters, watermark, scary',
           aspect_ratio: '1:1',
-          output_format: 'webp',
+          // Stable Image Core makes png or jpeg; jpeg keeps a picture small.
+          output_format: 'jpeg',
         }),
       }),
     );
@@ -69,7 +70,7 @@ export async function makePicture(userId: string, hint?: string): Promise<MakeRe
     if (!image || out.finish_reasons?.[0])
       throw new Error(`No picture (${out.finish_reasons?.[0]})`);
     const key = aiAvatarKey(userId, randomUUID());
-    await putBytes(key, Buffer.from(image, 'base64'), 'image/webp');
+    await putBytes(key, Buffer.from(image, 'base64'), 'image/jpeg');
     await putJson(madeKey(userId), { day: today, count: count + 1 });
     // One "output" per picture; Settings prices it per picture.
     recordUsage('pictures', MODEL, 0, 1);

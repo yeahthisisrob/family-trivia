@@ -40,6 +40,13 @@ const STABLE_KEYS = new Set([
 const ttlCache = new Map<string, { data: any; expiresAt: number }>();
 
 /** Clear the per-request read cache. Call at the start of every Lambda invocation. */
+/** Forget one stable file's cached copy, so the next read goes to S3. */
+export function forgetCached(logical: string): void {
+  const key = physicalKey(logical);
+  ttlCache.delete(key);
+  readCache.delete(key);
+}
+
 export function invalidateS3ReadCache(): void {
   readCache.clear();
   // TTL cache is intentionally NOT cleared — it survives across warm invocations
@@ -158,7 +165,8 @@ export async function putJson(logical: string, data: any): Promise<void> {
       }),
     );
 
-    // Bust TTL cache on write so admin changes take effect immediately
+    // Bust the caches on write: the next read, in this request or the next, sees what was written.
+    readCache.delete(key);
     if (STABLE_KEYS.has(logical)) {
       ttlCache.delete(key);
     }
