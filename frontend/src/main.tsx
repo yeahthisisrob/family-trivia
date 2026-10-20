@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 
 import AppProvider from './AppProvider';
 import { AppearanceProvider } from './shared/design-system';
+import { ToastProvider } from './shared/toast';
 
 const container = document.getElementById('root');
 if (!container) {
@@ -16,7 +17,9 @@ root.render(
     <BrowserRouter>
       {/* Theme and light/dark: the person's choice, then the family's default (AppearanceProvider). */}
       <AppearanceProvider>
-        <AppProvider />
+        <ToastProvider>
+          <AppProvider />
+        </ToastProvider>
       </AppearanceProvider>
     </BrowserRouter>
   </React.StrictMode>,

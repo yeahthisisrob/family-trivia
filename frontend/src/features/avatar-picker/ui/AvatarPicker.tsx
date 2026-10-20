@@ -28,6 +28,7 @@ import {
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { animalSrc, Face, rememberPictureUrl, setAvatarChoice } from '../../../entities/person';
+import { useToast } from '../../../shared/toast';
 import { avatarApi, type MadePicture } from '../api/avatarApi';
 
 const COLORS = Object.keys(AVATAR_COLORS) as AvatarColor[];
@@ -58,6 +59,7 @@ export const AvatarPicker: React.FC<Props> = ({
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const started = useRef(false);
+  const toast = useToast();
 
   const makeOne = useCallback(
     async (words?: string) => {
@@ -90,6 +92,7 @@ export const AvatarPicker: React.FC<Props> = ({
     try {
       await save(choice);
       setAvatarChoice(personId, choice);
+      toast({ message: choice ? 'Picture saved' : 'Back to your initials', tone: 'success' });
       onClose();
     } catch {
       setProblem('That didn’t save. Try again.');

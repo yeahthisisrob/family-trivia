@@ -222,6 +222,12 @@ Everyone starts with their initials. Tap your face on your profile and the AI ma
 
 ![Your picture: one made for you, or an animal and its color](docs/screenshots/avatar-picker.png)
 
+## On your home screen
+
+Add it to your phone's home screen and it opens full screen, like any other app. Home shows how once, on a phone that hasn't added it (on iPhone: Share, then Add to Home Screen), and the circle menu keeps the how-to. While you're in the app, anything new (a comment, a reaction, a new leader) shows as one line at the bottom with a way to view it, and the bell checks again the moment you come back. There are no emails or push notifications: what's new waits for you in the app.
+
+![Adding it to the home screen on an iPhone](docs/screenshots/install-card.png)
+
 ## Configuration
 
 `infra/cdk.config.json` (gitignored; copy from `cdk.context.example.json`):
