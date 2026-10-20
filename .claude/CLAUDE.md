@@ -46,6 +46,8 @@ just storybook
 - A game becomes a weekly trivia round with `round` in its folder; rules in
   `shared/src/game-modes.ts` (ROUND_RULES), which also lists the session modes.
 - MSW mocks the API in Storybook (`frontend/.storybook/mocks`).
+- Backend tests check every handler response against the OpenAPI contract
+  (0034, `CONTRACT_RESPONSES=strict`); a new route needs its contract entry.
 - Lint rules switched off in `biome.jsonc` are counted DEBT; burn them down,
   don't add to them.
 - A decision that would surprise a newcomer gets a record in `docs/decisions/`.

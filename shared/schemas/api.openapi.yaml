@@ -863,6 +863,34 @@ paths:
               schema:
                 $ref: "#/components/schemas/EndOfSeasonStatus"
 
+  /season-letters/seen:
+    post:
+      summary: Remember that the caller read a season letter, so it is not shown again
+      operationId: markSeasonLetterSeen
+      tags: [Season]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [seasonNumber, kind]
+              properties:
+                seasonNumber: { type: integer }
+                kind: { type: string, enum: [start, end] }
+      responses:
+        "200":
+          description: Remembered
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [seen]
+                properties:
+                  seen: { type: boolean }
+        "400":
+          description: Missing seasonNumber or kind
+
   # ──────────────────────────────────────────────
   # Family
   # ──────────────────────────────────────────────
@@ -1083,11 +1111,15 @@ paths:
                   type: boolean
       responses:
         "200":
-          description: Casino Rush session
+          description: Casino Rush session (a new one, or the active one resumed)
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CasinoRushSession"
+                type: object
+                required: [session]
+                properties:
+                  session:
+                    $ref: "#/components/schemas/CasinoRushSession"
 
   /casino-rush/answer:
     post:
@@ -1134,6 +1166,78 @@ paths:
             application/json:
               schema:
                 type: object
+
+  # ──────────────────────────────────────────────
+  # Casino (one credit pool for the casino games)
+  # ──────────────────────────────────────────────
+
+  /casino/balance:
+    get:
+      summary: The caller's casino credits, never below their trivia score this season
+      operationId: getCasinoBalance
+      tags: [Casino]
+      parameters:
+        - { name: userId, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Balance and floor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CasinoBalance"
+        "400":
+          description: Missing userId
+    post:
+      summary: Save the caller's casino credits (and their casino high score)
+      operationId: updateCasinoBalance
+      tags: [Casino]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, balance]
+              properties:
+                userId: { type: string }
+                balance: { type: number }
+      responses:
+        "200":
+          description: The saved balance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CasinoBalance"
+        "400":
+          description: Missing userId or balance
+
+  /game-ai/move:
+    post:
+      summary: The computer's move in an arcade game (null when the model fails; the game falls back)
+      operationId: gameAIMove
+      tags: [Games]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [game, state]
+              properties:
+                game: { type: string, enum: [curling, blackjack] }
+                state: { type: object, description: "The game's state, shaped per game" }
+      responses:
+        "200":
+          description: The move
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [move]
+                properties:
+                  move: { type: object, nullable: true, description: "Shaped per game" }
+        "400":
+          description: Missing game or state, or not a game with an AI
 
   # ──────────────────────────────────────────────
   # Slot Machine
@@ -1623,6 +1727,61 @@ paths:
                 properties:
                   success:
                     type: boolean
+
+  /admin/media/upload-url:
+    post:
+      summary: A short-lived URL to upload one image straight to the circle's storage (admins)
+      operationId: getMediaUploadUrl
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contentType]
+              properties:
+                adminUserId: { type: string }
+                contentType: { type: string, enum: [image/jpeg, image/png, image/webp, image/gif] }
+                folder: { type: string, description: "a-z, 0-9 and -, up to 40; uploads when left out" }
+      responses:
+        "200":
+          description: Where to PUT the file, and the key to store
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [key, url]
+                properties:
+                  key: { type: string }
+                  url: { type: string, format: uri }
+        "400":
+          description: Not a JPEG, PNG, WebP or GIF image
+        "403":
+          description: Not an admin
+
+  /admin/media/url:
+    get:
+      summary: A short-lived URL to show an uploaded image (admins)
+      operationId: getMediaReadUrl
+      tags: [Admin]
+      parameters:
+        - { name: adminUserId, in: query, required: true, schema: { type: string } }
+        - { name: key, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: The image's URL
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url]
+                properties:
+                  url: { type: string, format: uri }
+        "400":
+          description: Unknown media key
+        "403":
+          description: Not an admin
 
   /admin/seasons:
     get:
@@ -3843,20 +4002,10 @@ paths:
   # ──────────────────────────────────────────────
 
   /daily-fact-categories:
-    post:
-      summary: Get categories for the daily fact first-person flow
+    get:
+      summary: Get categories for the daily fact first-person flow, worded for the circle
       operationId: getDailyFactCategories
       tags: [Facts]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [userId]
-              properties:
-                userId:
-                  type: string
       responses:
         "200":
           description: Category list
@@ -3864,11 +4013,18 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [categories]
                 properties:
                   categories:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      required: [id, label, emoji, hint]
+                      properties:
+                        id: { type: string }
+                        label: { type: string }
+                        emoji: { type: string }
+                        hint: { type: string }
 
   /daily-fact-options:
     post:
@@ -4337,7 +4493,7 @@ paths:
                   type: string
                 reaction:
                   type: string
-                  enum: [love, laugh, same, wow, hug]
+                  enum: [love, laugh, same, wow, hug, null]
                   nullable: true
       responses:
         "200":
@@ -5643,10 +5799,20 @@ components:
           $ref: "#/components/schemas/DifficultyLevel"
         potentialPoints:
           type: number
+        resumed:
+          type: boolean
+          description: True when this is the caller's active session, picked up again
         messages:
           type: array
           items:
             $ref: "#/components/schemas/ProgressMessage"
+
+    CasinoBalance:
+      type: object
+      required: [balance, floor]
+      properties:
+        balance: { type: number }
+        floor: { type: number, description: "The caller's trivia score this season; 0 after a save" }
 
     MemberSummaryResponse:
       type: object
@@ -6331,7 +6497,7 @@ components:
                 $ref: "#/components/schemas/ReactionId"
         mine:
           type: string
-          enum: [love, laugh, same, wow, hug]
+          enum: [love, laugh, same, wow, hug, null]
           nullable: true
 
     Appearance:
