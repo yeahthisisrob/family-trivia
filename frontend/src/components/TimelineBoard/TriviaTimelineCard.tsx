@@ -5,9 +5,9 @@ import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useState } from 'react';
 import { PersonAvatar } from '../../entities/person';
+import { AnswerResultDialog } from '../../features/trivia';
 import type { Game } from '../../games/kit';
 import { colors } from '../../shared/design-system';
-import AnswerResultDialog from '../TriviaCard/AnswerResultDialog';
 import CustomCategoryBanner from './CustomCategoryBanner';
 
 interface TriviaEntry {

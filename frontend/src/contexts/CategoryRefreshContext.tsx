@@ -1,31 +1,25 @@
-import React, { createContext, useContext, useState } from 'react';
+import type React from 'react';
+import { createContext, useCallback, useContext, useMemo } from 'react';
 
 import { cacheService } from '../shared/api/CacheService';
 
 interface CategoryRefreshContextType {
-  refreshTimestamp: number;
   invalidateCategories: () => void;
 }
 
 const CategoryRefreshContext = createContext<CategoryRefreshContextType | undefined>(undefined);
 
+/**
+ * Drops the cached category lists (a custom category was added, or a pick
+ * counts against a category). Reads on server data ask again through their
+ * own invalidations (docs/decisions/0035).
+ */
 export const CategoryRefreshProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [refreshTimestamp, setRefreshTimestamp] = useState<number>(0);
-
-  // Use React.useCallback to memoize this function to prevent unnecessary re-renders
-  const invalidateCategories = React.useCallback(() => {
-    // Clear any category cache entries more efficiently with pattern matching
+  const invalidateCategories = useCallback(() => {
     cacheService.invalidatePattern('categories_');
-
-    // Update timestamp to trigger component refreshes
-    setRefreshTimestamp(Date.now());
   }, []);
 
-  // Memoize the context value to prevent unnecessary re-renders
-  const contextValue = React.useMemo(
-    () => ({ refreshTimestamp, invalidateCategories }),
-    [refreshTimestamp, invalidateCategories],
-  );
+  const contextValue = useMemo(() => ({ invalidateCategories }), [invalidateCategories]);
 
   return (
     <CategoryRefreshContext.Provider value={contextValue}>

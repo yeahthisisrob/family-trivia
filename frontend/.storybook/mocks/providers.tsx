@@ -262,14 +262,12 @@ export const useMockTriviaStatus = (): TriviaStatusContextType => {
 // ---------------------------------------------------------------------------
 
 interface CategoryRefreshContextType {
-  refreshTimestamp: number;
   invalidateCategories: () => void;
 }
 
 const CategoryRefreshContext = createContext<CategoryRefreshContextType | undefined>(undefined);
 
 const defaultCategoryRefresh: CategoryRefreshContextType = {
-  refreshTimestamp: 0,
   invalidateCategories: () => {},
 };
 

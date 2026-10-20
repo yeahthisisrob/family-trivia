@@ -5,7 +5,6 @@ import type React from 'react';
 
 import { AdminContext } from '../contexts/AdminContext';
 import { FamilyDataContext } from '../contexts/FamilyDataContext';
-import { LeaderboardContext } from '../contexts/LeaderboardContext';
 import { TimelineContext } from '../contexts/TimelineContext';
 import { TriviaContext } from '../contexts/TriviaContext';
 import { UserStatusContext } from '../contexts/UserStatusContext';
@@ -112,7 +111,6 @@ function makeTriviaValue(overrides: StubTriviaOverrides = {}) {
     ),
     refreshRounds: async () => {},
     refreshAllStatuses: async () => {},
-    refreshTimestamp: 0,
     invalidateCategories: () => {},
   };
 }
@@ -186,23 +184,6 @@ function makeUserStatusValue(overrides: StubUserStatusOverrides = {}) {
   };
 }
 
-// ── LeaderboardContext ─────────────────────────────────────────────
-
-const stubLeaderboardValue = {
-  players: [],
-  groups: [],
-  userGroups: {},
-  seasons: [],
-  selectedSeason: undefined,
-  maxQuestionsAsked: undefined,
-  globalCategoryStats: {},
-  loading: false,
-  error: null,
-  setSelectedSeason: () => {},
-  refreshLeaderboard: () => {},
-  clearError: () => {},
-};
-
 // ── Combined provider used by stories ──────────────────────────────
 
 export interface StoryProvidersProps {
@@ -221,15 +202,13 @@ export const StoryProviders: React.FC<StoryProvidersProps> = ({
   timeline,
 }) => (
   <FamilyDataContext.Provider value={makeFamilyValue(family) as any}>
-    <LeaderboardContext.Provider value={stubLeaderboardValue as any}>
-      <TriviaContext.Provider value={makeTriviaValue(trivia) as any}>
-        <UserStatusContext.Provider value={makeUserStatusValue(userStatus) as any}>
-          <TimelineContext.Provider value={makeTimelineValue(timeline) as any}>
-            {children}
-          </TimelineContext.Provider>
-        </UserStatusContext.Provider>
-      </TriviaContext.Provider>
-    </LeaderboardContext.Provider>
+    <TriviaContext.Provider value={makeTriviaValue(trivia) as any}>
+      <UserStatusContext.Provider value={makeUserStatusValue(userStatus) as any}>
+        <TimelineContext.Provider value={makeTimelineValue(timeline) as any}>
+          {children}
+        </TimelineContext.Provider>
+      </UserStatusContext.Provider>
+    </TriviaContext.Provider>
   </FamilyDataContext.Provider>
 );
 

@@ -159,6 +159,14 @@ export const commonHandlers = [
     }),
   ),
 
+  // The results (the leaderboard, and the categories' all-time stats)
+  http.get('*/consolidated-leaderboard', () =>
+    HttpResponse.json({
+      ok: true,
+      data: { users: {}, groups: {}, userGroups: {}, seasons: [], success: true },
+    }),
+  ),
+
   // Categories
   http.get('*/categories', () =>
     HttpResponse.json({

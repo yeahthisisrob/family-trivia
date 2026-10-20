@@ -3019,16 +3019,56 @@ export interface components {
             score: number;
             streak: number;
             lastAnswer?: components["schemas"]["HistoryEntry"];
-            categoryScores?: Record<string, never>;
+            /** @description Points by category */
+            categoryScores?: {
+                [key: string]: number;
+            };
             difficultyStats?: components["schemas"]["DifficultyStats"];
             avgPointsPerQuestion?: number;
+            /** @description Percent of questions answered right (0-100) */
             accuracy?: number;
+            questionsAnswered?: number;
+            pointBreakdown?: components["schemas"]["PointBreakdown"];
+        };
+        /** @description Where a player's points come from */
+        PointBreakdown: {
+            /** @description Daily trivia and catch-up questions */
+            regularPoints: number;
+            /** @description Games played as rounds */
+            gameModePoints: number;
+            /** @description Places on the Arcade's podiums */
+            arcadeBonusPoints: number;
+            familyFeudPoints: number;
+        };
+        /** @description A group's totals on the leaderboard */
+        GroupResult: {
+            groupId: string;
+            totalScore: number;
+            memberCount: number;
+            /** @description Members who played in the last 10 days */
+            activeMemberCount?: number;
+            topScorer: string;
+            topScore: number;
+            averageScore: number;
+            categoryScores?: {
+                [key: string]: number;
+            };
+            difficultyStats?: components["schemas"]["DifficultyStats"] & {
+                /** @enum {string} */
+                dominant?: "easy" | "normal" | "hard";
+            };
+            accuracy?: number;
+            description?: {
+                description: string;
+                lastUpdated: string;
+                updatedBy?: string;
+            };
         };
         DifficultyStats: {
-            easy?: number;
-            normal?: number;
-            hard?: number;
-            total?: number;
+            easy: number;
+            normal: number;
+            hard: number;
+            total: number;
         };
         FactComment: {
             id: string;
@@ -4518,6 +4558,7 @@ export interface operations {
     getConsolidatedLeaderboard: {
         parameters: {
             query?: {
+                /** @description A season number; `current` for the active season, else the latest concluded one (all time when there is neither). Left out: all time. */
                 season?: string;
             };
             header?: never;
@@ -4534,19 +4575,24 @@ export interface operations {
                 content: {
                     "application/json": {
                         /** @description Everyone with results in the range, remembered and paused people included */
-                        users?: {
+                        users: {
                             [key: string]: {
                                 leaderboardEntry: components["schemas"]["LeaderboardEntry"];
-                                history?: Record<string, never>[];
-                                facts?: Record<string, never>[];
+                                /** @description Their trivia in the range */
+                                history: components["schemas"]["HistoryEntry"][];
+                                facts: components["schemas"]["FactItem"][];
                                 group?: string;
                             };
                         };
-                        groups?: Record<string, never>;
-                        userGroups?: {
+                        /** @description Each group's totals, by group id */
+                        groups: {
+                            [key: string]: components["schemas"]["GroupResult"];
+                        };
+                        userGroups: {
                             [key: string]: string;
                         };
-                        seasons?: components["schemas"]["Season"][];
+                        seasons: components["schemas"]["Season"][];
+                        /** @description The season the results are for; left out for all time */
                         selectedSeason?: number;
                         maxQuestionsAsked?: number;
                         /** @description All-time category accuracy stats across all users */
@@ -4558,7 +4604,7 @@ export interface operations {
                                 correct: number;
                             };
                         };
-                        success?: boolean;
+                        success: boolean;
                     };
                 };
             };

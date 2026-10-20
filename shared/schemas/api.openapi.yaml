@@ -828,6 +828,9 @@ paths:
         - name: season
           in: query
           required: false
+          description: >
+            A season number; `current` for the active season, else the latest
+            concluded one (all time when there is neither). Left out: all time.
           schema:
             type: string
       responses:
@@ -837,28 +840,33 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [users, groups, userGroups, seasons, success]
                 properties:
                   users:
                     type: object
                     description: "Everyone with results in the range, remembered and paused people included"
                     additionalProperties:
                       type: object
-                      required: [leaderboardEntry]
+                      required: [leaderboardEntry, history, facts]
                       properties:
                         leaderboardEntry:
                           $ref: "#/components/schemas/LeaderboardEntry"
                         history:
                           type: array
+                          description: Their trivia in the range
                           items:
-                            type: object
+                            $ref: "#/components/schemas/HistoryEntry"
                         facts:
                           type: array
                           items:
-                            type: object
+                            $ref: "#/components/schemas/FactItem"
                         group:
                           type: string
                   groups:
                     type: object
+                    description: Each group's totals, by group id
+                    additionalProperties:
+                      $ref: "#/components/schemas/GroupResult"
                   userGroups:
                     type: object
                     additionalProperties:
@@ -869,6 +877,7 @@ paths:
                       $ref: "#/components/schemas/Season"
                   selectedSeason:
                     type: integer
+                    description: The season the results are for; left out for all time
                   maxQuestionsAsked:
                     type: integer
                   globalCategoryStats:
@@ -5756,15 +5765,86 @@ components:
           $ref: "#/components/schemas/HistoryEntry"
         categoryScores:
           type: object
+          description: Points by category
+          additionalProperties:
+            type: number
         difficultyStats:
           $ref: "#/components/schemas/DifficultyStats"
         avgPointsPerQuestion:
           type: number
         accuracy:
           type: number
+          description: Percent of questions answered right (0-100)
+        questionsAnswered:
+          type: integer
+        pointBreakdown:
+          $ref: "#/components/schemas/PointBreakdown"
+
+    PointBreakdown:
+      type: object
+      description: Where a player's points come from
+      required: [regularPoints, gameModePoints, arcadeBonusPoints, familyFeudPoints]
+      properties:
+        regularPoints:
+          type: number
+          description: Daily trivia and catch-up questions
+        gameModePoints:
+          type: number
+          description: Games played as rounds
+        arcadeBonusPoints:
+          type: number
+          description: Places on the Arcade's podiums
+        familyFeudPoints:
+          type: number
+
+    GroupResult:
+      type: object
+      description: A group's totals on the leaderboard
+      required: [groupId, totalScore, memberCount, topScorer, topScore, averageScore]
+      properties:
+        groupId:
+          type: string
+        totalScore:
+          type: number
+        memberCount:
+          type: integer
+        activeMemberCount:
+          type: integer
+          description: Members who played in the last 10 days
+        topScorer:
+          type: string
+        topScore:
+          type: number
+        averageScore:
+          type: number
+        categoryScores:
+          type: object
+          additionalProperties:
+            type: number
+        difficultyStats:
+          allOf:
+            - $ref: "#/components/schemas/DifficultyStats"
+            - type: object
+              properties:
+                dominant:
+                  type: string
+                  enum: [easy, normal, hard]
+        accuracy:
+          type: number
+        description:
+          type: object
+          required: [description, lastUpdated]
+          properties:
+            description:
+              type: string
+            lastUpdated:
+              type: string
+            updatedBy:
+              type: string
 
     DifficultyStats:
       type: object
+      required: [easy, normal, hard, total]
       properties:
         easy:
           type: integer
