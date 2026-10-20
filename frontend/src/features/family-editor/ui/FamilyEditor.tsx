@@ -38,6 +38,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useCircleWords } from '../../../entities/circle';
 import { familyApi, useFamily } from '../../../entities/family';
 import { ApiError } from '../../../services/ApiService';
+import { loadCircles } from '../../../session';
 import { archiveApi } from '../../family-archive';
 import { PersonDialog, participationLabel } from './PersonDialog';
 
@@ -153,9 +154,18 @@ export const FamilyEditor: React.FC<{ adminUserId: string }> = ({ adminUserId })
   };
 
   const remembered = rememberedPeople(family);
+  // A joined circle's people live in the circles it joins (docs/decisions/0018).
+  const here = loadCircles();
+  const joined = !!here?.circles.find((c) => c.id === here.current)?.sources;
 
   return (
     <Box>
+      {joined && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          This circle joins others: its people and how they're connected come from them. Add or
+          change people in those circles, and it shows here at once.
+        </Alert>
+      )}
       <Stack
         direction="row"
         sx={{

@@ -17,6 +17,8 @@ import { commentsRoutes } from './features/comments/routes';
 import { familyRoutes } from './features/family/routes';
 import { fillInRoutes } from './features/fill-in/routes';
 import { gamesRoutes } from './features/games/routes';
+// Joined circles read their people from their sources (docs/decisions/0018).
+import './services/family/joinedCircles';
 import { graphRoutes } from './features/graph/routes';
 import { invitesRoutes } from './features/invites/routes';
 import { knowledgeRoutes } from './features/knowledge/routes';

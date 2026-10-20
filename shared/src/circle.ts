@@ -16,6 +16,15 @@ export interface Circle {
    */
   root?: boolean;
   createdAt?: string;
+  /**
+   * A joined circle (docs/decisions/0018): the circles it joins. Their people
+   * are read through the link, never copied.
+   */
+  sources?: string[];
+  /** A joined circle that was split: kept, readable, and joined again by joining the same circles. */
+  endedAt?: string;
+  /** The season a split paused, opened again when the circles are joined again. */
+  pausedSeason?: number;
 }
 
 /** circles.json: every circle in this deployment. */
@@ -30,6 +39,10 @@ export interface MyCircle {
   name: string;
   kind: CircleKind;
   userId: string;
+  /** For a joined circle: the circles it joins. */
+  sources?: string[];
+  /** Set when a joined circle has been split. */
+  endedAt?: string;
 }
 
 /** The request header that names which circle a request is for. */

@@ -18,6 +18,23 @@ export const circlesApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ circleId, lifetime: 'month' }),
     }),
+  /** Join circles into one, or join a split one again (docs/decisions/0018). */
+  joinCircles: (j: { name: string; sources: string[] }) =>
+    apiService.request<{ circle: Circle; again: boolean; circles: MyCircle[] }>(
+      '/admin/circles/join',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(j),
+      },
+    ),
+  /** End a joined circle; nothing is deleted. */
+  split: (circleId: string) =>
+    apiService.request<{ circle: Circle; circles: MyCircle[] }>('/admin/circles/split', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ circleId }),
+    }),
   create: (c: { name: string; kind: CircleKind; themeId: string; yourName: string }) =>
     apiService.request<{ circle: Circle; circles: MyCircle[] }>('/admin/circles', {
       method: 'POST',

@@ -200,6 +200,12 @@ In more than one circle? Open **Your world** from the circle menu: all your circ
 
 ![Your world: two circles, you between them, and who should meet](docs/screenshots/your-world.png)
 
+## Joining circles
+
+Want the family and the old crew together for the holidays? In Admin › Circles, **Join circles** makes one more circle from two or more: everyone in them plays together, with its own seasons, and the people and how they're connected come from the circles they're in, so nothing is copied. Split it when it's done: its season pauses, nothing is deleted, and joining the same circles again picks up where you left off.
+
+![Joining circles: pick two or more, and it's named after them](docs/screenshots/join-circles.png)
+
 ## Teams
 
 A season can be played as teams (one setting in Admin › Seasons). Nobody assigns them: start a team, ask someone to team up, or ask to join one, and a yes from them puts you together, any time in the season. Teams rank by points per member, so two can beat five.

@@ -151,7 +151,12 @@ const CircleRow: React.FC<{ circle: MyCircle; selected: boolean; onClick: () => 
       <ListItemIcon>
         <Icon fontSize="small" />
       </ListItemIcon>
-      <ListItemText primary={circle.name} secondary={KIND_LABEL[circle.kind]} />
+      <ListItemText
+        primary={circle.name}
+        secondary={
+          circle.endedAt ? 'Split' : circle.sources ? 'Joined circles' : KIND_LABEL[circle.kind]
+        }
+      />
       {selected && <CheckRoundedIcon fontSize="small" sx={{ ml: 1, color: 'primary.main' }} />}
     </MenuItem>
   );

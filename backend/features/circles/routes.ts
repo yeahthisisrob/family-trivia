@@ -5,6 +5,8 @@ import {
   getSetup,
   joinCircle,
   postCircle,
+  postJoin,
+  postSplit,
   signIn,
   startFirst,
 } from './handlers';
@@ -18,4 +20,6 @@ export const circlesRoutes = {
   'POST /me/circles': requireAuth(joinCircle),
   'GET /admin/circles': requireAuth(getCircles),
   'POST /admin/circles': requireAuth(postCircle),
+  'POST /admin/circles/join': requireAuth(postJoin),
+  'POST /admin/circles/split': requireAuth(postSplit),
 };

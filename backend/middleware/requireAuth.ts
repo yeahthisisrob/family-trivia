@@ -13,7 +13,7 @@ import { CORS_HEADERS } from '../config';
 import { maybeRefreshJwt, type VerifiedUser, verifyJwt } from '../services/auth';
 import { listCircles, type Resolved, resolveCircle, scopeOf } from '../services/circles';
 import { logger } from '../services/logger';
-import { serveInCircle } from '../services/scope';
+import { PeopleLiveInSources, serveInCircle } from '../services/scope';
 
 /** Handler signature for auth-protected routes. */
 export type AuthHandler = (
@@ -162,6 +162,13 @@ export function requireAuth(handler: AuthHandler, opts: { userId?: UserIdMeaning
 
       return response;
     } catch (err) {
+      // A joined circle's people are changed in the circles it joins (0018).
+      if (err instanceof PeopleLiveInSources)
+        return {
+          statusCode: 409,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({ ok: false, error: err.message, errorType: 'PEOPLE_IN_SOURCES' }),
+        };
       // Catch-all — ensures we ALWAYS return a valid API Gateway response
       logger.error('requireAuth unhandled error', {
         path: event.path,
