@@ -13,7 +13,7 @@ import {
 import { forgetJoined, updatePerson } from '../services/family/joinedCircles';
 import { loadFamily, loadHierarchy } from '../services/family/roster';
 import { getJson, putJson } from '../services/s3';
-import { inCircle, PeopleLiveInSources } from '../services/scope';
+import { inCircle, PeopleLiveInSources, setFallbackScope } from '../services/scope';
 import { getStored, resetS3Mock, seedRaw } from './helpers/s3Mock';
 
 const person = (id: string): FamilyPerson => ({
@@ -165,5 +165,18 @@ describe('joining circles (0018)', () => {
     const reopened = getStored<SeasonsConfig>(`circles/${c.id}/config/seasons.json`);
     expect(reopened?.currentSeasonNumber).toBe(1);
     expect(reopened?.seasons[0]?.status).toBe('active');
+  });
+});
+
+describe('reading before a circle is chosen', () => {
+  it('reads sign-in data with no circle set (sign-in looks circles up first)', async () => {
+    seed();
+    setFallbackScope(null);
+    try {
+      await expect(getJson('circles.json')).resolves.toMatchObject({ version: 1 });
+      await expect(putJson('accounts/x.json', {})).resolves.toBeUndefined();
+    } finally {
+      setFallbackScope({ circleId: 'home', root: true });
+    }
   });
 });

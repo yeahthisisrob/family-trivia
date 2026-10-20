@@ -85,8 +85,17 @@ export class PeopleLiveInSources extends Error {
   }
 }
 
-const linkOf = (key: string, scope: Scope) =>
-  scope.sources?.length ? LINKED_KEYS[key] : undefined;
+/**
+ * How a key is linked here, if at all. Sign-in data is read before any
+ * circle is chosen, so a global key, or work with no circle yet, is never
+ * linked (and never asks for the current circle).
+ */
+function linkOf(key: string): { scope: Scope; link: 'people' | 'overlay' } | undefined {
+  if (isGlobalKey(key)) return undefined;
+  const link = LINKED_KEYS[key];
+  const scope = link ? (store.getStore() ?? fallback) : null;
+  return link && scope?.sources?.length ? { scope, link } : undefined;
+}
 
 /**
  * For a linked key in a joined circle, what its sources say (with the
@@ -96,15 +105,15 @@ export async function linkedRead(
   key: string,
   own: () => Promise<unknown>,
 ): Promise<{ value: unknown } | undefined> {
-  const scope = currentScope();
-  const link = linkOf(key, scope);
-  if (!link || !linkedReader) return undefined;
-  return { value: await linkedReader(key, scope, link === 'overlay' ? await own() : null) };
+  const linked = linkOf(key);
+  if (!linked || !linkedReader) return undefined;
+  const mine = linked.link === 'overlay' ? await own() : null;
+  return { value: await linkedReader(key, linked.scope, mine) };
 }
 
 /** Throws for a write to a joined circle's people. */
 export function assertWritable(key: string): void {
-  if (linkOf(key, currentScope()) === 'people') throw new PeopleLiveInSources();
+  if (linkOf(key)?.link === 'people') throw new PeopleLiveInSources();
 }
 
 // ── Running work in a circle ────────────────────────────────────
