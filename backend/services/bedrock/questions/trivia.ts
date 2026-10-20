@@ -16,6 +16,7 @@ import type {
   Question,
   QuestionHistory,
 } from '../core/types';
+import { CHOICE_QUESTION_SCHEMA, choiceQuestionProblem } from './choiceQuestion';
 import { buildTriviaPrompt } from './prompts';
 import { getPreviousCustomCategoryQuestions, isDuplicateQuestion } from './utils';
 
@@ -23,7 +24,7 @@ import { getPreviousCustomCategoryQuestions, isDuplicateQuestion } from './utils
  * Validates the question object to ensure it meets the expected format
  * and detects circular or obvious questions where the answer appears in the question
  */
-export function validateQuestion(question: any): boolean {
+function validateQuestion(question: any): boolean {
   try {
     // Check required fields
     if (!question || typeof question !== 'object') return false;
@@ -322,25 +323,8 @@ export async function generateTriviaQuestionBase(
   };
 }
 
-/** What the model fills in for a trivia question; the rest is added after. */
-const QUESTION_SCHEMA = {
-  type: 'object',
-  properties: {
-    question: { type: 'string', description: 'A clear trivia question' },
-    choices: {
-      type: 'array',
-      items: { type: 'string' },
-      minItems: 4,
-      maxItems: 4,
-      description: 'Exactly four answer options',
-    },
-    answer: { type: 'string', description: 'The correct answer, exactly as one of the choices' },
-  },
-  required: ['question', 'choices', 'answer'],
-};
-
 /** One trivia question from the model, as data, checked by validateQuestion (0033). */
-function askTriviaQuestion(prompt: string, temperature: number, model: string) {
+export function askTriviaQuestion(prompt: string, temperature: number, model: string) {
   return askStructured<any>({
     task: 'trivia',
     prompt,
@@ -349,15 +333,10 @@ function askTriviaQuestion(prompt: string, temperature: number, model: string) {
     model,
     name: 'trivia_question',
     description: 'Give the trivia question, its four choices and the correct answer.',
-    schema: QUESTION_SCHEMA,
+    schema: CHOICE_QUESTION_SCHEMA,
     check: (v): v is any => validateQuestion(v),
-    why: (v) => {
-      const q = v as { choices?: unknown[]; answer?: unknown } | null;
-      if (!Array.isArray(q?.choices) || q.choices.length !== 4)
-        return 'there must be exactly four choices';
-      if (!q.choices.includes(q.answer)) return 'the answer must be exactly one of the choices';
-      return 'the question gives its answer away, or a field is empty';
-    },
+    why: (v) =>
+      choiceQuestionProblem(v) ?? 'the question gives its answer away, or a field is empty',
   });
 }
 

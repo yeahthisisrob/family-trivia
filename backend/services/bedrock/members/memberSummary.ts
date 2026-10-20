@@ -16,15 +16,8 @@ import { FEATURE_FLAGS } from '../../../config';
 import { loadFamily } from '../../family/roster';
 import { logger } from '../../logger';
 import { getJson } from '../../s3';
-import { invokeBedrockPrompt } from '../core/bedrockClient';
-import { findJsonWithKey, withoutJsonKey } from '../core/jsonInText';
-import { collectResponseBody } from '../core/responseParser';
-import { extractTextContent } from '../core/textExtractor';
-
-// Helper to check if model is Claude
-function isClaudeModel(modelId: string): boolean {
-  return modelId.includes('anthropic.claude') || modelId.includes('us.anthropic.claude');
-}
+import { askStructured, askText } from '../core/converse';
+import { hasListOf, listSchema } from '../core/shape';
 
 interface MemberData {
   userId: string;
@@ -62,60 +55,74 @@ const summaryCache: Record<
   }
 > = {};
 
-/**
- * Extracts insights from AI response text
- */
-function extractInsights(text: string): MemberInsight[] {
+const INSIGHT_CATEGORIES = ['preference', 'personality', 'fact', 'activity', 'relationship'];
+
+const INSIGHTS_SCHEMA = listSchema(
+  'insights',
+  {
+    text: { type: 'string', description: '2-5 words' },
+    category: { type: 'string', enum: INSIGHT_CATEGORIES },
+  },
+  ['text', 'category'],
+);
+
+/** A list of insights; the ones without text or a known category are dropped after. */
+export const isInsightList = (v: unknown): v is { insights: Record<string, unknown>[] } =>
+  hasListOf(v, 'insights');
+
+/** The insights that have text and a known category. */
+export const usableInsights = (raw: Record<string, unknown>[]): MemberInsight[] =>
+  raw.filter(
+    (i): i is Record<string, unknown> & MemberInsight =>
+      typeof i.text === 'string' &&
+      i.text !== '' &&
+      typeof i.category === 'string' &&
+      INSIGHT_CATEGORIES.includes(i.category),
+  );
+
+const FAILED = 'Unable to generate summary due to an error.';
+
+/** One summary in words: the spotlight ('regular') or the roast. */
+async function writeSummary(prompt: string, mode: 'regular' | 'roast'): Promise<string> {
   try {
-    // First try to parse the entire text as JSON
-    try {
-      const parsed = JSON.parse(text);
-      if (parsed.insights && Array.isArray(parsed.insights)) {
-        logger.info('Successfully parsed insights from direct JSON', {
-          count: parsed.insights.length,
-        });
-        return parsed.insights.filter(
-          (insight: any) =>
-            insight.text &&
-            insight.category &&
-            ['preference', 'personality', 'fact', 'activity', 'relationship'].includes(
-              insight.category,
-            ),
-        );
-      }
-    } catch (e) {
-      // Not direct JSON, try to find JSON within the text
-      logger.info('Failed to parse as direct JSON', {
-        error: e instanceof Error ? e.message : String(e),
-      });
-    }
-
-    // Look for JSON insights in the response
-    const parsed = findJsonWithKey<{ insights?: MemberInsight[] }>(text, 'insights')?.value;
-    if (parsed) {
-      if (parsed.insights && Array.isArray(parsed.insights)) {
-        logger.info('Successfully extracted insights from embedded JSON', {
-          count: parsed.insights.length,
-        });
-        return parsed.insights.filter(
-          (insight: any) =>
-            insight.text &&
-            insight.category &&
-            ['preference', 'personality', 'fact', 'activity', 'relationship'].includes(
-              insight.category,
-            ),
-        );
-      }
-    }
-
-    logger.info('No insights found in response', { textPreview: text.slice(0, 100) });
-  } catch (e) {
-    logger.debug('Could not extract insights from response', {
-      error: e instanceof Error ? e.message : String(e),
-      textPreview: text.slice(0, 100),
+    return await askText({
+      task: mode === 'roast' ? 'roast' : 'spotlight',
+      prompt,
+      maxTokens: 2048,
+      temperature: mode === 'roast' ? 0.9 : 0.7,
+      model: modelFor(mode === 'roast' ? 'roast' : 'spotlight'),
     });
+  } catch (error) {
+    logger.error(`${mode === 'roast' ? 'Roast' : 'Regular'} summary generation failed`, {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return FAILED;
   }
-  return [];
+}
+
+/** The highlights about them, as data; none when it fails. */
+async function readInsights(prompt: string): Promise<MemberInsight[]> {
+  try {
+    const answer = await askStructured({
+      task: 'spotlight',
+      prompt,
+      maxTokens: 1024,
+      temperature: 0.5,
+      model: modelFor('spotlight'),
+      name: 'member_insights',
+      description: 'Short, specific highlights about them, each with its category.',
+      schema: INSIGHTS_SCHEMA,
+      check: isInsightList,
+    });
+    const insights = usableInsights(answer.insights);
+    logger.info('Insights extracted', { count: insights.length });
+    return insights;
+  } catch (insightError) {
+    logger.warn('Failed to generate insights', {
+      error: insightError instanceof Error ? insightError.message : String(insightError),
+    });
+    return [];
+  }
 }
 
 /**
@@ -894,143 +901,14 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
     // If generating both, do it in parallel for speed
     if (generateBoth) {
       logger.info('Generating both summaries in parallel');
-
-      const memberSummaryModel = modelFor('spotlight');
-      const roastModel = modelFor('roast');
-
-      // Create promises for both summaries
-      const regularPromise = (async () => {
-        try {
-          const regularResponse = await invokeBedrockPrompt(
-            regularPrompt,
-            2048,
-            0.7,
-            { task: 'spotlight', summaryMode: 'regular' },
-            memberSummaryModel,
-          );
-
-          const regularBuffer = await collectResponseBody(regularResponse);
-          const summaryText = extractTextContent(regularBuffer, memberSummaryModel, 'summary');
-
-          return { summary: summaryText };
-        } catch (error: any) {
-          logger.error('Regular summary generation failed', { error: error.message });
-          return { summary: 'Unable to generate summary due to an error.' };
-        }
-      })();
-
-      const roastPromise = (async () => {
-        try {
-          const roastResponse = await invokeBedrockPrompt(
-            roastPrompt,
-            2048,
-            0.9,
-            { task: 'roast', summaryMode: 'roast' },
-            roastModel,
-          );
-
-          const roastBuffer = await collectResponseBody(roastResponse);
-          const fullResponse = extractTextContent(roastBuffer, roastModel, 'summary');
-          const summaryText = withoutJsonKey(fullResponse, 'insights');
-
-          return { summary: summaryText };
-        } catch (error: any) {
-          logger.error('Roast summary generation failed', { error: error.message });
-          return { summary: 'Unable to generate summary due to an error.' };
-        }
-      })();
-
-      // Wait for both to complete
-      const [regularResult, roastResult] = await Promise.all([regularPromise, roastPromise]);
-
-      result.regularSummary = regularResult.summary;
-      result.roastSummary = roastResult.summary;
-
+      const [regularSummary, roastSummary] = await Promise.all([
+        writeSummary(regularPrompt, 'regular'),
+        writeSummary(roastPrompt, 'roast'),
+      ]);
+      result.regularSummary = regularSummary;
+      result.roastSummary = roastSummary;
       // Generate insights separately
-      try {
-        const insightsResponse = await invokeBedrockPrompt(
-          insightsPrompt,
-          1024,
-          0.5,
-          { task: 'spotlight', summaryMode: 'insights' },
-          memberSummaryModel,
-        );
-
-        const insightsBuffer = await collectResponseBody(insightsResponse);
-
-        // Parse the response directly to avoid string conversion issues
-        try {
-          const responseText = insightsBuffer.toString('utf-8');
-          const responseJson = JSON.parse(responseText);
-
-          // Extract the actual insights array from the response
-          let insightsData: unknown;
-          if (isClaudeModel(memberSummaryModel)) {
-            // Claude format
-            const content = responseJson.content?.[0]?.text;
-            if (content) {
-              // Try to parse the content as JSON
-              try {
-                insightsData = JSON.parse(content);
-              } catch {
-                // Content might be the insights array directly
-                insightsData = content;
-              }
-            }
-          } else {
-            // Fallback for other models
-            insightsData = responseJson.generation || responseJson.text || responseJson;
-          }
-
-          logger.info('Insights response received', {
-            type: typeof insightsData,
-            isArray: Array.isArray(insightsData),
-            preview: JSON.stringify(insightsData).slice(0, 200),
-          });
-
-          // Handle different response formats
-          if (typeof insightsData === 'string') {
-            result.insights = extractInsights(insightsData);
-          } else if (Array.isArray(insightsData)) {
-            // Direct array of insights
-            result.insights = insightsData.filter(
-              (insight: any) =>
-                insight.text &&
-                insight.category &&
-                ['preference', 'personality', 'fact', 'activity', 'relationship'].includes(
-                  insight.category,
-                ),
-            );
-          } else if (
-            insightsData &&
-            typeof insightsData === 'object' &&
-            'insights' in insightsData &&
-            Array.isArray(insightsData.insights)
-          ) {
-            // Object with insights property
-            result.insights = insightsData.insights.filter(
-              (insight: any) =>
-                insight.text &&
-                insight.category &&
-                ['preference', 'personality', 'fact', 'activity', 'relationship'].includes(
-                  insight.category,
-                ),
-            );
-          } else {
-            // Try to extract as string
-            result.insights = extractInsights(JSON.stringify(insightsData));
-          }
-        } catch (parseError: any) {
-          logger.warn('Failed to parse insights response directly', { error: parseError.message });
-          // Fallback to original method
-          const insightsJson = extractTextContent(insightsBuffer, memberSummaryModel, 'insights');
-          result.insights = extractInsights(insightsJson);
-        }
-        logger.info('Insights extracted', { count: result.insights?.length || 0 });
-      } catch (insightError: any) {
-        logger.warn('Failed to generate insights', { error: insightError.message });
-        result.insights = [];
-      }
+      result.insights = await readInsights(insightsPrompt);
 
       logger.info('Both summaries generated in parallel', {
         regularLength: result.regularSummary?.length,
@@ -1040,162 +918,25 @@ export async function generateMemberSummary(memberData: MemberData): Promise<{
     } else if (generateRegular) {
       // Generate only regular summary
       logger.info('Generating regular summary only');
-      try {
-        const memberSummaryModel = modelFor('spotlight');
+      result.regularSummary = await writeSummary(regularPrompt, 'regular');
+      // Generate insights separately if not already present
+      if (!result.insights) result.insights = await readInsights(insightsPrompt);
 
-        const regularResponse = await invokeBedrockPrompt(
-          regularPrompt,
-          2048,
-          0.7,
-          { task: 'spotlight', summaryMode: 'regular' },
-          memberSummaryModel,
-        );
-
-        const regularBuffer = await collectResponseBody(regularResponse);
-        const summaryText = extractTextContent(regularBuffer, memberSummaryModel, 'summary');
-
-        result.regularSummary = summaryText;
-
-        // Generate insights separately if not already present
-        if (!result.insights) {
-          try {
-            const insightsResponse = await invokeBedrockPrompt(
-              insightsPrompt,
-              1024,
-              0.5,
-              { task: 'spotlight', summaryMode: 'insights' },
-              memberSummaryModel,
-            );
-
-            const insightsBuffer = await collectResponseBody(insightsResponse);
-
-            // Parse the response directly to avoid string conversion issues
-            try {
-              const responseText = insightsBuffer.toString('utf-8');
-              const responseJson = JSON.parse(responseText);
-
-              // Extract the actual insights array from the response
-              let insightsData: unknown;
-              if (isClaudeModel(memberSummaryModel)) {
-                // Claude format
-                const content = responseJson.content?.[0]?.text;
-                if (content) {
-                  // Try to parse the content as JSON
-                  try {
-                    insightsData = JSON.parse(content);
-                  } catch {
-                    // Content might be the insights array directly
-                    insightsData = content;
-                  }
-                }
-              } else {
-                // Fallback for other models
-                insightsData = responseJson.generation || responseJson.text || responseJson;
-              }
-
-              logger.info('Insights response received', {
-                type: typeof insightsData,
-                isArray: Array.isArray(insightsData),
-                preview: JSON.stringify(insightsData).slice(0, 200),
-              });
-
-              // Handle different response formats
-              if (typeof insightsData === 'string') {
-                result.insights = extractInsights(insightsData);
-              } else if (Array.isArray(insightsData)) {
-                // Direct array of insights
-                result.insights = insightsData.filter(
-                  (insight: any) =>
-                    insight.text &&
-                    insight.category &&
-                    ['preference', 'personality', 'fact', 'activity', 'relationship'].includes(
-                      insight.category,
-                    ),
-                );
-              } else if (
-                insightsData &&
-                typeof insightsData === 'object' &&
-                'insights' in insightsData &&
-                Array.isArray(insightsData.insights)
-              ) {
-                // Object with insights property
-                result.insights = insightsData.insights.filter(
-                  (insight: any) =>
-                    insight.text &&
-                    insight.category &&
-                    ['preference', 'personality', 'fact', 'activity', 'relationship'].includes(
-                      insight.category,
-                    ),
-                );
-              } else {
-                // Try to extract as string
-                result.insights = extractInsights(JSON.stringify(insightsData));
-              }
-            } catch (parseError: any) {
-              logger.warn('Failed to parse insights response directly', {
-                error: parseError.message,
-              });
-              // Fallback to original method
-              const insightsJson = extractTextContent(
-                insightsBuffer,
-                memberSummaryModel,
-                'insights',
-              );
-              result.insights = extractInsights(insightsJson);
-            }
-            logger.info('Insights extracted', { count: result.insights?.length || 0 });
-          } catch (insightError: any) {
-            logger.warn('Failed to generate insights', { error: insightError.message });
-            result.insights = [];
-          }
-        }
-
-        logger.info('Regular summary generated', {
-          length: result.regularSummary?.length,
-          insightsCount: result.insights?.length || 0,
-          preview: `${result.regularSummary?.slice(0, 80)}...`,
-        });
-      } catch (error: any) {
-        logger.error('Regular summary generation failed', { error: error.message });
-        result.regularSummary = 'Unable to generate summary due to an error.';
-      }
+      logger.info('Regular summary generated', {
+        length: result.regularSummary?.length,
+        insightsCount: result.insights?.length || 0,
+        preview: `${result.regularSummary?.slice(0, 80)}...`,
+      });
     } else if (generateRoast) {
       // Generate only roast summary
       logger.info('Generating roast summary only');
-      try {
-        const roastModel = modelFor('roast');
+      result.roastSummary = await writeSummary(roastPrompt, 'roast');
 
-        const roastResponse = await invokeBedrockPrompt(
-          roastPrompt,
-          2048,
-          0.9,
-          { task: 'roast', summaryMode: 'roast' },
-          roastModel,
-        );
-
-        const roastBuffer = await collectResponseBody(roastResponse);
-        const fullResponse = extractTextContent(roastBuffer, roastModel, 'summary');
-
-        // For roast-only, we should still extract insights if not already present
-        if (!result.insights) {
-          const insights = extractInsights(fullResponse);
-          if (insights.length > 0) {
-            result.insights = insights;
-          }
-        }
-
-        const summaryText = withoutJsonKey(fullResponse, 'insights');
-        result.roastSummary = summaryText;
-
-        logger.info('Roast summary generated', {
-          length: result.roastSummary?.length,
-          insightsCount: result.insights?.length || 0,
-          preview: `${result.roastSummary?.slice(0, 80)}...`,
-        });
-      } catch (error: any) {
-        logger.error('Roast summary generation failed', { error: error.message });
-        result.roastSummary = 'Unable to generate summary due to an error.';
-      }
+      logger.info('Roast summary generated', {
+        length: result.roastSummary?.length,
+        insightsCount: result.insights?.length || 0,
+        preview: `${result.roastSummary?.slice(0, 80)}...`,
+      });
     }
 
     // Update cache

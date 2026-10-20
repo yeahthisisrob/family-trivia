@@ -5,10 +5,10 @@ import { modelFor } from '../core/models';
 import { logger } from '../../../services/logger';
 import { getJson } from '../../s3';
 import { checkTopicDuplicate } from '../../topicSimilarityService';
-import { invokeBedrockPrompt } from '../core/bedrockClient';
 import { MAX_RETRY_ATTEMPTS } from '../core/constants';
-import { collectResponseBody, extractJsonFromResponse } from '../core/responseParser';
+import { askStructured } from '../core/converse';
 import type { Question } from '../core/types';
+import { CHOICE_QUESTION_SCHEMA, choiceQuestionProblem, isChoiceQuestion } from './choiceQuestion';
 
 interface DuplicateCheckResult {
   isDuplicate: boolean;
@@ -457,23 +457,18 @@ Return the response in this exact JSON format:
     attempt++;
     try {
       const temp = 0.7 + (attempt - 1) * 0.1;
-      const stream = await invokeBedrockPrompt(
+      const parsed = await askStructured({
+        task: 'trivia',
         prompt,
-        512,
-        temp,
-        { task: 'trivia' },
-        modelFor('trivia'),
-      );
-      const buf = await collectResponseBody(stream);
-
-      let parsed = extractJsonFromResponse(buf);
-      if (parsed.rawText) parsed = JSON.parse(parsed.rawText);
-      if (!parsed.question || !Array.isArray(parsed.choices) || !parsed.answer) {
-        throw new Error('Bad format');
-      }
-      if (parsed.choices.length !== 4 || !parsed.choices.includes(parsed.answer)) {
-        throw new Error('Wrong choices count or missing answer');
-      }
+        maxTokens: 512,
+        temperature: temp,
+        model: modelFor('trivia'),
+        name: 'choice_question',
+        description: 'The multiple choice question, its four choices and the correct one.',
+        schema: CHOICE_QUESTION_SCHEMA,
+        check: isChoiceQuestion,
+        why: (v) => choiceQuestionProblem(v) ?? '',
+      });
 
       logger.info('Generated MCQ', { length: parsed.question.length });
       return { question: parsed.question, choices: parsed.choices, answer: parsed.answer };

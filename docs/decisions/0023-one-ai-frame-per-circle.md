@@ -14,8 +14,8 @@ friends family. Copying every prompt per kind would fork them (0021).
   the people are ("a circle of close friends"), what one of them is called,
   the group as a whole, what to steer away from, and themes that fit.
   `circleFrame()` gives the frame for the request's circle.
-- **Every prompt is framed on its way out.** `invokeBedrockPrompt` passes
-  each prompt through `framePrompt`: a family prompt goes out unchanged; in a
+- **Every prompt is framed on its way out.** Every model call (`askText`
+  and `askStructured`, 0033) passes each prompt through `framePrompt`: a family prompt goes out unchanged; in a
   friends or mixed circle it opens with one line saying who these people are
   and to read "family" as the group. No prompt can miss it.
 - **The prompts that matter most take the frame's words directly:** the

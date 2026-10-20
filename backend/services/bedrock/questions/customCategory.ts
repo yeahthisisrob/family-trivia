@@ -3,8 +3,8 @@ import { modelFor } from '../core/models';
 // Purpose: Generate custom categories from user topics with AI assistance
 
 import { logger } from '../../logger';
-import { invokeBedrockPrompt } from '../core/bedrockClient';
-import { collectResponseBody, extractJsonFromResponse } from '../core/responseParser';
+import { askStructured } from '../core/converse';
+import { isFilled, isRecord } from '../core/shape';
 import type { CustomCategory } from '../core/types';
 
 interface CategoryGenerationParams {
@@ -17,6 +17,10 @@ interface CategoryGenerationResult {
   title: string;
   description: string;
 }
+
+/** A title and a description, both filled in. */
+export const isCategory = (v: unknown): v is CategoryGenerationResult =>
+  isRecord(v) && isFilled(v.title) && isFilled(v.description);
 
 /**
  * Generate a custom category based on user input
@@ -55,35 +59,26 @@ export async function generateCustomCategory(
     });
 
     // Call the model to generate the category
-    const customCategoryModel = modelFor('trivia');
-    const bodyStream = await invokeBedrockPrompt(
+    // A category still missing a field after one retry throws (AiOutputInvalid).
+    const parsedResponse = await askStructured({
+      task: 'trivia',
       prompt,
-      300,
-      0.7,
-      { task: 'trivia' },
-      customCategoryModel,
-    );
-
-    // Collect response and extract JSON
-    const responseBuffer = await collectResponseBody(bodyStream);
-    const parsedResponse = extractJsonFromResponse(
-      responseBuffer,
-      customCategoryModel,
-    ) as CategoryGenerationResult;
-
-    // Validate the response
-    if (!parsedResponse) {
-      logger.error('Failed to extract valid JSON from response', {
-        userId,
-        topic,
-      });
-      throw new Error('Failed to generate a valid category format');
-    }
-
-    // Validate the response has the required fields
-    if (!parsedResponse.title || !parsedResponse.description) {
-      throw new Error('Generated category is missing required fields');
-    }
+      maxTokens: 300,
+      temperature: 0.7,
+      model: modelFor('trivia'),
+      name: 'trivia_category',
+      description: 'The category title and its description.',
+      schema: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: 'Under 40 characters' },
+          description: { type: 'string', description: 'Under 150 characters' },
+        },
+        required: ['title', 'description'],
+      },
+      check: isCategory,
+      why: () => 'both the title and the description must be filled in',
+    });
 
     // Create the category object
     const customCategory: CustomCategory = {

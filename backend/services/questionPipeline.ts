@@ -7,11 +7,11 @@ import { familyQuestion } from './familyTrivia';
 // deduplicates, judges the best, validates difficulty, and fact-checks.
 
 import { MODELS } from '../config';
-import { invokeBedrockPrompt } from './bedrock/core/bedrockClient';
-import { collectResponseBody, extractJsonFromResponse } from './bedrock/core/responseParser';
+import { askStructured } from './bedrock/core/converse';
+import { isRecord } from './bedrock/core/shape';
 import type { DifficultyLevel, Question } from './bedrock/core/types';
 import { buildTriviaPrompt } from './bedrock/questions/prompts';
-import { validateQuestion } from './bedrock/questions/trivia';
+import { askTriviaQuestion } from './bedrock/questions/trivia';
 import { isDuplicateQuestion } from './bedrock/questions/utils';
 import { externalTriviaS3Service } from './externalTriviaS3';
 import { logger } from './logger';
@@ -85,15 +85,8 @@ async function generateWithModel(
   temperature = 0.8,
 ): Promise<{ question: Question | null; calls: number }> {
   try {
-    const stream = await invokeBedrockPrompt(prompt, 512, temperature, { task: 'trivia' }, modelId);
-    const buf = await collectResponseBody(stream);
-    const parsed = extractJsonFromResponse(buf, modelId);
-
-    if (parsed.rawText || !validateQuestion(parsed)) {
-      return { question: null, calls: 1 };
-    }
-
-    const q = parsed as Question;
+    // A question that never passes validateQuestion throws, and counts as none.
+    const q = (await askTriviaQuestion(prompt, temperature, modelId)) as Question;
     q.category = category || q.category || 'General';
     q.difficulty = difficulty;
     q.pointMultiplier = POINT_MULTIPLIERS[difficulty];
@@ -119,6 +112,58 @@ async function generateWithModel(
 // ---------------------------------------------------------------------------
 // Validation: Difficulty + Fact-Check + Judge (combined)
 // ---------------------------------------------------------------------------
+
+/** The checker's verdict on one question. */
+interface QualityCheck {
+  isAccurate: boolean;
+  correctAnswer?: string | null;
+  difficultyOk?: boolean;
+  actualDifficulty?: string;
+  reason?: string;
+}
+
+/** The judge's pick among several, with the same verdict on it. */
+interface Judged extends QualityCheck {
+  bestOption: number;
+}
+
+const VERDICT_FIELDS = {
+  isAccurate: { type: 'boolean' },
+  correctAnswer: {
+    type: 'string',
+    description: 'If inaccurate, the right answer from the choices; otherwise left out',
+  },
+  difficultyOk: { type: 'boolean' },
+  reason: { type: 'string' },
+};
+
+const CHECK_SCHEMA = {
+  type: 'object',
+  properties: {
+    ...VERDICT_FIELDS,
+    actualDifficulty: { type: 'string', enum: ['easy', 'normal', 'hard'] },
+  },
+  required: ['isAccurate', 'difficultyOk'],
+};
+
+const JUDGE_SCHEMA = {
+  type: 'object',
+  properties: { bestOption: { type: 'integer', minimum: 1 }, ...VERDICT_FIELDS },
+  required: ['bestOption', 'isAccurate', 'difficultyOk'],
+};
+
+/** A verdict: accurate or not, and any correction as a string. */
+export const isQualityCheck = (v: unknown): v is QualityCheck =>
+  isRecord(v) &&
+  typeof v.isAccurate === 'boolean' &&
+  (v.correctAnswer == null || typeof v.correctAnswer === 'string') &&
+  (v.difficultyOk === undefined || typeof v.difficultyOk === 'boolean');
+
+/** A verdict that also names its pick, counting from 1. */
+const isJudged = (v: unknown): v is Judged => {
+  const pick = isRecord(v) ? v.bestOption : undefined;
+  return isQualityCheck(v) && typeof pick === 'number' && Number.isInteger(pick) && pick >= 1;
+};
 
 /**
  * Judge picks the best candidate, validates difficulty, and fact-checks — all in one call.
@@ -162,10 +207,18 @@ Return ONLY: {
 }`;
 
     try {
-      const modelId = modelFor('factCheck');
-      const stream = await invokeBedrockPrompt(prompt, 256, 0.1, { task: 'factCheck' }, modelId);
-      const buf = await collectResponseBody(stream);
-      const parsed = extractJsonFromResponse(buf, modelId);
+      const parsed = await askStructured({
+        task: 'factCheck',
+        prompt,
+        maxTokens: 256,
+        temperature: 0.1,
+        model: modelFor('factCheck'),
+        name: 'quality_check',
+        description:
+          'Whether the question is accurate, fairly difficult, and what is wrong if not.',
+        schema: CHECK_SCHEMA,
+        check: isQualityCheck,
+      });
 
       // Correct wrong answer
       if (
@@ -226,10 +279,17 @@ Return ONLY: {
 }`;
 
   try {
-    const modelId = modelFor('factCheck');
-    const stream = await invokeBedrockPrompt(prompt, 256, 0.2, { task: 'factCheck' }, modelId);
-    const buf = await collectResponseBody(stream);
-    const parsed = extractJsonFromResponse(buf, modelId);
+    const parsed = await askStructured({
+      task: 'factCheck',
+      prompt,
+      maxTokens: 256,
+      temperature: 0.2,
+      model: modelFor('factCheck'),
+      name: 'judge_pick',
+      description: 'The best option, whether it is accurate, and the reason for the pick.',
+      schema: JUDGE_SCHEMA,
+      check: isJudged,
+    });
 
     const bestIdx = (parsed.bestOption || 1) - 1;
     const selected = candidates[Math.min(bestIdx, candidates.length - 1)];

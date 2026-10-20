@@ -2,9 +2,7 @@ import { modelFor } from '../core/models';
 // File: lambda/services/bedrock/facts/dailySummary.ts
 
 import { logger } from '../../logger';
-import { invokeBedrockPrompt } from '../core/bedrockClient';
-import { collectResponseBody } from '../core/responseParser';
-import { extractTextContent } from '../core/textExtractor';
+import { askText } from '../core/converse';
 
 interface DailyFactData {
   date: string;
@@ -58,25 +56,16 @@ export async function generateDailyFactSummary(data: DailyFactData): Promise<str
     // Build the prompt
     const prompt = buildSummaryPrompt(data, factsByGroup, patterns);
 
-    // Get the model for member summaries (using same model as member summaries)
-    const model = modelFor('summaries');
-
     // Generate summary - use more tokens for weekly summaries
     const isWeekly = data.date.includes(' to ');
-    const maxTokens = isWeekly ? 2048 : 1024;
-
-    const response = await invokeBedrockPrompt(
+    return await askText({
+      task: 'summaries',
       prompt,
-      maxTokens,
-      0.7, // Temperature
-      { task: 'summaries', summaryType: isWeekly ? 'weekly-facts' : 'daily-facts' },
-      model,
-    );
-
-    const buffer = await collectResponseBody(response);
-
-    // Extract text content using utility
-    return extractTextContent(buffer, model, 'summary');
+      maxTokens: isWeekly ? 2048 : 1024,
+      temperature: 0.7,
+      // The same model as member summaries
+      model: modelFor('summaries'),
+    });
   } catch (error: any) {
     logger.error('Failed to generate daily fact summary', {
       error: error.message,

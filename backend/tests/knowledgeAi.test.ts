@@ -1,16 +1,12 @@
-const ai = vi.hoisted(() => ({ reply: '', prompt: '' }));
-vi.mock('../services/bedrock/core/bedrockClient', () => ({
-  invokeBedrockPrompt: async (prompt: string) => {
-    ai.prompt = prompt;
-    return {};
-  },
-}));
-vi.mock('../services/bedrock/core/responseParser', () => ({
-  collectResponseBody: async () => Buffer.from(''),
-}));
-vi.mock('../services/bedrock/core/textExtractor', () => ({ extractTextContent: () => ai.reply }));
+vi.mock('../services/s3', async () => (await import('./helpers/s3Mock')).s3MockModule);
 
 import { readAnswers } from '../features/knowledge/ai';
+import { setBedrockClient } from '../services/bedrock/core/converse';
+import { calls, fakeBedrock } from './helpers/fakeBedrock';
+import { resetS3Mock } from './helpers/s3Mock';
+
+beforeEach(() => resetS3Mock());
+afterEach(() => setBedrockClient(null));
 
 const said = [
   {
@@ -25,16 +21,18 @@ const family = [
 ];
 
 test('who a mention means, from the person answering; only someone in their family', async () => {
-  ai.reply = JSON.stringify({
-    items: [
-      { kind: 'person', name: 'mom', says: 'Mom’s pie', answer: 0, about: 'grace' },
-      { kind: 'person', name: 'aunt ivy', says: 'Aunt Ivy’s soup', answer: 0, about: 'ivy' },
-      { kind: 'person', name: 'a stranger', says: 'pie', answer: 0, about: 'nobody' },
-      { kind: 'food', name: 'pie', says: 'pie', answer: 0, about: 'grace' },
-    ],
-  });
+  const sent = fakeBedrock(
+    calls('knowledge_items', {
+      items: [
+        { kind: 'person', name: 'mom', says: 'Mom’s pie', answer: 0, about: 'grace' },
+        { kind: 'person', name: 'aunt ivy', says: 'Aunt Ivy’s soup', answer: 0, about: 'ivy' },
+        { kind: 'person', name: 'a stranger', says: 'pie', answer: 0, about: 'nobody' },
+        { kind: 'food', name: 'pie', says: 'pie', answer: 0, about: 'grace' },
+      ],
+    }),
+  );
   const items = await readAnswers('Bob', said, family);
   expect(items.map((i) => i.about)).toEqual(['grace', 'ivy', undefined, undefined]);
   // The prompt tells the reader who's who, from Bob's side.
-  expect(ai.prompt).toContain('Grandma Grace (their parent, id grace)');
+  expect(JSON.stringify(sent[0]?.messages)).toContain('Grandma Grace (their parent, id grace)');
 });

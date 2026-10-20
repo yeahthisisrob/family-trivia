@@ -11,11 +11,13 @@ import {
   type PersonKnowledge,
   topItems,
 } from '@family-trivia/shared';
-import { invokeBedrockPrompt } from '../../services/bedrock/core/bedrockClient';
-import { findJsonWithKey } from '../../services/bedrock/core/jsonInText';
+import {
+  askStructured,
+  type Structured,
+  unlessInvalid,
+} from '../../services/bedrock/core/converse';
 import { modelFor } from '../../services/bedrock/core/models';
-import { collectResponseBody } from '../../services/bedrock/core/responseParser';
-import { extractTextContent } from '../../services/bedrock/core/textExtractor';
+import { hasListOf, isFilled, isRecord, listSchema } from '../../services/bedrock/core/shape';
 
 export interface Said {
   at: string;
@@ -23,11 +25,85 @@ export interface Said {
   answer: string;
 }
 
-async function ask(task: 'knowledge' | 'persona' | 'notes', prompt: string, maxTokens: number) {
-  const model = modelFor(task);
-  const stream = await invokeBedrockPrompt(prompt, maxTokens, 0.2, { task }, model);
-  return extractTextContent(await collectResponseBody(stream), model, task);
+type Answer<T> = Omit<Structured<T>, 'task' | 'prompt' | 'maxTokens'>;
+
+function ask<T>(
+  task: 'knowledge' | 'persona' | 'notes',
+  prompt: string,
+  maxTokens: number,
+  answer: Answer<T>,
+): Promise<T> {
+  return askStructured({
+    ...answer,
+    task,
+    prompt,
+    maxTokens,
+    temperature: 0.2,
+    model: modelFor(task),
+  });
 }
+
+const ITEMS: Answer<{ items: Record<string, unknown>[] }> = {
+  name: 'knowledge_items',
+  description: 'The specific things these answers talk about, one item each.',
+  schema: listSchema(
+    'items',
+    {
+      kind: { type: 'string', enum: KNOWLEDGE_KINDS.map((k) => k.id) },
+      name: { type: 'string' },
+      says: { type: 'string' },
+      answer: { type: 'integer', description: 'The [number] it came from' },
+      about: { type: 'string', description: 'The id, for a family member' },
+      tag: { type: 'string', enum: [...MEDIA_TAGS], description: 'For media only' },
+    },
+    ['kind', 'name', 'says', 'answer'],
+  ),
+  check: (v): v is { items: Record<string, unknown>[] } => hasListOf(v, 'items'),
+};
+
+interface Persona {
+  persona: string;
+  traits?: string[];
+}
+
+/** A persona: some sentences, and maybe a list of short traits. */
+export const isPersona = (v: unknown): v is Persona =>
+  isRecord(v) &&
+  isFilled(v.persona) &&
+  (v.traits === undefined ||
+    (Array.isArray(v.traits) && v.traits.every((t) => typeof t === 'string')));
+
+const PERSONA: Answer<Persona> = {
+  name: 'persona',
+  description: 'Who they are, in a few sentences, and a handful of traits.',
+  schema: {
+    type: 'object',
+    properties: {
+      persona: { type: 'string' },
+      traits: { type: 'array', items: { type: 'string' } },
+    },
+    required: ['persona'],
+  },
+  check: isPersona,
+  why: (v) =>
+    isRecord(v) && isFilled(v.persona)
+      ? 'traits must be a list of strings'
+      : 'the persona is empty',
+};
+
+const NOTES: Answer<{ notes: Record<string, unknown>[] }> = {
+  name: 'did_you_know',
+  description: 'One short, true "did you know" for each thing it is sure about.',
+  schema: listSchema(
+    'notes',
+    {
+      n: { type: 'integer', description: 'The [number] of the thing' },
+      text: { type: 'string' },
+    },
+    ['n', 'text'],
+  ),
+  check: (v): v is { notes: Record<string, unknown>[] } => hasListOf(v, 'notes'),
+};
 
 /** Someone in the family, as the person answering knows them. */
 export interface Relative {
@@ -57,11 +133,10 @@ Return only JSON: {"items": [{"kind": "...", "name": "...", "says": "...", "answ
 - answer: the [number] it came from.
 - tag (media only, when it's clear): ${MEDIA_TAGS.join(', ')}. A band or artist is "band".
 - Only what the answers actually say. Skip jokes with nothing in them, and skip answers that say nothing about them.`;
-  const text = await ask('knowledge', prompt, 1500);
-  const found = findJsonWithKey<{ items?: unknown[] }>(text, 'items');
+  // An answer that never takes the right shape reads as nothing found, as before.
+  const found = await unlessInvalid(ask('knowledge', prompt, 1500, ITEMS), { items: [] });
   const out: KnowledgeItem[] = [];
-  for (const raw of found?.value.items ?? []) {
-    const r = raw as Record<string, unknown>;
+  for (const r of found.items) {
     const source = said[Number(r.answer)];
     if (!source || !isKnowledgeKind(r.kind) || typeof r.name !== 'string' || !r.name.trim())
       continue;
@@ -104,14 +179,13 @@ Return only JSON: {"persona": "...", "traits": ["...", "..."]}
 - persona: two or three warm, specific sentences in plain words${remembered ? `. ${name} has died and the family remembers them: write in the past tense, gently` : ''}.
 - traits: three to five short ones ("loves the outdoors", "a planner").
 - Only what is given; invent nothing. No lists or emojis in the persona.`;
-  const text = await ask('persona', prompt, 400);
-  const found = findJsonWithKey<{ persona?: unknown; traits?: unknown }>(text, 'persona');
-  const persona = typeof found?.value.persona === 'string' ? found.value.persona.trim() : '';
-  if (!persona) throw new Error('The model returned no persona');
-  const traits = Array.isArray(found?.value.traits)
-    ? found.value.traits.filter((t): t is string => typeof t === 'string').slice(0, 5)
-    : [];
-  return { text: persona, traits, at: new Date().toISOString(), items: k.items.length };
+  const found = await ask('persona', prompt, 400, PERSONA);
+  return {
+    text: found.persona.trim(),
+    traits: (found.traits ?? []).slice(0, 5),
+    at: new Date().toISOString(),
+    items: k.items.length,
+  };
 }
 
 /**
@@ -128,12 +202,10 @@ Return only JSON: {"notes": [{"n": 0, "text": "..."}]}
 - One or two sentences each, plain words, no emojis.
 - Only facts you are sure of and that are widely known. If you aren't sure what it is, or it's personal ("my mom's lasagna"), skip it.
 - Never invent dates, numbers or tour plans.`;
-  const text = await ask('notes', prompt, 700);
-  const found = findJsonWithKey<{ notes?: unknown[] }>(text, 'notes');
+  const found = await unlessInvalid(ask('notes', prompt, 700, NOTES), { notes: [] });
   const at = new Date().toISOString();
   const out: KnowledgeNote[] = [];
-  for (const raw of found?.value.notes ?? []) {
-    const r = raw as Record<string, unknown>;
+  for (const r of found.notes) {
     const love = loves[Number(r.n)];
     if (love && typeof r.text === 'string' && r.text.trim())
       out.push({ key: itemKey(love.kind, love.name), text: r.text.trim().slice(0, 300), at });

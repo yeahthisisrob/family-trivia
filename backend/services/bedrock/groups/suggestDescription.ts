@@ -2,9 +2,7 @@ import { modelFor } from '../core/models';
 // File: lambda/services/bedrock/groups/suggestDescription.ts
 
 import { logger } from '../../logger';
-import { invokeBedrockPrompt } from '../core/bedrockClient';
-import { collectResponseBody } from '../core/responseParser';
-import { extractTextContent } from '../core/textExtractor';
+import { askText } from '../core/converse';
 
 interface GroupData {
   groupId: string;
@@ -66,20 +64,13 @@ export async function generateGroupDescription(groupData: GroupData): Promise<st
     });
 
     // Send to Bedrock with a small token limit since we only need a short description
-    const groupDescModel = modelFor('summaries');
-    const response = await invokeBedrockPrompt(
+    const description = await askText({
+      task: 'summaries',
       prompt,
-      256,
-      0.8,
-      { task: 'summaries' },
-      groupDescModel,
-    );
-
-    // Parse the response
-    const responseBuffer = await collectResponseBody(response);
-
-    // Extract text content using utility
-    const description = extractTextContent(responseBuffer, groupDescModel, 'description');
+      maxTokens: 256,
+      temperature: 0.8,
+      model: modelFor('summaries'),
+    });
 
     // If the description is too long, truncate it
     return description.length > 120 ? `${description.substring(0, 117)}...` : description;
