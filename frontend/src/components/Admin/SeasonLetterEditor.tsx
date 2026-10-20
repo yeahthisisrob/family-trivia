@@ -4,7 +4,7 @@
  * right, and an optional photo uploaded to the family's private storage.
  */
 
-import type { Season, SeasonNote } from '@family-trivia/shared';
+import { OPENING_DAYS, openingLetter, type Season, type SeasonNote } from '@family-trivia/shared';
 import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
 import {
   Alert,
@@ -24,13 +24,15 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { getMediaUrl, uploadImage } from '../../api/modules/admin';
 import { useAdmin } from '../../contexts/AdminContext';
+import { currentCircleKind } from '../../session';
 import { paper } from '../../shared/design-system';
 import { LetterPaper } from '../SeasonLetter/SeasonLetter';
 
 type Kind = 'start' | 'end';
 
 interface SeasonLetterEditorProps {
-  season: Pick<Season, 'seasonNumber' | 'name' | 'notes'> & { message?: string | null };
+  season: Pick<Season, 'seasonNumber' | 'name' | 'notes'> &
+    Partial<Pick<Season, 'trivia' | 'play' | 'pace' | 'perWeek'>> & { message?: string | null };
   onClose: () => void;
 }
 
@@ -109,6 +111,11 @@ export const SeasonLetterEditor: React.FC<SeasonLetterEditorProps> = ({ season, 
     }
   };
 
+  // Nothing written for the start: everyone gets the welcome made from the season's settings.
+  const made =
+    kind === 'start' && !note.markdown.trim()
+      ? openingLetter(season, { kind: currentCircleKind(), first: season.seasonNumber === 1 })
+      : null;
   const heading =
     note.title?.trim() || (kind === 'start' ? `${season.name} begins` : `${season.name} has ended`);
 
@@ -157,6 +164,24 @@ export const SeasonLetterEditor: React.FC<SeasonLetterEditorProps> = ({ season, 
               }
               slotProps={{ htmlInput: { maxLength: 20000 } }}
             />
+            {made && (
+              <Alert
+                severity="info"
+                action={
+                  <Button
+                    color="inherit"
+                    size="small"
+                    onClick={() => update({ markdown: made.markdown })}
+                  >
+                    Start from it
+                  </Button>
+                }
+              >
+                Leave it empty and everyone gets the welcome on the right, made from this season's
+                settings, with how last season went. It shows for the season's first {OPENING_DAYS}{' '}
+                days.
+              </Alert>
+            )}
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <input
                 ref={fileInput}
@@ -205,7 +230,7 @@ export const SeasonLetterEditor: React.FC<SeasonLetterEditorProps> = ({ season, 
           >
             <LetterPaper
               heading={heading}
-              markdown={note.markdown || '*Your letter appears here.*'}
+              markdown={made?.markdown || note.markdown || '*Your letter appears here.*'}
               imageUrl={previews[kind]}
             />
           </Box>

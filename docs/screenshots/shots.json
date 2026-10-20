@@ -172,6 +172,14 @@
       "source": "e4983392a914"
     },
     {
+      "file": "season-opens.png",
+      "story": "seasons-seasonletter--opens-on-its-own",
+      "size": "phone",
+      "selector": ".MuiDialog-paper",
+      "storyFile": "frontend/src/components/SeasonLetter/SeasonLetter.stories.tsx",
+      "source": "e1f4a76dd9df"
+    },
+    {
       "file": "settings.png",
       "story": "admin-settingspage--ai-and-cost",
       "size": "desktop",

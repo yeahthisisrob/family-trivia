@@ -26,18 +26,23 @@
 import type {
   Season,
   SeasonLetter,
+  SeasonNote,
   EndOfSeasonStatus as SeasonStatusResponse,
   SeasonsConfig,
 } from '@family-trivia/shared';
 import {
   categoriesFor,
   getEasternDateString,
+  type OpeningFacts,
+  openingLetter,
+  opensRecently,
   paceOf,
   playPeriod,
   type SystemCategory,
   seasonTriviaOf,
 } from '@family-trivia/shared';
 import { S3_PATHS } from '../constants';
+import { getAllFactHistories } from './factHistoryService';
 import { logger } from './logger';
 import { readUrl } from './media';
 import { getJson, listObjects, putJson } from './s3';
@@ -261,12 +266,18 @@ async function unseenLetter(
   kind: 'start' | 'end',
 ): Promise<SeasonLetter | null> {
   if (!userId || !season) return null;
-  const note =
-    season.notes?.[kind] ??
-    (kind === 'end' && season.message ? { markdown: season.message } : undefined);
-  if (!note?.markdown.trim()) return null;
   const seen = await getJson<Seen>(SEEN_KEY(userId));
   if (seen?.letters.includes(letterId(season.seasonNumber, kind))) return null;
+  const written =
+    season.notes?.[kind] ??
+    (kind === 'end' && season.message ? { markdown: season.message } : undefined);
+  // No start letter written: a season that just began opens with one made from its settings.
+  const note: SeasonNote | null = written?.markdown.trim()
+    ? written
+    : kind === 'start' && opensRecently(season, getEasternDateString())
+      ? openingLetter(season, await openingFacts(season))
+      : null;
+  if (!note) return null;
   const imageUrl = note.image ? await readUrl(note.image) : null;
   return {
     seasonNumber: season.seasonNumber,
@@ -275,6 +286,28 @@ async function unseenLetter(
     markdown: note.markdown,
     ...(imageUrl ? { imageUrl } : {}),
   };
+}
+
+/** What the opening letter says about this circle and how its last season went. */
+async function openingFacts(season: Season): Promise<OpeningFacts> {
+  const [config, kind] = await Promise.all([getSeasonsConfig(), currentCircleKind()]);
+  const before = config.seasons
+    .filter((s) => s.status === 'concluded' && s.seasonNumber < season.seasonNumber)
+    .sort((a, b) => b.seasonNumber - a.seasonNumber)[0];
+  if (!before) return { kind, first: true };
+  const from = before.startDate;
+  const to = before.endDate ?? season.startDate;
+  let people = 0;
+  let answers = 0;
+  for (const entries of (await getAllFactHistories()).values()) {
+    // Answers given here (not read through from another circle), in that season.
+    const said = entries.filter(
+      (e) => !e.from && e.answered && !e.skipped && e.date >= from && e.date <= to,
+    ).length;
+    if (said) people++;
+    answers += said;
+  }
+  return { kind, first: false, last: { name: before.name, people, answers } };
 }
 
 /** Remember that this person has read a season letter. */
