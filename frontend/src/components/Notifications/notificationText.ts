@@ -1,16 +1,11 @@
 /** What a notification says, in the bell's panel and in its toast (0031). */
 import type { NotificationItem } from '@family-trivia/shared';
-import { reactionById } from '@family-trivia/shared';
+import { GAME_MODES, reactionById } from '@family-trivia/shared';
+import { gameById } from '../../games/registry';
 
-const GAME_LABELS: Record<string, string> = {
-  tetris: 'Tetris',
-  curling: 'Curling',
-  'slot-machine': 'Slots',
-  snake: 'Snake',
-  crossword: 'Crossword',
-  blackjack: 'Blackjack',
-  casino: 'Casino',
-};
+/** A game's name: its folder's label, or a trivia game mode's (0032). */
+const gameLabel = (id: string) =>
+  gameById(id)?.label ?? GAME_MODES.find((m) => m.id === id)?.label ?? id;
 
 const PLACE: Record<number, string> = {
   1: 'took the lead!',
@@ -20,7 +15,6 @@ const PLACE: Record<number, string> = {
 
 /** The one line: who did what. */
 export function notificationMessage(item: NotificationItem): string {
-  const gameLabel = item.gameId ? (GAME_LABELS[item.gameId] ?? item.gameId) : '';
   const reaction = item.type === 'reaction' && item.reaction ? reactionById(item.reaction) : null;
   if (reaction)
     return `${item.reactionUserId} reacted ${reaction.emoji} to your ${item.contentType === 'trivia' ? 'answer' : 'fact'}`;
@@ -28,7 +22,7 @@ export function notificationMessage(item: NotificationItem): string {
     case 'comment':
       return `${item.commentUserId} commented${item.threadCommentCount && item.threadCommentCount > 1 ? ` (${item.threadCommentCount} new)` : ''}`;
     case 'high_score':
-      return `${item.scoreUserId} set a new ${gameLabel} high score!`;
+      return `${item.scoreUserId} set a new ${item.gameId ? gameLabel(item.gameId) : ''} high score!`;
     case 'family_feud':
       return item.feudEventType === 'new_round'
         ? `New Family Feud! About ${item.feudTargetName}`

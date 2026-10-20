@@ -22,16 +22,15 @@ import {
   useTheme,
 } from '@mui/material';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-
-import { submitArcadeScore } from '../../api/modules/arcade';
 import { getCurlingAIMove } from '../../api/modules/gameAI';
 import { lockCurling, submitCurlingAnswer } from '../../api/modules/games';
+import { LoadingDots } from '../../components/ui/feedback';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../utils/logger';
-import { LoadingDots } from '../ui/feedback';
+import { submitScore } from '../kit';
 import { CurlingSimulation, OFF_SHEET_MARGIN } from './curlingPhysics';
 
 const logger = createLogger('CurlingGame');
@@ -411,7 +410,7 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
         // Arcade: submit precision score, then stay on result with "Play Again"
         setState('answered'); // reuse answered state for arcade done
         try {
-          await submitArcadeScore(userId, 'curling', result.precisionScore);
+          await submitScore('curling', result.precisionScore);
         } catch (err) {
           logger.error('Arcade score submit failed', err);
         }
@@ -1807,7 +1806,7 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
               onClick={() => {
                 if (currentEnd >= TOTAL_ENDS) {
                   // Submit precision score to arcade leaderboard
-                  submitArcadeScore(userId, 'curling', arcadeScoreRef.current).catch(() => {});
+                  submitScore('curling', arcadeScoreRef.current).catch(() => {});
                   setState('gameOver');
                   return;
                 }

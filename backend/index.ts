@@ -16,6 +16,7 @@ import { circlesRoutes } from './features/circles/routes';
 import { commentsRoutes } from './features/comments/routes';
 import { familyRoutes } from './features/family/routes';
 import { fillInRoutes } from './features/fill-in/routes';
+import { gamesRoutes } from './features/games/routes';
 import { graphRoutes } from './features/graph/routes';
 import { invitesRoutes } from './features/invites/routes';
 import { knowledgeRoutes } from './features/knowledge/routes';
@@ -35,7 +36,6 @@ import { getAnswerGrid } from './routes/answerGrid';
 // App init endpoint (consolidated)
 import { appInit, appInitDeferred } from './routes/appInit';
 // Arcade endpoints
-import { arcadeLeaderboard, arcadeSubmitScore } from './routes/arcade';
 // Auth
 import { canAnswerQuestion } from './routes/canAnswerQuestion';
 // Casino (shared credit pool)
@@ -130,7 +130,6 @@ import { step3FactCheck } from './routes/questionGeneration/step3FactCheck';
 import { questionStatus } from './routes/questionStatus';
 // Weekly fact summary endpoint
 import { markSeasonLetterSeen } from './routes/seasonLetters';
-import { getSnakeQuestions } from './routes/snake';
 import { submitAnswer } from './routes/submitAnswer';
 import { submitCustomCategory } from './routes/submitCustomCategory';
 import { suggestGroupDescription } from './routes/suggestGroupDescription';
@@ -184,6 +183,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...threadsRoutes,
   ...yourWorldRoutes,
   ...teamsRoutes,
+  ...gamesRoutes,
   ...sinceRoutes,
 
   // ── Protected: identity comes from the token (middleware/requireAuth.ts) ──
@@ -244,10 +244,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   'GET /tetris/status': requireAuth(tetrisStatus),
   'POST /tetris/lock': requireAuth(tetrisLock),
   'POST /tetris/answer': requireAuth(tetrisAnswer),
-  'GET /arcade/leaderboard': requireAuth(arcadeLeaderboard),
-  'POST /arcade/submit-score': requireAuth(arcadeSubmitScore),
   'POST /crossword/generate': requireAuth(generateCrossword),
-  'POST /snake/questions': requireAuth(getSnakeQuestions),
   'GET /family-feud/status': requireAuth(familyFeudStatus),
   'POST /family-feud/start-round': requireAuth(familyFeudStartRound),
   'POST /family-feud/answer': requireAuth(familyFeudAnswer),

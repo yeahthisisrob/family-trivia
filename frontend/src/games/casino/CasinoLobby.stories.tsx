@@ -28,7 +28,7 @@ type Story = StoryObj<typeof CasinoLobby>;
 const casinoHandlers = [
   http.get(`${API}/casino/balance`, () => HttpResponse.json({ balance: 42, floor: 35 })),
   http.post(`${API}/casino/balance`, () => HttpResponse.json({ balance: 42, floor: 35 })),
-  http.get(`${API}/arcade/leaderboard`, () =>
+  http.get(`${API}/games/scores`, () =>
     HttpResponse.json({
       scores: [
         { userId: 'alice', score: 42, date: '2026-04-10T10:00:00Z', mode: 'arcade' },

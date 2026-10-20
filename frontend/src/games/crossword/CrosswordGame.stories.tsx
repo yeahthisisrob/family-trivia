@@ -117,7 +117,7 @@ const installMockFetch = () => {
       });
     }
 
-    if (url.includes('/arcade/submit-score')) {
+    if (url.includes('/games/scores') && init?.method === 'POST') {
       return new Response(
         JSON.stringify({
           ok: true,

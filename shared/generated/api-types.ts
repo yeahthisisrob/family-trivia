@@ -1592,17 +1592,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/arcade/submit-score": {
+    "/games/scores": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** A game's high scores, best first (trivia and arcade plays) */
+        get: operations["getGameScores"];
         put?: never;
-        /** Submit a high score for an arcade game */
-        post: operations["arcadeSubmitScore"];
+        /** Submit the caller's score; their best counts */
+        post: operations["submitGameScore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/games/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's save for a game (progress, settings), or null */
+        get: operations["getGameSave"];
+        /** Replace the caller's save for a game (at most 16,000 characters of JSON) */
+        put: operations["putGameSave"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/games/clues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Clues with one-word answers, from the circle's trivia and its answers */
+        get: operations["getGameClues"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1620,23 +1656,6 @@ export interface paths {
         put?: never;
         /** Generate a crossword puzzle from family facts */
         post: operations["generateCrossword"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/snake/questions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Get questions for a Snake game session */
-        post: operations["getSnakeQuestions"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2406,6 +2425,34 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * @description A game's folder name in frontend/src/games
+         * @example snake
+         */
+        GameId: string;
+        GameClue: {
+            clue: string;
+            /** @description Uppercase letters only */
+            answer: string;
+            /** @enum {string} */
+            from: "trivia" | "answers";
+            /** @description Whose answer it was, for clues from answers */
+            about?: string;
+        };
+        HighScoreEntry: {
+            userId: string;
+            score: number;
+            /** Format: date-time */
+            date: string;
+            /** @enum {string} */
+            mode: "trivia" | "arcade";
+        };
+        ScoreSubmitResult: {
+            isNewHighScore: boolean;
+            rank: number;
+            previousBest: number;
+            highScores: components["schemas"]["HighScoreEntry"][];
+        };
         Circle: {
             id: string;
             name: string;
@@ -6581,7 +6628,39 @@ export interface operations {
             };
         };
     };
-    arcadeSubmitScore: {
+    getGameScores: {
+        parameters: {
+            query: {
+                game: components["schemas"]["GameId"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The top 20 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        game: components["schemas"]["GameId"];
+                        scores: components["schemas"]["HighScoreEntry"][];
+                    };
+                };
+            };
+            /** @description Not a game id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    submitGameScore: {
         parameters: {
             query?: never;
             header?: never;
@@ -6591,23 +6670,115 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    userId: string;
-                    gameId: string;
+                    game: components["schemas"]["GameId"];
                     score: number;
-                    metadata?: Record<string, never>;
                 };
             };
         };
         responses: {
-            /** @description Updated high scores for the game */
+            /** @description Whether it's a new best, and the board after it */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreSubmitResult"];
+                };
+            };
+            /** @description Not a game id, or not a score */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getGameSave: {
+        parameters: {
+            query: {
+                game: components["schemas"]["GameId"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The save */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        isHighScore?: boolean;
-                        scores?: Record<string, never>[];
+                        game: components["schemas"]["GameId"];
+                        /** @description Whatever the game saved, or null */
+                        save: unknown;
+                    };
+                };
+            };
+        };
+    };
+    putGameSave: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    game: components["schemas"]["GameId"];
+                    /** @description Any JSON value */
+                    save: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        game: components["schemas"]["GameId"];
+                        save: unknown;
+                    };
+                };
+            };
+            /** @description Too big */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getGameClues: {
+        parameters: {
+            query?: {
+                count?: number;
+                minLength?: number;
+                maxLength?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Shuffled clues */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        clues: components["schemas"]["GameClue"][];
                     };
                 };
             };
@@ -6643,34 +6814,6 @@ export interface operations {
                             clue?: string;
                             answer?: string;
                         }[];
-                    };
-                };
-            };
-        };
-    };
-    getSnakeQuestions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    userId: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Questions for the Snake session */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        questions?: Record<string, never>[];
                     };
                 };
             };

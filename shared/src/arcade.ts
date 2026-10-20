@@ -3,14 +3,21 @@
  * Unified high score system for all game modes (trivia + arcade plays).
  */
 
-export type ArcadeGameId =
-  | 'tetris'
-  | 'curling'
-  | 'slot-machine'
-  | 'crossword'
-  | 'snake'
-  | 'blackjack'
-  | 'casino';
+/**
+ * A game's id: its folder name in frontend/src/games (docs/decisions/0032),
+ * lowercase words joined by dashes. Any id works; nothing lists them.
+ */
+export type ArcadeGameId = string;
+
+/** A clue with a one-word answer, from the circle's trivia or its answers. */
+export interface GameClue {
+  clue: string;
+  /** Uppercase letters only. */
+  answer: string;
+  from: 'trivia' | 'answers';
+  /** Whose answer it was, for clues from answers. */
+  about?: string;
+}
 
 export interface HighScoreEntry {
   userId: string;

@@ -42,3 +42,4 @@ when the decision is made, so the reason survives the people who made it.
 | [0029](0029-the-first-circle.md) | The first circle: sign in and start it | Accepted |
 | [0030](0030-teams.md) | Teams: made while playing | Accepted |
 | [0031](0031-home-screen-app.md) | The home-screen app, and notifications inside it | Accepted |
+| [0032](0032-games-are-folders.md) | Games are folders | Accepted |

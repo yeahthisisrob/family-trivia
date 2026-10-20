@@ -34,7 +34,7 @@ describe('notificationMessage', () => {
       gameId: 'slot-machine',
       score: 1200,
     });
-    expect(notificationMessage(hs)).toBe('dave set a new Slots high score!');
+    expect(notificationMessage(hs)).toBe('dave set a new Slot Machine high score!');
     expect(notificationDetail(hs)).toBe('Score: 1,200');
   });
 });

@@ -3053,47 +3053,122 @@ paths:
                     type: integer
 
   # ──────────────────────────────────────────────
-  # Arcade
+  # Games (docs/decisions/0032): what every game gets, by id, with no
+  # backend of its own. A game id is its folder in frontend/src/games.
   # ──────────────────────────────────────────────
 
-  /arcade/submit-score:
+  /games/scores:
+    get:
+      summary: A game's high scores, best first (trivia and arcade plays)
+      operationId: getGameScores
+      tags: [Games]
+      parameters:
+        - { name: game, in: query, required: true, schema: { $ref: "#/components/schemas/GameId" } }
+      responses:
+        "200":
+          description: The top 20
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [game, scores]
+                properties:
+                  game: { $ref: "#/components/schemas/GameId" }
+                  scores:
+                    type: array
+                    items: { $ref: "#/components/schemas/HighScoreEntry" }
+        "400": { description: Not a game id }
     post:
-      summary: Submit a high score for an arcade game
-      operationId: arcadeSubmitScore
-      tags: [Arcade]
+      summary: Submit the caller's score; their best counts
+      operationId: submitGameScore
+      tags: [Games]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [userId, gameId, score]
+              required: [game, score]
               properties:
-                userId:
-                  type: string
-                gameId:
-                  type: string
-                score:
-                  type: integer
-                metadata:
-                  type: object
+                game: { $ref: "#/components/schemas/GameId" }
+                score: { type: number, minimum: 0 }
       responses:
         "200":
-          description: Updated high scores for the game
+          description: Whether it's a new best, and the board after it
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScoreSubmitResult" }
+        "400": { description: "Not a game id, or not a score" }
+
+  /games/save:
+    get:
+      summary: The caller's save for a game (progress, settings), or null
+      operationId: getGameSave
+      tags: [Games]
+      parameters:
+        - { name: game, in: query, required: true, schema: { $ref: "#/components/schemas/GameId" } }
+      responses:
+        "200":
+          description: The save
           content:
             application/json:
               schema:
                 type: object
+                required: [game, save]
                 properties:
-                  isHighScore:
-                    type: boolean
-                  scores:
+                  game: { $ref: "#/components/schemas/GameId" }
+                  save: { description: "Whatever the game saved, or null" }
+    put:
+      summary: Replace the caller's save for a game (at most 16,000 characters of JSON)
+      operationId: putGameSave
+      tags: [Games]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [game, save]
+              properties:
+                game: { $ref: "#/components/schemas/GameId" }
+                save: { description: Any JSON value }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [game, save]
+                properties:
+                  game: { $ref: "#/components/schemas/GameId" }
+                  save: {}
+        "413": { description: Too big }
+
+  /games/clues:
+    get:
+      summary: Clues with one-word answers, from the circle's trivia and its answers
+      operationId: getGameClues
+      tags: [Games]
+      parameters:
+        - { name: count, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+        - { name: minLength, in: query, schema: { type: integer, minimum: 2, maximum: 15, default: 3 } }
+        - { name: maxLength, in: query, schema: { type: integer, minimum: 2, maximum: 15, default: 8 } }
+      responses:
+        "200":
+          description: Shuffled clues
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [clues]
+                properties:
+                  clues:
                     type: array
-                    items:
-                      type: object
+                    items: { $ref: "#/components/schemas/GameClue" }
 
   # ──────────────────────────────────────────────
-  # Crossword & Snake
+  # Crossword (builds its grid on the server)
   # ──────────────────────────────────────────────
 
   /crossword/generate:
@@ -3139,34 +3214,6 @@ paths:
                           type: string
                         answer:
                           type: string
-
-  /snake/questions:
-    post:
-      summary: Get questions for a Snake game session
-      operationId: getSnakeQuestions
-      tags: [Game Modes]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [userId]
-              properties:
-                userId:
-                  type: string
-      responses:
-        "200":
-          description: Questions for the Snake session
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  questions:
-                    type: array
-                    items:
-                      type: object
 
   # ──────────────────────────────────────────────
   # Family Feud
@@ -4559,6 +4606,37 @@ paths:
 
 components:
   schemas:
+    GameId:
+      type: string
+      pattern: "^[a-z][a-z0-9-]{1,31}$"
+      description: A game's folder name in frontend/src/games
+      example: snake
+    GameClue:
+      type: object
+      required: [clue, answer, from]
+      properties:
+        clue: { type: string }
+        answer: { type: string, description: Uppercase letters only }
+        from: { type: string, enum: [trivia, answers] }
+        about: { type: string, description: "Whose answer it was, for clues from answers" }
+    HighScoreEntry:
+      type: object
+      required: [userId, score, date, mode]
+      properties:
+        userId: { type: string }
+        score: { type: number }
+        date: { type: string, format: date-time }
+        mode: { type: string, enum: [trivia, arcade] }
+    ScoreSubmitResult:
+      type: object
+      required: [isNewHighScore, rank, previousBest, highScores]
+      properties:
+        isNewHighScore: { type: boolean }
+        rank: { type: integer }
+        previousBest: { type: number }
+        highScores:
+          type: array
+          items: { $ref: "#/components/schemas/HighScoreEntry" }
     Circle:
       type: object
       required: [id, name, kind]

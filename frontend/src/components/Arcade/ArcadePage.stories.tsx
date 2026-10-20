@@ -9,7 +9,7 @@ const installMockFetch = () => {
   window.fetch = async (input, init) => {
     const url = typeof input === 'string' ? input : input.toString();
 
-    if (url.includes('/arcade/leaderboard')) {
+    if (url.includes('/games/scores') && init?.method !== 'POST') {
       const scores = [
         { userId: 'alice', score: 1200, date: '2026-04-05T10:00:00Z', mode: 'arcade' },
         { userId: 'rob', score: 950, date: '2026-04-04T15:30:00Z', mode: 'trivia' },
@@ -26,7 +26,7 @@ const installMockFetch = () => {
       );
     }
 
-    if (url.includes('/arcade/submit-score')) {
+    if (url.includes('/games/scores') && init?.method === 'POST') {
       return new Response(
         JSON.stringify({
           ok: true,

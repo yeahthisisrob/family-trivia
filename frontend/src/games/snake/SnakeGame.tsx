@@ -7,17 +7,15 @@ import CloseIcon from '@mui/icons-material/Close';
 import { alpha, Box, Button, IconButton, keyframes, Typography } from '@mui/material';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-
-import { submitArcadeScore } from '../../api/modules/arcade';
-import { apiService } from '../../services/ApiService';
+import type { GamePadButton } from '../../components/common/GamePad';
+import GamePad from '../../components/common/GamePad';
+import { LoadingDots } from '../../components/ui/feedback';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../utils/logger';
-import type { GamePadButton } from '../common/GamePad';
-import GamePad from '../common/GamePad';
-import { LoadingDots } from '../ui/feedback';
+import { getClues, submitScore } from '../kit';
 
 const logger = createLogger('SnakeGame');
 
@@ -225,12 +223,11 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
     let cancelled = false;
     (async () => {
       try {
-        const data = await apiService.request<{ questions: Question[] }>('/snake/questions', {
-          method: 'POST',
-          body: JSON.stringify({ userId }),
-        });
+        const clues = await getClues({ count: 20, minLength: 3, maxLength: 8 });
         if (cancelled) return;
-        questionsRef.current = data.questions;
+        questionsRef.current = clues;
+        if (clues.length < 5)
+          setErrorMsg('Not enough short answers here yet. Play a little trivia first!');
         setGameState('idle');
       } catch (err) {
         logger.error('Failed to load snake questions', err);
@@ -323,7 +320,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ userId, onClose, onComplete }) =>
 
     const finalScore = scoreRef.current;
     try {
-      await submitArcadeScore(userId, 'snake', finalScore);
+      await submitScore('snake', finalScore);
       logger.info('Snake score submitted', { score: finalScore });
     } catch (err) {
       logger.error('Failed to submit snake score', err);

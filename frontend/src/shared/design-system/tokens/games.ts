@@ -213,3 +213,12 @@ export const games = {
     letter: '#222',
   },
 } as const;
+
+/**
+ * A tile's look from one hue (0 to 360), for a game that doesn't need its own
+ * palette (docs/decisions/0032): `look: gameLook(280)`.
+ */
+export const gameLook = (hue: number): { gradient: string; accent: string } => ({
+  gradient: `linear-gradient(135deg, hsl(${hue} 70% 22%) 0%, hsl(${hue} 60% 38%) 60%, hsl(${hue} 55% 62%) 100%)`,
+  accent: `hsl(${hue} 60% 85%)`,
+});

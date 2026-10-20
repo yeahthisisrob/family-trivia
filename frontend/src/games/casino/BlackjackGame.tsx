@@ -17,11 +17,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { getCasinoBalance, updateCasinoBalance } from '../../api/modules/casino';
 import { getBlackjackTaunt } from '../../api/modules/gameAI';
+import { LoadingDots } from '../../components/ui/feedback';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../utils/logger';
-import { LoadingDots } from '../ui/feedback';
 
 const logger = createLogger('BlackjackGame');
 
