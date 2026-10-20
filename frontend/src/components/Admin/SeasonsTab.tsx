@@ -393,14 +393,16 @@ const SeasonsTab: React.FC = () => {
             </Select>
           </FormControl>
           <FormControl fullWidth size="small">
-            <InputLabel>Pace</InputLabel>
+            <InputLabel>New questions</InputLabel>
             <Select
               value={form.pace}
-              label="Pace"
+              label="New questions"
               onChange={(e) => setForm({ ...form, pace: e.target.value as SeasonPace })}
             >
-              <MenuItem value="daily">A little every day</MenuItem>
-              <MenuItem value="weekly">A handful once a week (good for friends)</MenuItem>
+              <MenuItem value="daily">Every day</MenuItem>
+              <MenuItem value="weekly">
+                Once a week: a handful, play any day (good for friends)
+              </MenuItem>
             </Select>
           </FormControl>
           <TextField
