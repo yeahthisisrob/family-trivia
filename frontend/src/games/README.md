@@ -45,11 +45,33 @@ Everything a game needs from the app is in `../kit`:
 | `getScores(game)` | The top 20, best first. |
 | `getClues({ count, minLength, maxLength })` | Clues with one-word answers, made from the circle's own trivia and what people answered about themselves. |
 | `useGameSave(game, initial)` | A small save per player (progress, settings; up to 16,000 characters of JSON), on every device. |
+| `lockRound`, `answerRound`, `getRoundStatus` | A weekly round: keep the multiplier, answer the question, and whether it can be played now. |
 | `gameLook(hue)` | A tile gradient and accent from one hue. |
 
 They call the generic `/games/*` endpoints (`shared/schemas/api.openapi.yaml`,
 tag Games), so a game never needs routes of its own. Data stays in the circle
 it was played in.
+
+## Play it as a weekly round
+
+Any game can also be a challenge on the Trivia tab, once a week: the game
+sets a multiplier, then one trivia question is worth that many points. Add a
+`round` to the card:
+
+```tsx
+  round: {
+    description: 'Climb in under a minute — your speed sets the multiplier',
+    Round: (p: RoundProps) => <WordLadder {...p} />,
+  },
+```
+
+`Round` gets `{ userId, catchUp, onClose, onComplete }`. When the game ends,
+call `lockRound(id, { multiplier, score, catchUp })` (multiplier 0.5, 1, 2 or
+3; a new best score adds a point) and show the question it returns; call
+`answerRound(id, answer)` with the player's choice, show how it went, then
+`onComplete(pointsEarned)`. The rules are the same for every game
+(`ROUND_RULES` in `shared/src/game-modes.ts`); Curling and Tetris are
+examples.
 
 ## Rules
 

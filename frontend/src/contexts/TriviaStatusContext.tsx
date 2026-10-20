@@ -1,16 +1,22 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import {
-  getCasinoRushStatus,
-  getCurlingStatus,
-  getSlotMachineStatus,
-  getTetrisStatus,
-} from '../api/modules/games';
+import { getCasinoRushStatus, getSlotMachineStatus } from '../api/modules/games';
+import { getRoundStatus } from '../games/kit';
+import { GAMES } from '../games/registry';
 import { cacheService } from '../services/CacheService';
 import { createLogger } from '../utils/logger';
 import { useCategoryRefresh } from './CategoryRefreshContext';
 import { useFamilyData } from './FamilyDataContext';
 
 const logger = createLogger('TriviaStatusContext');
+
+/** A game played as this week's round (docs/decisions/0032). */
+export interface RoundState {
+  canPlay: boolean;
+  nextAvailable: Date | null;
+  loading: boolean;
+}
+
+const ROUND_GAMES = GAMES.filter((g) => g.round).map((g) => g.id);
 
 interface TriviaStatusState {
   // Slot Machine state
@@ -31,21 +37,8 @@ interface TriviaStatusState {
     lastUpdated: number;
   };
 
-  // Curling state
-  curling: {
-    canPlay: boolean;
-    nextAvailable: Date | null;
-    loading: boolean;
-    lastUpdated: number;
-  };
-
-  // Tetris state
-  tetris: {
-    canPlay: boolean;
-    nextAvailable: Date | null;
-    loading: boolean;
-    lastUpdated: number;
-  };
+  /** Every game with a round, by id: from the game folders. */
+  rounds: Record<string, RoundState>;
 }
 
 interface TriviaStatusContextType extends TriviaStatusState {
@@ -53,8 +46,7 @@ interface TriviaStatusContextType extends TriviaStatusState {
   // (required after completing a game mode so cooldown appears immediately)
   refreshSlotMachineStatus: (userId: string, force?: boolean) => Promise<void>;
   refreshCasinoRushStatus: (userId: string, force?: boolean) => Promise<void>;
-  refreshCurlingStatus: (userId: string, force?: boolean) => Promise<void>;
-  refreshTetrisStatus: (userId: string, force?: boolean) => Promise<void>;
+  refreshRounds: () => Promise<void>;
   refreshAllStatuses: (userId: string, force?: boolean) => Promise<void>;
 
   // Merged from CategoryRefreshContext
@@ -97,31 +89,11 @@ export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
     lastUpdated: 0,
   });
 
-  // State for curling status
-  const [curlingStatus, setCurlingStatus] = useState<{
-    canPlay: boolean;
-    nextAvailable: Date | null;
-    loading: boolean;
-    lastUpdated: number;
-  }>({
-    canPlay: false,
-    nextAvailable: null,
-    loading: true,
-    lastUpdated: 0,
-  });
-
-  // State for tetris status
-  const [tetrisStatus, setTetrisStatus] = useState<{
-    canPlay: boolean;
-    nextAvailable: Date | null;
-    loading: boolean;
-    lastUpdated: number;
-  }>({
-    canPlay: false,
-    nextAvailable: null,
-    loading: true,
-    lastUpdated: 0,
-  });
+  const [rounds, setRounds] = useState<Record<string, RoundState>>(() =>
+    Object.fromEntries(
+      ROUND_GAMES.map((id) => [id, { canPlay: false, nextAvailable: null, loading: true }]),
+    ),
+  );
 
   // Hydrate game statuses from app-init (no separate API calls)
   const { initGameStatuses, appInitComplete } = useFamilyData();
@@ -150,28 +122,6 @@ export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
       loading: false,
       lastUpdated: Date.now(),
     });
-
-    if (initGameStatuses.curling) {
-      setCurlingStatus({
-        canPlay: initGameStatuses.curling.canPlay,
-        nextAvailable: initGameStatuses.curling.nextAvailable
-          ? new Date(initGameStatuses.curling.nextAvailable)
-          : null,
-        loading: false,
-        lastUpdated: Date.now(),
-      });
-    }
-
-    if (initGameStatuses.tetris) {
-      setTetrisStatus({
-        canPlay: initGameStatuses.tetris.canPlay,
-        nextAvailable: initGameStatuses.tetris.nextAvailable
-          ? new Date(initGameStatuses.tetris.nextAvailable)
-          : null,
-        loading: false,
-        lastUpdated: Date.now(),
-      });
-    }
   }, [appInitComplete, initGameStatuses]);
 
   // Refresh slot machine status — always hits the backend.
@@ -233,39 +183,34 @@ export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, []);
 
-  // Refresh curling status — always hits the backend.
-  const refreshCurlingStatus = useCallback(async (userId: string, _force = true) => {
+  // Rounds: one request for every game that has one.
+  const refreshRounds = useCallback(async () => {
     try {
-      setCurlingStatus((prev) => ({ ...prev, loading: true }));
-      const status = await getCurlingStatus(userId);
-      setCurlingStatus({
-        canPlay: status?.canPlay ?? false,
-        nextAvailable: status?.nextAvailable ? new Date(status.nextAvailable) : null,
-        loading: false,
-        lastUpdated: Date.now(),
-      });
+      const status = await getRoundStatus(ROUND_GAMES);
+      setRounds(
+        Object.fromEntries(
+          ROUND_GAMES.map((id) => [
+            id,
+            {
+              canPlay: status[id]?.canPlay ?? false,
+              nextAvailable: status[id]?.nextAvailable ? new Date(status[id].nextAvailable) : null,
+              loading: false,
+            },
+          ]),
+        ),
+      );
     } catch (error) {
-      logger.error('Error fetching curling status:', error);
-      setCurlingStatus((prev) => ({ ...prev, loading: false, lastUpdated: Date.now() }));
+      logger.error('Error fetching round statuses:', error);
+      setRounds((prev) =>
+        Object.fromEntries(Object.entries(prev).map(([id, r]) => [id, { ...r, loading: false }])),
+      );
     }
   }, []);
 
-  // Refresh tetris status
-  const refreshTetrisStatus = useCallback(async (userId: string, _force = true) => {
-    try {
-      setTetrisStatus((prev) => ({ ...prev, loading: true }));
-      const status = await getTetrisStatus(userId);
-      setTetrisStatus({
-        canPlay: status?.canPlay ?? false,
-        nextAvailable: status?.nextAvailable ? new Date(status.nextAvailable) : null,
-        loading: false,
-        lastUpdated: Date.now(),
-      });
-    } catch (error) {
-      logger.error('Error fetching tetris status:', error);
-      setTetrisStatus((prev) => ({ ...prev, loading: false, lastUpdated: Date.now() }));
-    }
-  }, []);
+  // App-init doesn't carry rounds: ask once it's done.
+  useEffect(() => {
+    if (appInitComplete) void refreshRounds();
+  }, [appInitComplete, refreshRounds]);
 
   // Refresh all game statuses
   const refreshAllStatuses = useCallback(
@@ -274,14 +219,13 @@ export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
         await Promise.all([
           refreshSlotMachineStatus(userId),
           refreshCasinoRushStatus(userId),
-          refreshCurlingStatus(userId),
-          refreshTetrisStatus(userId),
+          refreshRounds(),
         ]);
       } catch (error) {
         logger.error('Error refreshing game statuses:', error);
       }
     },
-    [refreshSlotMachineStatus, refreshCasinoRushStatus, refreshCurlingStatus, refreshTetrisStatus],
+    [refreshSlotMachineStatus, refreshCasinoRushStatus, refreshRounds],
   );
 
   // Refresh categories function (merged from CategoryRefreshContext)
@@ -316,24 +260,20 @@ export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
     () => ({
       slotMachine: slotMachineStatus,
       casinoRush: casinoRushStatus,
-      curling: curlingStatus,
-      tetris: tetrisStatus,
+      rounds,
       refreshSlotMachineStatus,
       refreshCasinoRushStatus,
-      refreshCurlingStatus,
-      refreshTetrisStatus,
+      refreshRounds,
       refreshAllStatuses,
       refreshCategories,
     }),
     [
       slotMachineStatus,
       casinoRushStatus,
-      curlingStatus,
-      tetrisStatus,
+      rounds,
       refreshSlotMachineStatus,
       refreshCasinoRushStatus,
-      refreshCurlingStatus,
-      refreshTetrisStatus,
+      refreshRounds,
       refreshAllStatuses,
       refreshCategories,
     ],

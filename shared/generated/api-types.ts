@@ -1456,108 +1456,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/curling/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get current Curling game state for user */
-        get: operations["getCurlingStatus"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/curling/lock": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Lock in Curling multiplier + category */
-        post: operations["lockCurling"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/curling/answer": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Submit an answer to a Curling question */
-        post: operations["answerCurling"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/tetris/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get current Tetris game state for user */
-        get: operations["getTetrisStatus"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/tetris/lock": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Lock in Tetris game parameters */
-        post: operations["lockTetris"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/tetris/answer": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Submit a Tetris answer */
-        post: operations["answerTetris"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/slot-machine/arcade-spin": {
         parameters: {
             query?: never;
@@ -1622,6 +1520,57 @@ export interface paths {
         /** Replace the caller's save for a game (at most 16,000 characters of JSON) */
         put: operations["putGameSave"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/games/rounds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** For each game asked about: can it be played as this week's round now, and if not, when */
+        get: operations["getGameRounds"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/games/rounds/lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The game is over; keep its multiplier (and score) and get the trivia question */
+        post: operations["lockGameRound"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/games/rounds/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer the round's question */
+        post: operations["answerGameRound"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2430,6 +2379,11 @@ export interface components {
          * @example snake
          */
         GameId: string;
+        RoundStatus: {
+            canPlay: boolean;
+            /** Format: date-time */
+            nextAvailable: string | null;
+        };
         GameClue: {
             clue: string;
             /** @description Uppercase letters only */
@@ -6433,146 +6387,6 @@ export interface operations {
             };
         };
     };
-    getCurlingStatus: {
-        parameters: {
-            query: {
-                userId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Curling game session state */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GameModeSessionStatus"];
-                };
-            };
-        };
-    };
-    lockCurling: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GameModeLockRequest"];
-            };
-        };
-        responses: {
-            /** @description Session with generated question */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GameModeLockResponse"];
-                };
-            };
-        };
-    };
-    answerCurling: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GameModeAnswerRequest"];
-            };
-        };
-        responses: {
-            /** @description Answer result */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GameModeAnswerResponse"];
-                };
-            };
-        };
-    };
-    getTetrisStatus: {
-        parameters: {
-            query: {
-                userId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Tetris game session state */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GameModeSessionStatus"];
-                };
-            };
-        };
-    };
-    lockTetris: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GameModeLockRequest"];
-            };
-        };
-        responses: {
-            /** @description Session with generated question */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GameModeLockResponse"];
-                };
-            };
-        };
-    };
-    answerTetris: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GameModeAnswerRequest"];
-            };
-        };
-        responses: {
-            /** @description Answer result */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GameModeAnswerResponse"];
-                };
-            };
-        };
-    };
     slotMachineArcadeSpin: {
         parameters: {
             query?: never;
@@ -6751,6 +6565,127 @@ export interface operations {
             };
             /** @description Too big */
             413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getGameRounds: {
+        parameters: {
+            query: {
+                /** @description Game ids, comma separated (up to 20) */
+                games: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Round status by game id */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        rounds: {
+                            [key: string]: components["schemas"]["RoundStatus"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    lockGameRound: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    game: components["schemas"]["GameId"];
+                    /** @enum {number} */
+                    multiplier: 0.5 | 1 | 2 | 3;
+                    /** @description The game's own score; goes on its board, and a new best adds a point */
+                    score?: number;
+                    /** @description Play it as a catch-up question */
+                    catchUp?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description The question (without its answer) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        multiplier: number;
+                        newBest: boolean;
+                        question: {
+                            question: string;
+                            choices: string[];
+                            category: string;
+                        };
+                    };
+                };
+            };
+            /** @description Not a game id, or a multiplier outside the rules */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not now: errorType is cooldown, daily_limit_reached, no_catchup_available, end_of_season or no_trivia_this_season; details is when it opens */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    answerGameRound: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    game: components["schemas"]["GameId"];
+                    answer: string;
+                };
+            };
+        };
+        responses: {
+            /** @description How it went */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        correct: boolean;
+                        correctAnswer: string;
+                        pointsEarned: number;
+                        multiplier: number;
+                        newBestBonus: number;
+                    };
+                };
+            };
+            /** @description No round for this game */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within } from 'storybook/test';
+import { expect, userEvent, within } from 'storybook/test';
 import { StoryProviders } from '../../test/storyContexts';
 import TriviaFlow from './TriviaFlow';
 
@@ -148,7 +148,7 @@ export const GameModesLocked: Story = {
     trivia: {
       canPlayCasinoRush: false,
       canPlaySlotMachine: false,
-      canPlayCurling: false,
+      roundsLocked: ['curling', 'tetris'],
     },
   },
 };
@@ -160,8 +160,22 @@ export const GameModesAvailable: Story = {
     trivia: {
       canPlayCasinoRush: true,
       canPlaySlotMachine: true,
-      canPlayCurling: true,
     },
+  },
+};
+
+/** A game's round opens from its tile: here Curling, found in its folder (0032). */
+export const PlaysARound: Story = {
+  parameters: {
+    userStatus: { hasAnsweredToday: false, canAnswerQuestion: true },
+    trivia: { canPlayCasinoRush: true, canPlaySlotMachine: true },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(await canvas.findByText('Curling'));
+    await expect(
+      await canvas.findByText(/Drag upward to aim/, {}, { timeout: 5000 }),
+    ).toBeInTheDocument();
   },
 };
 

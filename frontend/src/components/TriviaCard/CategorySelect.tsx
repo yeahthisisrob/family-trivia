@@ -1,8 +1,7 @@
 // src/components/TriviaCard/CategorySelect.tsx
 
-import { GAME_MODES, type GameModeId, getSecondsElapsedTodayET } from '@family-trivia/shared';
+import { getSecondsElapsedTodayET } from '@family-trivia/shared';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import AcUnitIcon from '@mui/icons-material/AcUnit';
 import AddIcon from '@mui/icons-material/Add';
 import CasinoIcon from '@mui/icons-material/Casino';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
@@ -10,7 +9,6 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 import EmojiObjectsIcon from '@mui/icons-material/EmojiObjects';
 import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
-import GamepadIcon from '@mui/icons-material/Gamepad';
 import HistoryIcon from '@mui/icons-material/History';
 import LocalBarIcon from '@mui/icons-material/LocalBar';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
@@ -22,7 +20,6 @@ import PlaceIcon from '@mui/icons-material/Place';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PublicIcon from '@mui/icons-material/Public';
 import ScienceIcon from '@mui/icons-material/Science';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import StarsIcon from '@mui/icons-material/Stars';
 import { alpha, Box, Card, Chip, IconButton, Tooltip, Typography, useTheme } from '@mui/material';
@@ -35,49 +32,21 @@ import { useTrivia } from '../../contexts/TriviaContext';
 import { useSeasonPace } from '../../hooks/useSeasonPace';
 import { colors } from '../../shared/design-system';
 import { LoadingDots } from '../ui/feedback';
+import { CHALLENGES, type Challenge } from './challenges';
 
-// Feature flags — per-mode toggles. Matches GAME_MODES registry order.
-const ENABLED_MODES: Record<GameModeId, boolean> = {
-  'casino-rush': true,
-  'slot-machine': true,
-  curling: true,
-  tetris: true,
-};
-
-// Visual theme per game mode — tile appearance. Kept here so the
-// registry stays data-only; UI details live with the UI.
+// Visual theme per challenge tile.
 interface GameModeTheme {
   icon: React.ReactElement;
   gradient: string;
   accentColor: string;
   badge: string; // small uppercase tag
 }
-const GAME_MODE_THEMES: Record<GameModeId, GameModeTheme> = {
-  'casino-rush': {
-    icon: <CasinoIcon />,
-    gradient: colors.gameMode.slotMachine.gradient,
-    accentColor: colors.gameMode.slotMachine.accent,
-    badge: '3× OR BUST',
-  },
-  'slot-machine': {
-    icon: <SmartToyIcon />,
-    gradient: `linear-gradient(135deg, ${colors.accent.purple} 0%, ${colors.accent.pink} 100%)`,
-    accentColor: colors.accent.gold,
-    badge: 'SPIN TO WIN',
-  },
-  curling: {
-    icon: <AcUnitIcon />,
-    gradient: colors.gameMode.curling.gradient,
-    accentColor: colors.gameMode.curling.accent,
-    badge: 'HOLD · SWEEP',
-  },
-  tetris: {
-    icon: <GamepadIcon />,
-    gradient: colors.gameMode.tetris.gradient,
-    accentColor: colors.gameMode.tetris.accent,
-    badge: '60s BLOCKS',
-  },
-};
+const themeOf = (c: Challenge): GameModeTheme => ({
+  icon: <c.icon />,
+  gradient: c.gradient,
+  accentColor: c.accent,
+  badge: c.badge,
+});
 
 export interface CategorySelectProps {
   onSelect: (category: string) => void;
@@ -131,7 +100,7 @@ const CategorySelect: React.FC<CategorySelectProps> = (props) => {
     return () => clearInterval(id);
   }, [viewOnly]);
 
-  const { slotMachine, casinoRush, curling, tetris } = useTrivia();
+  const { slotMachine, casinoRush, rounds } = useTrivia();
   const { initCategories, initUserCategories, appInitComplete } = useFamilyData();
   const { globalCategoryStats } = useLeaderboard();
 
@@ -191,13 +160,9 @@ const CategorySelect: React.FC<CategorySelectProps> = (props) => {
   const getIcon = (name: string, isCustom = false) =>
     isCustom ? ICONS._custom : ICONS[name] || ICONS._default;
 
-  // Game mode lookup: map registry id → status from context
-  const gameModeStatus = {
-    'casino-rush': casinoRush,
-    'slot-machine': slotMachine,
-    curling: curling,
-    tetris: tetris,
-  } as const;
+  // Each challenge's status: the session modes', then each round's.
+  const statusOf = (id: string): { canPlay: boolean; nextAvailable: Date | null } | undefined =>
+    id === 'casino-rush' ? casinoRush : id === 'slot-machine' ? slotMachine : rounds[id];
 
   // Compute "when does today reset" — used as lockedUntil when viewOnly
   // forces all tiles to locked (because the user has no plays left today).
@@ -210,8 +175,8 @@ const CategorySelect: React.FC<CategorySelectProps> = (props) => {
     return midnight.getTime() + offsetMs;
   };
 
-  const getGameModeLockInfo = (modeId: GameModeId) => {
-    const status = gameModeStatus[modeId];
+  const getGameModeLockInfo = (modeId: string) => {
+    const status = statusOf(modeId);
     // viewOnly means the user can't play anything right now — force locked
     // so the UI doesn't lie about what's clickable.
     if (viewOnly) {
@@ -223,7 +188,7 @@ const CategorySelect: React.FC<CategorySelectProps> = (props) => {
     };
   };
 
-  const enabledGameModes = GAME_MODES.filter((m) => ENABLED_MODES[m.id]);
+  const enabledGameModes = CHALLENGES;
   const hasAnyGameMode = enabledGameModes.length > 0;
   const gameModeScrollRef = React.useRef<HTMLDivElement>(null);
   const scrollGameModes = (dir: 'left' | 'right') => {
@@ -396,7 +361,7 @@ const CategorySelect: React.FC<CategorySelectProps> = (props) => {
                   <GameModeTile
                     key={mode.id}
                     mode={mode}
-                    theme={GAME_MODE_THEMES[mode.id]}
+                    theme={themeOf(mode)}
                     lockInfo={getGameModeLockInfo(mode.id)}
                     formatEastern={formatEastern}
                     onSelect={viewOnly ? () => {} : onSelect}
@@ -494,7 +459,7 @@ const CategorySelect: React.FC<CategorySelectProps> = (props) => {
 // so the next one peeks (when 2+) — a clear affordance for swipe.
 
 interface GameModeTileProps {
-  mode: { id: GameModeId; label: string; description: string };
+  mode: { id: string; label: string; description: string };
   theme: GameModeTheme;
   lockInfo: { locked: boolean; lockedUntil?: number };
   formatEastern: (ts: number) => string;

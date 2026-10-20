@@ -16,7 +16,7 @@
  *   - scoring-catchup.test.ts (integration tests)
  */
 
-import { gameModeOfEntry, type HistoryEntry } from '@family-trivia/shared';
+import { gameModeOf, type HistoryEntry } from '@family-trivia/shared';
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -69,7 +69,7 @@ export function toQuestionSlots(history: HistoryEntry[]): QuestionSlot[] {
 
     // Game mode detection via the shared registry (casino rush is handled
     // above with its session grouping). Any other game mode = 1 slot each.
-    const mode = gameModeOfEntry(h);
+    const mode = gameModeOf(h);
     slots.push({
       correct: h.correct,
       timestamp: h.timestamp,

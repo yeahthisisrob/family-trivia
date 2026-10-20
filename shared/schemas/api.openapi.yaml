@@ -2873,128 +2873,6 @@ paths:
                             type: boolean
 
   # ──────────────────────────────────────────────
-  # Game modes — Curling
-  # ──────────────────────────────────────────────
-
-  /curling/status:
-    get:
-      summary: Get current Curling game state for user
-      operationId: getCurlingStatus
-      tags: [Game Modes]
-      parameters:
-        - name: userId
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Curling game session state
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GameModeSessionStatus"
-
-  /curling/lock:
-    post:
-      summary: Lock in Curling multiplier + category
-      operationId: lockCurling
-      tags: [Game Modes]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/GameModeLockRequest"
-      responses:
-        "200":
-          description: Session with generated question
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GameModeLockResponse"
-
-  /curling/answer:
-    post:
-      summary: Submit an answer to a Curling question
-      operationId: answerCurling
-      tags: [Game Modes]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/GameModeAnswerRequest"
-      responses:
-        "200":
-          description: Answer result
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GameModeAnswerResponse"
-
-  # ──────────────────────────────────────────────
-  # Game modes — Tetris
-  # ──────────────────────────────────────────────
-
-  /tetris/status:
-    get:
-      summary: Get current Tetris game state for user
-      operationId: getTetrisStatus
-      tags: [Game Modes]
-      parameters:
-        - name: userId
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Tetris game session state
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GameModeSessionStatus"
-
-  /tetris/lock:
-    post:
-      summary: Lock in Tetris game parameters
-      operationId: lockTetris
-      tags: [Game Modes]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/GameModeLockRequest"
-      responses:
-        "200":
-          description: Session with generated question
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GameModeLockResponse"
-
-  /tetris/answer:
-    post:
-      summary: Submit a Tetris answer
-      operationId: answerTetris
-      tags: [Game Modes]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/GameModeAnswerRequest"
-      responses:
-        "200":
-          description: Answer result
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GameModeAnswerResponse"
-
-  # ──────────────────────────────────────────────
   # Slot Machine variants
   # ──────────────────────────────────────────────
 
@@ -3144,6 +3022,99 @@ paths:
                   game: { $ref: "#/components/schemas/GameId" }
                   save: {}
         "413": { description: Too big }
+
+  /games/rounds:
+    get:
+      summary: "For each game asked about: can it be played as this week's round now, and if not, when"
+      operationId: getGameRounds
+      tags: [Games]
+      parameters:
+        - name: games
+          in: query
+          required: true
+          description: Game ids, comma separated (up to 20)
+          schema: { type: string, example: "tetris,curling" }
+      responses:
+        "200":
+          description: Round status by game id
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [rounds]
+                properties:
+                  rounds:
+                    type: object
+                    additionalProperties: { $ref: "#/components/schemas/RoundStatus" }
+
+  /games/rounds/lock:
+    post:
+      summary: The game is over; keep its multiplier (and score) and get the trivia question
+      operationId: lockGameRound
+      tags: [Games]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [game, multiplier]
+              properties:
+                game: { $ref: "#/components/schemas/GameId" }
+                multiplier: { type: number, enum: [0.5, 1, 2, 3] }
+                score: { type: number, minimum: 0, description: "The game's own score; goes on its board, and a new best adds a point" }
+                catchUp: { type: boolean, description: Play it as a catch-up question }
+      responses:
+        "200":
+          description: The question (without its answer)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [multiplier, question, newBest]
+                properties:
+                  multiplier: { type: number }
+                  newBest: { type: boolean }
+                  question:
+                    type: object
+                    required: [question, choices, category]
+                    properties:
+                      question: { type: string }
+                      choices: { type: array, items: { type: string } }
+                      category: { type: string }
+        "400": { description: "Not a game id, or a multiplier outside the rules" }
+        "403": { description: "Not now: errorType is cooldown, daily_limit_reached, no_catchup_available, end_of_season or no_trivia_this_season; details is when it opens" }
+
+  /games/rounds/answer:
+    post:
+      summary: Answer the round's question
+      operationId: answerGameRound
+      tags: [Games]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [game, answer]
+              properties:
+                game: { $ref: "#/components/schemas/GameId" }
+                answer: { type: string }
+      responses:
+        "200":
+          description: How it went
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [correct, correctAnswer, pointsEarned, multiplier, newBestBonus]
+                properties:
+                  correct: { type: boolean }
+                  correctAnswer: { type: string }
+                  pointsEarned: { type: number }
+                  multiplier: { type: number }
+                  newBestBonus: { type: number }
+        "400": { description: No round for this game }
 
   /games/clues:
     get:
@@ -4611,6 +4582,12 @@ components:
       pattern: "^[a-z][a-z0-9-]{1,31}$"
       description: A game's folder name in frontend/src/games
       example: snake
+    RoundStatus:
+      type: object
+      required: [canPlay, nextAvailable]
+      properties:
+        canPlay: { type: boolean }
+        nextAvailable: { type: string, format: date-time, nullable: true }
     GameClue:
       type: object
       required: [clue, answer, from]

@@ -18,6 +18,8 @@ The easiest place to start. A game is one folder in `frontend/src/games`:
 an `index.tsx` that describes it, the game, and a story. The Arcade finds it
 on its own, with a high-score board, and the game kit gives it scores, a save
 per player and clues from the circle's own answers, so it needs no backend.
+A game can also be a weekly trivia round on the Trivia tab, from the same
+folder.
 See [the games guide](frontend/src/games/README.md); `scramble/` is a small
 one to copy.
 

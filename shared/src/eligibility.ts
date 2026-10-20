@@ -14,14 +14,11 @@ export const INELIGIBLE_MESSAGE: Record<IneligibilityReason, string> = {
   no_trivia_this_season: 'No trivia this season',
 };
 
-/** What game mode the eligibility check is for */
-export type PlayMode =
-  | 'regular'
-  | 'catchup'
-  | 'casino-rush'
-  | 'slot-machine'
-  | 'curling'
-  | 'tetris';
+/**
+ * What the eligibility check is for: a regular question, a catch-up, or a
+ * game mode or round by id (only catch-up is treated differently).
+ */
+export type PlayMode = 'regular' | 'catchup' | (string & {});
 
 /** Result of an eligibility check — single source of truth for "can this user play?" */
 export interface PlayEligibility {

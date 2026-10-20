@@ -66,8 +66,6 @@ interface FamilyDataContextType {
   initGameStatuses: {
     casinoRush: GameModeStatus;
     slotMachine: GameModeStatus;
-    curling?: { canPlay: boolean; nextAvailable: string | null };
-    tetris?: { canPlay: boolean; nextAvailable: string | null };
   } | null;
   initFamilyFeud: FamilyFeudInitData | null;
 
@@ -138,7 +136,6 @@ export const FamilyDataProvider: React.FC<{
   const [initGameStatuses, setInitGameStatuses] = useState<{
     casinoRush: GameModeStatus;
     slotMachine: GameModeStatus;
-    curling?: { canPlay: boolean; nextAvailable: string | null };
   } | null>(null);
   const [initFamilyFeud, setInitFamilyFeud] = useState<FamilyFeudInitData | null>(null);
 

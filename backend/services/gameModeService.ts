@@ -1,20 +1,15 @@
 /**
- * Game Mode Service — shared cooldown + history logic for all game modes.
+ * Game Mode Service — shared cooldown + history logic for every game mode and
+ * round (docs/decisions/0032).
  *
  * Reads from the single source of truth: the answer history file. Each
- * game mode marks its entries with an `isX` flag (see shared/game-modes.ts).
+ * entry names its mode (gameModeOf in shared/game-modes.ts).
  *
  * Keeps per-game-mode route handlers focused on their unique gameplay —
  * cooldown math, eligibility, and history writes live here.
  */
 
-import {
-  GAME_MODES,
-  type GameModeId,
-  getGameMode,
-  type HistoryEntry,
-  type PlayMode,
-} from '@family-trivia/shared';
+import { cooldownOf, gameModeOf, type HistoryEntry, type PlayMode } from '@family-trivia/shared';
 import { S3_PATHS } from '../constants';
 import { logger } from './logger';
 import { checkPlayEligibility } from './playerStateService';
@@ -45,19 +40,12 @@ export interface CooldownStatus {
 }
 
 /**
- * Find the most recent history entry marked with a given game mode's flag.
+ * Find the most recent history entry from a given game mode or round.
  */
-export async function getLastGameModeEntry(
-  userId: string,
-  modeId: GameModeId,
-): Promise<HistoryEntry | null> {
-  const config = getGameMode(modeId);
-  if (!config) return null;
-
+async function getLastGameModeEntry(userId: string, modeId: string): Promise<HistoryEntry | null> {
   try {
     const history = await getCachedHistory(userId);
-    const flag = config.historyFlag;
-    const entries = history.filter((h) => !!(h as any)[flag]);
+    const entries = history.filter((h) => gameModeOf(h) === modeId);
     if (entries.length === 0) return null;
     // Most recent by timestamp (ISO strings sort correctly)
     entries.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
@@ -73,25 +61,17 @@ export async function getLastGameModeEntry(
 }
 
 /**
- * Compute weekly cooldown status for a game mode from the answer history.
- * Uses the mode's configured cooldownMs.
+ * Compute weekly cooldown status for a game mode or round from the answer
+ * history.
  */
-export async function getGameModeCooldown(
-  userId: string,
-  modeId: GameModeId,
-): Promise<CooldownStatus> {
-  const config = getGameMode(modeId);
-  if (!config) {
-    return { canPlay: false, nextAvailable: null, lastPlayedAt: null };
-  }
-
+export async function getGameModeCooldown(userId: string, modeId: string): Promise<CooldownStatus> {
   const last = await getLastGameModeEntry(userId, modeId);
   if (!last) {
     return { canPlay: true, nextAvailable: null, lastPlayedAt: null };
   }
 
   const lastAt = new Date(last.timestamp);
-  const nextAt = new Date(lastAt.getTime() + config.cooldownMs);
+  const nextAt = new Date(lastAt.getTime() + cooldownOf(modeId));
   const now = Date.now();
 
   return {
@@ -99,18 +79,6 @@ export async function getGameModeCooldown(
     nextAvailable: now >= nextAt.getTime() ? null : nextAt,
     lastPlayedAt: lastAt,
   };
-}
-
-/**
- * Check cooldowns for ALL game modes at once (for app-init hydration).
- */
-export async function getAllGameModeCooldowns(
-  userId: string,
-): Promise<Record<GameModeId, CooldownStatus>> {
-  const results = await Promise.all(
-    GAME_MODES.map(async (m) => [m.id, await getGameModeCooldown(userId, m.id)] as const),
-  );
-  return Object.fromEntries(results) as Record<GameModeId, CooldownStatus>;
 }
 
 /**
@@ -123,7 +91,7 @@ export async function getAllGameModeCooldowns(
  */
 export async function canPlayGameMode(
   userId: string,
-  modeId: GameModeId,
+  modeId: string,
   playMode: PlayMode = modeId,
 ): Promise<{ canPlay: boolean; nextAvailable: Date | null; blockedReason?: string }> {
   const [cooldown, eligibility] = await Promise.all([
@@ -151,7 +119,7 @@ export async function canPlayGameMode(
  */
 export async function canPlayGameModeAny(
   userId: string,
-  modeId: GameModeId,
+  modeId: string,
 ): Promise<{ canPlay: boolean; nextAvailable: Date | null; blockedReason?: string }> {
   const [regular, catchup] = await Promise.all([
     canPlayGameMode(userId, modeId, modeId),

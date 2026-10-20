@@ -9,7 +9,7 @@ const installMockFetch = () => {
   const realFetch = window.fetch;
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === 'string' ? input : input.toString();
-    if (url.includes('/curling/lock')) {
+    if (url.includes('/games/rounds/lock')) {
       const body = JSON.parse((init?.body as string) || '{}');
       return new Response(
         JSON.stringify({
@@ -23,7 +23,7 @@ const installMockFetch = () => {
         { status: 200, headers: { 'Content-Type': 'application/json' } },
       );
     }
-    if (url.includes('/curling/answer')) {
+    if (url.includes('/games/rounds/answer')) {
       const body = JSON.parse((init?.body as string) || '{}');
       const correct = body.answer === 'Nile';
       return new Response(

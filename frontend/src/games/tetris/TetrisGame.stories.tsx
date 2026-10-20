@@ -11,7 +11,7 @@ const installMockFetch = () => {
   window.fetch = async (input, init) => {
     const url = typeof input === 'string' ? input : input.toString();
 
-    if (url.includes('/tetris/lock')) {
+    if (url.includes('/games/rounds/lock')) {
       const body = JSON.parse((init?.body as string) || '{}');
       await new Promise((r) => setTimeout(r, 1500)); // Simulate question generation
       return new Response(
@@ -25,19 +25,14 @@ const installMockFetch = () => {
               choices: ['Kodak', 'Polaroid', 'Canon', 'Leica'],
               category: 'History',
             },
-            isNewHighScore: body.score > 500,
-            highScores: [
-              { userId: 'alice', score: 1200, date: '2026-04-01' },
-              { userId: 'bob', score: 800, date: '2026-03-28' },
-              { userId: 'carol', score: 450, date: '2026-03-25' },
-            ],
+            newBest: body.score > 500,
           },
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
-    if (url.includes('/tetris/answer')) {
+    if (url.includes('/games/rounds/answer')) {
       const body = JSON.parse((init?.body as string) || '{}');
       const correct = body.answer === 'Kodak';
       return new Response(
@@ -46,9 +41,9 @@ const installMockFetch = () => {
           data: {
             correct,
             correctAnswer: 'Kodak',
-            pointsEarned: correct ? 2 : 0,
+            pointsEarned: correct ? 3 : 0,
             multiplier: 2,
-            highScoreBonus: 1,
+            newBestBonus: 1,
           },
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } },

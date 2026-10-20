@@ -85,7 +85,6 @@ export interface AppInitDeferredResponse {
   gameStatuses?: {
     casinoRush: GameModeStatus;
     slotMachine: GameModeStatus;
-    curling?: { canPlay: boolean; nextAvailable: string | null };
   };
   familyFeud?: FamilyFeudInitData;
 }

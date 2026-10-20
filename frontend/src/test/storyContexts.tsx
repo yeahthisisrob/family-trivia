@@ -9,6 +9,7 @@ import { LeaderboardContext } from '../contexts/LeaderboardContext';
 import { TimelineContext } from '../contexts/TimelineContext';
 import { TriviaContext } from '../contexts/TriviaContext';
 import { UserStatusContext } from '../contexts/UserStatusContext';
+import { GAMES } from '../games/registry';
 
 // ── TimelineContext ────────────────────────────────────────────────
 
@@ -100,8 +101,8 @@ function makeTimelineValue(overrides: StubTimelineOverrides = {}) {
 export interface StubTriviaOverrides {
   canPlayCasinoRush?: boolean;
   canPlaySlotMachine?: boolean;
-  canPlayCurling?: boolean;
-  canPlayTetris?: boolean;
+  /** Rounds that can't be played now, by game id (others can). */
+  roundsLocked?: string[];
 }
 
 function makeTriviaValue(overrides: StubTriviaOverrides = {}) {
@@ -120,22 +121,19 @@ function makeTriviaValue(overrides: StubTriviaOverrides = {}) {
       loading: false,
       lastUpdated: 0,
     },
-    curling: {
-      canPlay: overrides.canPlayCurling ?? true,
-      nextAvailable: null,
-      loading: false,
-      lastUpdated: 0,
-    },
-    tetris: {
-      canPlay: overrides.canPlayTetris ?? true,
-      nextAvailable: null,
-      loading: false,
-      lastUpdated: 0,
-    },
+    rounds: Object.fromEntries(
+      GAMES.filter((g) => g.round).map((g) => [
+        g.id,
+        {
+          canPlay: !overrides.roundsLocked?.includes(g.id),
+          nextAvailable: null,
+          loading: false,
+        },
+      ]),
+    ),
     refreshSlotMachineStatus: async () => {},
     refreshCasinoRushStatus: async () => {},
-    refreshCurlingStatus: async () => {},
-    refreshTetrisStatus: async () => {},
+    refreshRounds: async () => {},
     refreshAllStatuses: async () => {},
     refreshTimestamp: 0,
     invalidateCategories: () => {},

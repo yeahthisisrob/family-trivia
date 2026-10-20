@@ -50,10 +50,6 @@ export const S3_PATHS = {
   // Slot Machine
   SLOT_MACHINE_SESSION: (userId: string) => `slot-machine/${userId}/session.json`,
 
-  // Tetris
-  TETRIS_SESSION: (userId: string) => `tetris/${userId}/session.json`,
-  TETRIS_HIGH_SCORES: 'tetris/high-scores.json',
-
   // Arcade (unified high scores for all games)
   ARCADE_SCORES: (gameId: string) => `arcade/scores/${gameId}.json`,
 

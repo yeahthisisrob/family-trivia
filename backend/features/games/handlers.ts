@@ -2,6 +2,7 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
 import { getHighScores, submitScore } from '../../services/arcadeService';
+import { answerRound, lockRound, roundStatus } from './rounds';
 import { clues, GAME_ID, readSave, SAVE_LIMIT, writeSave } from './service';
 
 const body = (e: APIGatewayProxyEvent): Record<string, unknown> => {
@@ -66,4 +67,38 @@ export async function getClues(e: APIGatewayProxyEvent) {
   return successResponse({
     clues: await clues({ count: int(q.count, 20, 1, 50), minLength, maxLength }),
   });
+}
+
+/** GET /games/rounds?games=tetris,curling */
+export async function getRounds(e: APIGatewayProxyEvent, me: string) {
+  const games = (e.queryStringParameters?.games ?? '').split(',').filter(Boolean);
+  if (!games.length || games.length > 20 || !games.every((g) => GAME_ID.test(g))) return badGame();
+  return successResponse({ rounds: await roundStatus(me, games) });
+}
+
+/** POST /games/rounds/lock { game, multiplier, score?, catchUp? } */
+export async function postRoundLock(e: APIGatewayProxyEvent, me: string) {
+  const { game: g, multiplier, score, catchUp } = body(e);
+  const game = gameOf(g);
+  if (!game) return badGame();
+  if (typeof multiplier !== 'number') return errorResponse('multiplier is required', 400);
+  if (score !== undefined && (typeof score !== 'number' || !Number.isFinite(score) || score < 0))
+    return errorResponse('score must be a number, 0 or more', 400);
+  const r = await lockRound(me, {
+    game,
+    multiplier,
+    score: score as number | undefined,
+    catchUp: catchUp === true,
+  });
+  return r.ok ? successResponse(r.value) : errorResponse(r.error, r.status, r.details, r.code);
+}
+
+/** POST /games/rounds/answer { game, answer } */
+export async function postRoundAnswer(e: APIGatewayProxyEvent, me: string) {
+  const { game: g, answer } = body(e);
+  const game = gameOf(g);
+  if (!game) return badGame();
+  if (typeof answer !== 'string') return errorResponse('answer is required', 400);
+  const r = await answerRound(me, game, answer);
+  return r.ok ? successResponse(r.value) : errorResponse(r.error, r.status);
 }

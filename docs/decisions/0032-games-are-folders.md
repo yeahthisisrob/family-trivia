@@ -34,13 +34,30 @@ leaderboard route not in it at all).
 - **Scramble** is a new game built only from the kit, as the example to
   copy.
 
+## Rounds (Oct 20, 2026)
+- **Any game can be a weekly trivia round.** A game adds `round: {
+  description, Round }` to its `defineGame`; the Trivia tab's special
+  challenges and the flow come from the registry. The game plays, sets a
+  multiplier, calls `lockRound`, shows the question, calls `answerRound`.
+- **One set of rules for every round** (`ROUND_RULES` in
+  `shared/src/game-modes.ts`): a multiplier of 0.5, 1, 2 or 3; a right answer
+  earns the multiplier, plus a point when the game's score is a new best;
+  one round per game per week; catch-up and the daily limit as for any
+  question. Curling now earns the new-best point too, as Tetris did.
+- **Endpoints:** `GET /games/rounds?games=`, `POST /games/rounds/lock`,
+  `POST /games/rounds/answer`, replacing `/curling/*` and `/tetris/*`.
+- **History names its mode:** new entries carry `gameMode` and
+  `multiplier`. Older entries keep their `isCurling` / `isTetris` flags and
+  are read through `gameModeOf`, so nothing stored changes.
+- **Session modes stay as they are.** Casino Rush and Slot Machine run
+  several steps with routes of their own and are listed in `GAME_MODES`.
+
 ## Consequences
 - A new game is a folder, a story, and nothing else. A game that truly needs
   its own server logic (Crossword builds its grid on the server; the Casino
   keeps a credit pool) still adds a backend slice and its OpenAPI entries.
-- Trivia game modes (Casino Rush, Slot Machine, Curling and Tetris as weekly
-  multipliers) are still registered in `shared/src/game-modes.ts` and wired
-  by hand into the trivia flow and history; making those folders too is the
-  next step.
+- The arcade bonus on the leaderboard (podium points for the best Tetris,
+  Curling and Slot Machine scores) still names its games: changing which
+  boards count would change standings people already have.
 - Anyone can submit a score for any id. The scores are per circle and only
   members can post, so the cost of a junk id is a board nobody sees.
