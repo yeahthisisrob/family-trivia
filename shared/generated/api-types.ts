@@ -2636,6 +2636,18 @@ export interface components {
              * @enum {string}
              */
             trivia?: "general" | "family" | "mixed" | "off";
+            /**
+             * @description Each for themselves, or teams (docs/decisions/0030); solo when unset
+             * @enum {string}
+             */
+            play?: "solo" | "teams";
+            /**
+             * @description A question and trivia a day, or a handful once a week; daily when unset
+             * @enum {string}
+             */
+            pace?: "daily" | "weekly";
+            /** @description Trivia questions a week in a weekly season (default 5) */
+            perWeek?: number;
         };
         EndOfSeasonStatus: {
             isEndOfSeason?: boolean;

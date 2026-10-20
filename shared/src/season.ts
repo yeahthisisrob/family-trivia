@@ -65,6 +65,43 @@ export interface Season {
   trivia?: SeasonTrivia;
   /** Each for themselves, or teams (docs/decisions/0030); solo when unset. */
   play?: SeasonPlay;
+  /** Daily, or weekly: a handful once a week (docs/decisions/0016); daily when unset. */
+  pace?: SeasonPace;
+  /** Trivia questions a week in a weekly season. */
+  perWeek?: number;
+}
+
+// ── Pace: what "today" means in a season (docs/decisions/0016) ──────────
+
+export type SeasonPace = 'daily' | 'weekly';
+export const isSeasonPace = (v: unknown): v is SeasonPace => v === 'daily' || v === 'weekly';
+export const PER_WEEK = 5;
+
+export const paceOf = (s: Pick<Season, 'pace'> | null | undefined): SeasonPace =>
+  s?.pace ?? 'daily';
+
+/** Trivia questions per play period: one a day, or the week's handful. */
+export const perPeriod = (s: Pick<Season, 'pace' | 'perWeek'> | null | undefined): number =>
+  paceOf(s) === 'weekly' ? Math.max(1, Math.min(14, s?.perWeek ?? PER_WEEK)) : 1;
+
+const DAY = 86_400_000;
+const at = (d: string) => Date.parse(`${d}T12:00:00Z`);
+
+/**
+ * The play period a day (YYYY-MM-DD) belongs to, as its first day: the day
+ * itself in a daily season, that week's Monday in a weekly one.
+ */
+export function playPeriod(day: string, pace: SeasonPace): string {
+  if (pace === 'daily') return day;
+  const t = at(day);
+  const fromMonday = (new Date(t).getUTCDay() + 6) % 7;
+  return new Date(t - fromMonday * DAY).toISOString().slice(0, 10);
+}
+
+/** Whole periods from the one holding `from` up to (not including) the one holding `to`. */
+export function periodsBetween(from: string, to: string, pace: SeasonPace): number {
+  const days = Math.round((at(playPeriod(to, pace)) - at(playPeriod(from, pace))) / DAY);
+  return Math.max(0, pace === 'weekly' ? Math.round(days / 7) : days);
 }
 
 export type SeasonPlay = 'solo' | 'teams';

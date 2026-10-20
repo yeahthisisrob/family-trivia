@@ -72,7 +72,7 @@
       "file": "daily-fact.png",
       "story": "home-dailyfactcard--todays-question",
       "size": "phone",
-      "source": "02937dccfbc5",
+      "source": "c0f5469222e1",
       "storyFile": "frontend/src/components/DailyFact/DailyFactCard.stories.tsx"
     },
     {

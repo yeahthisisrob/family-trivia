@@ -1,7 +1,7 @@
 // File: lambda/routes/admin.ts
 // Purpose: Admin CRUD handlers for players, groups, family tree, and seasons
 
-import { isSeasonPlay, isSeasonTrivia } from '@family-trivia/shared';
+import { isSeasonPace, isSeasonPlay, isSeasonTrivia } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
@@ -460,11 +460,13 @@ export async function addSeason(event: APIGatewayProxyEvent): Promise<APIGateway
   if (denied) return denied;
 
   const body = JSON.parse(event.body || '{}');
-  const { seasonNumber, name, startDate, endDate, status, message, trivia, play } = body;
+  const { seasonNumber, name, startDate, endDate, status, message, trivia, play, pace } = body;
   if (trivia !== undefined && !isSeasonTrivia(trivia))
     return errorResponse('trivia must be general, family, mixed or off', 400);
   if (play !== undefined && !isSeasonPlay(play))
     return errorResponse('play must be solo or teams', 400);
+  if (pace !== undefined && !isSeasonPace(pace))
+    return errorResponse('pace must be daily or weekly', 400);
 
   if (!seasonNumber || !name || !startDate) {
     return errorResponse('seasonNumber, name, and startDate are required', 400);
@@ -488,6 +490,7 @@ export async function addSeason(event: APIGatewayProxyEvent): Promise<APIGateway
     message: message || null,
     ...(trivia ? { trivia } : {}),
     ...(play ? { play } : {}),
+    ...(pace ? { pace } : {}),
   };
 
   config.seasons.push(newSeason);
@@ -521,11 +524,15 @@ export async function updateSeason(event: APIGatewayProxyEvent): Promise<APIGate
     notes,
     trivia,
     play,
+    pace,
+    perWeek,
   } = body;
   if (trivia !== undefined && !isSeasonTrivia(trivia))
     return errorResponse('trivia must be general, family, mixed or off', 400);
   if (play !== undefined && !isSeasonPlay(play))
     return errorResponse('play must be solo or teams', 400);
+  if (pace !== undefined && !isSeasonPace(pace))
+    return errorResponse('pace must be daily or weekly', 400);
 
   const config = await getJson<SeasonsConfig>(S3_PATHS.SEASONS_CONFIG);
   if (!config) return errorResponse('Seasons config not found', 404);
@@ -548,6 +555,9 @@ export async function updateSeason(event: APIGatewayProxyEvent): Promise<APIGate
     if (message !== undefined) season.message = message;
     if (trivia !== undefined) season.trivia = trivia;
     if (play !== undefined) season.play = play;
+    if (pace !== undefined) season.pace = pace;
+    if (typeof perWeek === 'number' && perWeek >= 1 && perWeek <= 14)
+      season.perWeek = Math.floor(perWeek);
     if (notes !== undefined) {
       const clean = cleanNotes(notes);
       if (!clean)

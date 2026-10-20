@@ -1,7 +1,3 @@
-/** Whole days from `from` up to (not including) `to`, both YYYY-MM-DD. */
-const daysBetween = (from: string, to: string) =>
-  Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000);
-
 /**
  * Player State Service — SINGLE SOURCE OF TRUTH
  *
@@ -43,6 +39,10 @@ import {
   hasTrivia,
   type PlayEligibility,
   type PlayMode,
+  paceOf,
+  periodsBetween,
+  perPeriod,
+  playPeriod,
 } from '@family-trivia/shared';
 import { S3_PATHS } from '../constants';
 import { getFactHistory } from './factHistoryService';
@@ -50,7 +50,7 @@ import { logger } from './logger';
 import { type QuestionSlot, toQuestionSlots } from './questionSlotService';
 import { getJson, listObjects } from './s3';
 import { computePoints } from './scoring';
-import { getSeasonsConfig, type Season } from './seasonService';
+import { currentPlayDay, getSeasonsConfig, type Season } from './seasonService';
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -130,6 +130,12 @@ async function loadAllState(): Promise<{
   const seasonStart = activeSeason?.startDate ?? null;
   const seasonEnd = activeSeason?.endDate ?? null;
   const isEndOfSeason = activeSeason?.status !== 'active';
+  // A play period is a day, or a week in a weekly season (docs/decisions/0016).
+  const pace = paceOf(activeSeason);
+  const per = perPeriod(activeSeason);
+  const nowPeriod = playPeriod(todayET, pace);
+  const periodOf = (timestamp: string) =>
+    playPeriod(getEasternDateString(new Date(timestamp)), pace);
 
   // Load all histories in parallel
   const entries: { userId: string; history: HistoryEntry[] }[] = [];
@@ -177,14 +183,14 @@ async function loadAllState(): Promise<{
     // making everyone else look 1-behind.
     const priorDaySlots = slots.filter((s) => {
       if (!inSeason(s)) return false;
-      return getEasternDateString(new Date(s.timestamp)) < todayET;
+      return periodOf(s.timestamp) < nowPeriod;
     }).length;
     // Catch-up slots from today — these represent filling prior-day
     // gaps, so they count toward the catch-up benchmark.
     const catchupSlotsToday = slots.filter((s) => {
       if (!inSeason(s)) return false;
       if (!s.isCatchingUp) return false;
-      return getEasternDateString(new Date(s.timestamp)) === todayET;
+      return periodOf(s.timestamp) === nowPeriod;
     }).length;
 
     // Streak (from slots directly to avoid re-running toQuestionSlots)
@@ -200,10 +206,9 @@ async function loadAllState(): Promise<{
       if (h.correct) score += computePoints(h);
     }
 
-    // Has played their daily trivia today? (catch-up doesn't count)
-    const hasPlayedToday = slots.some(
-      (s) => !s.isCatchingUp && getEasternDateString(new Date(s.timestamp)) === todayET,
-    );
+    // Has played this period's trivia (one today, or the week's handful)? Catch-up doesn't count.
+    const hasPlayedToday =
+      slots.filter((s) => !s.isCatchingUp && periodOf(s.timestamp) === nowPeriod).length >= per;
 
     // Last answer date
     const lastAnswerDate =
@@ -243,7 +248,7 @@ async function loadAllState(): Promise<{
       .filter((sl) => inSeasonDay(sl.timestamp))
       .map((sl) => getEasternDateString(new Date(sl.timestamp)))
       .sort()[0];
-    const owed = first && first < todayET ? daysBetween(first, todayET) : 0;
+    const owed = first ? periodsBetween(first, todayET, pace) * per : 0;
     const filled = state.priorDaySlots + state.catchupSlotsToday;
     state.catchupGaps = Math.max(0, owed - filled);
   }
@@ -341,7 +346,7 @@ export async function checkPlayEligibility(
     return {
       canPlay: false,
       reason: 'daily_limit_reached',
-      nextAvailableAt: getNextMidnightET(),
+      nextAvailableAt: nextPeriodStart(summary.activeSeason),
       ...base,
     };
   }
@@ -378,7 +383,7 @@ export async function calculateCatchupStatus(userId: string): Promise<CatchupSta
  * answer this season on (a late start owes nothing). Today's is just today's.
  */
 async function waitingFacts(userId: string, seasonStart?: string): Promise<number> {
-  const today = getEasternDateString(new Date());
+  const today = await currentPlayDay(); // this period's question isn't waiting, it's current
   const [keys, history] = await Promise.all([
     listObjects(S3_PATHS.SHARED_QUESTIONS_DIR),
     getFactHistory(userId),
@@ -394,4 +399,13 @@ async function waitingFacts(userId: string, seasonStart?: string): Promise<numbe
   return keys
     .map((k) => k.match(/(\d{4}-\d{2}-\d{2})\.json$/)?.[1])
     .filter((d): d is string => !!d && d >= from && d < today && !answered.has(d)).length;
+}
+
+/** When the next play period opens: midnight ET, or the coming Monday in a weekly season. */
+function nextPeriodStart(season: Season | null): string {
+  if (paceOf(season) !== 'weekly') return getNextMidnightET();
+  const today = getEasternDateString(new Date());
+  const monday = playPeriod(today, 'weekly');
+  const sunday = new Date(Date.parse(`${monday}T17:00:00Z`) + 6 * 86_400_000);
+  return getNextMidnightET(sunday);
 }

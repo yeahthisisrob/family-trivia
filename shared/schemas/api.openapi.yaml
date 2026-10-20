@@ -5002,6 +5002,17 @@ components:
           type: string
           enum: [general, family, mixed, 'off']
           description: What the trivia is about this season (off = facts only, no trivia); general when unset
+        play:
+          type: string
+          enum: [solo, teams]
+          description: Each for themselves, or teams (docs/decisions/0030); solo when unset
+        pace:
+          type: string
+          enum: [daily, weekly]
+          description: A question and trivia a day, or a handful once a week; daily when unset
+        perWeek:
+          type: integer
+          description: Trivia questions a week in a weekly season (default 5)
 
     EndOfSeasonStatus:
       type: object
