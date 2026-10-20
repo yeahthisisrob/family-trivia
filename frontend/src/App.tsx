@@ -19,6 +19,7 @@ import { useFeatures } from './entities/settings';
 import { UpcomingDates } from './features/celebrations';
 import { DailyMemory } from './features/daily-memory';
 import { AfterCard, PlansCard } from './features/plans';
+import { SinceCard } from './features/since';
 import { TeamsCard } from './features/teams';
 import { ThreadCard } from './features/threads';
 import { WaitingCard } from './features/waiting';
@@ -151,6 +152,9 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
           }}
         />
       )}
+
+      {/* Back after a while: what's new since (0016) */}
+      <SinceCard nameOf={(id) => familyData.members.find((m) => m.userId === id)?.name ?? id} />
 
       {/* What's waiting, oldest first; nothing expires in an open season (0016) */}
       {isSeasonActive && (
