@@ -5,10 +5,18 @@
  * (services/scope.ts), so every feature that reads people sees everyone
  * without knowing why.
  */
-import { type FamilyPerson, type JoinedPeople, joinPeople } from '@family-trivia/shared';
+import {
+  type FamilyPerson,
+  type JoinedPeople,
+  joinPeople,
+  maybeSame,
+  type PersonIn,
+  type SamePeople,
+  type SourcePeople,
+} from '@family-trivia/shared';
 import { S3_PATHS } from '../../constants';
 import { findCircle, scopeOf } from '../circles';
-import { getJson } from '../s3';
+import { getJson, putJson } from '../s3';
 import { currentScope, inCircle, type Scope, setLinkedReader } from '../scope';
 import { loadFamily, storeFamily } from './roster';
 
@@ -20,8 +28,17 @@ const cache = new Map<string, { at: number; people: Promise<JoinedPeople> }>();
 export const forgetJoined = (circleId?: string) =>
   circleId ? cache.delete(circleId) : cache.clear();
 
-async function read(scope: Scope): Promise<JoinedPeople> {
+/** What admins said about who is the same person, kept in the joined circle itself. */
+const SAME_KEY = 'config/same-people.json';
+const noAnswers: SamePeople = { same: [], notSame: [] };
+
+async function answersOf(scope: Scope): Promise<SamePeople> {
   const me = await findCircle(scope.circleId);
+  if (!me) return noAnswers;
+  return inCircle(scopeOf(me), async () => (await getJson<SamePeople>(SAME_KEY)) ?? noAnswers);
+}
+
+async function sourcesOf(scope: Scope): Promise<SourcePeople[]> {
   const sources = await Promise.all(
     (scope.sources ?? []).map(async (id) => {
       const circle = await findCircle(id);
@@ -39,10 +56,47 @@ async function read(scope: Scope): Promise<JoinedPeople> {
       }));
     }),
   );
-  return joinPeople(
-    me?.name ?? 'Joined',
-    sources.filter((s) => s !== null),
+  return sources.filter((s) => s !== null);
+}
+
+async function read(scope: Scope): Promise<JoinedPeople> {
+  const [me, sources, answers] = await Promise.all([
+    findCircle(scope.circleId),
+    sourcesOf(scope),
+    answersOf(scope),
+  ]);
+  return joinPeople(me?.name ?? 'Joined', sources, answers.same);
+}
+
+export interface SameSuggestion {
+  a: PersonIn & { name: string; circleName: string };
+  b: PersonIn & { name: string; circleName: string };
+}
+
+/** People in a joined circle who might be one person, for an admin to answer. */
+export async function sameSuggestions(scope: Scope): Promise<SameSuggestion[]> {
+  const [sources, answers] = await Promise.all([sourcesOf(scope), answersOf(scope)]);
+  const joined = await joinedPeople(scope);
+  const circleName = async (id: string) => (await findCircle(id))?.name ?? id;
+  return Promise.all(
+    maybeSame(sources, joined, answers).map(async ({ a, b, name }) => ({
+      a: { ...a, name, circleName: await circleName(a.circleId) },
+      b: { ...b, name, circleName: await circleName(b.circleId) },
+    })),
   );
+}
+
+/** An admin's answer: the same person (one here), or not (never asked again). */
+export async function answerSame(scope: Scope, a: PersonIn, b: PersonIn, same: boolean) {
+  const me = await findCircle(scope.circleId);
+  if (!me) return;
+  await inCircle(scopeOf(me), async () => {
+    const answers = (await getJson<SamePeople>(SAME_KEY)) ?? { same: [], notSame: [] };
+    const list = same ? answers.same : answers.notSame;
+    list.push({ a, b });
+    await putJson(SAME_KEY, answers);
+  });
+  forgetJoined(scope.circleId);
 }
 
 /** The joined people of a joined circle. */

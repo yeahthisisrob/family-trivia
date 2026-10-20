@@ -1,4 +1,15 @@
 import type { Circle, CircleKind, Invite, MyCircle } from '@family-trivia/shared';
+
+interface PersonIn {
+  circleId: string;
+  id: string;
+}
+/** Two people from different circles who might be one (docs/decisions/0018). */
+export interface SameSuggestion {
+  a: PersonIn & { name: string; circleName: string };
+  b: PersonIn & { name: string; circleName: string };
+}
+
 import { apiService } from '../../../services/ApiService';
 
 export const circlesApi = {
@@ -34,6 +45,22 @@ export const circlesApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ circleId }),
+    }),
+  /** In a joined circle: who might be the same person. */
+  same: (circleId: string) =>
+    apiService.request<{ suggestions: SameSuggestion[] }>(
+      `/admin/circles/same?circleId=${encodeURIComponent(circleId)}`,
+    ),
+  answerSame: (circleId: string, s: SameSuggestion, same: boolean) =>
+    apiService.request<{ suggestions: SameSuggestion[] }>('/admin/circles/same', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        circleId,
+        a: { circleId: s.a.circleId, id: s.a.id },
+        b: { circleId: s.b.circleId, id: s.b.id },
+        same,
+      }),
     }),
   create: (c: { name: string; kind: CircleKind; themeId: string; yourName: string }) =>
     apiService.request<{ circle: Circle; circles: MyCircle[] }>('/admin/circles', {

@@ -872,6 +872,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/circles/same": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** In a joined circle: people who might be one person (the same name in two circles, not both signed in), for an admin to answer */
+        get: operations["getSamePeople"];
+        put?: never;
+        /** Answer one suggestion. The same person becomes one in the joined circle; not the same is never asked again. The source circles are untouched. */
+        post: operations["answerSamePeople"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/circles/split": {
         parameters: {
             query?: never;
@@ -2620,6 +2638,21 @@ export interface components {
                 average: number;
                 total: number;
             }[];
+        };
+        /** @description One person as a source circle knows them */
+        PersonIn: {
+            circleId: string;
+            id: string;
+        };
+        SameSuggestion: {
+            a: components["schemas"]["PersonIn"] & {
+                name: string;
+                circleName: string;
+            };
+            b: components["schemas"]["PersonIn"] & {
+                name: string;
+                circleName: string;
+            };
         };
         /** @description A moment in someone's life one of their circles knows (docs/decisions/0018) */
         LifeEvent: {
@@ -5228,6 +5261,82 @@ export interface operations {
                 content?: never;
             };
             /** @description These circles are joined already */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getSamePeople: {
+        parameters: {
+            query: {
+                circleId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The suggestions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        suggestions: components["schemas"]["SameSuggestion"][];
+                    };
+                };
+            };
+            /** @description Not a joined circle */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not an admin there */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    answerSamePeople: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    circleId: string;
+                    a: components["schemas"]["PersonIn"];
+                    b: components["schemas"]["PersonIn"];
+                    same: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description The suggestions left */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        suggestions: components["schemas"]["SameSuggestion"][];
+                    };
+                };
+            };
+            /** @description Not a pair that was suggested */
             409: {
                 headers: {
                     [name: string]: unknown;

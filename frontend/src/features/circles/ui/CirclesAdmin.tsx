@@ -21,7 +21,7 @@ import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { KIND_ICON, KIND_LABEL } from '../../../entities/circle';
 import { enterCircle } from '../../../session';
-import { circlesApi } from '../api/circlesApi';
+import { circlesApi, type SameSuggestion } from '../api/circlesApi';
 import { CircleFields, isReady, type NewCircle, newCircle } from './CircleFields';
 import { InviteButton } from './InviteButton';
 
@@ -43,6 +43,17 @@ export const CirclesAdmin: React.FC<Props> = ({ currentId, yourName }) => {
   const [joining, setJoining] = useState(false);
   const [splitting, setSplitting] = useState<Circle | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+  // Joined circle → who might be the same person there.
+  const [same, setSame] = useState<Record<string, SameSuggestion[]>>({});
+  const [answering, setAnswering] = useState<Circle | null>(null);
+  useEffect(() => {
+    for (const c of circles ?? [])
+      if (c.sources && !c.endedAt)
+        circlesApi
+          .same(c.id)
+          .then((r) => setSame((m) => ({ ...m, [c.id]: r.suggestions })))
+          .catch(() => undefined);
+  }, [circles]);
   const reload = useCallback(
     () =>
       circlesApi
@@ -109,9 +120,20 @@ export const CirclesAdmin: React.FC<Props> = ({ currentId, yourName }) => {
                   </Button>
                 </>
               ) : c.sources ? (
-                <Button size="small" color="inherit" onClick={() => setSplitting(c)}>
-                  Split
-                </Button>
+                <>
+                  {(same[c.id]?.length ?? 0) > 0 && (
+                    <Chip
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      label={`${same[c.id]?.length} might be the same person`}
+                      onClick={() => setAnswering(c)}
+                    />
+                  )}
+                  <Button size="small" color="inherit" onClick={() => setSplitting(c)}>
+                    Split
+                  </Button>
+                </>
               ) : (
                 <InviteButton circleId={c.id} circleName={c.name} />
               )}
@@ -125,6 +147,17 @@ export const CirclesAdmin: React.FC<Props> = ({ currentId, yourName }) => {
           circles={joinable}
           onClose={() => setJoining(false)}
           onJoined={() => void reload()}
+        />
+      )}
+      {answering && (
+        <SamePersonDialog
+          suggestions={same[answering.id] ?? []}
+          onAnswer={async (s, isSame) => {
+            const r = await circlesApi.answerSame(answering.id, s, isSame);
+            setSame((m) => ({ ...m, [answering.id]: r.suggestions }));
+            if (!r.suggestions.length) setAnswering(null);
+          }}
+          onClose={() => setAnswering(null)}
         />
       )}
       {splitting && (
@@ -246,6 +279,59 @@ export const JoinCirclesDialog: React.FC<{
         >
           Join them
         </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+/**
+ * People with the same name in two joined circles, and no sign-in to tell
+ * them apart: one tap each says whether they're one person here.
+ */
+export const SamePersonDialog: React.FC<{
+  suggestions: SameSuggestion[];
+  onAnswer: (s: SameSuggestion, same: boolean) => Promise<void>;
+  onClose: () => void;
+}> = ({ suggestions, onAnswer, onClose }) => {
+  const [busy, setBusy] = useState(false);
+  const answer = (s: SameSuggestion, same: boolean) => {
+    setBusy(true);
+    void onAnswer(s, same).finally(() => setBusy(false));
+  };
+  return (
+    <Dialog open onClose={onClose} fullWidth maxWidth="xs">
+      <DialogTitle sx={{ fontWeight: 700 }}>The same person?</DialogTitle>
+      <DialogContent>
+        <Typography sx={{ color: 'text.secondary', mb: 2 }}>
+          The same name comes up in two circles. If it's one person, they show once here, with
+          everyone they're connected to. Nothing changes in either circle.
+        </Typography>
+        <Stack spacing={2}>
+          {suggestions.map((s) => (
+            <Box key={`${s.a.circleId}${s.a.id}${s.b.circleId}${s.b.id}`}>
+              <Typography sx={{ fontWeight: 700 }}>{s.a.name}</Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.75 }}>
+                in {s.a.circleName} and in {s.b.circleName}
+              </Typography>
+              <Stack direction="row" spacing={1}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  disabled={busy}
+                  onClick={() => answer(s, true)}
+                >
+                  Same person
+                </Button>
+                <Button size="small" disabled={busy} onClick={() => answer(s, false)}>
+                  Not the same
+                </Button>
+              </Stack>
+            </Box>
+          ))}
+        </Stack>
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button onClick={onClose}>Later</Button>
       </DialogActions>
     </Dialog>
   );

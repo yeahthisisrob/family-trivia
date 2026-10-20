@@ -1,6 +1,7 @@
 vi.mock('../services/s3', async () => (await import('./helpers/s3Mock')).s3MockModule);
 
 import type { Circle, Family, FamilyPerson, SeasonsConfig } from '@family-trivia/shared';
+import { getSame, postSame } from '../features/circles/handlers';
 import {
   findCircle,
   joinCircles,
@@ -178,5 +179,72 @@ describe('reading before a circle is chosen', () => {
     } finally {
       setFallbackScope({ circleId: 'home', root: true });
     }
+  });
+});
+
+describe('same person (0018)', () => {
+  beforeEach(() => {
+    seed();
+    // Grandma Jo is remembered in both circles, with no sign-in.
+    seedRaw('family/family.json', family(['alice', 'bob', 'jo']));
+    seedRaw('circles/crew/family/family.json', family(['al', 'dave', 'grandma']));
+    const named = (path: string, id: string) => {
+      const f = getStored<Family>(path) as Family;
+      seedRaw(path, { ...f, people: { ...f.people, [id]: { ...person(id), name: 'Grandma Jo' } } });
+    };
+    named('family/family.json', 'jo');
+    named('circles/crew/family/family.json', 'grandma');
+  });
+
+  const ev = (q: Record<string, string>, body?: unknown) =>
+    ({ queryStringParameters: q, body: body ? JSON.stringify(body) : null }) as never;
+  const data = (r: { body: string }) => JSON.parse(r.body).data;
+
+  it('suggests her, and one tap makes her one person', async () => {
+    const c = await joined();
+    const caller = { email: 'alice@example.com', circle: c };
+    const { suggestions } = data(await getSame(ev({ circleId: c.id }), 'alice', caller));
+    expect(suggestions).toHaveLength(1);
+    expect(suggestions[0]).toMatchObject({
+      a: { circleId: 'home', id: 'jo', circleName: 'The Smiths' },
+      b: { circleId: 'crew', id: 'grandma', circleName: 'The Crew' },
+    });
+    const { a, b } = suggestions[0];
+    const after = data(
+      await postSame(ev({}, { circleId: c.id, a, b, same: true }), 'alice', caller),
+    );
+    expect(after.suggestions).toEqual([]);
+    const people = Object.values((await inside(c, loadFamily)).people);
+    expect(people.filter((p) => p.name === 'Grandma Jo')).toHaveLength(1);
+    // Kept in the joined circle; the sources are untouched.
+    expect(getStored(`circles/${c.id}/config/same-people.json`)).toEqual({
+      same: [{ a: { circleId: 'home', id: 'jo' }, b: { circleId: 'crew', id: 'grandma' } }],
+      notSame: [],
+    });
+  });
+
+  it('"not the same" is never asked again', async () => {
+    const c = await joined();
+    const caller = { email: 'alice@example.com', circle: c };
+    const [{ a, b }] = data(await getSame(ev({ circleId: c.id }), 'alice', caller)).suggestions;
+    await postSame(ev({}, { circleId: c.id, a, b, same: false }), 'alice', caller);
+    expect(data(await getSame(ev({ circleId: c.id }), 'alice', caller)).suggestions).toEqual([]);
+    expect(
+      Object.values((await inside(c, loadFamily)).people).filter((p) => p.name === 'Grandma Jo'),
+    ).toHaveLength(2);
+  });
+
+  it('only answers a pair that was suggested, and only for an admin', async () => {
+    const c = await joined();
+    const alice = { email: 'alice@example.com', circle: c };
+    const forced = {
+      circleId: c.id,
+      a: { circleId: 'home', id: 'bob' },
+      b: { circleId: 'crew', id: 'dave' },
+      same: true,
+    };
+    expect((await postSame(ev({}, forced), 'alice', alice)).statusCode).toBe(409);
+    const dave = { email: 'dave@example.com', circle: c };
+    expect((await getSame(ev({ circleId: c.id }), 'dave', dave)).statusCode).toBe(403);
   });
 });

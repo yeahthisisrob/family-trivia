@@ -112,7 +112,7 @@
       "story": "features-circles-circlesadmin--join-circles",
       "size": "phone",
       "storyFile": "frontend/src/features/circles/ui/CirclesAdmin.stories.tsx",
-      "source": "dd5b20fe09f1"
+      "source": "fd2269025f16"
     },
     {
       "file": "join.png",

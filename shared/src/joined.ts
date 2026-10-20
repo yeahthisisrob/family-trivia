@@ -3,9 +3,10 @@
  * circles each time they're read. Nothing is copied, so a change in a source
  * shows at once and splitting loses nothing.
  *
- * Someone with the same sign-in in two sources is one person here. Everyone
- * else keeps their id; an id that two different people share gets the
- * circle's id after it.
+ * Someone with the same sign-in in two sources is one person here, and so
+ * is anyone an admin has said is the same person (someone remembered in both
+ * circles has no sign-in). Everyone else keeps their id; an id that two
+ * different people share gets the circle's id after it.
  */
 import type { Family, FamilyPerson, Household, Tie } from './people';
 
@@ -16,6 +17,22 @@ export interface SourcePeople {
   users: Record<string, Record<string, unknown>>;
   /** config/google-auth-map.json: email → id. */
   signIn: Record<string, string>;
+}
+
+/** One person as a source circle knows them. */
+export interface PersonIn {
+  circleId: string;
+  id: string;
+}
+
+/**
+ * What an admin said about two people from different source circles
+ * (config/same-people.json in the joined circle).
+ */
+export interface SamePeople {
+  same: { a: PersonIn; b: PersonIn }[];
+  /** Pairs an admin said are different people: never suggested again. */
+  notSame: { a: PersonIn; b: PersonIn }[];
 }
 
 export interface JoinedPeople {
@@ -76,8 +93,20 @@ function freeId(id: string, circleId: string, taken: Record<string, unknown>): s
   return candidate;
 }
 
-export function joinPeople(name: string, sources: SourcePeople[]): JoinedPeople {
+const homeKey = (p: PersonIn) => `${p.circleId}\u0000${p.id}`;
+
+export function joinPeople(
+  name: string,
+  sources: SourcePeople[],
+  links: SamePeople['same'] = [],
+): JoinedPeople {
   const byEmail = new Map<string, string>();
+  // Someone already placed, by where they live: for "same person" links.
+  const byHome = new Map<string, string>();
+  const linked = (p: PersonIn) =>
+    links.flatMap((l) =>
+      homeKey(l.a) === homeKey(p) ? [l.b] : homeKey(l.b) === homeKey(p) ? [l.a] : [],
+    );
   const homes: JoinedPeople['homes'] = {};
   const people: Record<string, FamilyPerson> = {};
   const users: JoinedPeople['users'] = {};
@@ -93,8 +122,12 @@ export function joinPeople(name: string, sources: SourcePeople[]): JoinedPeople 
     for (const id of ids) {
       const email = emailOf.get(id);
       let joined = email ? byEmail.get(email) : undefined;
+      joined ??= linked({ circleId: s.circleId, id })
+        .map((other) => byHome.get(homeKey(other)))
+        .find((x) => x !== undefined);
       if (!joined) joined = freeId(id, s.circleId, homes);
       local.set(id, joined);
+      byHome.set(homeKey({ circleId: s.circleId, id }), joined);
       homes[joined] = [...(homes[joined] ?? []), { circleId: s.circleId, id }];
       if (email && !byEmail.has(email)) byEmail.set(email, joined);
 
@@ -128,4 +161,44 @@ export function joinPeople(name: string, sources: SourcePeople[]): JoinedPeople 
     signIn,
     homes,
   };
+}
+
+const nameKey = (n: string) => n.trim().toLowerCase().replace(/\s+/g, ' ');
+
+/**
+ * People who might be one person: the same name in two source circles, not
+ * already one here, and not both signed in (two sign-ins are two people).
+ * Pairs an admin answered are left out.
+ */
+export function maybeSame(
+  sources: SourcePeople[],
+  joined: JoinedPeople,
+  answered: SamePeople,
+): { a: PersonIn; b: PersonIn; name: string }[] {
+  const asked = new Set(
+    [...answered.same, ...answered.notSame].flatMap(({ a, b }) => [
+      `${homeKey(a)}|${homeKey(b)}`,
+      `${homeKey(b)}|${homeKey(a)}`,
+    ]),
+  );
+  const joinedId = new Map<string, string>();
+  for (const [jid, homes] of Object.entries(joined.homes))
+    for (const h of homes) joinedId.set(homeKey(h), jid);
+  const signedIn = (circle: SourcePeople, id: string) => Object.values(circle.signIn).includes(id);
+
+  const out: { a: PersonIn; b: PersonIn; name: string }[] = [];
+  sources.forEach((sa, i) => {
+    for (const sb of sources.slice(i + 1))
+      for (const pa of Object.values(sa.family.people))
+        for (const pb of Object.values(sb.family.people)) {
+          if (nameKey(pa.name) !== nameKey(pb.name)) continue;
+          const a = { circleId: sa.circleId, id: pa.id };
+          const b = { circleId: sb.circleId, id: pb.id };
+          if (joinedId.get(homeKey(a)) === joinedId.get(homeKey(b))) continue;
+          if (signedIn(sa, pa.id) && signedIn(sb, pb.id)) continue;
+          if (asked.has(`${homeKey(a)}|${homeKey(b)}`)) continue;
+          out.push({ a, b, name: pa.name });
+        }
+  });
+  return out;
 }

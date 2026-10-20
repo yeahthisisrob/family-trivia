@@ -1899,6 +1899,53 @@ paths:
         "403": { description: Not an admin in every circle joined }
         "409": { description: These circles are joined already }
 
+  /admin/circles/same:
+    get:
+      summary: "In a joined circle: people who might be one person (the same name in two circles, not both signed in), for an admin to answer"
+      operationId: getSamePeople
+      tags: [Circles]
+      parameters:
+        - { name: circleId, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: The suggestions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [suggestions]
+                properties:
+                  suggestions: { type: array, items: { $ref: "#/components/schemas/SameSuggestion" } }
+        "400": { description: Not a joined circle }
+        "403": { description: Not an admin there }
+    post:
+      summary: Answer one suggestion. The same person becomes one in the joined circle; not the same is never asked again. The source circles are untouched.
+      operationId: answerSamePeople
+      tags: [Circles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [circleId, a, b, same]
+              properties:
+                circleId: { type: string }
+                a: { $ref: "#/components/schemas/PersonIn" }
+                b: { $ref: "#/components/schemas/PersonIn" }
+                same: { type: boolean }
+      responses:
+        "200":
+          description: The suggestions left
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [suggestions]
+                properties:
+                  suggestions: { type: array, items: { $ref: "#/components/schemas/SameSuggestion" } }
+        "409": { description: Not a pair that was suggested }
+
   /admin/circles/split:
     post:
       summary: End a joined circle. Nothing is deleted; its season pauses and the circles it joined carry on.
@@ -4956,6 +5003,29 @@ components:
               average: { type: number, description: Points per member }
               total: { type: number }
 
+    PersonIn:
+      type: object
+      description: One person as a source circle knows them
+      required: [circleId, id]
+      properties:
+        circleId: { type: string }
+        id: { type: string }
+    SameSuggestion:
+      type: object
+      required: [a, b]
+      properties:
+        a:
+          allOf:
+            - $ref: "#/components/schemas/PersonIn"
+            - type: object
+              required: [name, circleName]
+              properties: { name: { type: string }, circleName: { type: string } }
+        b:
+          allOf:
+            - $ref: "#/components/schemas/PersonIn"
+            - type: object
+              required: [name, circleName]
+              properties: { name: { type: string }, circleName: { type: string } }
     LifeEvent:
       type: object
       description: "A moment in someone's life one of their circles knows (docs/decisions/0018)"

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { HttpResponse, http } from 'msw';
-import { expect, userEvent, within } from 'storybook/test';
-import { CirclesAdmin } from './CirclesAdmin';
+import { expect, fn, userEvent, within } from 'storybook/test';
+import { CirclesAdmin, SamePersonDialog } from './CirclesAdmin';
 
 const withJoined = http.get('*/admin/circles', () =>
   HttpResponse.json({
@@ -22,6 +22,14 @@ const withJoined = http.get('*/admin/circles', () =>
       ],
     },
   }),
+);
+
+const grandmaJo = {
+  a: { circleId: 'home', id: 'jo', name: 'Grandma Jo', circleName: 'The Smiths' },
+  b: { circleId: 'crew', id: 'grandma', name: 'Grandma Jo', circleName: 'The Springfield Crew' },
+};
+const sameHandler = http.get('*/admin/circles/same', () =>
+  HttpResponse.json({ ok: true, data: { suggestions: [grandmaJo] } }),
 );
 
 const all = (owner: boolean) =>
@@ -75,7 +83,7 @@ export const NotTheOwner: Story = {
 
 /** Joined circles say what they join; one can be split, a split one joined again. */
 export const JoinedAndSplit: Story = {
-  parameters: { msw: { handlers: [withJoined] } },
+  parameters: { msw: { handlers: [withJoined, sameHandler] } },
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
     await expect(await c.findAllByText('Joins The Smiths and The Springfield Crew')).toHaveLength(
@@ -102,5 +110,28 @@ export const JoinCircles: Story = {
     await userEvent.click(d.getByLabelText('The Springfield Crew'));
     await expect(go).toBeEnabled();
     await expect(d.getByPlaceholderText('The Smiths + The Springfield Crew')).toBeInTheDocument();
+  },
+};
+
+/** The same name in two joined circles, nobody signed in as her: one tap says if she's one person. */
+export const SamePerson: StoryObj<typeof SamePersonDialog> = {
+  render: () => (
+    <SamePersonDialog suggestions={[grandmaJo]} onAnswer={fn(async () => {})} onClose={fn()} />
+  ),
+  play: async () => {
+    const d = within(document.body);
+    await expect(await d.findByText('The same person?')).toBeInTheDocument();
+    await expect(d.getByText('in The Smiths and in The Springfield Crew')).toBeInTheDocument();
+    await expect(d.getByRole('button', { name: 'Same person' })).toBeEnabled();
+  },
+};
+
+/** A joined circle with someone to answer about shows how many. */
+export const SameToAnswer: Story = {
+  parameters: { msw: { handlers: [withJoined, sameHandler] } },
+  play: async ({ canvasElement }) => {
+    const c = within(canvasElement);
+    await userEvent.click(await c.findByText('1 might be the same person'));
+    await expect(await within(document.body).findByText('The same person?')).toBeInTheDocument();
   },
 };
