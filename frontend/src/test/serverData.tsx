@@ -50,22 +50,34 @@ export function openTabIn(circle: 'crew' | 'home') {
   saveCircles(circle, CIRCLES);
 }
 
-type Answer = (circle: string | null, url: URL) => unknown | Promise<unknown>;
+type Answer = (circle: string | null, url: URL, body: unknown) => unknown | Promise<unknown>;
+
+/** What a route answers to turn a request down: this status, with the error envelope. */
+class Refusal {
+  constructor(
+    readonly status: number,
+    readonly error: string,
+  ) {}
+}
+export const refused = (status: number, error: string) => new Refusal(status, error);
+
+const json = (status: number, body: unknown) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
 /**
  * A fake API: `routes` maps "GET /path" to the `data` it answers, given the
- * circle the request named. Anything else answers `{}`. Returns the fetch spy.
+ * circle the request named and its JSON body; `refused(status, error)` turns
+ * it down. Anything else answers `{}`. Returns the fetch spy.
  */
 export function fakeApi(routes: Record<string, Answer>) {
   const fetch = vi.fn(async (url: string, init: RequestInit = {}) => {
     const asked = new URL(url);
     const circle = (init.headers as Record<string, string> | undefined)?.[CIRCLE_HEADER] ?? null;
     const answer = routes[`${init.method ?? 'GET'} ${asked.pathname}`];
-    const data = answer ? await answer(circle, asked) : {};
-    return new Response(JSON.stringify({ ok: true, data }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const body = typeof init.body === 'string' ? JSON.parse(init.body) : undefined;
+    const data = answer ? await answer(circle, asked, body) : {};
+    if (data instanceof Refusal) return json(data.status, { ok: false, error: data.error });
+    return json(200, { ok: true, data });
   });
   vi.stubGlobal('fetch', fetch);
   return fetch;

@@ -31,9 +31,14 @@ import {
   Typography,
 } from '@mui/material';
 import type React from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { type AdminSettings, settingsApi } from '../../../entities/settings';
+import {
+  type AdminSettings,
+  useAdminSettings,
+  useCheckModels,
+  useSaveSettings,
+} from '../../../entities/settings';
 import { ApiError } from '../../../shared/api/ApiService';
 import { BackupsPanel } from './BackupsPanel';
 import { AppearanceSection, ArchiveSection } from './OtherSections';
@@ -77,43 +82,40 @@ export const SettingsPage: React.FC = () => {
   const [params, setParams] = useSearchParams();
   const section = (SECTIONS.find((s) => s.id === params.get('section'))?.id ??
     'features') as SectionId;
-  const [data, setData] = useState<AdminSettings | null>(null);
+  const read = useAdminSettings();
+  const saving = useSaveSettings();
+  const data = read.data ?? null;
   const [draft, setDraft] = useState<Record<string, SettingValue>>({});
-  const [busy, setBusy] = useState(false);
+  const busy = saving.isPending;
   const [message, setMessage] = useState<{ tone: 'success' | 'warning'; text: string } | null>(
     null,
   );
-
-  useEffect(() => {
-    settingsApi
-      .admin()
-      .then(setData)
-      .catch(() =>
-        setMessage({ tone: 'warning', text: "Settings didn't load. Try again in a moment." }),
-      );
-  }, []);
+  const [loadNoticeClosed, setLoadNoticeClosed] = useState(false);
+  const notice =
+    message ??
+    (read.isError && !data && !loadNoticeClosed
+      ? { tone: 'warning' as const, text: "Settings didn't load. Try again in a moment." }
+      : null);
 
   const value = (s: ResolvedSetting) => (s.key in draft ? draft[s.key] : s.value);
   const dirty = Object.keys(draft).length > 0;
 
-  const save = async () => {
-    setBusy(true);
+  const save = () => {
     setMessage(null);
-    try {
-      setData(await settingsApi.save(draft));
-      setDraft({});
-      setMessage({ tone: 'success', text: 'Saved.' });
-    } catch (e) {
-      setMessage({
-        tone: 'warning',
-        text:
-          e instanceof ApiError
-            ? [e.message, e.details].filter(Boolean).join('\n')
-            : "Settings didn't save.",
-      });
-    } finally {
-      setBusy(false);
-    }
+    saving.mutate(draft, {
+      onSuccess: () => {
+        setDraft({});
+        setMessage({ tone: 'success', text: 'Saved.' });
+      },
+      onError: (e) =>
+        setMessage({
+          tone: 'warning',
+          text:
+            e instanceof ApiError
+              ? [e.message, e.details].filter(Boolean).join('\n')
+              : "Settings didn't save.",
+        }),
+    });
   };
 
   return (
@@ -137,17 +139,17 @@ export const SettingsPage: React.FC = () => {
         ))}
       </Tabs>
 
-      {message && (
+      {notice && (
         <Alert
-          severity={message.tone}
+          severity={notice.tone}
           sx={{ mb: 2, whiteSpace: 'pre-line' }}
-          onClose={() => setMessage(null)}
+          onClose={() => (message ? setMessage(null) : setLoadNoticeClosed(true))}
         >
-          {message.text}
+          {notice.text}
         </Alert>
       )}
 
-      {!data && !message && (
+      {!data && !notice && !read.isError && (
         <Typography sx={{ color: 'text.secondary' }}>Loading settings…</Typography>
       )}
 
@@ -178,9 +180,7 @@ export const SettingsPage: React.FC = () => {
         </Stack>
       )}
 
-      {data && section === 'ai' && (
-        <AiSection data={data} draft={draft} setDraft={setDraft} onData={setData} />
-      )}
+      {data && section === 'ai' && <AiSection data={data} draft={draft} setDraft={setDraft} />}
       {section === 'appearance' && <AppearanceSection />}
       {section === 'archive' && <ArchiveSection />}
       {section === 'backups' && (
@@ -223,9 +223,10 @@ const AiSection: React.FC<{
   data: AdminSettings;
   draft: Record<string, SettingValue>;
   setDraft: React.Dispatch<React.SetStateAction<Record<string, SettingValue>>>;
-  onData: (d: AdminSettings) => void;
-}> = ({ data, draft, setDraft, onData }) => {
-  const [checking, setChecking] = useState(false);
+}> = ({ data, draft, setDraft }) => {
+  // The answer is the whole view, models checked: it replaces the cached one.
+  const checkModels = useCheckModels();
+  const checking = checkModels.isPending;
   const setting = (taskId: string) => data.settings.find((s) => s.key === `ai.model.${taskId}`);
 
   const rows = useMemo(
@@ -283,18 +284,16 @@ const AiSection: React.FC<{
           <Button
             startIcon={<RefreshIcon />}
             disabled={checking}
-            onClick={async () => {
-              setChecking(true);
-              try {
-                onData(await settingsApi.admin(true));
-              } finally {
-                setChecking(false);
-              }
-            }}
+            onClick={() => checkModels.mutate()}
           >
             {checking ? 'Checking…' : 'Check which models work'}
           </Button>
         </Stack>
+        {checkModels.isError && (
+          <Alert severity="warning" sx={{ mt: 1 }}>
+            The models weren't checked. Try again in a moment.
+          </Alert>
+        )}
         <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 1 }}>
           Spend is counted from the tokens each call actually used, at Bedrock list prices (
           {PRICES_AS_OF}); your AWS bill is the final word. Models last checked{' '}

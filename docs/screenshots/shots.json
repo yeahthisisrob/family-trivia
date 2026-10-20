@@ -28,7 +28,7 @@
       "story": "appshell-appheader--in-several-circles",
       "size": "phone",
       "height": 300,
-      "source": "83d4eed0e43f",
+      "source": "564cb2137323",
       "storyFile": "frontend/src/components/AppShell/AppHeader.stories.tsx"
     },
     {
@@ -90,7 +90,7 @@
       "size": "desktop",
       "selector": ".MuiDialog-paper",
       "storyFile": "frontend/src/features/family-editor/ui/FamilyEditor.stories.tsx",
-      "source": "ba61a3ec3c34"
+      "source": "d938e3b696b2"
     },
     {
       "file": "install-card.png",
@@ -104,7 +104,7 @@
       "story": "features-invites-invitesadmin--with-someone-waiting",
       "size": "desktop",
       "height": 640,
-      "source": "8157592db409",
+      "source": "dc3c3dc8cb9a",
       "storyFile": "frontend/src/features/invites/ui/InvitesAdmin.stories.tsx"
     },
     {
@@ -112,7 +112,7 @@
       "story": "features-circles-circlesadmin--join-circles",
       "size": "phone",
       "storyFile": "frontend/src/features/circles/ui/CirclesAdmin.stories.tsx",
-      "source": "b00bb3895478"
+      "source": "df4c0121c246"
     },
     {
       "file": "join.png",
@@ -184,7 +184,7 @@
       "file": "settings.png",
       "story": "admin-settingspage--ai-and-cost",
       "size": "desktop",
-      "source": "b8544704af2c",
+      "source": "b58ec680d58c",
       "storyFile": "frontend/src/features/settings/ui/SettingsPage.stories.tsx"
     },
     {
@@ -214,7 +214,7 @@
       "story": "home-teamscard--on-your-own",
       "size": "phone",
       "storyFile": "frontend/src/features/teams/ui/TeamsCard.stories.tsx",
-      "source": "062eda510bbb"
+      "source": "b61dcc01ce2b"
     },
     {
       "file": "tetris.png",

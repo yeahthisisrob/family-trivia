@@ -1,2 +1,2 @@
-export { archiveApi } from './api/archiveApi';
+export { useArchivePermissions, useSaveArchivePermissions } from './model/permissions';
 export { ArchiveDialog } from './ui/ArchiveDialog';

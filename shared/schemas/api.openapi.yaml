@@ -1655,9 +1655,11 @@ paths:
 
   /admin/players:
     get:
-      summary: Get all players
+      summary: Everyone in the circle's user config, with their passphrases (admins)
       operationId: getAdminPlayers
       tags: [Admin]
+      parameters:
+        - { name: adminUserId, in: query, required: true, schema: { type: string } }
       responses:
         "200":
           description: Player list
@@ -1665,8 +1667,18 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [players, success]
+                properties:
+                  players:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdminPlayer"
+                  success:
+                    type: boolean
+        "403":
+          description: Not an admin
     post:
-      summary: Create a player
+      summary: Add a player (admins); the display name is made from the id
       operationId: createAdminPlayer
       tags: [Admin]
       requestBody:
@@ -1675,15 +1687,25 @@ paths:
           application/json:
             schema:
               type: object
+              required: [adminUserId, userId, color]
+              properties:
+                adminUserId: { type: string }
+                userId: { type: string }
+                group: { type: string }
+                color: { type: string }
+                passphrase: { type: string }
+                isAdmin: { type: boolean }
       responses:
         "200":
-          description: Created player
+          description: Added
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/AdminSaved"
+        "409":
+          description: A player with that id is already in the circle
     put:
-      summary: Update a player
+      summary: Change a player (admins); a new group moves them in the hierarchy too
       operationId: updateAdminPlayer
       tags: [Admin]
       requestBody:
@@ -1692,39 +1714,54 @@ paths:
           application/json:
             schema:
               type: object
+              required: [adminUserId, userId]
+              properties:
+                adminUserId: { type: string }
+                userId: { type: string }
+                group: { type: string }
+                color: { type: string }
+                passphrase: { type: string }
+                isAdmin: { type: boolean }
       responses:
         "200":
-          description: Updated player
+          description: Changed
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/AdminSaved"
+        "404":
+          description: No such player
     delete:
-      summary: Delete a player
+      summary: Take a player out of the user config and their group (admins)
       operationId: deleteAdminPlayer
       tags: [Admin]
-      parameters:
-        - name: userId
-          in: query
-          required: true
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [adminUserId, userId]
+              properties:
+                adminUserId: { type: string }
+                userId: { type: string }
       responses:
         "200":
-          description: Deletion result
+          description: Deleted
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
+                $ref: "#/components/schemas/AdminSaved"
+        "404":
+          description: No such player
 
   /admin/groups:
     get:
-      summary: Get all groups
+      summary: The hierarchy's groups with their members, side and description, and the sides (admins)
       operationId: getAdminGroups
       tags: [Admin]
+      parameters:
+        - { name: adminUserId, in: query, required: true, schema: { type: string } }
       responses:
         "200":
           description: Group list
@@ -1732,8 +1769,22 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [groups, sides, success]
+                properties:
+                  groups:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdminGroup"
+                  sides:
+                    type: object
+                    additionalProperties:
+                      $ref: "#/components/schemas/FamilySide"
+                  success:
+                    type: boolean
+        "403":
+          description: Not an admin
     post:
-      summary: Create a group
+      summary: Add a group (admins)
       operationId: createAdminGroup
       tags: [Admin]
       requestBody:
@@ -1742,15 +1793,24 @@ paths:
           application/json:
             schema:
               type: object
+              required: [adminUserId, groupId, name]
+              properties:
+                adminUserId: { type: string }
+                groupId: { type: string }
+                name: { type: string }
+                description: { type: string }
+                side: { type: string }
       responses:
         "200":
-          description: Created group
+          description: Added
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/AdminSaved"
+        "409":
+          description: A group with that id exists
     put:
-      summary: Update a group
+      summary: Change a group's name, description or side (admins)
       operationId: updateAdminGroup
       tags: [Admin]
       requestBody:
@@ -1759,48 +1819,78 @@ paths:
           application/json:
             schema:
               type: object
+              required: [adminUserId, groupId]
+              properties:
+                adminUserId: { type: string }
+                groupId: { type: string }
+                name: { type: string }
+                description: { type: string }
+                side: { type: string }
       responses:
         "200":
-          description: Updated group
+          description: Changed
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/AdminSaved"
+        "404":
+          description: No such group
     delete:
-      summary: Delete a group
+      summary: Delete a group with no members (admins)
       operationId: deleteAdminGroup
       tags: [Admin]
-      parameters:
-        - name: groupId
-          in: query
-          required: true
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [adminUserId, groupId]
+              properties:
+                adminUserId: { type: string }
+                groupId: { type: string }
       responses:
         "200":
-          description: Deletion result
+          description: Deleted
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
+                $ref: "#/components/schemas/AdminSaved"
+        "400":
+          description: The group still has members
+        "404":
+          description: No such group
 
   /admin/family-tree:
     get:
-      summary: Get family tree hierarchy
+      summary: The hierarchy's root partners and sides (admins)
       operationId: getAdminFamilyTree
       tags: [Admin]
+      parameters:
+        - { name: adminUserId, in: query, required: true, schema: { type: string } }
       responses:
         "200":
-          description: Hierarchy data
+          description: Root partners and sides
           content:
             application/json:
               schema:
                 type: object
+                required: [rootPartners, sides, success]
+                properties:
+                  rootPartners:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RootPartner"
+                  sides:
+                    type: object
+                    additionalProperties:
+                      $ref: "#/components/schemas/FamilySide"
+                  success:
+                    type: boolean
+        "404":
+          description: No hierarchy stored
     put:
-      summary: Update family tree hierarchy
+      summary: Replace the root partners, the sides, or both (admins)
       operationId: updateAdminFamilyTree
       tags: [Admin]
       requestBody:
@@ -1809,16 +1899,24 @@ paths:
           application/json:
             schema:
               type: object
+              required: [adminUserId]
+              properties:
+                adminUserId: { type: string }
+                rootPartners:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/RootPartner"
+                sides:
+                  type: object
+                  additionalProperties:
+                    $ref: "#/components/schemas/FamilySide"
       responses:
         "200":
-          description: Update result
+          description: Saved
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
+                $ref: "#/components/schemas/AdminSaved"
 
   /admin/media/upload-url:
     post:
@@ -1877,20 +1975,33 @@ paths:
 
   /admin/seasons:
     get:
-      summary: Get all seasons
+      summary: Every season and which one is current (admins)
       operationId: getAdminSeasons
       tags: [Admin]
+      parameters:
+        - { name: adminUserId, in: query, required: true, schema: { type: string } }
       responses:
         "200":
           description: Season list
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Season"
+                type: object
+                required: [currentSeasonNumber, seasons, success]
+                properties:
+                  currentSeasonNumber:
+                    type: integer
+                    nullable: true
+                  seasons:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Season"
+                  success:
+                    type: boolean
+        "403":
+          description: Not an admin
     post:
-      summary: Create a season
+      summary: Add a season (admins); an active one becomes current
       operationId: createAdminSeason
       tags: [Admin]
       requestBody:
@@ -1898,16 +2009,30 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Season"
+              type: object
+              required: [adminUserId, seasonNumber, name, startDate]
+              properties:
+                adminUserId: { type: string }
+                seasonNumber: { type: integer }
+                name: { type: string }
+                startDate: { type: string }
+                endDate: { type: string }
+                status: { type: string, enum: [active, concluded, upcoming] }
+                message: { type: string }
+                trivia: { type: string, enum: [general, family, mixed, "off"] }
+                play: { type: string, enum: [solo, teams] }
+                pace: { type: string, enum: [daily, weekly] }
       responses:
         "200":
-          description: Created season
+          description: Added
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Season"
+                $ref: "#/components/schemas/AdminSaved"
+        "409":
+          description: That season number exists
     put:
-      summary: Update a season
+      summary: Change a season, its letters, or which season is current (admins)
       operationId: updateAdminSeason
       tags: [Admin]
       requestBody:
@@ -1915,34 +2040,56 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Season"
+              type: object
+              required: [adminUserId]
+              properties:
+                adminUserId: { type: string }
+                seasonNumber: { type: integer }
+                currentSeasonNumber: { type: integer, nullable: true }
+                name: { type: string }
+                startDate: { type: string }
+                endDate: { type: string }
+                status: { type: string, enum: [active, concluded, upcoming] }
+                message: { type: string }
+                notes: { $ref: "#/components/schemas/SeasonNotes" }
+                trivia: { type: string, enum: [general, family, mixed, "off"] }
+                play: { type: string, enum: [solo, teams] }
+                pace: { type: string, enum: [daily, weekly] }
+                perWeek: { type: integer, minimum: 1, maximum: 14 }
       responses:
         "200":
-          description: Updated season
+          description: Changed
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Season"
+                $ref: "#/components/schemas/AdminSaved"
+        "400":
+          description: A value didn't fit (trivia, play, pace or the letters)
+        "404":
+          description: No such season
     delete:
-      summary: Delete a season
+      summary: Delete a season (admins)
       operationId: deleteAdminSeason
       tags: [Admin]
-      parameters:
-        - name: seasonNumber
-          in: query
-          required: true
-          schema:
-            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [adminUserId, seasonNumber]
+              properties:
+                adminUserId: { type: string }
+                seasonNumber: { type: integer }
       responses:
         "200":
-          description: Deletion result
+          description: Deleted
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
+                $ref: "#/components/schemas/AdminSaved"
+        "404":
+          description: No such season
 
   # ──────────────────────────────────────────────
   # Authentication
@@ -3889,6 +4036,12 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [questions]
+                properties:
+                  questions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdminDailyQuestion"
     delete:
       summary: Admin — delete a daily shared question
       operationId: adminDeleteDailyQuestion
@@ -4070,15 +4223,15 @@ paths:
       summary: Admin — system + environment info
       operationId: adminGetSystemInfo
       tags: [Admin]
-      parameters:
-        - { name: adminUserId, in: query, required: true, schema: { type: string } }
       responses:
         "200":
           description: System info (build, env, feature flags)
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SystemInfo"
+        "403":
+          description: Not an admin
 
   # ──────────────────────────────────────────────
   # Daily fact variants
@@ -4788,8 +4941,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties: true
+                $ref: "#/components/schemas/AdminSettings"
     put:
       summary: Save settings (admins); null clears a value back to its default
       operationId: saveAdminSettings
@@ -4811,8 +4963,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties: true
+                $ref: "#/components/schemas/AdminSettings"
         "400":
           description: A value didn't fit its setting
 
@@ -4965,6 +5116,211 @@ paths:
 
 components:
   schemas:
+    AdminSaved:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+
+    AdminPlayer:
+      type: object
+      description: One entry of the circle's user config, with its id (admins see the passphrase)
+      required: [userId, color]
+      properties:
+        userId: { type: string }
+        group: { type: string }
+        color: { type: string }
+        passphrase: { type: string }
+        isAdmin: { type: boolean }
+        side: { type: string }
+
+    AdminGroup:
+      type: object
+      required: [groupId, name, memberCount, members, side, description]
+      properties:
+        groupId: { type: string }
+        name: { type: string }
+        memberCount: { type: integer }
+        members:
+          type: array
+          items: { type: string }
+        side: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+
+    RootPartner:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        role: { type: string }
+
+    SeasonNote:
+      type: object
+      description: A letter everyone reads once, in Markdown, with an optional photo stored under media/
+      required: [markdown]
+      properties:
+        title: { type: string, maxLength: 200 }
+        markdown: { type: string, maxLength: 20000 }
+        image: { type: string }
+
+    SeasonNotes:
+      type: object
+      properties:
+        start: { $ref: "#/components/schemas/SeasonNote" }
+        end: { $ref: "#/components/schemas/SeasonNote" }
+
+    ResolvedSetting:
+      type: object
+      description: A setting's definition (shared/src/settings.ts), its value and where the value comes from
+      required: [key, section, type, label, help, default, value, source]
+      properties:
+        key: { type: string }
+        section: { type: string, enum: [features, ai, backups] }
+        type: { type: string, enum: [boolean, model] }
+        label: { type: string }
+        help: { type: string }
+        default: { $ref: "#/components/schemas/SettingValue" }
+        env: { type: string }
+        value: { $ref: "#/components/schemas/SettingValue" }
+        source: { type: string, enum: [stored, env, default] }
+
+    SettingValue:
+      oneOf:
+        - type: boolean
+        - type: string
+          nullable: true
+
+    TokenUse:
+      type: object
+      required: [calls, input, output]
+      properties:
+        calls: { type: integer }
+        input: { type: integer }
+        output: { type: integer }
+
+    UsageMonth:
+      type: object
+      description: Task id, then model id, to the calls and tokens used in one month
+      additionalProperties:
+        type: object
+        additionalProperties:
+          $ref: "#/components/schemas/TokenUse"
+
+    AdminSettings:
+      type: object
+      required: [settings, models, availabilityCheckedAt, tasks, defaults, players, usage]
+      properties:
+        settings:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResolvedSetting"
+        models:
+          type: array
+          items:
+            type: object
+            description: A model from MODEL_CATALOG (shared/src/ai.ts) and whether it answered the last check
+            required: [id, label, tier, price, promptCache, forcedTool, availability]
+            properties:
+              id: { type: string }
+              label: { type: string }
+              tier: { type: string, enum: [fast, balanced, best] }
+              price:
+                type: object
+                required: [input, output]
+                properties:
+                  input: { type: number }
+                  output: { type: number }
+              promptCache: { type: boolean }
+              forcedTool: { type: boolean }
+              availability:
+                type: object
+                nullable: true
+                required: [ok]
+                properties:
+                  ok: { type: boolean }
+                  reason: { type: string }
+        availabilityCheckedAt: { type: string }
+        tasks:
+          type: array
+          items:
+            type: object
+            description: An AI task (AI_TASKS in shared/src/ai.ts) and the model it uses now
+            required: [id, label, description, role, usage, model]
+            properties:
+              id: { type: string }
+              label: { type: string }
+              description: { type: string }
+              role: { type: string, enum: [writer, fast] }
+              usage:
+                type: object
+                required: [callsPerPersonPerDay, inputTokens, outputTokens]
+                properties:
+                  callsPerPersonPerDay: { type: number }
+                  inputTokens: { type: integer }
+                  outputTokens: { type: integer }
+              model: { type: string }
+        defaults:
+          type: object
+          required: [writer, fast]
+          properties:
+            writer: { type: string }
+            fast: { type: string }
+        players: { type: integer }
+        usage:
+          type: object
+          required: [thisMonth, lastMonth]
+          properties:
+            thisMonth: { $ref: "#/components/schemas/UsageMonth" }
+            lastMonth: { $ref: "#/components/schemas/UsageMonth" }
+
+    AdminDailyQuestion:
+      type: object
+      required: [key, date, question, createdBy, answered]
+      properties:
+        key: { type: string }
+        date: { type: string }
+        question: { type: string }
+        createdBy: { type: string }
+        answered: { type: boolean }
+
+    SystemInfo:
+      type: object
+      required: [deployment, health, stats]
+      properties:
+        deployment:
+          type: object
+          required: [region, bucket, bedrockModel, nodeEnv]
+          properties:
+            region: { type: string }
+            bucket: { type: string }
+            bedrockModel: { type: string }
+            nodeEnv: { type: string }
+        health:
+          type: object
+          required: [usersConfig, familyHierarchy, seasonsConfig, categories, allHealthy]
+          properties:
+            usersConfig: { type: boolean }
+            familyHierarchy: { type: boolean }
+            seasonsConfig: { type: boolean }
+            categories: { type: boolean }
+            allHealthy: { type: boolean }
+        stats:
+          type: object
+          required: [userCount, activeSeason, totalSeasons, triviaQuestionCount]
+          properties:
+            userCount: { type: integer }
+            activeSeason:
+              type: object
+              nullable: true
+              required: [name, startDate]
+              properties:
+                name: { type: string }
+                startDate: { type: string }
+            totalSeasons: { type: integer }
+            triviaQuestionCount: { type: integer }
+
     GameId:
       type: string
       pattern: "^[a-z][a-z0-9-]{1,31}$"
@@ -5077,14 +5433,22 @@ components:
           items:
             type: string
         for:
-          type: object
-          required: [kind]
-          properties:
-            kind:
-              type: string
-              enum: [anyone, person]
-            userId:
-              type: string
+          description: Anyone with the link, or one person already added
+          oneOf:
+            - type: object
+              required: [kind]
+              properties:
+                kind:
+                  type: string
+                  enum: [anyone]
+            - type: object
+              required: [kind, userId]
+              properties:
+                kind:
+                  type: string
+                  enum: [person]
+                userId:
+                  type: string
         createdBy:
           type: string
         createdAt:
@@ -5693,6 +6057,8 @@ components:
         perWeek:
           type: integer
           description: Trivia questions a week in a weekly season (default 5)
+        notes:
+          $ref: "#/components/schemas/SeasonNotes"
 
     EndOfSeasonStatus:
       type: object

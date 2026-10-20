@@ -44,7 +44,7 @@ import {
   type ImportResult,
   importQuestions,
 } from '../../api/modules/triviaBank';
-import { useAdmin } from '../../contexts/AdminContext';
+import { loadSession } from '../../shared/session/session';
 import { LoadingDots } from '../ui/feedback';
 
 const SOURCES = [
@@ -59,7 +59,7 @@ const DIFFICULTIES = ['easy', 'normal', 'hard'] as const;
 
 const TriviaBankTab: React.FC = () => {
   const theme = useTheme();
-  const { adminUserId } = useAdmin();
+  const adminUserId = loadSession() ?? '';
 
   const [stats, setStats] = useState<BankStats | null>(null);
   const [loading, setLoading] = useState(true);

@@ -38,20 +38,25 @@ import {
   updateUserFact,
 } from '../../api/modules/admin';
 import { adminGetFamilyFeud, adminResetFamilyFeud } from '../../api/modules/familyFeud';
-import { useAdmin } from '../../contexts/AdminContext';
+import { useAdminPlayers } from '../../features/admin-people';
+import { ANSWERED } from '../../features/daily-question';
+import { PLAYED } from '../../features/trivia';
 import { gameOf } from '../../games/registry';
+import { AdminCard, ConfirmDialog, EmptyState } from '../../shared/admin-ui';
+import { useCircleInvalidate } from '../../shared/api/query';
 import { colors } from '../../shared/design-system';
 import { createLogger } from '../../shared/lib/logger';
+import { loadSession } from '../../shared/session/session';
 import { LoadingDots } from '../ui/feedback';
-import AdminCard from './shared/AdminCard';
-import ConfirmDialog from './shared/ConfirmDialog';
 import EditFactDialog, { type FactEdit } from './shared/EditFactDialog';
-import EmptyState from './shared/EmptyState';
 
 const logger = createLogger('DataTab');
 
 const DataTab: React.FC = () => {
-  const { adminUserId, players } = useAdmin();
+  const adminUserId = loadSession() ?? '';
+  const players = useAdminPlayers().data?.players ?? [];
+  // This tab is not on server data yet (0035, step 4): it names what its changes make stale.
+  const invalidate = useCircleInvalidate();
   const theme = useTheme();
 
   const [selectedUserId, setSelectedUserId] = useState('');
@@ -123,6 +128,7 @@ const DataTab: React.FC = () => {
         ...changes,
       });
       setEditingFact(null);
+      void invalidate(...ANSWERED);
       await loadData(selectedUserId);
     } catch {
       setError('Failed to update fact');
@@ -139,6 +145,7 @@ const DataTab: React.FC = () => {
         timestamp: confirmDeleteFact.timestamp,
       });
       setConfirmDeleteFact(null);
+      void invalidate(...ANSWERED);
       await loadData(selectedUserId);
     } catch {
       setError('Failed to delete fact');
@@ -165,6 +172,7 @@ const DataTab: React.FC = () => {
         timestamps: [confirmDeleteTrivia],
       });
       setConfirmDeleteTrivia(null);
+      void invalidate(...PLAYED);
       await loadData(selectedUserId);
     } catch {
       setError('Failed to delete trivia entry');

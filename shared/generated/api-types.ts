@@ -783,13 +783,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get all players */
+        /** Everyone in the circle's user config, with their passphrases (admins) */
         get: operations["getAdminPlayers"];
-        /** Update a player */
+        /** Change a player (admins); a new group moves them in the hierarchy too */
         put: operations["updateAdminPlayer"];
-        /** Create a player */
+        /** Add a player (admins); the display name is made from the id */
         post: operations["createAdminPlayer"];
-        /** Delete a player */
+        /** Take a player out of the user config and their group (admins) */
         delete: operations["deleteAdminPlayer"];
         options?: never;
         head?: never;
@@ -803,13 +803,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get all groups */
+        /** The hierarchy's groups with their members, side and description, and the sides (admins) */
         get: operations["getAdminGroups"];
-        /** Update a group */
+        /** Change a group's name, description or side (admins) */
         put: operations["updateAdminGroup"];
-        /** Create a group */
+        /** Add a group (admins) */
         post: operations["createAdminGroup"];
-        /** Delete a group */
+        /** Delete a group with no members (admins) */
         delete: operations["deleteAdminGroup"];
         options?: never;
         head?: never;
@@ -823,9 +823,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get family tree hierarchy */
+        /** The hierarchy's root partners and sides (admins) */
         get: operations["getAdminFamilyTree"];
-        /** Update family tree hierarchy */
+        /** Replace the root partners, the sides, or both (admins) */
         put: operations["updateAdminFamilyTree"];
         post?: never;
         delete?: never;
@@ -875,13 +875,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get all seasons */
+        /** Every season and which one is current (admins) */
         get: operations["getAdminSeasons"];
-        /** Update a season */
+        /** Change a season, its letters, or which season is current (admins) */
         put: operations["updateAdminSeason"];
-        /** Create a season */
+        /** Add a season (admins); an active one becomes current */
         post: operations["createAdminSeason"];
-        /** Delete a season */
+        /** Delete a season (admins) */
         delete: operations["deleteAdminSeason"];
         options?: never;
         head?: never;
@@ -2533,6 +2533,141 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AdminSaved: {
+            success: boolean;
+        };
+        /** @description One entry of the circle's user config, with its id (admins see the passphrase) */
+        AdminPlayer: {
+            userId: string;
+            group?: string;
+            color: string;
+            passphrase?: string;
+            isAdmin?: boolean;
+            side?: string;
+        };
+        AdminGroup: {
+            groupId: string;
+            name: string;
+            memberCount: number;
+            members: string[];
+            side: string | null;
+            description: string | null;
+        };
+        RootPartner: {
+            id: string;
+            name: string;
+            role?: string;
+        };
+        /** @description A letter everyone reads once, in Markdown, with an optional photo stored under media/ */
+        SeasonNote: {
+            title?: string;
+            markdown: string;
+            image?: string;
+        };
+        SeasonNotes: {
+            start?: components["schemas"]["SeasonNote"];
+            end?: components["schemas"]["SeasonNote"];
+        };
+        /** @description A setting's definition (shared/src/settings.ts), its value and where the value comes from */
+        ResolvedSetting: {
+            key: string;
+            /** @enum {string} */
+            section: "features" | "ai" | "backups";
+            /** @enum {string} */
+            type: "boolean" | "model";
+            label: string;
+            help: string;
+            default: components["schemas"]["SettingValue"];
+            env?: string;
+            value: components["schemas"]["SettingValue"];
+            /** @enum {string} */
+            source: "stored" | "env" | "default";
+        };
+        SettingValue: boolean | (string | null);
+        TokenUse: {
+            calls: number;
+            input: number;
+            output: number;
+        };
+        /** @description Task id, then model id, to the calls and tokens used in one month */
+        UsageMonth: {
+            [key: string]: {
+                [key: string]: components["schemas"]["TokenUse"];
+            };
+        };
+        AdminSettings: {
+            settings: components["schemas"]["ResolvedSetting"][];
+            models: {
+                id: string;
+                label: string;
+                /** @enum {string} */
+                tier: "fast" | "balanced" | "best";
+                price: {
+                    input: number;
+                    output: number;
+                };
+                promptCache: boolean;
+                forcedTool: boolean;
+                availability: {
+                    ok: boolean;
+                    reason?: string;
+                } | null;
+            }[];
+            availabilityCheckedAt: string;
+            tasks: {
+                id: string;
+                label: string;
+                description: string;
+                /** @enum {string} */
+                role: "writer" | "fast";
+                usage: {
+                    callsPerPersonPerDay: number;
+                    inputTokens: number;
+                    outputTokens: number;
+                };
+                model: string;
+            }[];
+            defaults: {
+                writer: string;
+                fast: string;
+            };
+            players: number;
+            usage: {
+                thisMonth: components["schemas"]["UsageMonth"];
+                lastMonth: components["schemas"]["UsageMonth"];
+            };
+        };
+        AdminDailyQuestion: {
+            key: string;
+            date: string;
+            question: string;
+            createdBy: string;
+            answered: boolean;
+        };
+        SystemInfo: {
+            deployment: {
+                region: string;
+                bucket: string;
+                bedrockModel: string;
+                nodeEnv: string;
+            };
+            health: {
+                usersConfig: boolean;
+                familyHierarchy: boolean;
+                seasonsConfig: boolean;
+                categories: boolean;
+                allHealthy: boolean;
+            };
+            stats: {
+                userCount: number;
+                activeSeason: {
+                    name: string;
+                    startDate: string;
+                } | null;
+                totalSeasons: number;
+                triviaQuestionCount: number;
+            };
+        };
         /**
          * @description A game's folder name in frontend/src/games
          * @example snake
@@ -2609,10 +2744,14 @@ export interface components {
         Invite: {
             token: string;
             circleIds: string[];
+            /** @description Anyone with the link, or one person already added */
             for: {
                 /** @enum {string} */
-                kind: "anyone" | "person";
-                userId?: string;
+                kind: "anyone";
+            } | {
+                /** @enum {string} */
+                kind: "person";
+                userId: string;
             };
             createdBy: string;
             createdAt: string;
@@ -2989,6 +3128,7 @@ export interface components {
             pace?: "daily" | "weekly";
             /** @description Trivia questions a week in a weekly season (default 5) */
             perWeek?: number;
+            notes?: components["schemas"]["SeasonNotes"];
         };
         EndOfSeasonStatus: {
             isEndOfSeason?: boolean;
@@ -5363,7 +5503,9 @@ export interface operations {
     };
     getAdminPlayers: {
         parameters: {
-            query?: never;
+            query: {
+                adminUserId: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5376,8 +5518,18 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        players: components["schemas"]["AdminPlayer"][];
+                        success: boolean;
+                    };
                 };
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -5390,18 +5542,32 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": Record<string, never>;
+                "application/json": {
+                    adminUserId: string;
+                    userId: string;
+                    group?: string;
+                    color?: string;
+                    passphrase?: string;
+                    isAdmin?: boolean;
+                };
             };
         };
         responses: {
-            /** @description Updated player */
+            /** @description Changed */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["AdminSaved"];
                 };
+            };
+            /** @description No such player */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -5414,48 +5580,74 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": Record<string, never>;
+                "application/json": {
+                    adminUserId: string;
+                    userId: string;
+                    group?: string;
+                    color: string;
+                    passphrase?: string;
+                    isAdmin?: boolean;
+                };
             };
         };
         responses: {
-            /** @description Created player */
+            /** @description Added */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["AdminSaved"];
                 };
+            };
+            /** @description A player with that id is already in the circle */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
     deleteAdminPlayer: {
         parameters: {
-            query: {
-                userId: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    adminUserId: string;
+                    userId: string;
+                };
+            };
+        };
         responses: {
-            /** @description Deletion result */
+            /** @description Deleted */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        success?: boolean;
-                    };
+                    "application/json": components["schemas"]["AdminSaved"];
                 };
+            };
+            /** @description No such player */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
     getAdminGroups: {
         parameters: {
-            query?: never;
+            query: {
+                adminUserId: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5468,8 +5660,21 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        groups: components["schemas"]["AdminGroup"][];
+                        sides: {
+                            [key: string]: components["schemas"]["FamilySide"];
+                        };
+                        success: boolean;
+                    };
                 };
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -5482,18 +5687,31 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": Record<string, never>;
+                "application/json": {
+                    adminUserId: string;
+                    groupId: string;
+                    name?: string;
+                    description?: string;
+                    side?: string;
+                };
             };
         };
         responses: {
-            /** @description Updated group */
+            /** @description Changed */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["AdminSaved"];
                 };
+            };
+            /** @description No such group */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -5506,62 +5724,107 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": Record<string, never>;
+                "application/json": {
+                    adminUserId: string;
+                    groupId: string;
+                    name: string;
+                    description?: string;
+                    side?: string;
+                };
             };
         };
         responses: {
-            /** @description Created group */
+            /** @description Added */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["AdminSaved"];
                 };
+            };
+            /** @description A group with that id exists */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
     deleteAdminGroup: {
-        parameters: {
-            query: {
-                groupId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Deletion result */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        success?: boolean;
-                    };
-                };
-            };
-        };
-    };
-    getAdminFamilyTree: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    adminUserId: string;
+                    groupId: string;
+                };
+            };
+        };
         responses: {
-            /** @description Hierarchy data */
+            /** @description Deleted */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["AdminSaved"];
                 };
+            };
+            /** @description The group still has members */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such group */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getAdminFamilyTree: {
+        parameters: {
+            query: {
+                adminUserId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Root partners and sides */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        rootPartners: components["schemas"]["RootPartner"][];
+                        sides: {
+                            [key: string]: components["schemas"]["FamilySide"];
+                        };
+                        success: boolean;
+                    };
+                };
+            };
+            /** @description No hierarchy stored */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -5574,19 +5837,23 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": Record<string, never>;
+                "application/json": {
+                    adminUserId: string;
+                    rootPartners?: components["schemas"]["RootPartner"][];
+                    sides?: {
+                        [key: string]: components["schemas"]["FamilySide"];
+                    };
+                };
             };
         };
         responses: {
-            /** @description Update result */
+            /** @description Saved */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        success?: boolean;
-                    };
+                    "application/json": components["schemas"]["AdminSaved"];
                 };
             };
         };
@@ -5681,7 +5948,9 @@ export interface operations {
     };
     getAdminSeasons: {
         parameters: {
-            query?: never;
+            query: {
+                adminUserId: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5694,8 +5963,19 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Season"][];
+                    "application/json": {
+                        currentSeasonNumber: number | null;
+                        seasons: components["schemas"]["Season"][];
+                        success: boolean;
+                    };
                 };
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -5708,18 +5988,50 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Season"];
+                "application/json": {
+                    adminUserId: string;
+                    seasonNumber?: number;
+                    currentSeasonNumber?: number | null;
+                    name?: string;
+                    startDate?: string;
+                    endDate?: string;
+                    /** @enum {string} */
+                    status?: "active" | "concluded" | "upcoming";
+                    message?: string;
+                    notes?: components["schemas"]["SeasonNotes"];
+                    /** @enum {string} */
+                    trivia?: "general" | "family" | "mixed" | "off";
+                    /** @enum {string} */
+                    play?: "solo" | "teams";
+                    /** @enum {string} */
+                    pace?: "daily" | "weekly";
+                    perWeek?: number;
+                };
             };
         };
         responses: {
-            /** @description Updated season */
+            /** @description Changed */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Season"];
+                    "application/json": components["schemas"]["AdminSaved"];
                 };
+            };
+            /** @description A value didn't fit (trivia, play, pace or the letters) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such season */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -5732,42 +6044,74 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Season"];
+                "application/json": {
+                    adminUserId: string;
+                    seasonNumber: number;
+                    name: string;
+                    startDate: string;
+                    endDate?: string;
+                    /** @enum {string} */
+                    status?: "active" | "concluded" | "upcoming";
+                    message?: string;
+                    /** @enum {string} */
+                    trivia?: "general" | "family" | "mixed" | "off";
+                    /** @enum {string} */
+                    play?: "solo" | "teams";
+                    /** @enum {string} */
+                    pace?: "daily" | "weekly";
+                };
             };
         };
         responses: {
-            /** @description Created season */
+            /** @description Added */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Season"];
+                    "application/json": components["schemas"]["AdminSaved"];
                 };
+            };
+            /** @description That season number exists */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
     deleteAdminSeason: {
         parameters: {
-            query: {
-                seasonNumber: number;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    adminUserId: string;
+                    seasonNumber: number;
+                };
+            };
+        };
         responses: {
-            /** @description Deletion result */
+            /** @description Deleted */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        success?: boolean;
-                    };
+                    "application/json": components["schemas"]["AdminSaved"];
                 };
+            };
+            /** @description No such season */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -8160,7 +8504,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        questions: components["schemas"]["AdminDailyQuestion"][];
+                    };
                 };
             };
         };
@@ -8356,9 +8702,7 @@ export interface operations {
     };
     adminGetSystemInfo: {
         parameters: {
-            query: {
-                adminUserId: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -8371,8 +8715,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["SystemInfo"];
                 };
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -9145,9 +9496,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["AdminSettings"];
                 };
             };
         };
@@ -9175,9 +9524,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["AdminSettings"];
                 };
             };
             /** @description A value didn't fit its setting */

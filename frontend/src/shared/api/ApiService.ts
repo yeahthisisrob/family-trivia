@@ -29,7 +29,9 @@ const unavailable = () =>
 // ── Sending requests ───────────────────────────────────────────────
 // Opening the app asks for a lot at once. A few at a time keeps the server
 // from turning some away; one turned away (busy, 429/502/503/504) or lost on
-// the way is tried again after a short wait.
+// the way is tried again after a short wait. A change that must not happen
+// twice (an admin's delete, reset, import or save) is sent once: a busy answer
+// or a lost connection can't say whether it was done.
 
 const MAX_IN_FLIGHT = 6;
 const RETRIES = 3;
@@ -51,14 +53,14 @@ async function slot<T>(f: () => Promise<T>): Promise<T> {
 const pause = (attempt: number) =>
   new Promise((done) => setTimeout(done, 300 * 2 ** attempt + Math.random() * 250));
 
-async function fetchPolitely(url: string, init: RequestInit): Promise<Response> {
+async function fetchPolitely(url: string, init: RequestInit, retries = RETRIES): Promise<Response> {
   for (let attempt = 0; ; attempt++) {
     try {
       const response = await slot(() => fetch(url, init));
-      if (!RETRY_STATUS.has(response.status) || attempt >= RETRIES) return response;
+      if (!RETRY_STATUS.has(response.status) || attempt >= retries) return response;
     } catch (err) {
       // A timeout is final; a dropped connection is worth another try.
-      if ((err as Error).name === 'AbortError' || attempt >= RETRIES) throw err;
+      if ((err as Error).name === 'AbortError' || attempt >= retries) throw err;
     }
     await pause(attempt);
   }
@@ -136,6 +138,8 @@ export class ApiService {
        * the circle its key was made for, so its answer can only be cached there.
        */
       circle?: string | null;
+      /** Send it once, never again on a busy answer or a lost connection. */
+      once?: boolean;
     },
     legacyCacheKey?: string,
     legacyForceFresh = false,
@@ -185,6 +189,7 @@ export class ApiService {
         slow,
         lenient: _lenient,
         circle: _circle,
+        once,
         ...restOptions
       } = options || {};
       const requestOptions: RequestInit = {
@@ -226,7 +231,7 @@ export class ApiService {
 
       logger.debug(`Making request to: ${url} (timeout: ${timeoutDuration}ms)`);
       const startTime = Date.now();
-      const response = await fetchPolitely(url, requestOptions);
+      const response = await fetchPolitely(url, requestOptions, once ? 0 : RETRIES);
       const endTime = Date.now();
       clearTimeout(timeoutId);
 

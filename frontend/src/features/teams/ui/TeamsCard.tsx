@@ -12,7 +12,8 @@ import { Face } from '../../../entities/person';
 import { useCircleMutation, useCircleQuery } from '../../../shared/api/query';
 import { teamsApi } from '../api/teamsApi';
 
-const TEAMS = ['teams'] as const;
+/** The season's teams: a season's change (solo or teams) changes them. */
+export const TEAMS = ['teams'] as const;
 
 const ordinal = (n: number) =>
   `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][n % 10] ?? 'th')}`;

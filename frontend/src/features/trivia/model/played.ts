@@ -15,7 +15,8 @@ import { TIMELINE } from '../../../entities/timeline';
 import { useCircleInvalidate, useCircleMutation } from '../../../shared/api/query';
 import { TRIVIA_GRID } from '../../who-has-played';
 
-const PLAYED = [PROFILE, PERSON_STORY, TRIVIA_GRID, LEADERBOARD, TIMELINE] as const;
+/** What a trivia answer changes (an admin deleting one changes the same). */
+export const PLAYED = [PROFILE, PERSON_STORY, TRIVIA_GRID, LEADERBOARD, TIMELINE] as const;
 
 export interface TriviaAnswer {
   userId: string;

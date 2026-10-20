@@ -3,7 +3,6 @@
 
 import type React from 'react';
 
-import { AdminContext } from '../contexts/AdminContext';
 import { FamilyDataContext } from '../contexts/FamilyDataContext';
 import { TimelineContext } from '../contexts/TimelineContext';
 import { TriviaContext } from '../contexts/TriviaContext';
@@ -145,6 +144,7 @@ function makeFamilyValue(overrides: StubFamilyOverrides = {}) {
     initCategories: overrides.categories ?? defaultCategories,
     initUserCategories: null,
     refreshMembers: async () => {},
+    refreshInit: async () => {},
     refreshHierarchy: async () => {},
     refreshGroupDescriptions: async () => {},
     updateMemberActivation: () => {},
@@ -210,56 +210,6 @@ export const StoryProviders: React.FC<StoryProvidersProps> = ({
       </UserStatusContext.Provider>
     </TriviaContext.Provider>
   </FamilyDataContext.Provider>
-);
-
-// ── Admin stub ─────────────────────────────────────────────────────
-
-export interface StubAdminOverrides {
-  players?: unknown[];
-  groups?: unknown[];
-  seasons?: unknown[];
-  sides?: Record<string, unknown>;
-  loading?: boolean;
-  error?: string | null;
-}
-
-function makeAdminValue(overrides: StubAdminOverrides = {}) {
-  const noop = async () => {};
-  return {
-    adminUserId: 'admin',
-    players: overrides.players ?? [],
-    groups: overrides.groups ?? [],
-    sides: overrides.sides ?? {},
-    seasons: overrides.seasons ?? [],
-    currentSeasonNumber: 1,
-    rootPartners: [],
-    loading: overrides.loading ?? false,
-    error: overrides.error ?? null,
-    loadPlayers: noop,
-    loadGroups: noop,
-    loadFamilyTree: noop,
-    loadSeasons: noop,
-    loadAll: noop,
-    addPlayer: noop,
-    updatePlayer: noop,
-    deletePlayer: noop,
-    addGroup: noop,
-    updateGroup: noop,
-    deleteGroup: noop,
-    updateFamilyTree: noop,
-    addSeason: noop,
-    updateSeason: noop,
-    deleteSeason: noop,
-  };
-}
-
-export const AdminStoryProviders: React.FC<{
-  children: React.ReactNode;
-  admin?: StubAdminOverrides;
-}> = ({ children, admin }) => (
-  <StoryProviders>
-    <AdminContext.Provider value={makeAdminValue(admin) as any}>{children}</AdminContext.Provider>
-  </StoryProviders>
 );
 
 // Alias kept for backward compat with existing HistoryCard stories

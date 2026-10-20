@@ -7,7 +7,8 @@ import { useCircleQuery } from '../../../shared/api/query';
 
 export type StatusGrid = ResponseOf<'/fact-grid'>;
 
-const WHO_HAS_PLAYED = ['who-has-played'] as const;
+/** Both grids: a season's change (its pace) changes them. */
+export const WHO_HAS_PLAYED = ['who-has-played'] as const;
 export const FACT_GRID = [...WHO_HAS_PLAYED, 'facts'] as const;
 
 export const useFactGrid = (userId: string) =>

@@ -49,6 +49,11 @@ interface FamilyDataContextType {
 
   // Methods
   refreshMembers: (forceRefresh?: boolean) => Promise<void>;
+  /**
+   * Ask /app-init again without the loading state or clearing other caches:
+   * after an admin change to what it carries (a season, a person, a group).
+   */
+  refreshInit: () => Promise<void>;
   refreshHierarchy: () => Promise<void>;
   refreshGroupDescriptions: () => Promise<void>;
   updateMemberActivation: (userId: string, activated: boolean) => void;
@@ -131,7 +136,7 @@ export const FamilyDataProvider: React.FC<{
 
   // Load critical data via /app-init
   const loadAllMembers = useCallback(
-    async (forceRefresh = false) => {
+    async (forceRefresh = false, quiet = false) => {
       // Skip if already loading and not forcing refresh
       if (loadingRef.current && !forceRefresh) {
         logger.debug('Member load already in progress, skipping duplicate call');
@@ -145,12 +150,12 @@ export const FamilyDataProvider: React.FC<{
       }
 
       loadingRef.current = true;
-      setAppInitLoading(true);
+      if (!quiet) setAppInitLoading(true);
 
       try {
         setLoadError(null);
 
-        if (forceRefresh) api.clearApiCache();
+        if (forceRefresh && !quiet) api.clearApiCache();
         attemptsRef.current++;
 
         // CRITICAL init — fast, blocks first paint
@@ -250,9 +255,11 @@ export const FamilyDataProvider: React.FC<{
         }
       } catch (error) {
         logger.error('Error loading app init data:', error);
-        setLoadError(
-          'An error occurred while loading family members. Please try refreshing the page.',
-        );
+        // A quiet refresh keeps what was loaded: the screen still works.
+        if (!quiet)
+          setLoadError(
+            'An error occurred while loading family members. Please try refreshing the page.',
+          );
       } finally {
         setAppInitLoading(false);
         loadingRef.current = false;
@@ -349,6 +356,8 @@ export const FamilyDataProvider: React.FC<{
     [loadAllMembers],
   );
 
+  const refreshInit = useCallback(() => loadAllMembers(true, true), [loadAllMembers]);
+
   const refreshHierarchy = useCallback(
     (forceRefresh = false) => loadHierarchy(forceRefresh),
     [loadHierarchy],
@@ -389,6 +398,7 @@ export const FamilyDataProvider: React.FC<{
     initCategories,
     initUserCategories,
     refreshMembers,
+    refreshInit,
     refreshHierarchy,
     refreshGroupDescriptions,
     updateMemberActivation,
@@ -397,6 +407,15 @@ export const FamilyDataProvider: React.FC<{
 
   return <FamilyDataContext.Provider value={value}>{children}</FamilyDataContext.Provider>;
 };
+
+/**
+ * Ask /app-init again quietly, for a change saved elsewhere that it carries.
+ * Outside the provider (a story, a test) it does nothing. Until step 5 of
+ * docs/decisions/0035 makes app-init a query, admin saves call this.
+ */
+export const useRefreshAppInit = (): (() => Promise<void>) =>
+  useContext(FamilyDataContext)?.refreshInit ?? noRefresh;
+const noRefresh = async () => undefined;
 
 // Custom hook to use the context
 export const useFamilyData = (): FamilyDataContextType => {

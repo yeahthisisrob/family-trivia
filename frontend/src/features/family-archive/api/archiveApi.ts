@@ -15,17 +15,4 @@ export const archiveApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ people }),
     }),
-  permissions: () =>
-    apiService.request<{ everyone: boolean; users: Record<string, boolean> }>(
-      '/admin/archive/permissions',
-      { method: 'GET' },
-      undefined,
-      true,
-    ),
-  savePermissions: (p: { everyone: boolean; users: Record<string, boolean> }) =>
-    apiService.request('/admin/archive/permissions', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(p),
-    }),
 };
