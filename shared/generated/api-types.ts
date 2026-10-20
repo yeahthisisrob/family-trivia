@@ -1165,6 +1165,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/since": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** What's new since the caller was last here (after a day and a half away; once per return), and note they're here now */
+        post: operations["sinceLastVisit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/world": {
         parameters: {
             query?: never;
@@ -5808,6 +5825,31 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    sinceLastVisit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The summary (since is null when there's nothing to say) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        since: string | null;
+                        answeredBy: string[];
+                        comments: number;
+                        reactions: number;
+                    };
+                };
             };
         };
     };

@@ -2332,6 +2332,25 @@ paths:
                 $ref: "#/components/schemas/TeamsView"
         "409": { description: "Not now: not a teams season, already on a team, or the team is full" }
 
+  /me/since:
+    post:
+      summary: What's new since the caller was last here (after a day and a half away; once per return), and note they're here now
+      operationId: sinceLastVisit
+      tags: [Notifications]
+      responses:
+        "200":
+          description: The summary (since is null when there's nothing to say)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [since, answeredBy, comments, reactions]
+                properties:
+                  since: { type: string, nullable: true }
+                  answeredBy: { type: array, items: { type: string } }
+                  comments: { type: integer }
+                  reactions: { type: integer }
+
   /me/world:
     get:
       summary: Your world — one view across the caller's own circles, built for them alone and never stored

@@ -78,3 +78,17 @@ export interface LeaderState {
   groupLeaderScore: number;
   lastChecked: string;
 }
+
+/**
+ * Since you were last here (docs/decisions/0016): what's new, for someone
+ * coming back after a while. Never what they missed.
+ */
+export interface SinceSummary {
+  /** When they were last here; null on a first visit or a quick return. */
+  since: string | null;
+  /** Others who shared answers since. */
+  answeredBy: string[];
+  /** Comments and reactions on their own answers since. */
+  comments: number;
+  reactions: number;
+}

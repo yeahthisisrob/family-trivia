@@ -25,6 +25,7 @@ import { personStoryRoutes } from './features/person-story/routes';
 import { plansRoutes } from './features/plans/routes';
 import { reactionsRoutes } from './features/reactions/routes';
 import { settingsRoutes } from './features/settings/routes';
+import { sinceRoutes } from './features/since/routes';
 import { teamsRoutes } from './features/teams/routes';
 import { threadsRoutes } from './features/threads/routes';
 import { yourWorldRoutes } from './features/your-world/routes';
@@ -183,6 +184,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...threadsRoutes,
   ...yourWorldRoutes,
   ...teamsRoutes,
+  ...sinceRoutes,
 
   // ── Protected: identity comes from the token (middleware/requireAuth.ts) ──
   'GET /members': requireAuth(listMembers),

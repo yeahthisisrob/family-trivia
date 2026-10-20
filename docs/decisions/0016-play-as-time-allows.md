@@ -51,7 +51,9 @@ off to the side. And a circle of friends won't play daily at all.
   or a week from Monday. A weekly season has one question for everyone and a
   handful of trivia (`perWeek`, five by default) each week, and one thread;
   what's waiting counts weeks. New friends and mixed circles start weekly.
-- Reminders are still to come.
+- **Welcome back:** after more than a day and a half away, Home opens with one
+  line of what's new since (who shared answers, comments and reactions on
+  yours), once per return. Reminders outside the app are still to come.
 
 ## Consequences
 The catch-up mode and its slot benchmark go away and become the queue.
