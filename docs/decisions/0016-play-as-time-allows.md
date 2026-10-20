@@ -32,7 +32,6 @@ off to the side. And a circle of friends won't play daily at all.
   - reacting to something counts as playing;
   - being named in someone's memory brings a person in ("added a memory with
     you");
-  - a weekly email someone can react to without opening the app.
 - **Group reveals wait for the group.** Feud and group results open when
   enough of the circle has answered (a setting), so a late answer still
   changes the result.
@@ -53,7 +52,10 @@ off to the side. And a circle of friends won't play daily at all.
   what's waiting counts weeks. New friends and mixed circles start weekly.
 - **Welcome back:** after more than a day and a half away, Home opens with one
   line of what's new since (who shared answers, comments and reactions on
-  yours), once per return. Reminders outside the app are still to come.
+  yours), once per return.
+- **No reminders outside the app** (Oct 20, 2026): no emails or pushes. They
+  need setup this project doesn't want, and the app's job is to be worth
+  opening, not to chase anyone.
 
 ## Consequences
 The catch-up mode and its slot benchmark go away and become the queue.
