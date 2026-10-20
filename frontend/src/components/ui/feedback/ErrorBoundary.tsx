@@ -51,10 +51,11 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       <Box sx={{ p: 1 }}>
         <Alert severity="warning" sx={{ borderRadius: 2 }}>
           <AlertTitle sx={{ fontSize: '0.85rem', fontWeight: 600 }}>
-            Something broke in {label}
+            {label[0]?.toUpperCase()}
+            {label.slice(1)} didn't load
           </AlertTitle>
           <Box sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 1 }}>
-            {this.state.error.message}
+            Everything else still works. Try it again in a moment.
           </Box>
           <Button size="small" variant="outlined" startIcon={<RefreshIcon />} onClick={this.reset}>
             Try again

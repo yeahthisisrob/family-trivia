@@ -73,7 +73,7 @@
       "story": "family-familymap--our-map",
       "size": "desktop",
       "scheme": "dark",
-      "source": "18c6d1d1c457",
+      "source": "80815adf6d4b",
       "height": 640,
       "storyFile": "frontend/src/features/family-graph/ui/FamilyMap.stories.tsx"
     },

@@ -66,8 +66,9 @@ export const CaughtError: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText(/Something broke in demo subtree/)).toBeInTheDocument();
-    await expect(canvas.getByText('Test crash')).toBeInTheDocument();
+    await expect(canvas.getByText("Demo subtree didn't load")).toBeInTheDocument();
+    // The raw error goes to the log, not to the person.
+    await expect(canvas.queryByText('Test crash')).toBeNull();
     await expect(canvas.getByRole('button', { name: /Try again/i })).toBeInTheDocument();
   },
 };
@@ -81,7 +82,7 @@ export const ResetClears: Story = {
     const canvas = within(canvasElement);
     const btn = canvas.getByTestId('crash-btn');
     await userEvent.click(btn);
-    await expect(canvas.getByText(/Something broke/)).toBeInTheDocument();
+    await expect(canvas.getByText(/didn't load/)).toBeInTheDocument();
     await userEvent.click(canvas.getByRole('button', { name: /Try again/i }));
     await expect(canvas.getByTestId('crash-btn')).toBeInTheDocument();
   },
@@ -92,10 +93,27 @@ export const DefaultLabel: Story = {
     children: <Boom msg="No label crash" />,
   },
   parameters: {
-    docs: { description: { story: 'Without `label`, shows "this section" as the fallback name.' } },
+    docs: { description: { story: 'Without `label`, it says "This section didn\'t load".' } },
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText(/Something broke in this section/)).toBeInTheDocument();
+    await expect(canvas.getByText("This section didn't load")).toBeInTheDocument();
+  },
+};
+
+/** On Home: one card fails, says so quietly, and the cards around it carry on. */
+export const OneCardOfMany: Story = {
+  render: () => (
+    <>
+      <ErrorBoundary label="what's on">
+        <Boom msg="days is undefined" />
+      </ErrorBoundary>
+      <Typography sx={{ mt: 1 }}>A memory a day</Typography>
+    </>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText("What's on didn't load")).toBeInTheDocument();
+    await expect(canvas.getByText('A memory a day')).toBeInTheDocument();
   },
 };
