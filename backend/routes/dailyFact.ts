@@ -22,6 +22,7 @@ import {
 } from '../services/factHistoryService';
 import { logger } from '../services/logger';
 import { fileExists, getJson, listObjects, putJson, putJsonIfNotExists } from '../services/s3';
+import { currentPlayDay } from '../services/seasonService';
 import { isEndOfSeason } from '../utils/endOfSeason';
 
 // Basic questions will be loaded from S3
@@ -147,7 +148,7 @@ async function getOrCreateSharedQuestion(
   category?: string;
   createdBy?: string | null;
 }> {
-  const todayDate = getEasternDate();
+  const todayDate = await currentPlayDay();
   const sharedKey = S3_PATHS.GLOBAL_SHARED_QUESTION(todayDate);
 
   logWithTime(`Checking for daily shared question at key: ${sharedKey}`);
@@ -319,7 +320,7 @@ export async function getDailyFact(event: APIGatewayProxyEvent): Promise<APIGate
   // Always initialize basic questions to get the latest from S3
   await initializeBasicQuestions();
 
-  const eastToday = getEasternDate();
+  const eastToday = await currentPlayDay();
 
   try {
     // Handle regeneration separately to avoid race conditions
@@ -527,7 +528,7 @@ export async function submitDailyFact(event: APIGatewayProxyEvent): Promise<APIG
   // Always initialize basic questions to get the latest from S3
   await initializeBasicQuestions();
 
-  const eastToday = getEasternDate();
+  const eastToday = await currentPlayDay();
 
   // Determine question type + (for shared catchup) the original question date.
   // BUG FIX: previously only checked today's shared question, so catchup

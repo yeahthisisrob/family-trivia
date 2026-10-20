@@ -245,7 +245,7 @@ const CIRCLE_ID = /^[a-z0-9-]{1,40}$/;
  * with general trivia and the circle's own category (Our Crew, Our Family),
  * which asks general questions until the circle has shared enough.
  */
-function firstSeason(): SeasonsConfig {
+function firstSeason(kind: CircleKind): SeasonsConfig {
   return {
     currentSeasonNumber: 1,
     seasons: [
@@ -257,6 +257,8 @@ function firstSeason(): SeasonsConfig {
         endDate: null,
         message: null,
         trivia: 'mixed',
+        // Friends play a handful a week; a family, a little every day (0016).
+        ...(kind === 'family' ? {} : { pace: 'weekly' as const }),
       },
     ],
   };
@@ -279,7 +281,7 @@ async function seedCircle(
     if (!added.ok) throw new Error(added.error);
     await putJson(SIGN_IN_MAP_KEY, { [maker.email]: userId });
     if (input.themeId) await putJson(S3_PATHS.APPEARANCE, { themeId: input.themeId });
-    await putJson(S3_PATHS.SEASONS_CONFIG, firstSeason());
+    await putJson(S3_PATHS.SEASONS_CONFIG, firstSeason(circle.kind));
   });
   return rebuildMemberships(maker.email);
 }

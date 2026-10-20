@@ -47,7 +47,11 @@ off to the side. And a circle of friends won't play daily at all.
   daily question's backlog runs oldest first, the leaderboard shows "still
   to play", and streak counts are gone from results, timelines, leaderboards
   and profiles.
-- Pace (daily or weekly) and reminders are still to come.
+- **Pace is built** (`season.pace`, Admin › Seasons): a play period is a day,
+  or a week from Monday. A weekly season has one question for everyone and a
+  handful of trivia (`perWeek`, five by default) each week, and one thread;
+  what's waiting counts weeks. New friends and mixed circles start weekly.
+- Reminders are still to come.
 
 ## Consequences
 The catch-up mode and its slot benchmark go away and become the queue.

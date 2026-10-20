@@ -29,6 +29,7 @@ import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useState } from 'react';
 import type { QuestionOption } from '../../api/modules/facts';
+import { useSeasonPace } from '../../hooks/useSeasonPace';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { LoadingDots } from '../ui/feedback';
@@ -85,6 +86,7 @@ const DailyFactCard: React.FC<DailyFactCardProps> = ({
   onDismiss,
 }) => {
   const isModal = mode === 'modal';
+  const weekly = useSeasonPace() === 'weekly';
   const [state, actions] = useDailyFactFlow({ userId, onFactSubmitted, onDone });
   const [answer, setAnswer] = useState('');
   const [skipConfirm, setSkipConfirm] = useState(false);
@@ -122,7 +124,9 @@ const DailyFactCard: React.FC<DailyFactCardProps> = ({
     ? "You're Today's Creator!"
     : state.isCatchup
       ? 'Waiting for you'
-      : "Today's Question";
+      : weekly
+        ? "This Week's Question"
+        : "Today's Question";
 
   const headerIcon = isFirstPersonStep ? (
     <AutoAwesomeIcon sx={{ fontSize: isModal ? 22 : 18, color: colors.brand.secondary }} />

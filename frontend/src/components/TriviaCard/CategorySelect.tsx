@@ -27,12 +27,12 @@ import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import StarsIcon from '@mui/icons-material/Stars';
 import { alpha, Box, Card, Chip, IconButton, Tooltip, Typography, useTheme } from '@mui/material';
 import React from 'react';
-
 import type { CustomCategory, SystemCategory } from '../../api';
 import appStrings from '../../constants/strings';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
 import { useLeaderboard } from '../../contexts/LeaderboardContext';
 import { useTrivia } from '../../contexts/TriviaContext';
+import { useSeasonPace } from '../../hooks/useSeasonPace';
 import { colors } from '../../shared/design-system';
 import { LoadingDots } from '../ui/feedback';
 
@@ -115,8 +115,10 @@ const CategorySelect: React.FC<CategorySelectProps> = (props) => {
     viewOnly = false,
   } = props;
 
-  // Countdown to next question (midnight ET)
+  // Countdown to next question (midnight ET); a weekly season opens on Monday.
+  const weekly = useSeasonPace() === 'weekly';
   const calcCountdown = () => {
+    if (weekly) return 'More on Monday';
     const remaining = 24 * 60 * 60 - getSecondsElapsedTodayET();
     const h = Math.floor(remaining / 3600);
     const m = Math.floor((remaining % 3600) / 60);

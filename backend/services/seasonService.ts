@@ -29,7 +29,14 @@ import type {
   EndOfSeasonStatus as SeasonStatusResponse,
   SeasonsConfig,
 } from '@family-trivia/shared';
-import { categoriesFor, type SystemCategory, seasonTriviaOf } from '@family-trivia/shared';
+import {
+  categoriesFor,
+  getEasternDateString,
+  paceOf,
+  playPeriod,
+  type SystemCategory,
+  seasonTriviaOf,
+} from '@family-trivia/shared';
 import { S3_PATHS } from '../constants';
 import { logger } from './logger';
 import { readUrl } from './media';
@@ -288,4 +295,12 @@ export async function markLetterSeen(
 export async function seasonCategories(system: SystemCategory[]): Promise<SystemCategory[]> {
   const [season, kind] = await Promise.all([getCurrentSeason(), currentCircleKind()]);
   return categoriesFor(system, seasonTriviaOf(season), kind);
+}
+
+/**
+ * The day this season's questions are keyed by: today, or this week's Monday
+ * in a weekly season (docs/decisions/0016). One question per play period.
+ */
+export async function currentPlayDay(): Promise<string> {
+  return playPeriod(getEasternDateString(new Date()), paceOf(await getCurrentSeason()));
 }

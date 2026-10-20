@@ -188,7 +188,7 @@ The people with the most to say about someone you've lost often aren't in the ap
 
 ## Play as time allows
 
-Nothing in an open season expires. Come back after two weeks and Home says what's waiting for you, oldest first, to play a few at a time or all at once. Answers count the same whenever they're given, the leaderboard shows what each person still has to play so a late start never looks like losing, and there are no streaks to break.
+Nothing in an open season expires. Come back after two weeks and Home says what's waiting for you, oldest first, to play a few at a time or all at once. Answers count the same whenever they're given, the leaderboard shows what each person still has to play so a late start never looks like losing, and there are no streaks to break. A season can go at a daily pace or a weekly one (a handful of questions once a week), and friends circles start weekly.
 
 ## Teams
 

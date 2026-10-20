@@ -6,7 +6,6 @@
  */
 import {
   type Family,
-  getTodayET,
   isPlaying,
   NOT_MET,
   relationOf,
@@ -22,6 +21,7 @@ import { loadJoined } from '../../services/family/joined';
 import { loadFamily, storeFamily } from '../../services/family/roster';
 import { logger } from '../../services/logger';
 import { getJson, putJson } from '../../services/s3';
+import { currentPlayDay } from '../../services/seasonService';
 
 interface Answered {
   choice: string;
@@ -67,7 +67,7 @@ export async function threadsToday(me: string): Promise<ThreadsToday> {
     currentCircleKind(),
     load(me),
   ]);
-  const today = getTodayET();
+  const today = await currentPlayDay(); // one thread a day, or a week in a weekly season
   const progress = progressOf(visible);
   if (mine.lastDay === today || !visible.people[me]) return { question: null, progress };
   const about = nextAbout(visible, me, mine, today);
@@ -96,7 +96,7 @@ export async function answerThread(me: string, a: ThreadAnswer): Promise<AnswerR
   if (!threadChoicesFor(kind).some((c) => c.id === a.choice))
     return { ok: false, error: 'Unknown answer' };
 
-  const today = getTodayET();
+  const today = await currentPlayDay(); // one thread a day, or a week in a weekly season
   mine.answers[a.about] = {
     choice: a.choice,
     ...(a.when ? { when: a.when } : {}),

@@ -1,5 +1,7 @@
 import {
+  paceOf,
   SEASON_TRIVIA,
+  type SeasonPace,
   type SeasonPlay,
   type SeasonTrivia,
   seasonTriviaOf,
@@ -46,6 +48,7 @@ interface SeasonForm {
   message: string;
   trivia: SeasonTrivia;
   play: SeasonPlay;
+  pace: SeasonPace;
 }
 
 const EMPTY_FORM: SeasonForm = {
@@ -57,6 +60,7 @@ const EMPTY_FORM: SeasonForm = {
   message: '',
   trivia: 'general',
   play: 'solo',
+  pace: 'daily',
 };
 
 const statusColors: Record<string, 'success' | 'warning' | 'default'> = {
@@ -92,6 +96,7 @@ const SeasonsTab: React.FC = () => {
       message: s.message || '',
       trivia: seasonTriviaOf(s),
       play: s.play ?? 'solo',
+      pace: paceOf(s),
     });
     setEditMode(true);
     setDialogOpen(true);
@@ -108,6 +113,7 @@ const SeasonsTab: React.FC = () => {
         message: form.message || undefined,
         trivia: form.trivia,
         play: form.play,
+        pace: form.pace,
       };
       if (editMode) await admin.updateSeason(data);
       else await admin.addSeason(data);
@@ -384,6 +390,17 @@ const SeasonsTab: React.FC = () => {
             >
               <MenuItem value="solo">Each for themselves</MenuItem>
               <MenuItem value="teams">In teams (people make their own, any time)</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl fullWidth size="small">
+            <InputLabel>Pace</InputLabel>
+            <Select
+              value={form.pace}
+              label="Pace"
+              onChange={(e) => setForm({ ...form, pace: e.target.value as SeasonPace })}
+            >
+              <MenuItem value="daily">A little every day</MenuItem>
+              <MenuItem value="weekly">A handful once a week (good for friends)</MenuItem>
             </Select>
           </FormControl>
           <TextField

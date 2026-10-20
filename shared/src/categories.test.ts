@@ -20,3 +20,18 @@ describe('categories per circle', () => {
     expect(startersFor('friends').join(' ')).not.toMatch(/family/i);
   });
 });
+
+describe('pace', () => {
+  test('a weekly season counts weeks from Monday; a daily one counts days', async () => {
+    const { periodsBetween, playPeriod, perPeriod } = await import('./season');
+    expect(playPeriod('2026-10-22', 'weekly')).toBe('2026-10-19'); // a Thursday → its Monday
+    expect(playPeriod('2026-10-19', 'weekly')).toBe('2026-10-19');
+    expect(playPeriod('2026-10-25', 'weekly')).toBe('2026-10-19'); // Sunday ends the week
+    expect(playPeriod('2026-10-22', 'daily')).toBe('2026-10-22');
+    expect(periodsBetween('2026-10-01', '2026-10-22', 'weekly')).toBe(3);
+    expect(periodsBetween('2026-10-20', '2026-10-22', 'daily')).toBe(2);
+    expect(perPeriod({ pace: 'weekly' })).toBe(5);
+    expect(perPeriod({ pace: 'weekly', perWeek: 3 })).toBe(3);
+    expect(perPeriod({})).toBe(1);
+  });
+});
