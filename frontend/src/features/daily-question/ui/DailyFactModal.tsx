@@ -10,9 +10,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import { Box, Dialog, IconButton } from '@mui/material';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { shouldShowDailyFact } from '../../api/modules/facts';
-import { createLogger } from '../../shared/lib/logger';
-import { inThisCircle } from '../../shared/session/session';
+import { shouldShowDailyFact } from '../../../api/modules/facts';
+import { createLogger } from '../../../shared/lib/logger';
+import { inThisCircle } from '../../../shared/session/session';
 import DailyFactCard from './DailyFactCard';
 
 const logger = createLogger('DailyFactModal');

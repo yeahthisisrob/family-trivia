@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, within } from 'storybook/test';
-import { StoryProviders } from '../test/storyContexts';
+import { StoryProviders } from '../../../test/storyContexts';
 import StatusGridToggle from './StatusGridToggle';
 
 const meta: Meta<typeof StatusGridToggle> = {

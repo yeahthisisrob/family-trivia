@@ -15,13 +15,9 @@
 import { Autocomplete, Box, TextField, Typography } from '@mui/material';
 import Fuse from 'fuse.js';
 import type React from 'react';
-import { useEffect, useMemo, useState } from 'react';
-
-import { getFactStarters } from '../../api/modules/facts';
-import { useFamilyData } from '../../contexts/FamilyDataContext';
-import { createLogger } from '../../shared/lib/logger';
-
-const logger = createLogger('FactAnswerInput');
+import { useMemo } from 'react';
+import { useFamilyData } from '../../../contexts/FamilyDataContext';
+import { useStarters } from '../model/dailyQuestion';
 
 const FALLBACK_STARTERS = [
   'I love',
@@ -55,19 +51,8 @@ const FactAnswerInput: React.FC<FactAnswerInputProps> = ({
   autoFocus = false,
 }) => {
   const { members } = useFamilyData();
-  const [starters, setStarters] = useState<string[]>(FALLBACK_STARTERS);
-
-  useEffect(() => {
-    let cancelled = false;
-    getFactStarters()
-      .then((s) => {
-        if (!cancelled && s.length > 0) setStarters(s);
-      })
-      .catch((err) => logger.error('Failed to load fact starters', err));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const asked = useStarters().data;
+  const starters = asked?.length ? asked : FALLBACK_STARTERS;
 
   const fuse = useMemo(() => {
     const items: Suggestion[] = [

@@ -2,17 +2,13 @@ import type {
   CatchupStatus,
   CustomCategory,
   EndOfSeasonStatus,
-  FamilySideConfig,
-  PaginationInfo,
   SystemCategory,
-  TimelineFactEntry,
-  TimelineTriviaEntry,
 } from '@family-trivia/shared';
 import type React from 'react';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import * as api from '../api';
 import type { FamilyHierarchy as ApiFamilyHierarchy } from '../api/modules/family';
-import type { FamilyFeudInitData, InitQuestionAvailability } from '../api/modules/init';
+import type { InitQuestionAvailability } from '../api/modules/init';
 import { type AppInitResponse, getAppInit, getAppInitDeferred } from '../api/modules/init';
 import type { UserConfigResponse } from '../api/modules/user';
 import { cacheService } from '../shared/api/CacheService';
@@ -33,14 +29,6 @@ interface GroupDescription {
   lastUpdated: string;
 }
 
-// Init data passed to other contexts (timeline, catchup)
-export interface InitTimelineData {
-  facts: TimelineFactEntry[];
-  trivia: TimelineTriviaEntry[];
-  pagination?: PaginationInfo;
-  familySides?: Record<string, FamilySideConfig>;
-}
-
 // Context type
 interface FamilyDataContextType {
   // Data
@@ -54,12 +42,10 @@ interface FamilyDataContextType {
   appInitComplete: boolean;
 
   // Init data for other contexts to consume (loaded in single /app-init call)
-  initTimelineData: InitTimelineData | null;
   initCatchupStatus: CatchupStatus | null;
   initQuestionAvailability: InitQuestionAvailability | null;
   initCategories: SystemCategory[] | null;
   initUserCategories: CustomCategory[] | null;
-  initFamilyFeud: FamilyFeudInitData | null;
 
   // Methods
   refreshMembers: (forceRefresh?: boolean) => Promise<void>;
@@ -119,40 +105,23 @@ export const FamilyDataProvider: React.FC<{
   const [seasonStatus, setSeasonStatus] = useState<EndOfSeasonStatus | null>(null);
 
   // Init data for other contexts
-  const [initTimelineData, setInitTimelineData] = useState<InitTimelineData | null>(null);
   const [initCatchupStatus, setInitCatchupStatus] = useState<CatchupStatus | null>(null);
   const [initQuestionAvailability, setInitInitQuestionAvailability] =
     useState<InitQuestionAvailability | null>(null);
   const [initCategories, setInitCategories] = useState<SystemCategory[] | null>(null);
   const [initUserCategories, setInitUserCategories] = useState<CustomCategory[] | null>(null);
-  const [initFamilyFeud, setInitFamilyFeud] = useState<FamilyFeudInitData | null>(null);
 
   // Refs for tracking loading state
   const loadingRef = useRef(false);
   const attemptsRef = useRef(0);
 
-  // Load deferred data (timeline, catchup, games, feud) — fires after critical init
+  // Load deferred data (catchup) — fires after critical init. Home's timeline
+  // and Family Feud ask for their own (server data, docs/decisions/0035).
   const loadDeferredData = useCallback(async (userId: string) => {
     try {
       const deferred = await getAppInitDeferred(userId);
-
-      if (deferred.timelineData) {
-        setInitTimelineData({
-          facts: deferred.timelineData.facts || [],
-          trivia: deferred.timelineData.trivia || [],
-          pagination: deferred.timelinePagination,
-          familySides: deferred.familySides || {},
-        });
-        logger.info('Deferred timeline data loaded', {
-          facts: deferred.timelineData.facts?.length || 0,
-          trivia: deferred.timelineData.trivia?.length || 0,
-        });
-      }
       if (deferred.catchupStatus) {
         setInitCatchupStatus(deferred.catchupStatus);
-      }
-      if (deferred.familyFeud) {
-        setInitFamilyFeud(deferred.familyFeud);
       }
     } catch (error) {
       logger.error('Error loading deferred init data:', error);
@@ -415,12 +384,10 @@ export const FamilyDataProvider: React.FC<{
     seasonStatus,
     loadingSeasonStatus: appInitLoading,
     appInitComplete,
-    initTimelineData,
     initCatchupStatus,
     initQuestionAvailability,
     initCategories,
     initUserCategories,
-    initFamilyFeud,
     refreshMembers,
     refreshHierarchy,
     refreshGroupDescriptions,

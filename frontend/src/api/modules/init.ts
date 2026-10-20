@@ -32,7 +32,7 @@ export interface InitQuestionAvailability {
   isEndOfSeason?: boolean;
 }
 
-export interface FamilyFeudInitData {
+interface FamilyFeudInitData {
   currentRound: {
     roundId: string;
     targetUserId: string;

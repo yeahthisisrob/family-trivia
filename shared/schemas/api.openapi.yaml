@@ -548,11 +548,12 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [history, basicQuestions, basicQuestionsTotal, allSharedQuestions]
                 properties:
-                  facts:
+                  history:
                     type: array
                     items:
-                      $ref: "#/components/schemas/FactItem"
+                      $ref: "#/components/schemas/FactHistoryItem"
                   basicQuestions:
                     type: array
                     items:
@@ -561,8 +562,9 @@ paths:
                     type: integer
                   allSharedQuestions:
                     type: array
+                    description: Every shared question asked so far (only with includeGlobal)
                     items:
-                      $ref: "#/components/schemas/FactItem"
+                      $ref: "#/components/schemas/SharedQuestionItem"
 
   /submit-historical-fact:
     post:
@@ -686,7 +688,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/DailyFactSummary"
 
   # ──────────────────────────────────────────────
   # Categories
@@ -1091,6 +1093,31 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [timelineData, familySides, pagination, success]
+                properties:
+                  timelineData:
+                    type: object
+                    required: [facts, trivia]
+                    properties:
+                      facts:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/TimelineFact"
+                      trivia:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/TimelineTrivia"
+                  familySides:
+                    type: object
+                    additionalProperties:
+                      $ref: "#/components/schemas/FamilySide"
+                  hierarchyData:
+                    type: object
+                    additionalProperties: true
+                  pagination:
+                    $ref: "#/components/schemas/TimelinePagination"
+                  success:
+                    type: boolean
 
   # ──────────────────────────────────────────────
   # Comments
@@ -3149,63 +3176,40 @@ paths:
       summary: "Trivia status grid: who answered which slot + correctness"
       operationId: getAnswerGrid
       tags: [Trivia]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          description: Whose row comes first
+          schema:
+            type: string
       responses:
         "200":
-          description: Matrix keyed by userId with slot status
+          description: One row per person, one cell per question slot
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  maxSlots:
-                    type: integer
-                  users:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        userId:
-                          type: string
-                        slots:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              correct:
-                                type: boolean
-                              isCatchingUp:
-                                type: boolean
-                              isGameMode:
-                                type: boolean
+                $ref: "#/components/schemas/StatusGrid"
 
   /fact-grid:
     get:
       summary: Daily fact status matrix
       operationId: getFactGrid
       tags: [Facts]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          description: Whose row comes first
+          schema:
+            type: string
       responses:
         "200":
-          description: Matrix of which days each user answered the daily fact
+          description: One row per person, one cell per question asked
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  dates:
-                    type: array
-                    items:
-                      type: string
-                  users:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        userId:
-                          type: string
-                        answered:
-                          type: array
-                          items:
-                            type: boolean
+                $ref: "#/components/schemas/StatusGrid"
 
   # ──────────────────────────────────────────────
   # Slot Machine variants
@@ -5971,15 +5975,247 @@ components:
       properties:
         question:
           type: string
+          description: Empty when today's question is still to be made by its creator
+        answered:
+          type: boolean
+        fact:
+          type: string
         questionType:
           type: string
           enum: [basic, shared]
         questionIndex:
           type: integer
+        needsBasicCatchup:
+          type: boolean
+        isShared:
+          type: boolean
+        isFirstPerson:
+          type: boolean
+          description: This person makes today's question
+        catchupMode:
+          type: boolean
+        date:
+          type: string
         basicQuestionsTotal:
           type: integer
         basicQuestionsCompleted:
           type: integer
+
+    FactHistoryItem:
+      type: object
+      required: [question, timestamp, answered, questionType]
+      properties:
+        question:
+          type: string
+        answer:
+          type: string
+        fact:
+          type: string
+        timestamp:
+          type: string
+        answered:
+          type: boolean
+        skipped:
+          type: boolean
+        questionType:
+          type: string
+          enum: [basic, shared]
+        questionIndex:
+          type: integer
+        date:
+          type: string
+
+    SharedQuestionItem:
+      type: object
+      required: [question, questionType]
+      properties:
+        question:
+          type: string
+        date:
+          type: string
+        timestamp:
+          type: string
+        theme:
+          type: string
+        questionType:
+          type: string
+          enum: [shared]
+        isGlobal:
+          type: boolean
+
+    DailyFactSummary:
+      type: object
+      description: shared/src/facts.ts; a week's answers, summed up
+      required: [summary, lastUpdated, totalResponses, sideAResponses, sideBResponses, factType]
+      properties:
+        date:
+          type: string
+        weekStartDate:
+          type: string
+        weekEndDate:
+          type: string
+        summary:
+          type: string
+        lastUpdated:
+          type: string
+        totalResponses:
+          type: integer
+        sideAResponses:
+          type: integer
+        sideBResponses:
+          type: integer
+        factType:
+          type: string
+          enum: [personal, shared, mixed]
+        totalQuestions:
+          type: integer
+        uniqueParticipants:
+          type: integer
+        participationRate:
+          type: number
+        isNewlyGenerated:
+          type: boolean
+        dailyBreakdown:
+          type: object
+          additionalProperties:
+            type: object
+            required: [responses, questionType]
+            properties:
+              responses:
+                type: integer
+              question:
+                type: string
+              questionType:
+                type: string
+                enum: [basic, shared]
+
+    StatusGrid:
+      type: object
+      description: Who has played, one row per person (answer grid and fact grid)
+      required: [rows, totalColumns, seasonMarkers, seasonStartCol, todayColumn]
+      properties:
+        rows:
+          type: array
+          items:
+            type: object
+            required: [userId, cells, answered, seasonGaps]
+            properties:
+              userId:
+                type: string
+              cells:
+                type: array
+                items:
+                  type: object
+                  required: [result]
+                  properties:
+                    result:
+                      type: boolean
+                      nullable: true
+                      description: true answered (or right), false skipped (or wrong), null not yet
+                    isGameMode:
+                      type: boolean
+              streak:
+                type: integer
+              answered:
+                type: integer
+              seasonGaps:
+                type: integer
+        totalColumns:
+          type: integer
+        seasonMarkers:
+          type: array
+          items:
+            type: object
+            required: [column, label]
+            properties:
+              column:
+                type: integer
+              label:
+                type: string
+        seasonStartCol:
+          type: integer
+        todayColumn:
+          type: integer
+
+    FamilySide:
+      type: object
+      required: [id, name, color, groups]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        color:
+          type: string
+        groups:
+          type: array
+          items:
+            type: string
+
+    TimelinePagination:
+      type: object
+      required: [hasMoreFacts, hasMoreTrivia, nextFactCursor, nextTriviaCursor]
+      properties:
+        hasMoreFacts:
+          type: boolean
+        hasMoreTrivia:
+          type: boolean
+        nextFactCursor:
+          type: string
+          nullable: true
+        nextTriviaCursor:
+          type: string
+          nullable: true
+
+    TimelineFact:
+      type: object
+      description: An answer to a daily question, or a finished Family Feud round
+      required: [userId, username, groupId, question, answer, fact, timestamp]
+      properties:
+        userId:
+          type: string
+        username:
+          type: string
+        groupId:
+          type: string
+        familySide:
+          type: string
+        question:
+          type: string
+        answer:
+          type: string
+        fact:
+          type: string
+        timestamp:
+          type: string
+        date:
+          type: string
+        questionType:
+          type: string
+        answered:
+          type: boolean
+        skipped:
+          type: boolean
+        category:
+          type: string
+        isFamilyFeud:
+          type: boolean
+
+    TimelineTrivia:
+      description: A trivia answer (HistoryEntry), with who gave it
+      allOf:
+        - $ref: "#/components/schemas/HistoryEntry"
+        - type: object
+          required: [userId, username, groupId]
+          properties:
+            userId:
+              type: string
+            username:
+              type: string
+            groupId:
+              type: string
+            familySide:
+              type: string
 
     # ──────────────────────────────────────────────
     # Comments (unified)
@@ -6409,22 +6645,22 @@ components:
             $ref: "#/components/schemas/FamilyFeudGuess"
           nullable: true
         results:
-          $ref: "#/components/schemas/FamilyFeudResults"
+          type: object
           nullable: true
+          allOf:
+            - $ref: "#/components/schemas/FamilyFeudResults"
 
     FamilyFeudStatus:
       type: object
-      required: [isMyTurn, nextTargetUserId, nextTargetUserName, timesAsTarget, neverGone, totalPeople, recentRounds]
+      required: [currentRound, isMyTurn, timesAsTarget, neverGone, totalPeople, recentRounds]
       properties:
         currentRound:
-          $ref: "#/components/schemas/FamilyFeudRoundInfo"
+          type: object
           nullable: true
+          allOf:
+            - $ref: "#/components/schemas/FamilyFeudRoundInfo"
         isMyTurn:
           type: boolean
-        nextTargetUserId:
-          type: string
-        nextTargetUserName:
-          type: string
         timesAsTarget:
           type: integer
         neverGone:
@@ -6434,7 +6670,48 @@ components:
         recentRounds:
           type: array
           items:
-            type: object
+            $ref: "#/components/schemas/FamilyFeudRecentRound"
+
+    FamilyFeudRecentRound:
+      type: object
+      required: [roundId, targetUserId, targetUserName, question, status, startedAt, expiresAt, guessCount, allGuesses]
+      properties:
+        roundId:
+          type: string
+        targetUserId:
+          type: string
+        targetUserName:
+          type: string
+        question:
+          type: string
+        category:
+          type: string
+        realAnswer:
+          type: string
+          nullable: true
+        choices:
+          type: array
+          items:
+            type: string
+          nullable: true
+        status:
+          type: string
+          enum: [waiting_for_target, active, completed]
+        startedAt:
+          type: string
+        expiresAt:
+          type: string
+        guessCount:
+          type: integer
+        allGuesses:
+          type: array
+          items:
+            $ref: "#/components/schemas/FamilyFeudGuess"
+        results:
+          type: object
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/FamilyFeudResults"
 
     # ── Family, reactions, appearance, archive (feature slices) ──
 

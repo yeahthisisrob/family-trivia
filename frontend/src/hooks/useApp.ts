@@ -56,7 +56,6 @@ export function useApp({ onUserChange, onAuthChange }: UseAppOptions) {
   // Local state (initialize from session if available)
   const [selectedUser, setSelectedUser] = useState<string | null>(cachedSession);
   const [authValid, setAuthValid] = useState(!!cachedSession);
-  const [factRefreshKey, setFactRefreshKey] = useState(0);
   const [debugMode] = useState(isDebug);
   const [endOfSeasonDismissed, setEndOfSeasonDismissed] = useState(false);
 
@@ -161,7 +160,6 @@ export function useApp({ onUserChange, onAuthChange }: UseAppOptions) {
 
   // Handle fact submit
   const handleFactSubmit = useCallback(() => {
-    setFactRefreshKey((k) => k + 1);
     userStatus.refreshUserStatus();
   }, [userStatus]);
 
@@ -221,7 +219,6 @@ export function useApp({ onUserChange, onAuthChange }: UseAppOptions) {
     profileUser,
     authValid,
     currentPath: location.pathname,
-    factRefreshKey,
     debugMode,
     endOfSeasonStatus,
     endOfSeasonDismissed,

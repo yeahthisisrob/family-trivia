@@ -1,4 +1,4 @@
-// File: src/components/DailyFactSummary/index.tsx
+// The week's answers on Home, summed up (or a day's, before weekly questions).
 import { convertToEasternTime } from '@family-trivia/shared';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
@@ -29,16 +29,17 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { LoadingDots } from '../../../components/ui/feedback';
+import { useFamilyData } from '../../../contexts/FamilyDataContext';
+import { colors } from '../../../shared/design-system';
+import { useFactSummary, useRegenerateSummary } from '../model/factSummary';
 
-import {
-  type DailyFactSummary as DailyFactSummaryType,
-  getDailyFactSummary,
-} from '../../api/modules/timeline';
-import { useFamilyData } from '../../contexts/FamilyDataContext';
-import { colors } from '../../shared/design-system';
-import { createLogger } from '../../shared/lib/logger';
-import { LoadingDots } from '../ui/feedback';
+/** How long Home waits before asking, so the cards above it load first. */
+const FIRST_ASK_AFTER_MS = 2000;
+/** The refresh button rests this long after a regeneration. */
+const REFRESH_REST_MS = 5000;
 
 interface DailyFactSummaryProps {
   onDateChange?: (date: string) => void;
@@ -55,7 +56,6 @@ interface DateOption {
 
 const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUserClick }) => {
   const theme = useTheme();
-  const logger = createLogger('DailyFactSummary');
   const { hierarchyData } = useFamilyData();
 
   // Format date as YYYY-MM-DD
@@ -115,12 +115,26 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
   // State for date navigation
   // If we're in the weekly system, default to last week (completed week)
   const defaultDate = isWeeklySystem(yesterdayDate) ? getLastWeekStart() : yesterdayDate;
-  const [currentDate, setCurrentDate] = useState(defaultDate);
+  const [currentDate, setDate] = useState(defaultDate);
   const [isWeeklyView, setIsWeeklyView] = useState(isWeeklySystem(defaultDate));
-  const [summaryData, setSummaryData] = useState<DailyFactSummaryType | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [waitingToAsk, setWaitingToAsk] = useState(true);
+  // Choosing another date asks for it at once.
+  const setCurrentDate = (date: string) => {
+    setWaitingToAsk(false);
+    setDate(date);
+  };
   const [refreshCooldown, setRefreshCooldown] = useState(false);
+
+  const weekly = isWeeklySystem(currentDate);
+  const summary = useFactSummary(currentDate, weekly, !waitingToAsk);
+  const regenerate = useRegenerateSummary();
+  const regeneratingThis = regenerate.variables?.date === currentDate;
+  const summaryData = summary.data ?? null;
+  const loading = summary.isPending || (regeneratingThis && regenerate.isPending);
+  const error =
+    summary.isError || (regeneratingThis && regenerate.isError)
+      ? 'Failed to load summary. Please try again.'
+      : null;
 
   // State for date dropdown
   const [dateMenuAnchor, setDateMenuAnchor] = useState<null | HTMLElement>(null);
@@ -181,71 +195,14 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
     return dates;
   };
 
-  // Load summary for current date
-  const loadSummary = useCallback(
-    async (date: string, forceRefresh = false) => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const isWeekly = isWeeklySystem(date);
-        logger.info(`Loading ${isWeekly ? 'weekly' : 'daily'} fact summary`, {
-          date,
-          forceRefresh,
-          isWeekly,
-        });
-        const summary = await getDailyFactSummary(date, forceRefresh, isWeekly);
-        setSummaryData(summary);
-        logger.info(`${isWeekly ? 'Weekly' : 'Daily'} fact summary loaded`, {
-          date,
-          totalResponses: summary.totalResponses,
-          summary: `${summary.summary.substring(0, 100)}...`,
-          factType: summary.factType,
-          totalQuestions: summary.totalQuestions,
-          uniqueParticipants: summary.uniqueParticipants,
-          isNewlyGenerated: summary.isNewlyGenerated,
-        });
-
-        // If this was newly generated, we already have the data - no need to refresh
-        // The backend already saved it to cache and returned the complete data
-        if (summary.isNewlyGenerated) {
-          logger.info('Summary was newly generated and is now displayed');
-        }
-      } catch (err: unknown) {
-        logger.error(`Error loading ${isWeeklyView ? 'weekly' : 'daily'} fact summary`, {
-          date,
-          error: err instanceof Error ? err.message : String(err),
-        });
-        setError('Failed to load summary. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isWeeklyView],
-  );
-
-  // Load summary when date changes (deferred on initial mount to avoid blocking render)
-  const isInitialMount = React.useRef(true);
+  // The first ask waits, so the cards above load first; a new date asks at once.
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      const timer = setTimeout(() => {
-        loadSummary(currentDate);
-        if (onDateChange) {
-          onDateChange(currentDate);
-        }
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-
-    loadSummary(currentDate);
-    if (onDateChange) {
-      onDateChange(currentDate);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    return undefined;
-  }, [currentDate, isWeeklyView]);
+    const timer = setTimeout(() => setWaitingToAsk(false), FIRST_ASK_AFTER_MS);
+    return () => clearTimeout(timer);
+  }, []);
+  useEffect(() => {
+    if (!waitingToAsk) onDateChange?.(currentDate);
+  }, [currentDate, waitingToAsk, onDateChange]);
 
   // Navigation functions
   const navigateDate = (direction: 'prev' | 'next') => {
@@ -313,11 +270,11 @@ const DailyFactSummary: React.FC<DailyFactSummaryProps> = ({ onDateChange, onUse
     if (refreshCooldown) return;
 
     setRefreshCooldown(true);
-    loadSummary(currentDate, true);
+    regenerate.mutate({ date: currentDate, weekly });
 
     setTimeout(() => {
       setRefreshCooldown(false);
-    }, 5000);
+    }, REFRESH_REST_MS);
   };
 
   // Format date for display

@@ -4,7 +4,8 @@
 
 import { alpha, Box, Divider, keyframes, Typography, useTheme } from '@mui/material';
 import React, { useEffect, useRef } from 'react';
-import { colors } from '../../shared/design-system';
+import { colors } from '../../../shared/design-system';
+import type { StatusGrid } from '../model/grids';
 
 const catchupPulse = (grey: string) => keyframes`
   0%, 100% { transform: scale(1); background-color: ${grey}; box-shadow: none; }
@@ -13,28 +14,8 @@ const catchupPulse = (grey: string) => keyframes`
 
 const GAME_MODE_RING = `inset 0 0 0 2px ${colors.accent.purple}, inset 0 0 0 3px ${alpha(colors.onColor, 0.95)}`;
 
-export interface GridCell {
-  result: boolean | null;
-  isGameMode?: boolean;
-}
-export interface SeasonMarker {
-  column: number;
-  label: string;
-}
-export interface GridRow {
-  userId: string;
-  cells: GridCell[];
-  streak: number;
-  answered: number;
-  seasonGaps: number;
-}
-export interface AnswerGridData {
-  rows: GridRow[];
-  totalColumns: number;
-  seasonMarkers: SeasonMarker[];
-  seasonStartCol: number;
-  todayColumn: number;
-}
+export type AnswerGridData = StatusGrid;
+export type GridCell = StatusGrid['rows'][number]['cells'][number];
 
 export interface AnswerGridViewProps {
   grid: AnswerGridData;

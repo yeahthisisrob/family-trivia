@@ -1,22 +1,12 @@
 // Module: timeline
-// Timeline data and daily fact summaries
+// One person's timeline (Profile). Home's timeline is server data
+// (entities/timeline), and so is the week's summary (features/fact-summary).
 
-import type {
-  DailyFactSummary,
-  PaginationInfo,
-  TimelineData,
-  TimelineOptions,
-} from '@family-trivia/shared';
+import type { PaginationInfo, TimelineData, TimelineOptions } from '@family-trivia/shared';
 import { apiService } from '../../shared/api/ApiService';
-import { cacheService } from '../../shared/api/CacheService';
 import { createLogger } from '../../shared/lib/logger';
 
-export type {
-  DailyFactSummary,
-  PaginationInfo,
-  TimelineData,
-  TimelineOptions,
-} from '@family-trivia/shared';
+export type { PaginationInfo, TimelineData, TimelineOptions } from '@family-trivia/shared';
 
 const logger = createLogger('TimelineAPI');
 
@@ -105,37 +95,4 @@ export async function getTimelineData(options: TimelineOptions = {}): Promise<Ti
       familySides: {},
     };
   }
-}
-
-export async function getDailyFactSummary(
-  date?: string,
-  forceGenerate?: boolean,
-  isWeekly?: boolean,
-): Promise<DailyFactSummary> {
-  const params = new URLSearchParams();
-
-  if (isWeekly) {
-    // For weekly summaries, date should be the week start date
-    if (date) params.set('weekStart', date);
-  } else {
-    // For daily summaries
-    if (date) params.set('date', date);
-  }
-
-  if (forceGenerate) params.set('forceGenerate', 'true');
-
-  const queryString = params.toString();
-  const url = `/daily-fact-summary${queryString ? `?${queryString}` : ''}`;
-
-  // If force generating, invalidate any existing cache
-  const cacheKey = `${isWeekly ? 'weekly' : 'daily'}-fact-summary-${date || 'yesterday'}`;
-  if (forceGenerate) {
-    cacheService.invalidate(cacheKey);
-  }
-
-  return apiService.request<DailyFactSummary>(url, {
-    method: 'GET',
-    cacheKey: forceGenerate ? undefined : cacheKey,
-    cacheDuration: forceGenerate ? 0 : 5 * 60 * 1000, // Cache for 5 minutes unless forcing
-  });
 }

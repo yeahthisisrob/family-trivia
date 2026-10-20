@@ -42,8 +42,8 @@
       "file": "daily-fact.png",
       "story": "home-dailyfactcard--todays-question",
       "size": "phone",
-      "source": "c0f5469222e1",
-      "storyFile": "frontend/src/components/DailyFact/DailyFactCard.stories.tsx"
+      "source": "7ea0e94186ab",
+      "storyFile": "frontend/src/features/daily-question/ui/DailyFactCard.stories.tsx"
     },
     {
       "file": "daily-memory.png",

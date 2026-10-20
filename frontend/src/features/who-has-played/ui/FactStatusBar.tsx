@@ -1,12 +1,10 @@
-// src/components/FactStatusBar.tsx
 // Daily fact answer grid. Same UX as TriviaStatusBar but for facts.
 // Blue = answered, grey = skipped, purple pulse = catch-up gap.
 
 import { alpha, Box, Divider, keyframes, Typography, useTheme } from '@mui/material';
-import React, { useEffect, useRef, useState } from 'react';
-
-import { apiService } from '../shared/api/ApiService';
-import { colors } from '../shared/design-system';
+import React, { useEffect, useRef } from 'react';
+import { colors } from '../../../shared/design-system';
+import { useFactGrid } from '../model/grids';
 
 const ANSWERED = colors.accent.blue;
 const CATCHUP = colors.accent.purple;
@@ -19,26 +17,6 @@ const catchupPulse = (gap: string) => keyframes`
 interface FactStatusBarProps {
   userId: string;
 }
-interface GridCell {
-  result: boolean | null;
-}
-interface SeasonMarker {
-  column: number;
-  label: string;
-}
-interface GridRow {
-  userId: string;
-  cells: GridCell[];
-  answered: number;
-  seasonGaps: number;
-}
-interface FactGridData {
-  rows: GridRow[];
-  totalColumns: number;
-  seasonMarkers: SeasonMarker[];
-  seasonStartCol: number;
-  todayColumn: number;
-}
 
 const CELL = 13;
 const GAP = 3;
@@ -50,19 +28,7 @@ const FactStatusBar: React.FC<FactStatusBarProps> = ({ userId }) => {
   const gapPulse = catchupPulse(gapColor);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const [grid, setGrid] = useState<FactGridData | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    apiService
-      .request<FactGridData>(`/fact-grid?userId=${encodeURIComponent(userId)}`, { method: 'GET' })
-      .then((data) => {
-        if (!cancelled) setGrid(data);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
+  const grid = useFactGrid(userId).data;
 
   // Scroll to right on load AND when tab becomes visible
   useEffect(() => {
