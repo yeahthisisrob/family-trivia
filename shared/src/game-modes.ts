@@ -1,19 +1,34 @@
 /**
- * Game Mode Registry — single source of truth for all special game modes.
+ * Game modes: the ways a trivia question can be played for more than its
+ * usual points (docs/decisions/0032).
  *
- * Adding a new game mode:
- *   1. Add its id to GameModeId
- *   2. Add the isFoo flag to HistoryEntry (history.ts)
- *   3. Add an entry to GAME_MODES below
- *   4. Build the route handler + UI component
+ * - **Rounds.** Any game can be a weekly round: play it, it sets a
+ *   multiplier, then answer one trivia question for that many points. A
+ *   game opts in from its own folder (`round` in frontend/src/games/<id>);
+ *   nothing here lists them. Every round follows ROUND_RULES.
+ * - **Sessions.** Casino Rush and Slot Machine run several steps of their
+ *   own, with their own routes, and are listed below.
  *
- * Backend and frontend both import from here so iterating over game modes
- * (eligibility checks, UI buttons, grid cell styling, etc.) stays DRY.
+ * History entries name their mode in `gameMode`. Entries written before
+ * that carry a flag per mode (`isCurling`, `isTetris`...), read by
+ * gameModeOf so nothing stored has to change.
  */
 
 import type { HistoryEntry } from './history';
 
-export type GameModeId = 'casino-rush' | 'slot-machine' | 'curling' | 'tetris';
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** How every round is played and scored. */
+export const ROUND_RULES = {
+  /** The multipliers a game may award. */
+  multipliers: [0.5, 1, 2, 3] as readonly number[],
+  /** Points for a right answer: the multiplier, plus this for a new best score in the game. */
+  newBestBonus: 1,
+  /** One round per game per week. */
+  cooldownMs: WEEK_MS,
+} as const;
+
+export type GameModeId = 'casino-rush' | 'slot-machine';
 
 export interface GameModeConfig {
   id: GameModeId;
@@ -21,25 +36,18 @@ export interface GameModeConfig {
   label: string;
   /** Short description for the button subtitle */
   description: string;
-  /** Material icon name (for the frontend) */
-  iconName: 'Casino' | 'SmartToy' | 'AcUnit' | 'Gamepad';
-  /** Tailwind/MUI accent color group */
-  accent: 'error' | 'secondary' | 'info';
   /** Cooldown in milliseconds between plays */
   cooldownMs: number;
-  /** Which HistoryEntry boolean flag marks entries from this mode */
-  historyFlag: 'isCasinoRush' | 'isSlotMachine' | 'isCurling' | 'isTetris';
+  /** Which HistoryEntry flag marks entries from this mode */
+  historyFlag: 'isCasinoRush' | 'isSlotMachine';
 }
 
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-
+/** The session modes. Rounds are not listed: they come from the game folders. */
 export const GAME_MODES: GameModeConfig[] = [
   {
     id: 'casino-rush',
     label: 'Casino Rush',
     description: '3 questions, 60s each — triple or bust',
-    iconName: 'Casino',
-    accent: 'error',
     cooldownMs: WEEK_MS,
     historyFlag: 'isCasinoRush',
   },
@@ -47,42 +55,34 @@ export const GAME_MODES: GameModeConfig[] = [
     id: 'slot-machine',
     label: 'Slot Machine',
     description: 'Spin for a random category + multiplier',
-    iconName: 'SmartToy',
-    accent: 'secondary',
     cooldownMs: WEEK_MS,
     historyFlag: 'isSlotMachine',
   },
-  {
-    id: 'curling',
-    label: 'Curling',
-    description: 'Hold and release — land on the button',
-    iconName: 'AcUnit',
-    accent: 'info',
-    cooldownMs: WEEK_MS,
-    historyFlag: 'isCurling',
-  },
-  {
-    id: 'tetris',
-    label: 'Tetris',
-    description: '60s to clear lines — score your multiplier',
-    iconName: 'Gamepad',
-    accent: 'secondary',
-    cooldownMs: WEEK_MS,
-    historyFlag: 'isTetris',
-  },
 ];
 
-/** Lookup a config by id */
-export function getGameMode(id: GameModeId): GameModeConfig | undefined {
+/** Lookup a session mode by id */
+export function getGameMode(id: string): GameModeConfig | undefined {
   return GAME_MODES.find((m) => m.id === id);
 }
 
-/** True if a history entry came from any game mode */
-export function isGameModeEntry(h: HistoryEntry): boolean {
-  return GAME_MODES.some((m) => !!(h as any)[m.historyFlag]);
+/** How long between plays of a mode or a round. */
+export const cooldownOf = (id: string): number =>
+  getGameMode(id)?.cooldownMs ?? ROUND_RULES.cooldownMs;
+
+// Entries from before `gameMode`: one flag per mode.
+const LEGACY_FLAGS: [keyof HistoryEntry, string][] = [
+  ['isCasinoRush', 'casino-rush'],
+  ['isSlotMachine', 'slot-machine'],
+  ['isCurling', 'curling'],
+  ['isTetris', 'tetris'],
+];
+
+/** The mode or round a history entry came from, if any. */
+export function gameModeOf(h: HistoryEntry): string | undefined {
+  return h.gameMode ?? LEGACY_FLAGS.find(([flag]) => !!h[flag])?.[1];
 }
 
-/** Get the game mode config that matches this history entry, if any */
-export function gameModeOfEntry(h: HistoryEntry): GameModeConfig | undefined {
-  return GAME_MODES.find((m) => !!(h as any)[m.historyFlag]);
+/** True if a history entry came from any game mode or round */
+export function isGameModeEntry(h: HistoryEntry): boolean {
+  return gameModeOf(h) !== undefined;
 }

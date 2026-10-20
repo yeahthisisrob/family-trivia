@@ -102,8 +102,7 @@ export const GameModesLocked: Story = {
         trivia={{
           canPlayCasinoRush: false,
           canPlaySlotMachine: false,
-          canPlayCurling: false,
-          canPlayTetris: false,
+          roundsLocked: ['curling', 'tetris'],
         }}
       >
         <div style={{ maxWidth: 420 }}>
@@ -124,9 +123,7 @@ export const GameModesLocked: Story = {
 export const GameModesAvailable: Story = {
   decorators: [
     (Story) => (
-      <StoryProviders
-        trivia={{ canPlayCasinoRush: true, canPlaySlotMachine: true, canPlayCurling: true }}
-      >
+      <StoryProviders trivia={{ canPlayCasinoRush: true, canPlaySlotMachine: true }}>
         <div style={{ maxWidth: 420 }}>
           <Story />
         </div>

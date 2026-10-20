@@ -9,8 +9,7 @@ import { tint } from '../../shared/design-system/tint';
 // Context is read only at init — we never let context changes
 // reset an in-progress flow (answering, result, etc.).
 
-import type { GameModeId } from '@family-trivia/shared';
-import { GAME_MODES, getSecondsElapsedTodayET } from '@family-trivia/shared';
+import { getSecondsElapsedTodayET } from '@family-trivia/shared';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -18,7 +17,7 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import StarsIcon from '@mui/icons-material/Stars';
 import { alpha, Box, Button, Card, Chip, keyframes, Typography, useTheme } from '@mui/material';
 import type React from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CustomCategory } from '../../api';
 import { submitAnswer } from '../../api';
 import { generateQuestionStepped, getCatchupStatus, type Question } from '../../api/modules/trivia';
@@ -34,8 +33,6 @@ import { useTriviaFlowDispatch } from '../../contexts/TriviaFlowContext';
 import { useUserStatus } from '../../contexts/UserStatusContext';
 import { CommentsThread } from '../../features/comments';
 import SlotMachine from '../../games/casino/SlotMachine';
-import CurlingGame from '../../games/curling/CurlingGame';
-import TetrisGame from '../../games/tetris/TetrisGame';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
@@ -47,6 +44,10 @@ import CustomCategoryForm from '../CustomCategoryForm';
 import { LoadingDots } from '../ui/feedback';
 import { CasinoRush } from './CasinoRush';
 import CategorySelect from './CategorySelect';
+import { CHALLENGES, challengeByLabel } from './challenges';
+
+const CHALLENGES_BY_ID = new Map(CHALLENGES.map((c) => [c.id, c]));
+
 import DifficultySelect, { type Difficulty } from './DifficultySelect';
 import HistoryCard from './HistoryCard';
 
@@ -181,16 +182,10 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
   const [categorySelections, setCategorySelections] = useState<CategorySelection[]>([]);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [latestHistory, setLatestHistory] = useState<QuestionHistory | null>(null);
-  // Active game mode (null = none). Driven by the GAME_MODES registry.
-  const [activeGameMode, setActiveGameMode] = useState<GameModeId | null>(null);
+  // Active challenge (null = none): a session mode or a game's round (0032).
+  const [activeGameMode, setActiveGameMode] = useState<string | null>(null);
   const [showCustomForm, setShowCustomForm] = useState(false);
 
-  // Lookup: label → id for routing category selections to game modes
-  const gameModeByLabel = useMemo(() => {
-    const map = new Map<string, GameModeId>();
-    for (const m of GAME_MODES) map.set(m.label, m.id);
-    return map;
-  }, []);
   const [createdCategory, setCreatedCategory] = useState('');
 
   // Tracks whether today's daily question has been used up.
@@ -317,18 +312,15 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
 
   // ── Generate question (single API call) ─────────────────────────
 
-  const handleCategorySelect = useCallback(
-    (cat: string) => {
-      const modeId = gameModeByLabel.get(cat);
-      if (modeId) {
-        setActiveGameMode(modeId);
-        return;
-      }
-      setPendingCategory(cat);
-      setState('difficulty');
-    },
-    [gameModeByLabel],
-  );
+  const handleCategorySelect = useCallback((cat: string) => {
+    const challenge = challengeByLabel(cat);
+    if (challenge) {
+      setActiveGameMode(challenge.id);
+      return;
+    }
+    setPendingCategory(cat);
+    setState('difficulty');
+  }, []);
 
   const handleDifficultySelect = useCallback(
     (difficulty: Difficulty) => {
@@ -543,41 +535,17 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
 
   if (forceDisabled) return null;
 
-  // Game mode render — driven by registry, styled per mode
-  const GAME_MODE_STYLES: Record<GameModeId, { border: string; borderTop: string; glow: string }> =
-    {
-      'casino-rush': {
-        border: `2px solid ${alpha(colors.casinoRush.accent, 0.5)}`,
-        borderTop: `3px solid ${colors.casinoRush.accent}`,
-        glow: `0 0 20px ${alpha(colors.casinoRush.accent, 0.15)}, ${shadows.card}`,
-      },
-      'slot-machine': {
-        border: `2px solid ${alpha(colors.casinoRush.gold, 0.4)}`,
-        borderTop: `3px solid ${colors.casinoRush.gold}`,
-        glow: `0 0 20px ${alpha(colors.casinoRush.gold, 0.12)}, ${shadows.card}`,
-      },
-      curling: {
-        border: `2px solid ${alpha(colors.accent.sky, 0.5)}`,
-        borderTop: `3px solid ${colors.accent.blue}`,
-        glow: `0 0 20px ${alpha(colors.accent.sky, 0.15)}, ${shadows.card}`,
-      },
-      tetris: {
-        border: `2px solid ${alpha(colors.accent.purple, 0.5)}`,
-        borderTop: `3px solid ${colors.accent.purple}`,
-        glow: `0 0 20px ${alpha(colors.accent.purple, 0.15)}, ${shadows.card}`,
-      },
-    };
-
-  const GAME_MODE_COMPONENTS: Record<GameModeId, React.ReactNode> = {
-    'casino-rush': (
+  // A challenge: framed in its color; a session mode, or the game's round.
+  const challenge = activeGameMode ? CHALLENGES_BY_ID.get(activeGameMode) : undefined;
+  const sessionGame =
+    activeGameMode === 'casino-rush' ? (
       <CasinoRush
         userId={userId}
         onComplete={handleGameComplete}
         onClose={handleGameClose}
         isCatchingUp={catchingUp}
       />
-    ),
-    'slot-machine': (
+    ) : activeGameMode === 'slot-machine' ? (
       <SlotMachine
         userId={userId}
         groupId={groupId}
@@ -585,38 +553,32 @@ const TriviaFlow: React.FC<TriviaFlowProps> = ({
         onClose={handleGameClose}
         isCatchingUp={catchingUp}
       />
-    ),
-    curling: (
-      <CurlingGame
-        userId={userId}
-        isCatchingUp={catchingUp}
-        onComplete={(points) => handleGameComplete(points)}
-        onClose={handleGameClose}
-      />
-    ),
-    tetris: (
-      <TetrisGame
-        userId={userId}
-        isCatchingUp={catchingUp}
-        onComplete={(result) => handleGameComplete(result.pointsEarned)}
-        onClose={handleGameClose}
-      />
-    ),
-  };
+    ) : null;
+  const Round = challenge?.game?.round?.Round;
 
-  if (activeGameMode) {
-    const style = GAME_MODE_STYLES[activeGameMode];
+  if (challenge) {
+    const c = challenge.frame;
     return (
       <Box
         sx={{
           borderRadius: `${radii.xl}px`,
-          border: style.border,
-          borderTop: style.borderTop,
-          boxShadow: style.glow,
+          border: `2px solid ${alpha(c, 0.5)}`,
+          borderTop: `3px solid ${c}`,
+          boxShadow: `0 0 20px ${alpha(c, 0.15)}, ${shadows.card}`,
           overflow: 'hidden',
         }}
       >
-        {GAME_MODE_COMPONENTS[activeGameMode]}
+        {sessionGame ??
+          (Round && (
+            <Suspense fallback={<LoadingDots mt={2} />}>
+              <Round
+                userId={userId}
+                catchUp={catchingUp}
+                onComplete={handleGameComplete}
+                onClose={handleGameClose}
+              />
+            </Suspense>
+          ))}
       </Box>
     );
   }

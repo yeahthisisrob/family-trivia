@@ -23,14 +23,13 @@ import {
 } from '@mui/material';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { getCurlingAIMove } from '../../api/modules/gameAI';
-import { lockCurling, submitCurlingAnswer } from '../../api/modules/games';
 import { LoadingDots } from '../../components/ui/feedback';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../utils/logger';
-import { submitScore } from '../kit';
+import { answerRound, lockRound, submitScore } from '../kit';
 import { CurlingSimulation, OFF_SHEET_MARGIN } from './curlingPhysics';
 
 const logger = createLogger('CurlingGame');
@@ -419,12 +418,11 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
       // Trivia: lock throw + generate question
       setState('locking');
       try {
-        const lockResult = await lockCurling(
-          userId,
-          result.multiplier,
-          isCatchingUp,
-          result.precisionScore,
-        );
+        const lockResult = await lockRound('curling', {
+          multiplier: result.multiplier,
+          score: result.precisionScore,
+          catchUp: isCatchingUp,
+        });
         setQuestion(lockResult.question);
         setState('question');
       } catch (err) {
@@ -443,7 +441,7 @@ const CurlingGame: React.FC<CurlingGameProps> = ({
       setSelectedAnswer(answer);
       setState('submitting');
       try {
-        const res = await submitCurlingAnswer(userId, answer);
+        const res = await answerRound('curling', answer);
         setAnswerResult(res);
         setState('answered');
         window.setTimeout(() => onComplete?.(res.pointsEarned), 2200);

@@ -21,11 +21,15 @@ export interface HistoryEntry {
   casinoSessionId?: string;
   /** Marks entries from the Slot Machine game mode */
   isSlotMachine?: boolean;
-  /** Marks entries from the Curling game mode */
+  /** The game mode or round this came from (docs/decisions/0032). */
+  gameMode?: string;
+  /** The multiplier the game awarded, for rounds. */
+  multiplier?: number;
+  /** Before gameMode: marks entries from the Curling game mode */
   isCurling?: boolean;
   /** The multiplier earned from Curling (0.5, 1, 2, or 3) */
   curlingMultiplier?: number;
-  /** Marks entries from the Tetris game mode */
+  /** Before gameMode: marks entries from the Tetris game mode */
   isTetris?: boolean;
   /** The multiplier earned from Tetris (1, 2, or 3) */
   tetrisMultiplier?: number;

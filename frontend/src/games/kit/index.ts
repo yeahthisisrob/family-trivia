@@ -18,6 +18,16 @@ export interface GameProps {
   onClose: () => void;
 }
 
+/** What the Trivia tab hands a game played as this week's round. */
+export interface RoundProps {
+  userId: string;
+  /** Played as a catch-up question. */
+  catchUp: boolean;
+  onClose: () => void;
+  /** After the answer, with the points it earned. */
+  onComplete: (pointsEarned: number) => void;
+}
+
 export interface Game {
   /** The folder name: lowercase words joined by dashes ("word-ladder"). */
   id: string;
@@ -27,14 +37,27 @@ export interface Game {
   /** A few words in capitals on the tile ("60s BLOCKS"). */
   badge: string;
   icon: SvgIconComponent;
-  /** The tile's gradient and accent: a token set, or gameLook(hue). */
-  look: { gradient: string; accent: string };
+  /**
+   * The tile's gradient and accent: a token set, or gameLook(hue). `frame`
+   * is the color around the game when it's played as a round.
+   */
+  look: { gradient: string; accent: string; frame?: string };
   /** The game itself; lazy(() => import('./MyGame')) keeps the Arcade fast. */
   Play: React.ComponentType<GameProps>;
   /** Lower comes first; games without one follow, by label. */
   order?: number;
   /** Show a high-score board under the tile (default true). */
   scores?: boolean;
+  /**
+   * Also playable as a weekly trivia round: the game sets a multiplier, then
+   * one question (ROUND_RULES in shared/src/game-modes.ts). The game calls
+   * lockRound when it's over and answerRound with the player's choice.
+   */
+  round?: {
+    /** One line on the Trivia tab's tile ("Hold and release — land on the button"). */
+    description: string;
+    Round: React.ComponentType<RoundProps>;
+  };
 }
 
 export const defineGame = (game: Game): Game => game;
@@ -101,4 +124,58 @@ export function useGameSave<T>(game: string, initial: T): [T, (next: T) => void,
     [game],
   );
   return [save, set, loaded];
+}
+
+// ── Rounds ────────────────────────────────────────────────────────
+
+export interface RoundQuestion {
+  question: string;
+  choices: string[];
+  category: string;
+}
+
+export interface RoundStatus {
+  canPlay: boolean;
+  nextAvailable: string | null;
+}
+
+/** For each game: can it be this week's round now, and if not, when. */
+export async function getRoundStatus(games: string[]): Promise<Record<string, RoundStatus>> {
+  if (!games.length) return {};
+  const r = await apiService.request<{ rounds: Record<string, RoundStatus> }>(
+    `/games/rounds?games=${encodeURIComponent(games.join(','))}`,
+    { method: 'GET' },
+  );
+  return r.rounds ?? {};
+}
+
+/**
+ * The game is over: keep its multiplier (0.5, 1, 2 or 3) and, if it has one,
+ * its score, and get the question. A new best score adds a point.
+ */
+export function lockRound(
+  game: string,
+  round: { multiplier: number; score?: number; catchUp: boolean },
+): Promise<{ multiplier: number; question: RoundQuestion; newBest: boolean }> {
+  return apiService.request('/games/rounds/lock', {
+    method: 'POST',
+    body: JSON.stringify({ game, ...round }),
+  });
+}
+
+/** Answer the round's question; pointsEarned includes the new-best point. */
+export function answerRound(
+  game: string,
+  answer: string,
+): Promise<{
+  correct: boolean;
+  correctAnswer: string;
+  pointsEarned: number;
+  multiplier: number;
+  newBestBonus: number;
+}> {
+  return apiService.request('/games/rounds/answer', {
+    method: 'POST',
+    body: JSON.stringify({ game, answer }),
+  });
 }

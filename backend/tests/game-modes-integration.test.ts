@@ -405,171 +405,118 @@ describe('casinoRushStartGame', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════
-// Curling — lock + answer
+// Rounds — any game: lock a multiplier, then answer (0032)
 // ═══════════════════════════════════════════════════════════════════
 
-import { curlingAnswer, curlingLock } from '../routes/game-modes/curling';
+import { postRoundAnswer, postRoundLock } from '../features/games/handlers';
 import { getStored } from './helpers/s3Mock';
 
 function curlingEntry(mult: number, opts: Partial<HistoryEntry> = {}): HistoryEntry {
   return { ...regular(), isCurling: true, curlingMultiplier: mult, ...opts };
 }
 
-describe('curlingLock', () => {
+const lock = async (me: string, body: Record<string, unknown>) =>
+  parseResponse(await postRoundLock(mockEvent(body), me));
+const answer = async (me: string, body: Record<string, unknown>) =>
+  parseResponse(await postRoundAnswer(mockEvent(body), me));
+
+describe('round lock', () => {
   test('fresh user: locks multiplier and returns a question', async () => {
     seedDefaultActiveSeason();
     seedHistory('alice', []);
-
-    const resp = parseResponse(
-      await curlingLock(
-        mockEvent({
-          userId: 'alice',
-          multiplier: 3,
-        }),
-      ),
-    );
+    const resp = await lock('alice', { game: 'curling', multiplier: 3 });
     expect(resp.statusCode).toBe(200);
     expect(resp.body.multiplier).toBe(3);
-    expect(resp.body.question).toBeDefined();
     expect(resp.body.question.choices).toHaveLength(4);
-    // Session should be persisted
-    expect(getStored('curling/alice/session.json')).toBeTruthy();
+    expect(resp.body.question.answer).toBeUndefined();
+    expect(getStored('games/rounds/alice.json')).toBeTruthy();
   });
 
-  test('rejects invalid multiplier', async () => {
+  test('works for a game nobody registered', async () => {
     seedDefaultActiveSeason();
     seedHistory('alice', []);
+    expect((await lock('alice', { game: 'word-ladder', multiplier: 2 })).statusCode).toBe(200);
+  });
 
-    const resp = parseResponse(
-      await curlingLock(
-        mockEvent({
-          userId: 'alice',
-          multiplier: 7,
-        }),
-      ),
-    );
-    expect(resp.statusCode).toBe(400);
+  test('rejects a multiplier outside the rules, and bad ids', async () => {
+    seedDefaultActiveSeason();
+    seedHistory('alice', []);
+    expect((await lock('alice', { game: 'curling', multiplier: 7 })).statusCode).toBe(400);
+    expect((await lock('alice', { game: '../x', multiplier: 2 })).statusCode).toBe(400);
   });
 
   test('blocked when user answered regular today (daily limit)', async () => {
     seedDefaultActiveSeason();
     seedHistory('alice', [regular()]);
-
-    const resp = parseResponse(
-      await curlingLock(
-        mockEvent({
-          userId: 'alice',
-          multiplier: 2,
-        }),
-      ),
-    );
-    expect(resp.statusCode).toBe(403);
+    expect((await lock('alice', { game: 'curling', multiplier: 2 })).statusCode).toBe(403);
   });
 
-  test('blocked when weekly cooldown not elapsed', async () => {
+  test('blocked when weekly cooldown not elapsed (old curling entries count)', async () => {
     seedDefaultActiveSeason();
     seedHistory('alice', [curlingEntry(2, { timestamp: daysAgoTimestamp(3) })]);
-
-    const resp = parseResponse(
-      await curlingLock(
-        mockEvent({
-          userId: 'alice',
-          multiplier: 2,
-        }),
-      ),
-    );
+    const resp = await lock('alice', { game: 'curling', multiplier: 2 });
     expect(resp.statusCode).toBe(403);
+    expect(resp.body.errorType).toBe('cooldown');
   });
 
   test('allowed after 8-day cooldown', async () => {
     seedDefaultActiveSeason();
     seedHistory('alice', [curlingEntry(2, { timestamp: daysAgoTimestamp(8) })]);
-
-    const resp = parseResponse(
-      await curlingLock(
-        mockEvent({
-          userId: 'alice',
-          multiplier: 3,
-        }),
-      ),
-    );
-    expect(resp.statusCode).toBe(200);
+    expect((await lock('alice', { game: 'curling', multiplier: 3 })).statusCode).toBe(200);
   });
 });
 
-describe('curlingAnswer', () => {
-  async function setupSession(userId: string, multiplier: number) {
+describe('round answer', () => {
+  async function setup(userId: string, body: Record<string, unknown>) {
     seedDefaultActiveSeason();
     seedHistory(userId, []);
-    await curlingLock(mockEvent({ userId, multiplier }));
+    await lock(userId, body);
   }
 
   test('correct answer awards multiplier points + writes history', async () => {
-    await setupSession('alice', 3);
-
-    const resp = parseResponse(
-      await curlingAnswer(
-        mockEvent({
-          userId: 'alice',
-          answer: 'A', // mock question answer is 'A'
-        }),
-      ),
-    );
-    expect(resp.statusCode).toBe(200);
+    await setup('alice', { game: 'curling', multiplier: 3 });
+    const resp = await answer('alice', { game: 'curling', answer: 'A' });
     expect(resp.body.correct).toBe(true);
     expect(resp.body.pointsEarned).toBe(3);
-
-    const history = getStored('answers/history/alice.json') as any[];
+    const history = getStored('answers/history/alice.json') as HistoryEntry[];
     expect(history).toHaveLength(1);
-    expect(history[0].isCurling).toBe(true);
-    expect(history[0].curlingMultiplier).toBe(3);
-    expect(history[0].pointsEarned).toBe(3);
+    expect(history[0]).toMatchObject({ gameMode: 'curling', multiplier: 3, pointsEarned: 3 });
   });
 
   test('wrong answer awards 0 points but still writes history', async () => {
-    await setupSession('alice', 2);
-
-    const resp = parseResponse(
-      await curlingAnswer(
-        mockEvent({
-          userId: 'alice',
-          answer: 'B',
-        }),
-      ),
-    );
-    expect(resp.statusCode).toBe(200);
-    expect(resp.body.correct).toBe(false);
+    await setup('alice', { game: 'curling', multiplier: 2 });
+    const resp = await answer('alice', { game: 'curling', answer: 'B' });
     expect(resp.body.pointsEarned).toBe(0);
-
-    const history = getStored('answers/history/alice.json') as any[];
-    expect(history).toHaveLength(1);
-    expect(history[0].isCurling).toBe(true);
-    expect(history[0].curlingMultiplier).toBe(2);
-    expect(history[0].correct).toBe(false);
+    const history = getStored('answers/history/alice.json') as HistoryEntry[];
+    expect(history[0]).toMatchObject({ gameMode: 'curling', correct: false });
   });
 
-  test('no session → 400', async () => {
-    seedDefaultActiveSeason();
-    seedHistory('alice', []);
-
-    const resp = parseResponse(
-      await curlingAnswer(
-        mockEvent({
-          userId: 'alice',
-          answer: 'A',
-        }),
-      ),
-    );
-    expect(resp.statusCode).toBe(400);
+  test('a new best score in the game adds the bonus', async () => {
+    await setup('alice', { game: 'tetris', multiplier: 2, score: 500 });
+    const resp = await answer('alice', { game: 'tetris', answer: 'A' });
+    expect(resp.body.newBestBonus).toBe(1);
+    expect(resp.body.pointsEarned).toBe(3);
   });
 
-  test('session deleted after answer', async () => {
-    await setupSession('alice', 1);
-    expect(getStored('curling/alice/session.json')).toBeTruthy();
+  test('the round played counts toward the cooldown', async () => {
+    await setup('alice', { game: 'curling', multiplier: 2 });
+    await answer('alice', { game: 'curling', answer: 'A' });
+    invalidateGameModeCache();
+    invalidatePlayerStateCache();
+    const again = await lock('alice', { game: 'curling', multiplier: 2, catchUp: true });
+    expect(again.statusCode).toBe(403);
+  });
 
-    await curlingAnswer(mockEvent({ userId: 'alice', answer: 'A' }));
+  test('no round, or a different game → 400', async () => {
+    await setup('alice', { game: 'curling', multiplier: 2 });
+    expect((await answer('alice', { game: 'tetris', answer: 'A' })).statusCode).toBe(400);
+    expect((await answer('bob', { game: 'curling', answer: 'A' })).statusCode).toBe(400);
+  });
 
-    expect(getStored('curling/alice/session.json')).toBeUndefined();
+  test('round deleted after answer', async () => {
+    await setup('alice', { game: 'curling', multiplier: 1 });
+    await answer('alice', { game: 'curling', answer: 'A' });
+    expect(getStored('games/rounds/alice.json')).toBeUndefined();
   });
 });
 

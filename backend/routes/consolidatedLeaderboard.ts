@@ -1,9 +1,10 @@
 // File: lambda/routes/consolidatedLeaderboard.ts
 
-import type {
-  ArcadeGameId,
-  PointBreakdown,
-  GroupLeaderboardEntry as SharedGroupLeaderboardEntry,
+import {
+  type ArcadeGameId,
+  isGameModeEntry,
+  type PointBreakdown,
+  type GroupLeaderboardEntry as SharedGroupLeaderboardEntry,
 } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
@@ -194,7 +195,7 @@ async function computeLeaderboard(
     for (const h of history) {
       if (h.correct) {
         const pts = computePoints(h);
-        const isGameMode = h.isCasinoRush || h.isSlotMachine || h.isCurling || h.isTetris;
+        const isGameMode = isGameModeEntry(h);
         if (isGameMode) {
           gameModePoints += pts;
         } else {

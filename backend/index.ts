@@ -83,7 +83,6 @@ import {
   casinoRushSubmitAnswer,
 } from './routes/game-modes/casinoRush';
 // Curling endpoints
-import { curlingAnswer, curlingLock, curlingStatus } from './routes/game-modes/curling';
 // Slot Machine endpoints
 import {
   slotMachineAnswer,
@@ -94,7 +93,6 @@ import {
   slotMachineStatus,
 } from './routes/game-modes/slotMachine';
 // Tetris endpoints
-import { tetrisAnswer, tetrisLock, tetrisStatus } from './routes/game-modes/tetris';
 // Game AI (shared Haiku strategy for arcade games)
 import { gameAIMove } from './routes/gameAI';
 import { generateQuestion } from './routes/generateQuestion';
@@ -238,12 +236,6 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   'GET /slot-machine/status': requireAuth(slotMachineStatus),
   'POST /slot-machine/arcade-spin': requireAuth(slotMachineArcadeSpin),
   'GET /slot-machine/balance': requireAuth(slotMachineBalance),
-  'GET /curling/status': requireAuth(curlingStatus),
-  'POST /curling/lock': requireAuth(curlingLock),
-  'POST /curling/answer': requireAuth(curlingAnswer),
-  'GET /tetris/status': requireAuth(tetrisStatus),
-  'POST /tetris/lock': requireAuth(tetrisLock),
-  'POST /tetris/answer': requireAuth(tetrisAnswer),
   'POST /crossword/generate': requireAuth(generateCrossword),
   'GET /family-feud/status': requireAuth(familyFeudStatus),
   'POST /family-feud/start-round': requireAuth(familyFeudStartRound),

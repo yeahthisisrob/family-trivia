@@ -2,7 +2,7 @@ import type React from 'react';
 import { createContext, useCallback, useContext, useMemo } from 'react';
 
 import { CategoryRefreshProvider, useCategoryRefresh } from './CategoryRefreshContext';
-import { TriviaStatusProvider, useTriviaStatus } from './TriviaStatusContext';
+import { type RoundState, TriviaStatusProvider, useTriviaStatus } from './TriviaStatusContext';
 
 // This is a composite context that combines both TriviaStatusContext and CategoryRefreshContext
 // It provides a unified API for components to access all trivia-related state and functions
@@ -24,22 +24,11 @@ interface TriviaContextType {
     loading: boolean;
     lastUpdated: number;
   };
-  curling: {
-    canPlay: boolean;
-    nextAvailable: Date | null;
-    loading: boolean;
-    lastUpdated: number;
-  };
-  tetris: {
-    canPlay: boolean;
-    nextAvailable: Date | null;
-    loading: boolean;
-    lastUpdated: number;
-  };
+  /** Games played as this week's round, by id (0032). */
+  rounds: Record<string, RoundState>;
   refreshSlotMachineStatus: (userId: string) => Promise<void>;
   refreshCasinoRushStatus: (userId: string) => Promise<void>;
-  refreshCurlingStatus: (userId: string) => Promise<void>;
-  refreshTetrisStatus: (userId: string) => Promise<void>;
+  refreshRounds: () => Promise<void>;
   refreshAllStatuses: (userId: string) => Promise<void>;
 
   // From CategoryRefreshContext
@@ -61,12 +50,10 @@ const InnerTriviaProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // From TriviaStatusContext
       slotMachine: triviaStatus.slotMachine,
       casinoRush: triviaStatus.casinoRush,
-      curling: triviaStatus.curling,
-      tetris: triviaStatus.tetris,
+      rounds: triviaStatus.rounds,
       refreshSlotMachineStatus: triviaStatus.refreshSlotMachineStatus,
       refreshCasinoRushStatus: triviaStatus.refreshCasinoRushStatus,
-      refreshCurlingStatus: triviaStatus.refreshCurlingStatus,
-      refreshTetrisStatus: triviaStatus.refreshTetrisStatus,
+      refreshRounds: triviaStatus.refreshRounds,
       refreshAllStatuses: triviaStatus.refreshAllStatuses,
 
       // From CategoryRefreshContext

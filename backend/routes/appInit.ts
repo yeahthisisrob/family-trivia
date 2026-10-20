@@ -254,7 +254,6 @@ export async function appInitDeferred(event: APIGatewayProxyEvent): Promise<APIG
       slotMachineSession,
       casinoRushStatus,
       slotMachineStatus,
-      curlingStatus,
       feudCurrentRound,
       feudRotation,
     ] = await Promise.all([
@@ -268,7 +267,6 @@ export async function appInitDeferred(event: APIGatewayProxyEvent): Promise<APIG
       // Game mode eligibility
       canPlayGameModeAny(userId, 'casino-rush').catch(() => null),
       canPlayGameModeAny(userId, 'slot-machine').catch(() => null),
-      canPlayGameModeAny(userId, 'curling').catch(() => null),
 
       // Family Feud
       getJson<any>('family-feud/current-round.json').catch(() => null),
@@ -300,10 +298,6 @@ export async function appInitDeferred(event: APIGatewayProxyEvent): Promise<APIG
           canPlay: slotMachineStatus?.canPlay ?? true,
           hasActiveSession: slotMachineSession?.status === 'active',
           nextAvailable: slotMachineStatus?.nextAvailable?.toISOString() ?? null,
-        },
-        curling: {
-          canPlay: curlingStatus?.canPlay ?? true,
-          nextAvailable: curlingStatus?.nextAvailable?.toISOString() ?? null,
         },
       },
 

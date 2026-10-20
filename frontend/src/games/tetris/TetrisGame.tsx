@@ -21,8 +21,6 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { TetrisAnswerResult, TetrisLockResult } from '../../api/modules/games';
-import { lockTetris, submitTetrisAnswer } from '../../api/modules/games';
 import type { GamePadButton } from '../../components/common/GamePad';
 import GamePad from '../../components/common/GamePad';
 import { LoadingDots } from '../../components/ui/feedback';
@@ -31,7 +29,10 @@ import { games } from '../../shared/design-system/tokens/games';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../utils/logger';
-import { submitScore } from '../kit';
+import { answerRound, lockRound, submitScore } from '../kit';
+
+type LockResult = Awaited<ReturnType<typeof lockRound>>;
+type AnswerResult = Awaited<ReturnType<typeof answerRound>>;
 
 const logger = createLogger('TetrisGame');
 
@@ -396,10 +397,10 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
   const [snapshot, setSnapshot] = useState<RenderSnapshot>(INITIAL_SNAPSHOT);
 
   // Question/answer flow state
-  const [question, setQuestion] = useState<TetrisLockResult['question'] | null>(null);
+  const [question, setQuestion] = useState<LockResult['question'] | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [answerResult, setAnswerResult] = useState<TetrisAnswerResult | null>(null);
-  const [lockResult, setLockResult] = useState<TetrisLockResult | null>(null);
+  const [answerResult, setAnswerResult] = useState<AnswerResult | null>(null);
+  const [lockResult, setLockResult] = useState<LockResult | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Game engine refs (mutated every frame, no re-render)
@@ -639,7 +640,11 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
     const { multiplier } = computeMultiplier(scoreRef.current);
     setGameState('locking');
     try {
-      const result = await lockTetris(userId, scoreRef.current, multiplier, isCatchingUp);
+      const result = await lockRound('tetris', {
+        multiplier,
+        score: scoreRef.current,
+        catchUp: isCatchingUp,
+      });
       setLockResult(result);
       setQuestion(result.question);
       setGameState('question');
@@ -658,14 +663,14 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
       setSelectedAnswer(answer);
       setGameState('submitting');
       try {
-        const res = await submitTetrisAnswer(userId, answer);
+        const res = await answerRound('tetris', answer);
         setAnswerResult(res);
         setGameState('answered');
         window.setTimeout(() => {
           onComplete?.({
             correct: res.correct,
             streak: 0,
-            pointsEarned: res.pointsEarned + (res.highScoreBonus || 0),
+            pointsEarned: res.pointsEarned,
           });
         }, 2200);
       } catch (err) {
@@ -1313,7 +1318,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                         ? `+${answerResult.pointsEarned} point${answerResult.pointsEarned === 1 ? '' : 's'}!`
                         : 'Not this time'}
                     </Typography>
-                    {answerResult.correct && (answerResult.highScoreBonus || 0) > 0 && (
+                    {answerResult.correct && answerResult.newBestBonus > 0 && (
                       <Typography
                         sx={{
                           fontWeight: 600,
@@ -1322,10 +1327,10 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
                           mt: 0.25,
                         }}
                       >
-                        + {answerResult.highScoreBonus} high score bonus!
+                        including {answerResult.newBestBonus} for a new best!
                       </Typography>
                     )}
-                    {lockResult?.isNewHighScore && (
+                    {lockResult?.newBest && (
                       <Typography
                         sx={{
                           fontWeight: 700,
