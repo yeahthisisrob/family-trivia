@@ -1,1 +1,1 @@
-export { SinceCard } from './ui/SinceCard';
+export { sinceLine, useSince } from './model/since';

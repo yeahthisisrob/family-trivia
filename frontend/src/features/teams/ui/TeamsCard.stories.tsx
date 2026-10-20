@@ -58,3 +58,6 @@ export const SomeoneWantsIn: Story = {
     },
   },
 };
+
+/** On a team with nothing to answer: one line. */
+export const OnATeam: Story = { args: { me: 'bob', view: { ...teams, myTeam: 't1' } } };

@@ -188,6 +188,8 @@ The people with the most to say about someone you've lost often aren't in the ap
 
 ## Play as time allows
 
+Home is in the order you'd use it: one card for coming back (what's new and what's waiting), then what's yours to do today (the question, a thread, how a plan went, your team), then what's on together, then what everyone's been saying. Anything with nothing to show stays out of the way.
+
 Nothing in an open season expires. Come back after two weeks and Home says what's waiting for you, oldest first, to play a few at a time or all at once. Answers count the same whenever they're given, the leaderboard shows what each person still has to play so a late start never looks like losing, and there are no streaks to break. Back after a while, Home says what's new since you were last here, never what you missed. A season can go at a daily pace or a weekly one (a handful of questions once a week), and friends circles start weekly.
 
 ## Your world
