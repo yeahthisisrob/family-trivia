@@ -1,5 +1,5 @@
 export { colors } from './colors';
-export { games } from './games';
+export { gameLook, games } from './games';
 export { paper, paperNight } from './paper';
 export { radii } from './radii';
 export { shadows } from './shadows';

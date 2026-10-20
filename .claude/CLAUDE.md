@@ -41,7 +41,8 @@ just storybook
 
 ## Patterns
 - The logger service, never `console.log`.
-- Game modes register in `shared/src/game-modes.ts`.
+- Arcade games are folders in `frontend/src/games/` (0032): no list to edit.
+- Trivia game modes register in `shared/src/game-modes.ts`.
 - MSW mocks the API in Storybook (`frontend/.storybook/mocks`).
 - Lint rules switched off in `biome.jsonc` are counted DEBT; burn them down,
   don't add to them.

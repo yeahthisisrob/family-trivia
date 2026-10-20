@@ -16,18 +16,18 @@ import { Box, Card, IconButton, Typography, useTheme } from '@mui/material';
 import { alpha, keyframes } from '@mui/material/styles';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { getArcadeLeaderboard } from '../../api/modules/arcade';
 import { getCasinoBalance } from '../../api/modules/casino';
+import ArcadeLeaderboard from '../../components/Arcade/ArcadeLeaderboard';
 import { CommentsThread } from '../../features/comments';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { getUserColor, getUserInitials } from '../../utils';
 import { createLogger } from '../../utils/logger';
-import BlackjackGame from '../TriviaCard/BlackjackGame';
-import RouletteGame from '../TriviaCard/RouletteGame';
-import SlotMachine from '../TriviaCard/SlotMachine';
-import ArcadeLeaderboard from './ArcadeLeaderboard';
+import { getScores } from '../kit';
+import BlackjackGame from './BlackjackGame';
+import RouletteGame from './RouletteGame';
+import SlotMachine from './SlotMachine';
 
 const logger = createLogger('CasinoLobby');
 
@@ -65,7 +65,7 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
 
   const loadScores = useCallback(async () => {
     try {
-      setScores(await getArcadeLeaderboard('casino'));
+      setScores(await getScores('casino'));
     } catch {
       /* ok */
     }

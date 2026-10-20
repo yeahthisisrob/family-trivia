@@ -1,31 +1,24 @@
 // File: src/components/Arcade/ArcadePage.tsx
 // Arcade tab — swipeable game carousel with leaderboards. CSS scroll-snap.
 
-import type { ArcadeGameId, HighScoreEntry } from '@family-trivia/shared';
-import AcUnitIcon from '@mui/icons-material/AcUnit';
-import CasinoIcon from '@mui/icons-material/Casino';
+import type { HighScoreEntry } from '@family-trivia/shared';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import GamepadIcon from '@mui/icons-material/Gamepad';
-import GridOnIcon from '@mui/icons-material/GridOn';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import { Box, Button, Card, IconButton, Typography, useTheme } from '@mui/material';
 import { alpha, keyframes } from '@mui/material/styles';
 import type React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { getArcadeLeaderboard } from '../../api/modules/arcade';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { CommentsThread } from '../../features/comments';
+import { getScores } from '../../games/kit';
+import { GAMES, gameById } from '../../games/registry';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
 import { shadows } from '../../shared/design-system/tokens/shadows';
 import { getUserColor, getUserInitials } from '../../utils';
 import { createLogger } from '../../utils/logger';
-import CrosswordGame from '../TriviaCard/CrosswordGame';
-import CurlingGame from '../TriviaCard/CurlingGame';
-import SnakeGame from '../TriviaCard/SnakeGame';
-import TetrisGame from '../TriviaCard/TetrisGame';
+import { LoadingDots } from '../ui/feedback';
 import ArcadeLeaderboard from './ArcadeLeaderboard';
-import CasinoLobby from './CasinoLobby';
 
 const logger = createLogger('ArcadePage');
 
@@ -34,68 +27,8 @@ const fadeHint = keyframes`
   50% { opacity: 0.8; }
 `;
 
-// ── Game Config ───────────────────────────────────────────────────
-
-interface GameConfig {
-  id: ArcadeGameId;
-  label: string;
-  description: string;
-  gradient: string;
-  accentColor: string;
-  badge: string;
-  icon: React.ReactElement;
-}
-
-// Same gradients, icons, accents, and badges as the trivia game mode tiles
-// in CategorySelect — keeps visual identity consistent across tabs.
-// Slot machine is always first. Other games ordered by play frequency at runtime.
-const GAMES: GameConfig[] = [
-  {
-    id: 'casino' as ArcadeGameId,
-    label: 'Casino',
-    description: 'Slots + Blackjack — shared credit pool',
-    gradient: games.casino.arcadeTile,
-    accentColor: games.casino.gold,
-    badge: 'SLOTS · 21',
-    icon: <CasinoIcon />,
-  },
-  {
-    id: 'tetris',
-    label: 'Tetris',
-    description: '60 seconds to clear as many lines as you can',
-    gradient: colors.gameMode.tetris.gradient,
-    accentColor: colors.gameMode.tetris.accent,
-    badge: '60s BLOCKS',
-    icon: <GamepadIcon />,
-  },
-  {
-    id: 'curling',
-    label: 'Curling',
-    description: 'Hold and release — land closest to the button',
-    gradient: colors.gameMode.curling.gradient,
-    accentColor: colors.gameMode.curling.accent,
-    badge: 'HOLD · SWEEP',
-    icon: <AcUnitIcon />,
-  },
-  {
-    id: 'crossword',
-    label: 'Crossword',
-    description: 'Family facts turned into a crossword puzzle',
-    gradient: colors.gameMode.crossword.gradient,
-    accentColor: colors.gameMode.crossword.accent,
-    badge: 'WORD PUZZLE',
-    icon: <GridOnIcon />,
-  },
-  {
-    id: 'snake',
-    label: 'Snake',
-    description: 'Collect letters to spell trivia answers',
-    gradient: colors.gameMode.snake.gradient,
-    accentColor: colors.gameMode.snake.accent,
-    badge: 'SPELL IT',
-    icon: <SportsEsportsIcon />,
-  },
-];
+// The games come from src/games, each its own folder (docs/decisions/0032).
+const SCORED = GAMES.filter((g) => g.scores !== false);
 
 // ── Component ─────────────────────────────────────────────────────
 
@@ -107,7 +40,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
   const theme = useTheme();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [activeGame, setActiveGame] = useState<ArcadeGameId | null>(null);
+  const [activeGame, setActiveGame] = useState<string | null>(null);
   const [leaderboards, setLeaderboards] = useState<Record<string, HighScoreEntry[]>>({});
   const [loadingScores, setLoadingScores] = useState(true);
 
@@ -115,10 +48,10 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
   const refreshLeaderboards = useCallback(async () => {
     setLoadingScores(true);
     try {
-      const results = await Promise.all(GAMES.map((g) => getArcadeLeaderboard(g.id)));
+      const results = await Promise.all(SCORED.map((g) => getScores(g.id).catch(() => [])));
       const boards: Record<string, HighScoreEntry[]> = {};
-      GAMES.forEach((g, i) => {
-        boards[g.id] = results[i];
+      SCORED.forEach((g, i) => {
+        boards[g.id] = results[i] ?? [];
       });
       setLeaderboards(boards);
     } catch (err) {
@@ -152,21 +85,12 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
   }, [refreshLeaderboards]);
 
   // ── Active game — no wrapper Card, each game has its own chrome + close button
-  if (activeGame) {
+  const playing = activeGame ? gameById(activeGame) : undefined;
+  if (playing) {
     return (
-      <Box>
-        {activeGame === ('casino' as ArcadeGameId) && (
-          <CasinoLobby userId={userId} onClose={handleGameClose} />
-        )}
-        {activeGame === 'tetris' && (
-          <TetrisGame userId={userId} mode="arcade" onClose={handleGameClose} />
-        )}
-        {activeGame === 'curling' && (
-          <CurlingGame userId={userId} mode="arcade" onClose={handleGameClose} />
-        )}
-        {activeGame === 'crossword' && <CrosswordGame userId={userId} onClose={handleGameClose} />}
-        {activeGame === 'snake' && <SnakeGame userId={userId} onClose={handleGameClose} />}
-      </Box>
+      <Suspense fallback={<LoadingDots />}>
+        <playing.Play userId={userId} onClose={handleGameClose} />
+      </Suspense>
     );
   }
 
@@ -299,7 +223,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
                 {/* Game banner — matches trivia game mode tile style */}
                 <Box
                   sx={{
-                    background: game.gradient,
+                    background: game.look.gradient,
                     px: 2,
                     py: 2,
                     display: 'flex',
@@ -309,12 +233,12 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
                 >
                   <Box
                     sx={{
-                      color: game.accentColor,
+                      color: game.look.accent,
                       fontSize: 0,
                       '& .MuiSvgIcon-root': { fontSize: 32 },
                     }}
                   >
-                    {game.icon}
+                    <game.icon />
                   </Box>
                   <Box sx={{ flex: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.25 }}>
@@ -331,7 +255,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
                           bgcolor: alpha(colors.scrim, 0.25),
                           fontSize: '0.5rem',
                           fontWeight: 800,
-                          color: game.accentColor,
+                          color: game.look.accent,
                           letterSpacing: 1,
                         }}
                       >
@@ -408,7 +332,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
                 '& .MuiSvgIcon-root': { fontSize: 18 },
               }}
             >
-              {currentGame.icon}
+              <currentGame.icon />
             </Box>
             <Typography sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
               {currentGame.label} High Scores

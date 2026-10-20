@@ -9,13 +9,13 @@ const installMockFetch = () => {
   window.fetch = async (input, init) => {
     const url = typeof input === 'string' ? input : input.toString();
 
-    if (url.includes('/snake/questions')) {
+    if (url.includes('/games/clues')) {
       return new Response(
         JSON.stringify({
           ok: true,
           data: {
-            questions: [
-              { clue: "Rob's favorite color", answer: 'BLUE' },
+            clues: [
+              { clue: "Alice's favorite color", answer: 'BLUE' },
               { clue: 'Capital of France', answer: 'PARIS' },
               { clue: "Carol's dream city", answer: 'HAWAII' },
               { clue: 'Largest ocean', answer: 'PACIFIC' },
@@ -32,7 +32,7 @@ const installMockFetch = () => {
       );
     }
 
-    if (url.includes('/arcade/submit-score')) {
+    if (url.includes('/games/scores') && init?.method === 'POST') {
       return new Response(
         JSON.stringify({
           ok: true,

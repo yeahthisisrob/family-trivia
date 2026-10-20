@@ -33,6 +33,9 @@ import { useTrivia } from '../../contexts/TriviaContext';
 import { useTriviaFlowDispatch } from '../../contexts/TriviaFlowContext';
 import { useUserStatus } from '../../contexts/UserStatusContext';
 import { CommentsThread } from '../../features/comments';
+import SlotMachine from '../../games/casino/SlotMachine';
+import CurlingGame from '../../games/curling/CurlingGame';
+import TetrisGame from '../../games/tetris/TetrisGame';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
@@ -44,11 +47,8 @@ import CustomCategoryForm from '../CustomCategoryForm';
 import { LoadingDots } from '../ui/feedback';
 import { CasinoRush } from './CasinoRush';
 import CategorySelect from './CategorySelect';
-import CurlingGame from './CurlingGame';
 import DifficultySelect, { type Difficulty } from './DifficultySelect';
 import HistoryCard from './HistoryCard';
-import SlotMachine from './SlotMachine';
-import TetrisGame from './TetrisGame';
 
 const logger = createLogger('TriviaFlow');
 

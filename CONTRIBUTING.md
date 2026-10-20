@@ -12,6 +12,15 @@ Read [0008](docs/decisions/0008-engineering-principles.md): Clean Code, DRY,
 Feature-Sliced Design in the frontend, Vertical Slice Architecture in the
 backend, and the OpenAPI contract first.
 
+## Adding a game
+
+The easiest place to start. A game is one folder in `frontend/src/games`:
+an `index.tsx` that describes it, the game, and a story. The Arcade finds it
+on its own, with a high-score board, and the game kit gives it scores, a save
+per player and clues from the circle's own answers, so it needs no backend.
+See [the games guide](frontend/src/games/README.md); `scramble/` is a small
+one to copy.
+
 ## Setup
 
 ```bash

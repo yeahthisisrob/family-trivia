@@ -16,10 +16,10 @@ import {
   spinSlotMachine,
   submitSlotMachineAnswer,
 } from '../../api/modules/games';
+import { LoadingDots } from '../../components/ui/feedback';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
 import { createLogger } from '../../utils/logger';
-import { LoadingDots } from '../ui/feedback';
 
 const logger = createLogger('SlotMachine');
 const art = games.slots;

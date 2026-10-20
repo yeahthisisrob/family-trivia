@@ -21,18 +21,17 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-
-import { submitArcadeScore } from '../../api/modules/arcade';
 import type { TetrisAnswerResult, TetrisLockResult } from '../../api/modules/games';
 import { lockTetris, submitTetrisAnswer } from '../../api/modules/games';
+import type { GamePadButton } from '../../components/common/GamePad';
+import GamePad from '../../components/common/GamePad';
+import { LoadingDots } from '../../components/ui/feedback';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../utils/logger';
-import type { GamePadButton } from '../common/GamePad';
-import GamePad from '../common/GamePad';
-import { LoadingDots } from '../ui/feedback';
+import { submitScore } from '../kit';
 
 const logger = createLogger('TetrisGame');
 
@@ -630,7 +629,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({
     }
     // In arcade mode, submit score immediately (no question flow)
     if (mode === 'arcade') {
-      submitArcadeScore(userId, 'tetris', scoreRef.current).catch((err) =>
+      submitScore('tetris', scoreRef.current).catch((err) =>
         logger.error('Arcade score submit failed', err),
       );
     }

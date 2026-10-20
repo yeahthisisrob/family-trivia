@@ -48,7 +48,7 @@ Everyone gets the same question about themselves each day ("What's a small every
 
 ### Games that earn a multiplier
 
-Each game mode can be played once a week and multiplies that day's trivia score. The same games, plus Snake, Crossword, Blackjack and Roulette, run without limits in the Arcade, with high-score boards. The leaderboard ranks people and teams by season.
+Each game mode can be played once a week and multiplies that day's trivia score. The same games, plus Snake, Crossword, Scramble, Blackjack and Roulette, run without limits in the Arcade, with high-score boards. Each Arcade game is one folder in `frontend/src/games`: adding a game needs no code outside it (see [the games guide](frontend/src/games/README.md)). The leaderboard ranks people and teams by season.
 
 |  |  |  |  |
 |---|---|---|---|
@@ -56,6 +56,8 @@ Each game mode can be played once a week and multiplies that day's trivia score.
 | **Casino Rush.** 3 questions, 60s each, triple or bust. | **Slot Machine.** Spin for a category and a multiplier. | **Curling.** Land on the button. | **Tetris.** 60 seconds to clear lines. |
 
 ![Top players: the season's podium](docs/screenshots/podium.png)
+
+![Scramble: unscramble an answer from the circle's own trivia](docs/screenshots/scramble.png)
 
 ### Everyone's story, told by the family
 

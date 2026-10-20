@@ -24,15 +24,14 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-import { submitArcadeScore } from '../../api/modules/arcade';
+import { LoadingDots } from '../../components/ui/feedback';
 import { apiService } from '../../services/ApiService';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../utils/logger';
-import { LoadingDots } from '../ui/feedback';
+import { submitScore } from '../kit';
 
 const logger = createLogger('CrosswordGame');
 const art = games.crossword;
@@ -514,7 +513,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ userId, onClose, onComple
     setGameState('complete');
 
     try {
-      await submitArcadeScore(userId, 'crossword', score);
+      await submitScore('crossword', score);
       logger.info('Score submitted', {
         score,
         baseScore,
