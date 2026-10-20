@@ -11,7 +11,7 @@ import type React from 'react';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { CommentsThread } from '../../features/comments';
 import { getScores } from '../../games/kit';
-import { GAMES, gameById } from '../../games/registry';
+import { ARCADE } from '../../games/registry';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
 import { shadows } from '../../shared/design-system/tokens/shadows';
@@ -28,7 +28,7 @@ const fadeHint = keyframes`
 `;
 
 // The games come from src/games, each its own folder (docs/decisions/0032).
-const SCORED = GAMES.filter((g) => g.scores !== false);
+const SCORED = ARCADE.filter((g) => g.scores !== false);
 
 // ── Component ─────────────────────────────────────────────────────
 
@@ -85,7 +85,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
   }, [refreshLeaderboards]);
 
   // ── Active game — no wrapper Card, each game has its own chrome + close button
-  const playing = activeGame ? gameById(activeGame) : undefined;
+  const playing = ARCADE.find((g) => g.id === activeGame);
   if (playing) {
     return (
       <Suspense fallback={<LoadingDots />}>
@@ -95,7 +95,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
   }
 
   // ── Carousel ────────────────────────────────────────────────────
-  const currentGame = GAMES[activeIndex] ?? GAMES[0];
+  const currentGame = ARCADE[activeIndex] ?? ARCADE[0];
 
   return (
     <Box>
@@ -143,7 +143,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
             <ChevronLeftIcon sx={{ fontSize: 18 }} />
           </IconButton>
         )}
-        {activeIndex < GAMES.length - 1 && (
+        {activeIndex < ARCADE.length - 1 && (
           <IconButton
             onClick={() => scrollTo(activeIndex + 1)}
             size="small"
@@ -167,7 +167,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
 
         {/* Dot indicators */}
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5, mb: 1 }}>
-          {GAMES.map((g, i) => (
+          {ARCADE.map((g, i) => (
             <Box
               key={g.id}
               onClick={() => scrollTo(i)}
@@ -201,7 +201,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
             mx: 1,
           }}
         >
-          {GAMES.map((game) => (
+          {ARCADE.map((game) => (
             <Box
               key={game.id}
               sx={{
@@ -292,7 +292,7 @@ const ArcadePage: React.FC<ArcadePageProps> = ({ userId }) => {
         </Box>
 
         {/* Swipe hint */}
-        {GAMES.length > 1 && activeIndex === 0 && (
+        {ARCADE.length > 1 && activeIndex === 0 && (
           <Typography
             sx={{
               textAlign: 'center',

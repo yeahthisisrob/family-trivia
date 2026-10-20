@@ -10,7 +10,7 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
-import { getHighScores, submitScore } from '../services/arcadeService';
+import { podiumPoints, submitScore } from '../services/arcadeService';
 import { logger } from '../services/logger';
 import { getPlayerState, getSeasonSummary } from '../services/playerStateService';
 import { getJson, putJson } from '../services/s3';
@@ -68,20 +68,7 @@ async function getTriviaSeasionScore(userId: string): Promise<number> {
   }
 
   try {
-    const ARCADE_GAMES = ['tetris', 'curling', 'slot-machine'] as const;
-    const PLACEMENT_BONUS = [3, 2, 1];
-    const allScores = await Promise.all(ARCADE_GAMES.map((g) => getHighScores(g)));
-    for (const scores of allScores) {
-      const awarded = new Set<string>();
-      let rank = 0;
-      for (const entry of scores) {
-        if (awarded.has(entry.userId)) continue;
-        if (rank >= 3) break;
-        if (entry.userId === userId) score += PLACEMENT_BONUS[rank];
-        awarded.add(entry.userId);
-        rank++;
-      }
-    }
+    score += (await podiumPoints()).get(userId) ?? 0;
   } catch {
     /* ok */
   }

@@ -3,14 +3,13 @@
 
 import BoltIcon from '@mui/icons-material/Bolt';
 import CancelIcon from '@mui/icons-material/Cancel';
-import CasinoIcon from '@mui/icons-material/Casino';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
 import { Box, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 
 import type { Question } from '../../api/modules/trivia';
+import { gameOf } from '../../games/registry';
 
 interface TodayResultProps {
   question: Question;
@@ -23,11 +22,9 @@ const TodayResult: React.FC<TodayResultProps> = ({ question, selected, result })
   const isCorrect = result.correct;
   const accentColor = isCorrect ? theme.palette.success.main : theme.palette.error.main;
 
-  // Detect game mode from question metadata
-  const isCasinoRush = (question as any).mode === 'casino-rush' || (question as any).isCasinoRush;
-  const isSlotMachine =
-    (question as any).mode === 'slot-machine' || (question as any).isSlotMachine;
-  const isGameMode = isCasinoRush || isSlotMachine;
+  // The game it was played in, from the question's metadata
+  const game = gameOf(question as never);
+  const GameIcon = game?.icon;
 
   return (
     <Box
@@ -61,12 +58,7 @@ const TodayResult: React.FC<TodayResultProps> = ({ question, selected, result })
           {isCorrect ? 'Correct!' : 'Incorrect'}
         </Typography>
 
-        {isGameMode &&
-          (isCasinoRush ? (
-            <CasinoIcon sx={{ fontSize: 14, color: theme.palette.warning.main }} />
-          ) : (
-            <SmartToyIcon sx={{ fontSize: 14, color: theme.palette.secondary.main }} />
-          ))}
+        {GameIcon && <GameIcon sx={{ fontSize: 14, color: game.look.frame ?? game.look.accent }} />}
 
         {result.pointsEarned != null && result.pointsEarned > 0 && (
           <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: accentColor }}>

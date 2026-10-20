@@ -1,5 +1,7 @@
 /**
- * CasinoLobby — shared entry point for casino games (slots + blackjack).
+ * CasinoLobby — shared entry point for casino games: blackjack, roulette,
+ * and the games that say they're played here (`lobby: { of: 'casino' }` in
+ * their folders, docs/decisions/0032).
  *
  * Shows the shared credit balance at the top, game tiles to pick from,
  * and a unified "Casino" leaderboard below. When a game is active, the
@@ -15,9 +17,10 @@ import StyleIcon from '@mui/icons-material/Style';
 import { Box, Card, IconButton, Typography, useTheme } from '@mui/material';
 import { alpha, keyframes } from '@mui/material/styles';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { getCasinoBalance } from '../../api/modules/casino';
 import ArcadeLeaderboard from '../../components/Arcade/ArcadeLeaderboard';
+import { LoadingDots } from '../../components/ui/feedback';
 import { CommentsThread } from '../../features/comments';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
@@ -25,11 +28,14 @@ import { radii } from '../../shared/design-system/tokens/radii';
 import { createLogger } from '../../shared/lib/logger';
 import { getUserColor, getUserInitials } from '../../utils';
 import { getScores } from '../kit';
+import { gamesIn } from '../registry';
 import BlackjackGame from './BlackjackGame';
 import RouletteGame from './RouletteGame';
-import SlotMachine from './SlotMachine';
 
 const logger = createLogger('CasinoLobby');
+
+// The games played in this lobby, from their own folders.
+const GUESTS = gamesIn('casino');
 
 const { gold, cabinet: darkBg, header: frameBg } = games.casino;
 
@@ -38,7 +44,8 @@ const glow = keyframes`
   50%      { text-shadow: 0 0 20px ${gold}, 0 0 40px ${alpha(gold, 0.4)}; }
 `;
 
-type ActiveGame = 'slots' | 'blackjack' | 'roulette' | null;
+/** Blackjack, roulette, or the id of a game hosted here. */
+type ActiveGame = string | null;
 
 interface CasinoLobbyProps {
   userId: string;
@@ -83,8 +90,13 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
   }, [loadBalance, loadScores]);
 
   // ── Active game fills the view ────────────────────────────────
-  if (activeGame === 'slots') {
-    return <SlotMachine userId={userId} groupId="" mode="arcade" onClose={handleGameClose} />;
+  const guest = GUESTS.find((g) => g.id === activeGame);
+  if (guest) {
+    return (
+      <Suspense fallback={<LoadingDots />}>
+        <guest.Play userId={userId} onClose={handleGameClose} />
+      </Suspense>
+    );
   }
   if (activeGame === 'blackjack') {
     return <BlackjackGame userId={userId} onClose={handleGameClose} />;
@@ -152,41 +164,47 @@ const CasinoLobby: React.FC<CasinoLobbyProps> = ({ userId, onClose }) => {
 
         {/* Game tiles */}
         <Box sx={{ p: 2, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.25 }}>
-          {/* Slots */}
-          <Box
-            onClick={() => setActiveGame('slots')}
-            sx={{
-              py: 2,
-              borderRadius: `${radii.lg}px`,
-              background: games.casino.slotsTile,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 0.75,
-              cursor: 'pointer',
-              border: `2px solid ${alpha(gold, 0.2)}`,
-              transition: 'all 0.15s',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: `0 6px 20px ${alpha(colors.scrim, 0.4)}`,
-              },
-            }}
-          >
-            <CasinoIcon sx={{ fontSize: 30, color: games.casino.slotsIcon }} />
-            <Typography sx={{ fontWeight: 800, color: colors.onColor, fontSize: '0.75rem' }}>
-              Slots
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: '0.5rem',
-                color: alpha(colors.onColor, 0.65),
-                letterSpacing: 1,
-                fontWeight: 700,
-              }}
-            >
-              BET & SPIN
-            </Typography>
-          </Box>
+          {/* Games hosted here */}
+          {GUESTS.map((g) => {
+            const Icon = g.icon;
+            return (
+              <Box
+                key={g.id}
+                onClick={() => setActiveGame(g.id)}
+                sx={{
+                  py: 2,
+                  borderRadius: `${radii.lg}px`,
+                  background: g.lobby?.look.gradient,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  cursor: 'pointer',
+                  border: `2px solid ${alpha(gold, 0.2)}`,
+                  transition: 'all 0.15s',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: `0 6px 20px ${alpha(colors.scrim, 0.4)}`,
+                  },
+                }}
+              >
+                <Icon sx={{ fontSize: 30, color: g.lobby?.look.accent }} />
+                <Typography sx={{ fontWeight: 800, color: colors.onColor, fontSize: '0.75rem' }}>
+                  {g.lobby?.label}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: '0.5rem',
+                    color: alpha(colors.onColor, 0.65),
+                    letterSpacing: 1,
+                    fontWeight: 700,
+                  }}
+                >
+                  {g.lobby?.badge}
+                </Typography>
+              </Box>
+            );
+          })}
 
           {/* Blackjack */}
           <Box

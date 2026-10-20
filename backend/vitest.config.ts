@@ -6,7 +6,8 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: true,
-    include: ['tests/**/*.test.ts'],
+    // Tests of one game live in its folder (docs/decisions/0032).
+    include: ['tests/**/*.test.ts', 'features/games/*/*.test.ts'],
     setupFiles: ['tests/helpers/setup.ts'],
     coverage: { provider: 'v8', include: ['services/**', 'routes/**'] },
   },

@@ -42,8 +42,22 @@ export interface Game {
    * is the color around the game when it's played as a round.
    */
   look: { gradient: string; accent: string; frame?: string };
-  /** The game itself; lazy(() => import('./MyGame')) keeps the Arcade fast. */
-  Play: React.ComponentType<GameProps>;
+  /**
+   * The game itself; lazy(() => import('./MyGame')) keeps the Arcade fast.
+   * A game without one is only a weekly round (a Trivia tab tile).
+   */
+  Play?: React.ComponentType<GameProps>;
+  /**
+   * Played inside another game's lobby instead of from its own Arcade tile:
+   * the host lists its guests from the registry (gamesIn) and shows this tile.
+   */
+  lobby?: {
+    /** The host game's id. */
+    of: string;
+    label: string;
+    badge: string;
+    look: { gradient: string; accent: string };
+  };
   /** Lower comes first; games without one follow, by label. */
   order?: number;
   /** Show a high-score board under the tile (default true). */
@@ -58,9 +72,46 @@ export interface Game {
     description: string;
     Round: React.ComponentType<RoundProps>;
   };
+  /**
+   * The round is a session with steps of its own and its own server folder
+   * (backend/features/games/<id>): on the trivia timeline one play's answers
+   * show as one card.
+   */
+  session?: {
+    /** The card's result chip; without it, the points won ("+3 PTS"). */
+    result?: (won: boolean) => string;
+  };
 }
 
 export const defineGame = (game: Game): Game => game;
+
+// ── A game's own endpoints ────────────────────────────────────────
+
+/**
+ * Call one of the game's own routes (its server folder,
+ * backend/features/games/<id>): `gameRequest('/word-ladder/climb', {...})`.
+ * `slow` allows for AI work; `lenient` answers {} for a bad body instead of
+ * throwing, and doesn't hold the failure against later requests.
+ */
+export function gameRequest<T>(
+  path: string,
+  init: {
+    method: 'GET' | 'POST';
+    body?: unknown;
+    slow?: boolean;
+    lenient?: boolean;
+    timeoutMs?: number;
+  },
+): Promise<T> {
+  const { body, timeoutMs, ...rest } = init;
+  return apiService.request<T>(
+    path,
+    { ...rest, ...(body !== undefined && { body: JSON.stringify(body) }) },
+    undefined,
+    false,
+    timeoutMs,
+  );
+}
 
 // ── Scores ────────────────────────────────────────────────────────
 
@@ -137,6 +188,8 @@ export interface RoundQuestion {
 export interface RoundStatus {
   canPlay: boolean;
   nextAvailable: string | null;
+  /** A play with steps of its own was started and not finished. */
+  active?: boolean;
 }
 
 /** For each game: can it be this week's round now, and if not, when. */

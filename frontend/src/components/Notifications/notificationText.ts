@@ -1,11 +1,10 @@
 /** What a notification says, in the bell's panel and in its toast (0031). */
 import type { NotificationItem } from '@family-trivia/shared';
-import { GAME_MODES, reactionById } from '@family-trivia/shared';
+import { reactionById } from '@family-trivia/shared';
 import { gameById } from '../../games/registry';
 
-/** A game's name: its folder's label, or a trivia game mode's (0032). */
-const gameLabel = (id: string) =>
-  gameById(id)?.label ?? GAME_MODES.find((m) => m.id === id)?.label ?? id;
+/** A game's name: its folder's label (0032). */
+const gameLabel = (id: string) => gameById(id)?.label ?? id;
 
 const PLACE: Record<number, string> = {
   1: 'took the lead!',

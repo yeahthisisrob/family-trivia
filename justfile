@@ -112,6 +112,7 @@ ci:
     {{x}} pnpm -r run typecheck
     {{x}} pnpm -r run test
     {{x}} pnpm --filter @family-trivia/shared run contract
+    {{x}} node scripts/game-folders.mjs --check
     {{x}} node scripts/check-screenshots.mjs
     {{x}} pnpm -r run build
     {{x}} pnpm --filter @family-trivia/web exec vitest run --project=storybook --maxWorkers=2
@@ -137,10 +138,11 @@ dark-audit:
 build:
     {{x}} pnpm -r run build
 
-# Lint the OpenAPI schema and regenerate shared/generated
+# Lint the OpenAPI schema and regenerate shared/generated (and the games' server folder list)
 [group('build')]
 contract:
     {{x}} pnpm --filter @family-trivia/shared run contract
+    {{x}} node scripts/game-folders.mjs
 
 # Retake the README pictures from their stories (docs/screenshots/shots.json);
 # `just screenshots family-map` retakes the ones whose file starts with that

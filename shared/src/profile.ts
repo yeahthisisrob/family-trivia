@@ -38,7 +38,8 @@ export interface ScoreHistoryEntry {
   question: string;
   userAnswer: string;
   correctAnswer: string;
-  isCasinoRush: boolean;
+  /** The game mode it came from (a game folder's id), if any. */
+  gameMode?: string;
   questionNumber?: number;
   totalQuestions?: number;
 }

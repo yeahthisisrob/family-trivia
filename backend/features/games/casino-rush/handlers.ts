@@ -1,51 +1,33 @@
-// File: lambda/routes/casinoRush.ts
-// Purpose: Handle Casino Rush game mode - triple or nothing with timer
-
+/**
+ * Casino Rush: three questions, 60 seconds each, triple or nothing. Once a
+ * week (the cooldown comes from the answer history, as for every game).
+ */
 import type { HistoryEntry, PlayMode } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { errorResponse, FEATURE_FLAGS, successResponse } from '../../config';
-import { S3_PATHS } from '../../constants';
-import type { DifficultyLevel, ProgressMessage } from '../../services/bedrock';
-import { canPlayGameMode } from '../../services/gameModeService';
-import { logger } from '../../services/logger';
-import { deleteObject, getJson, putJson } from '../../services/s3';
+import { errorResponse, successResponse } from '../../../config';
+import { S3_PATHS } from '../../../constants';
+// Question writing is shared with the daily question; it lives with those routes.
 import {
   type GenerateQuestionRequest,
   generateQuestionWithOptions,
   validateGeneratedQuestion,
-} from '../questionGeneration/shared';
-import { getAvailableCategories } from './shared';
+} from '../../../routes/questionGeneration/shared';
+import type { DifficultyLevel, ProgressMessage } from '../../../services/bedrock';
+import { canPlayGameMode } from '../../../services/gameModeService';
+import { logger } from '../../../services/logger';
+import { deleteObject, getJson, putJson } from '../../../services/s3';
+import { getAvailableCategories } from '../categories';
+import { keys } from './keys';
+import type { CasinoRushSession } from './sessions';
 
-interface CasinoRushSession {
-  userId: string;
-  startTime: number;
-  questions: Array<{
-    question: string;
-    choices: string[];
-    answer: string;
-    category: string;
-    difficulty: DifficultyLevel;
-    startedAt?: number; // When this question was first presented
-    answeredAt?: number;
-    userAnswer?: string;
-    correct?: boolean;
-  }>;
-  currentQuestionIndex: number;
-  difficulty: DifficultyLevel;
-  status: 'active' | 'completed' | 'failed';
-  potentialPoints: number;
-  lastPlayedAt?: number;
-  isCatchingUp?: boolean;
-  progressMessages?: ProgressMessage[]; // Store progress messages from first question generation
-}
+/** Switch off to take Casino Rush out for a while. */
+export const ENABLED = true;
 
 // Server-side timeout is generous (90s) because the client enforces 60s.
 // The extra 30s covers network latency + clock skew so legitimate
 // answers aren't rejected on the server side.
 const QUESTION_TIME_LIMIT = 90000;
 const TOTAL_QUESTIONS = 3;
-// Cooldown lives in shared/game-modes.ts (weekly); read via getGameModeCooldown
-const CASINO_RUSH_SESSION_KEY = (userId: string) => `casino-rush/${userId}/current-session.json`;
 
 /**
  * When a casino rush game ends, write answered questions to the user's
@@ -90,7 +72,7 @@ async function finalizeSession(session: CasinoRushSession): Promise<void> {
 
   // Clean up session file — it was just scratch space
   try {
-    await deleteObject(CASINO_RUSH_SESSION_KEY(userId));
+    await deleteObject(keys.current(userId));
   } catch {
     /* ok */
   }
@@ -114,7 +96,7 @@ async function canPlayCasinoRush(
 }> {
   // Block if there's an active session in flight
   try {
-    const currentSession = await getJson<CasinoRushSession>(CASINO_RUSH_SESSION_KEY(userId));
+    const currentSession = await getJson<CasinoRushSession>(keys.current(userId));
     if (currentSession && currentSession.status === 'active') {
       return { canPlay: false, hasActiveSession: true, blockedReason: 'active_session' };
     }
@@ -141,7 +123,7 @@ async function getOrCreateSession(
 ): Promise<CasinoRushSession> {
   // Try to get existing current session
   try {
-    const existingSession = await getJson<CasinoRushSession>(CASINO_RUSH_SESSION_KEY(userId));
+    const existingSession = await getJson<CasinoRushSession>(keys.current(userId));
     if (existingSession && existingSession.status === 'active') {
       return existingSession;
     }
@@ -184,7 +166,7 @@ export async function casinoRushStartGame(
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   // Check feature flag first
-  if (!FEATURE_FLAGS.CASINO_RUSH_ENABLED) {
+  if (!ENABLED) {
     return errorResponse('Feature disabled', 503, 'Casino Rush is temporarily disabled');
   }
 
@@ -201,7 +183,7 @@ export async function casinoRushStartGame(
 
   try {
     // First check if there's an existing active session
-    const existingSession = await getJson<CasinoRushSession>(CASINO_RUSH_SESSION_KEY(userId));
+    const existingSession = await getJson<CasinoRushSession>(keys.current(userId));
     if (existingSession && existingSession.status === 'active') {
       // Resume the existing session
       const session = existingSession;
@@ -221,7 +203,7 @@ export async function casinoRushStartGame(
 
       // Reset startedAt for the current question so timer restarts on resume
       currentQuestion.startedAt = Date.now();
-      await putJson(CASINO_RUSH_SESSION_KEY(userId), session);
+      await putJson(keys.current(userId), session);
 
       return successResponse({
         session: {
@@ -403,10 +385,10 @@ export async function casinoRushStartGame(
         logger.info('Saving session with generated questions', {
           userId,
           questionCount: session.questions.length,
-          sessionKey: CASINO_RUSH_SESSION_KEY(userId),
+          sessionKey: keys.current(userId),
         });
 
-        await putJson(CASINO_RUSH_SESSION_KEY(userId), session);
+        await putJson(keys.current(userId), session);
 
         logger.info('Session saved successfully', {
           userId,
@@ -441,7 +423,7 @@ export async function casinoRushStartGame(
     // Set startedAt NOW — the response is about to be sent to the player,
     // so the clock starts when they actually see the question.
     currentQuestion.startedAt = Date.now();
-    await putJson(CASINO_RUSH_SESSION_KEY(userId), session);
+    await putJson(keys.current(userId), session);
 
     // Include progress messages if available and this is the first question
     const includeMessages = session.currentQuestionIndex === 0 && session.progressMessages;
@@ -490,7 +472,7 @@ export async function casinoRushSubmitAnswer(
 
   try {
     // Get current session
-    const session = await getJson<CasinoRushSession>(CASINO_RUSH_SESSION_KEY(userId));
+    const session = await getJson<CasinoRushSession>(keys.current(userId));
     if (session?.status !== 'active') {
       return errorResponse('No active Casino Rush session', 400);
     }
@@ -507,7 +489,7 @@ export async function casinoRushSubmitAnswer(
     // counting generation time.
     if (!currentQuestion.startedAt) {
       currentQuestion.startedAt = now;
-      await putJson(CASINO_RUSH_SESSION_KEY(userId), session);
+      await putJson(keys.current(userId), session);
     }
 
     // Check time limit or empty answer (frontend timeout signal)
@@ -578,7 +560,7 @@ export async function casinoRushSubmitAnswer(
 
     // Set the start time for the next question
     nextQuestion.startedAt = Date.now();
-    await putJson(CASINO_RUSH_SESSION_KEY(userId), session);
+    await putJson(keys.current(userId), session);
 
     return successResponse({
       correct: true,
@@ -613,7 +595,7 @@ export async function casinoRushStatus(
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   // Check feature flag first
-  if (!FEATURE_FLAGS.CASINO_RUSH_ENABLED) {
+  if (!ENABLED) {
     return successResponse({
       canPlay: false,
       reason: 'feature_disabled',
@@ -643,7 +625,7 @@ export async function casinoRushStatus(
       | undefined;
 
     try {
-      const session = await getJson<CasinoRushSession>(CASINO_RUSH_SESSION_KEY(userId));
+      const session = await getJson<CasinoRushSession>(keys.current(userId));
       if (session?.status === 'active') {
         activeSession = {
           currentQuestionIndex: session.currentQuestionIndex,

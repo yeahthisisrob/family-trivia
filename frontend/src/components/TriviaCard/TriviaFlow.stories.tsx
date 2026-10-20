@@ -145,11 +145,7 @@ export const ForceDisabled: Story = {
 export const GameModesLocked: Story = {
   parameters: {
     userStatus: { hasAnsweredToday: false, canAnswerQuestion: true },
-    trivia: {
-      canPlayCasinoRush: false,
-      canPlaySlotMachine: false,
-      roundsLocked: ['curling', 'tetris'],
-    },
+    trivia: { roundsLocked: 'all' },
   },
 };
 
@@ -157,10 +153,7 @@ export const GameModesLocked: Story = {
 export const GameModesAvailable: Story = {
   parameters: {
     userStatus: { hasAnsweredToday: false, canAnswerQuestion: true },
-    trivia: {
-      canPlayCasinoRush: true,
-      canPlaySlotMachine: true,
-    },
+    trivia: {},
   },
 };
 
@@ -168,7 +161,7 @@ export const GameModesAvailable: Story = {
 export const PlaysARound: Story = {
   parameters: {
     userStatus: { hasAnsweredToday: false, canAnswerQuestion: true },
-    trivia: { canPlayCasinoRush: true, canPlaySlotMachine: true },
+    trivia: {},
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);

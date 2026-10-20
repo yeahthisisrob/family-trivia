@@ -1,5 +1,4 @@
 import CancelIcon from '@mui/icons-material/Cancel';
-import CasinoIcon from '@mui/icons-material/Casino';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -18,6 +17,7 @@ import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useState } from 'react';
 import { PersonAvatar } from '../../entities/person';
+import { gameOf } from '../../games/registry';
 import { colors as dsColors } from '../../shared/design-system/tokens/colors';
 import { getUserColor, getUserInitials } from '../../utils';
 import { getCategoryColor, isCustomCategory } from '../../utils/categoryUtils';
@@ -109,12 +109,6 @@ const PointBreakdownBar: React.FC<{ breakdown: PointBreakdown; theme: Theme }> =
   );
 };
 
-interface ExtendedQuestionHistory extends QuestionHistory {
-  isCasinoRush?: boolean;
-  questionNumber?: number;
-  totalQuestions?: number;
-}
-
 interface PlayerCardProps {
   player: LeaderboardEntry;
   rank: number;
@@ -144,7 +138,9 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, rank, isCurrentUser, on
           : undefined;
 
   const lastAnswer = player.lastAnswer;
-  const lastAnswerExt = lastAnswer as ExtendedQuestionHistory | undefined;
+  // A session game's answer shows the game's icon (its folder, 0032).
+  const lastGame = gameOf(lastAnswer as never);
+  const LastGameIcon = lastGame?.session ? lastGame.icon : undefined;
   const pointsEarned = lastAnswer ? computePoints(lastAnswer as QuestionHistory) : 0;
 
   return (
@@ -408,13 +404,13 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, rank, isCurrentUser, on
               <Typography
                 sx={{ fontSize: '0.72rem', lineHeight: 1.4, color: theme.palette.text.primary }}
               >
-                {lastAnswerExt?.isCasinoRush && (
-                  <CasinoIcon
+                {LastGameIcon && (
+                  <LastGameIcon
                     sx={{
                       fontSize: '0.8rem',
                       verticalAlign: 'middle',
                       mr: 0.5,
-                      color: theme.palette.warning.main,
+                      color: lastGame?.look.frame ?? lastGame?.look.accent,
                     }}
                   />
                 )}

@@ -152,4 +152,6 @@ export const s3MockModule = {
   fileExists,
   putJsonIfNotExists,
   forgetCached: () => undefined,
+  // The router clears the read cache at the start of each request.
+  invalidateS3ReadCache: () => undefined,
 };

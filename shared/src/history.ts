@@ -12,14 +12,15 @@ export interface HistoryEntry {
   pointsEarned?: number;
   streak?: number;
   isCatchingUp?: boolean;
+  /** Marks entries from the Casino Rush game mode (the flag it has always written) */
   isCasinoRush?: boolean;
   questionNumber?: number;
   totalQuestions?: number;
   reason?: string;
   isCustomCategory?: boolean;
-  /** Groups casino rush questions belonging to the same session */
+  /** Groups the answers of one play that asks several questions (read with playOf) */
   casinoSessionId?: string;
-  /** Marks entries from the Slot Machine game mode */
+  /** Before gameMode: marks entries from the Slot Machine game mode */
   isSlotMachine?: boolean;
   /** The game mode or round this came from (docs/decisions/0032). */
   gameMode?: string;

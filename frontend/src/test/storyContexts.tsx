@@ -99,40 +99,20 @@ function makeTimelineValue(overrides: StubTimelineOverrides = {}) {
 // ── TriviaContext ──────────────────────────────────────────────────
 
 export interface StubTriviaOverrides {
-  canPlayCasinoRush?: boolean;
-  canPlaySlotMachine?: boolean;
-  /** Rounds that can't be played now, by game id (others can). */
-  roundsLocked?: string[];
+  /** Rounds that can't be played now, by game id, or 'all' (others can). */
+  roundsLocked?: string[] | 'all';
 }
 
 function makeTriviaValue(overrides: StubTriviaOverrides = {}) {
+  const locked = (id: string) =>
+    overrides.roundsLocked === 'all' || !!overrides.roundsLocked?.includes(id);
   return {
-    slotMachine: {
-      canPlay: overrides.canPlaySlotMachine ?? true,
-      nextAvailable: null,
-      hasActiveSession: false,
-      loading: false,
-      lastUpdated: 0,
-    },
-    casinoRush: {
-      canPlay: overrides.canPlayCasinoRush ?? true,
-      nextAvailable: null,
-      hasActiveSession: false,
-      loading: false,
-      lastUpdated: 0,
-    },
     rounds: Object.fromEntries(
       GAMES.filter((g) => g.round).map((g) => [
         g.id,
-        {
-          canPlay: !overrides.roundsLocked?.includes(g.id),
-          nextAvailable: null,
-          loading: false,
-        },
+        { canPlay: !locked(g.id), nextAvailable: null, active: false, loading: false },
       ]),
     ),
-    refreshSlotMachineStatus: async () => {},
-    refreshCasinoRushStatus: async () => {},
     refreshRounds: async () => {},
     refreshAllStatuses: async () => {},
     refreshTimestamp: 0,
@@ -170,7 +150,6 @@ function makeFamilyValue(overrides: StubFamilyOverrides = {}) {
     initQuestionAvailability: null,
     initCategories: overrides.categories ?? defaultCategories,
     initUserCategories: null,
-    initGameStatuses: null,
     initFamilyFeud: null,
     refreshMembers: async () => {},
     refreshHierarchy: async () => {},

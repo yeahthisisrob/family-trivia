@@ -214,7 +214,7 @@ export async function getRecentTrivia(
 ): Promise<{ trivia: TimelineTriviaEntry[]; hasMore: boolean; nextCursor: string | null }> {
   const limit = options.limit || 20;
 
-  // Parallel: read answer history + casino rush + slot machine for all users
+  // Parallel: read answer history for all users
   const userResults = await Promise.all(
     userIds.map(async (userId) => {
       const person = people[userId];
@@ -239,7 +239,7 @@ export async function getRecentTrivia(
           }
         }
 
-        // Game mode entries (Casino Rush, Slot Machine, Curling, Tetris)
+        // Game mode and round entries
         // are already in the answer history loaded above. No separate
         // session loading needed — history is the source of truth.
       } catch (err) {

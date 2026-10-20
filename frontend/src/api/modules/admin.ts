@@ -241,7 +241,8 @@ export interface TriviaEntry {
   selectedAnswer: string | null;
   pointsEarned?: number;
   isCatchingUp?: boolean;
-  isCasinoRush?: boolean;
+  /** The game mode it came from; older entries carry a flag per mode instead. */
+  gameMode?: string;
 }
 
 export async function getUserFacts(adminUserId: string, userId: string): Promise<FactEntry[]> {
@@ -306,7 +307,10 @@ export async function deleteUserTrivia(
 // ── Game Sessions ───────────────────────────────────────────────
 
 export interface GameSessionInfo {
+  /** The game's label. */
   type: string;
+  /** The game's id (its folder). */
+  game: string;
   status: string;
   lastPlayed: string | null;
   details: string;
@@ -325,7 +329,10 @@ export async function getGameSessions(
 
 export interface StuckSessionInfo {
   userId: string;
+  /** The game's label. */
   type: string;
+  /** The game's id (its folder). */
+  game: string;
   status: string;
   questions: number;
   answered: number;
@@ -342,7 +349,8 @@ export async function getAllStuckSessions(adminUserId: string): Promise<StuckSes
 
 export async function resetGameSession(
   adminUserId: string,
-  data: { userId: string; gameType: 'casino-rush' | 'slot-machine' | 'all' },
+  /** gameType: a game's id, or 'all'. */
+  data: { userId: string; gameType: string },
 ): Promise<void> {
   await apiService.request('/admin/game-sessions', {
     method: 'DELETE',

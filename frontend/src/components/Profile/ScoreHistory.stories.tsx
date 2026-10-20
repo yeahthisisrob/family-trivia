@@ -14,7 +14,6 @@ const sampleHistory = [
     question: 'Which planet has the most moons?',
     userAnswer: 'Saturn',
     correctAnswer: 'Saturn',
-    isCasinoRush: false,
   },
   {
     date: '2026-04-09T10:15:00.000Z',
@@ -27,7 +26,6 @@ const sampleHistory = [
     question: 'In what year was the Magna Carta signed?',
     userAnswer: '1220',
     correctAnswer: '1215',
-    isCasinoRush: false,
   },
 ];
 

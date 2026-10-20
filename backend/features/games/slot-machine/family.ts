@@ -1,15 +1,14 @@
-// File: lambda/routes/game-modes/familyUtils.ts
-// Purpose: Utilities for family side determination and group classification
-// used by the slot machine game mode.
+// Family sides for the Slot Machine's personal questions: someone on the
+// player's side of the family to ask about.
 
-import { S3_PATHS } from '../../constants';
-import { loadHierarchy } from '../../services/family/roster';
-import { logger } from '../../services/logger';
-import { getJson } from '../../services/s3';
-import { circleCache } from '../../services/scope';
+import { S3_PATHS } from '../../../constants';
+import { loadHierarchy } from '../../../services/family/roster';
+import { logger } from '../../../services/logger';
+import { getJson } from '../../../services/s3';
+import { circleCache } from '../../../services/scope';
 
-// Family side is now a generic string (side IDs come from hierarchy data)
-export type FamilySide = string;
+// Family side is a generic string (side IDs come from hierarchy data)
+type FamilySide = string;
 
 // Interface for user config data
 interface UserConfigData {
@@ -54,15 +53,6 @@ async function getHierarchy(): Promise<HierarchyData | null> {
 }
 
 /**
- * Get root partner IDs from hierarchy
- */
-export async function getRootPartnerIds(): Promise<string[]> {
-  const hierarchy = await getHierarchy();
-  if (!hierarchy?.family?.root?.partners) return [];
-  return hierarchy.family.root.partners.map((p) => p.id);
-}
-
-/**
  * Determines the family side for a given user or group.
  * Looks up everything dynamically from S3 data.
  *
@@ -70,7 +60,7 @@ export async function getRootPartnerIds(): Promise<string[]> {
  * @param group  Optional group ID (if already known)
  * @returns The side ID string, or 'other'
  */
-export async function getFamilySide(userId: string, group?: string): Promise<FamilySide> {
+async function getFamilySide(userId: string, group?: string): Promise<FamilySide> {
   // 1. Check user config for explicitly defined side
   const userConfig = await getUserConfig();
   if (userConfig?.users[userId]?.side) {
@@ -130,14 +120,6 @@ async function getUserConfig(): Promise<UserConfigData | null> {
     });
     return null;
   }
-}
-
-/**
- * Determines if the user is on a specific family side
- */
-export async function isOnSide(userId: string, side: string, group?: string): Promise<boolean> {
-  const userSide = await getFamilySide(userId, group);
-  return userSide === side;
 }
 
 /**

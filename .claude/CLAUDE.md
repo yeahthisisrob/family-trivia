@@ -42,9 +42,11 @@ just storybook
 
 ## Patterns
 - The logger service, never `console.log`.
-- Arcade games are folders in `frontend/src/games/` (0032): no list to edit.
+- Arcade games are folders (0032): `frontend/src/games/<id>/` and, when a game
+  needs a server, `backend/features/games/<id>/` (defineServerGame). No list to
+  edit; nothing outside a game's folder names it.
 - A game becomes a weekly trivia round with `round` in its folder; rules in
-  `shared/src/game-modes.ts` (ROUND_RULES), which also lists the session modes.
+  `shared/src/game-modes.ts` (ROUND_RULES).
 - MSW mocks the API in Storybook (`frontend/.storybook/mocks`).
 - Backend tests check every handler response against the OpenAPI contract
   (0034, `CONTRACT_RESPONSES=strict`); a new route needs its contract entry.

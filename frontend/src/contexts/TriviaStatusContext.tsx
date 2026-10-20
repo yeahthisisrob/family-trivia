@@ -1,8 +1,6 @@
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { getCasinoRushStatus, getSlotMachineStatus } from '../api/modules/games';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { getRoundStatus } from '../games/kit';
 import { GAMES } from '../games/registry';
-import { cacheService } from '../shared/api/CacheService';
 import { createLogger } from '../shared/lib/logger';
 import { useCategoryRefresh } from './CategoryRefreshContext';
 import { useFamilyData } from './FamilyDataContext';
@@ -13,41 +11,19 @@ const logger = createLogger('TriviaStatusContext');
 export interface RoundState {
   canPlay: boolean;
   nextAvailable: Date | null;
+  /** A play with steps of its own was started and not finished: opening it resumes. */
+  active: boolean;
   loading: boolean;
 }
 
 const ROUND_GAMES = GAMES.filter((g) => g.round).map((g) => g.id);
 
-interface TriviaStatusState {
-  // Slot Machine state
-  slotMachine: {
-    canPlay: boolean;
-    nextAvailable: Date | null;
-    hasActiveSession: boolean;
-    loading: boolean;
-    lastUpdated: number;
-  };
-
-  // Casino Rush state
-  casinoRush: {
-    canPlay: boolean;
-    nextAvailable: Date | null;
-    hasActiveSession: boolean;
-    loading: boolean;
-    lastUpdated: number;
-  };
-
+interface TriviaStatusContextType {
   /** Every game with a round, by id: from the game folders. */
   rounds: Record<string, RoundState>;
-}
-
-interface TriviaStatusContextType extends TriviaStatusState {
-  // Refresh methods — pass force=true to bypass the 15s cache
-  // (required after completing a game mode so cooldown appears immediately)
-  refreshSlotMachineStatus: (userId: string, force?: boolean) => Promise<void>;
-  refreshCasinoRushStatus: (userId: string, force?: boolean) => Promise<void>;
+  // Always hits the backend (required after a play so the cooldown shows at once)
   refreshRounds: () => Promise<void>;
-  refreshAllStatuses: (userId: string, force?: boolean) => Promise<void>;
+  refreshAllStatuses: (userId: string) => Promise<void>;
 
   // Merged from CategoryRefreshContext
   refreshCategories: () => void;
@@ -57,131 +33,18 @@ const TriviaStatusContext = createContext<TriviaStatusContextType | undefined>(u
 
 export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Include the CategoryRefreshContext functionality
-  const { refreshTimestamp, invalidateCategories } = useCategoryRefresh();
-
-  // State for slot machine status
-  const [slotMachineStatus, setSlotMachineStatus] = useState<{
-    canPlay: boolean;
-    nextAvailable: Date | null;
-    hasActiveSession: boolean;
-    loading: boolean;
-    lastUpdated: number;
-  }>({
-    canPlay: false,
-    nextAvailable: null,
-    hasActiveSession: false,
-    loading: true,
-    lastUpdated: 0,
-  });
-
-  // State for casino rush status
-  const [casinoRushStatus, setCasinoRushStatus] = useState<{
-    canPlay: boolean;
-    nextAvailable: Date | null;
-    hasActiveSession: boolean;
-    loading: boolean;
-    lastUpdated: number;
-  }>({
-    canPlay: false,
-    nextAvailable: null,
-    hasActiveSession: false,
-    loading: true,
-    lastUpdated: 0,
-  });
+  const { invalidateCategories } = useCategoryRefresh();
 
   const [rounds, setRounds] = useState<Record<string, RoundState>>(() =>
     Object.fromEntries(
-      ROUND_GAMES.map((id) => [id, { canPlay: false, nextAvailable: null, loading: true }]),
+      ROUND_GAMES.map((id) => [
+        id,
+        { canPlay: false, nextAvailable: null, active: false, loading: true },
+      ]),
     ),
   );
 
-  // Hydrate game statuses from app-init (no separate API calls)
-  const { initGameStatuses, appInitComplete } = useFamilyData();
-  const gameStatusHydratedRef = useRef(false);
-
-  useEffect(() => {
-    if (gameStatusHydratedRef.current || !appInitComplete || !initGameStatuses) return;
-    gameStatusHydratedRef.current = true;
-
-    setCasinoRushStatus({
-      canPlay: initGameStatuses.casinoRush.canPlay,
-      nextAvailable: initGameStatuses.casinoRush.nextAvailable
-        ? new Date(initGameStatuses.casinoRush.nextAvailable)
-        : null,
-      hasActiveSession: initGameStatuses.casinoRush.hasActiveSession,
-      loading: false,
-      lastUpdated: Date.now(),
-    });
-
-    setSlotMachineStatus({
-      canPlay: initGameStatuses.slotMachine.canPlay,
-      nextAvailable: initGameStatuses.slotMachine.nextAvailable
-        ? new Date(initGameStatuses.slotMachine.nextAvailable)
-        : null,
-      hasActiveSession: initGameStatuses.slotMachine.hasActiveSession,
-      loading: false,
-      lastUpdated: Date.now(),
-    });
-  }, [appInitComplete, initGameStatuses]);
-
-  // Refresh slot machine status — always hits the backend.
-  // Client caching was causing stale status on mobile after game completion.
-  // Backend has its own per-invocation cache so this is cheap.
-  const refreshSlotMachineStatus = useCallback(async (userId: string, _force = true) => {
-    try {
-      setSlotMachineStatus((prev) => ({ ...prev, loading: true }));
-
-      const status = await getSlotMachineStatus(userId, true);
-
-      setSlotMachineStatus({
-        canPlay: status?.canPlay ?? false,
-        nextAvailable: status?.nextAvailable ? new Date(status.nextAvailable) : null,
-        hasActiveSession: status?.activeSession?.hasActiveSession ?? false,
-        loading: false,
-        lastUpdated: Date.now(),
-      });
-    } catch (error) {
-      logger.error('Error fetching slot machine status:', error);
-
-      // Set error state but maintain previous data
-      setSlotMachineStatus((prev) => ({
-        ...prev,
-        loading: false,
-        lastUpdated: Date.now(),
-      }));
-    }
-  }, []);
-
-  // Refresh casino rush status — always hits the backend.
-  const refreshCasinoRushStatus = useCallback(async (userId: string, _force = true) => {
-    try {
-      setCasinoRushStatus((prev) => ({ ...prev, loading: true }));
-
-      const status = await getCasinoRushStatus(userId, true);
-
-      setCasinoRushStatus({
-        canPlay: status?.canPlay ?? false,
-        nextAvailable:
-          status?.nextAvailable instanceof Date
-            ? status.nextAvailable
-            : status?.nextAvailable
-              ? new Date(status.nextAvailable)
-              : null,
-        hasActiveSession: status?.activeSession !== undefined,
-        loading: false,
-        lastUpdated: Date.now(),
-      });
-    } catch (error) {
-      logger.error('Error fetching casino rush status:', error);
-
-      // Set error state but maintain previous data
-      setCasinoRushStatus((prev) => ({
-        ...prev,
-        loading: false,
-        lastUpdated: Date.now(),
-      }));
-    }
-  }, []);
+  const { appInitComplete } = useFamilyData();
 
   // Rounds: one request for every game that has one.
   const refreshRounds = useCallback(async () => {
@@ -194,6 +57,7 @@ export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
             {
               canPlay: status[id]?.canPlay ?? false,
               nextAvailable: status[id]?.nextAvailable ? new Date(status[id].nextAvailable) : null,
+              active: status[id]?.active ?? false,
               loading: false,
             },
           ]),
@@ -214,18 +78,14 @@ export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // Refresh all game statuses
   const refreshAllStatuses = useCallback(
-    async (userId: string) => {
+    async (_userId: string) => {
       try {
-        await Promise.all([
-          refreshSlotMachineStatus(userId),
-          refreshCasinoRushStatus(userId),
-          refreshRounds(),
-        ]);
+        await refreshRounds();
       } catch (error) {
         logger.error('Error refreshing game statuses:', error);
       }
     },
-    [refreshSlotMachineStatus, refreshCasinoRushStatus, refreshRounds],
+    [refreshRounds],
   );
 
   // Refresh categories function (merged from CategoryRefreshContext)
@@ -235,48 +95,10 @@ export const TriviaStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
     invalidateCategories();
   }, [invalidateCategories]);
 
-  // Handle refresh timestamp changes from CategoryRefreshContext at render time
-  const [prevRefreshTimestamp, setPrevRefreshTimestamp] = useState(refreshTimestamp);
-  if (refreshTimestamp !== prevRefreshTimestamp) {
-    setPrevRefreshTimestamp(refreshTimestamp);
-    if (refreshTimestamp > 0) {
-      logger.debug('Category refresh detected, clearing trivia status cache');
-
-      // Clear cache keys for both status APIs
-      cacheService.keys().forEach((key) => {
-        if (key.startsWith('slot_machine_status_') || key.startsWith('casino_rush_status_')) {
-          cacheService.invalidate(key);
-        }
-      });
-
-      // Reset our last updated timestamps to force refetching
-      setSlotMachineStatus((prev) => ({ ...prev, lastUpdated: 0 }));
-      setCasinoRushStatus((prev) => ({ ...prev, lastUpdated: 0 }));
-    }
-  }
-
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = React.useMemo(
-    () => ({
-      slotMachine: slotMachineStatus,
-      casinoRush: casinoRushStatus,
-      rounds,
-      refreshSlotMachineStatus,
-      refreshCasinoRushStatus,
-      refreshRounds,
-      refreshAllStatuses,
-      refreshCategories,
-    }),
-    [
-      slotMachineStatus,
-      casinoRushStatus,
-      rounds,
-      refreshSlotMachineStatus,
-      refreshCasinoRushStatus,
-      refreshRounds,
-      refreshAllStatuses,
-      refreshCategories,
-    ],
+    () => ({ rounds, refreshRounds, refreshAllStatuses, refreshCategories }),
+    [rounds, refreshRounds, refreshAllStatuses, refreshCategories],
   );
 
   return (
@@ -291,38 +113,4 @@ export const useTriviaStatus = (): TriviaStatusContextType => {
     throw new Error('useTriviaStatus must be used within a TriviaStatusProvider');
   }
   return context;
-};
-
-// Additional hook specifically for slot machine
-export const useSlotMachineStatus = (userId?: string, autoFetch = false) => {
-  const { slotMachine, refreshSlotMachineStatus } = useTriviaStatus();
-
-  // Only fetch data automatically if explicitly requested
-  useEffect(() => {
-    if (userId && autoFetch) {
-      refreshSlotMachineStatus(userId);
-    }
-  }, [userId, refreshSlotMachineStatus, autoFetch]);
-
-  return {
-    ...slotMachine,
-    refresh: userId ? () => refreshSlotMachineStatus(userId) : () => Promise.resolve(),
-  };
-};
-
-// Additional hook specifically for casino rush
-export const useCasinoRushStatus = (userId?: string, autoFetch = false) => {
-  const { casinoRush, refreshCasinoRushStatus } = useTriviaStatus();
-
-  // Only fetch data automatically if explicitly requested
-  useEffect(() => {
-    if (userId && autoFetch) {
-      refreshCasinoRushStatus(userId);
-    }
-  }, [userId, refreshCasinoRushStatus, autoFetch]);
-
-  return {
-    ...casinoRush,
-    refresh: userId ? () => refreshCasinoRushStatus(userId) : () => Promise.resolve(),
-  };
 };

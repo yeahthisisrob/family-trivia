@@ -4,8 +4,7 @@
  * Content types that support comments.
  *   - fact/trivia: existing timeline items keyed by `${userId}_${timestamp}`
  *   - album: photo album entries keyed by album id (`alb_...`)
- *   - arcade: arcade games keyed by game id (`snake`, `tetris`, `slot-machine`,
- *     `curling`, `crossword`)
+ *   - arcade: arcade games keyed by game id (the game's folder name)
  */
 export type CommentContentType = 'fact' | 'trivia' | 'album' | 'arcade' | 'memorial';
 

@@ -1,7 +1,6 @@
 // File: frontend/src/components/Profile/ScoreHistory.tsx
 import {
   Cancel as CancelIcon,
-  Casino as CasinoIcon,
   CheckCircle as CheckIcon,
   Close as CloseIcon,
   QuestionAnswer as QuizIcon,
@@ -23,6 +22,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
+import { gameById } from '../../games/registry';
 import { colors } from '../../shared/design-system';
 
 interface ScoreHistoryEntry {
@@ -36,7 +36,8 @@ interface ScoreHistoryEntry {
   question: string;
   userAnswer: string;
   correctAnswer: string;
-  isCasinoRush: boolean;
+  /** The game mode it came from (a game folder's id), if any. */
+  gameMode?: string;
   questionNumber?: number;
   totalQuestions?: number;
 }
@@ -59,6 +60,12 @@ const getDifficultyColor = (difficulty: string) => {
   }
 };
 
+/** The icon of the game an answer was played in, if any. */
+const GameIconOf = (entry: ScoreHistoryEntry) => {
+  const Icon = entry.gameMode ? gameById(entry.gameMode)?.icon : undefined;
+  return Icon ? <Icon sx={{ fontSize: 14 }} /> : undefined;
+};
+
 export default function ScoreHistory({
   open,
   onClose,
@@ -71,9 +78,18 @@ export default function ScoreHistory({
 
   const filteredHistory = useMemo(() => {
     if (gameTypeFilter === 'all') return scoringHistory;
-    if (gameTypeFilter === 'casino') return scoringHistory.filter((h) => h.isCasinoRush);
-    return scoringHistory.filter((h) => !h.isCasinoRush);
+    if (gameTypeFilter === 'regular') return scoringHistory.filter((h) => !h.gameMode);
+    return scoringHistory.filter((h) => h.gameMode === gameTypeFilter);
   }, [scoringHistory, gameTypeFilter]);
+
+  // A filter for each game the player has answered in, from the game folders.
+  const playedGames = useMemo(
+    () =>
+      [...new Set(scoringHistory.flatMap((h) => (h.gameMode ? [h.gameMode] : [])))].flatMap(
+        (id) => gameById(id) ?? [],
+      ),
+    [scoringHistory],
+  );
 
   const stats = useMemo(() => {
     const total = filteredHistory.length;
@@ -158,10 +174,15 @@ export default function ScoreHistory({
               <QuizIcon sx={{ mr: 0.5, fontSize: 18 }} />
               Regular Trivia
             </ToggleButton>
-            <ToggleButton value="casino">
-              <CasinoIcon sx={{ mr: 0.5, fontSize: 18 }} />
-              Casino Rush
-            </ToggleButton>
+            {playedGames.map((g) => {
+              const Icon = g.icon;
+              return (
+                <ToggleButton key={g.id} value={g.id}>
+                  <Icon sx={{ mr: 0.5, fontSize: 18 }} />
+                  {g.label}
+                </ToggleButton>
+              );
+            })}
           </ToggleButtonGroup>
 
           {/* Stats Summary */}
@@ -268,9 +289,9 @@ export default function ScoreHistory({
                             color: getDifficultyColor(entry.difficulty),
                           }}
                         />
-                        {entry.isCasinoRush && (
+                        {GameIconOf(entry) && entry.questionNumber !== undefined && (
                           <Chip
-                            icon={<CasinoIcon sx={{ fontSize: 14 }} />}
+                            icon={GameIconOf(entry)}
                             label={`${entry.questionNumber}/${entry.totalQuestions}`}
                             size="small"
                             color="secondary"

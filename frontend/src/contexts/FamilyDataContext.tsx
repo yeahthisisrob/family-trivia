@@ -12,11 +12,7 @@ import type React from 'react';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import * as api from '../api';
 import type { FamilyHierarchy as ApiFamilyHierarchy } from '../api/modules/family';
-import type {
-  FamilyFeudInitData,
-  GameModeStatus,
-  InitQuestionAvailability,
-} from '../api/modules/init';
+import type { FamilyFeudInitData, InitQuestionAvailability } from '../api/modules/init';
 import { type AppInitResponse, getAppInit, getAppInitDeferred } from '../api/modules/init';
 import type { UserConfigResponse } from '../api/modules/user';
 import { cacheService } from '../shared/api/CacheService';
@@ -63,10 +59,6 @@ interface FamilyDataContextType {
   initQuestionAvailability: InitQuestionAvailability | null;
   initCategories: SystemCategory[] | null;
   initUserCategories: CustomCategory[] | null;
-  initGameStatuses: {
-    casinoRush: GameModeStatus;
-    slotMachine: GameModeStatus;
-  } | null;
   initFamilyFeud: FamilyFeudInitData | null;
 
   // Methods
@@ -133,10 +125,6 @@ export const FamilyDataProvider: React.FC<{
     useState<InitQuestionAvailability | null>(null);
   const [initCategories, setInitCategories] = useState<SystemCategory[] | null>(null);
   const [initUserCategories, setInitUserCategories] = useState<CustomCategory[] | null>(null);
-  const [initGameStatuses, setInitGameStatuses] = useState<{
-    casinoRush: GameModeStatus;
-    slotMachine: GameModeStatus;
-  } | null>(null);
   const [initFamilyFeud, setInitFamilyFeud] = useState<FamilyFeudInitData | null>(null);
 
   // Refs for tracking loading state
@@ -162,9 +150,6 @@ export const FamilyDataProvider: React.FC<{
       }
       if (deferred.catchupStatus) {
         setInitCatchupStatus(deferred.catchupStatus);
-      }
-      if (deferred.gameStatuses) {
-        setInitGameStatuses(deferred.gameStatuses);
       }
       if (deferred.familyFeud) {
         setInitFamilyFeud(deferred.familyFeud);
@@ -435,7 +420,6 @@ export const FamilyDataProvider: React.FC<{
     initQuestionAvailability,
     initCategories,
     initUserCategories,
-    initGameStatuses,
     initFamilyFeud,
     refreshMembers,
     refreshHierarchy,

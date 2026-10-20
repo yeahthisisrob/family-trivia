@@ -1,5 +1,5 @@
 import type React from 'react';
-import { createContext, useCallback, useContext, useMemo } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 
 import { CategoryRefreshProvider, useCategoryRefresh } from './CategoryRefreshContext';
 import { type RoundState, TriviaStatusProvider, useTriviaStatus } from './TriviaStatusContext';
@@ -10,24 +10,8 @@ import { type RoundState, TriviaStatusProvider, useTriviaStatus } from './Trivia
 // Combine the types from both contexts
 interface TriviaContextType {
   // From TriviaStatusContext
-  slotMachine: {
-    canPlay: boolean;
-    nextAvailable: Date | null;
-    hasActiveSession: boolean;
-    loading: boolean;
-    lastUpdated: number;
-  };
-  casinoRush: {
-    canPlay: boolean;
-    nextAvailable: Date | null;
-    hasActiveSession: boolean;
-    loading: boolean;
-    lastUpdated: number;
-  };
   /** Games played as this week's round, by id (0032). */
   rounds: Record<string, RoundState>;
-  refreshSlotMachineStatus: (userId: string) => Promise<void>;
-  refreshCasinoRushStatus: (userId: string) => Promise<void>;
   refreshRounds: () => Promise<void>;
   refreshAllStatuses: (userId: string) => Promise<void>;
 
@@ -48,11 +32,7 @@ const InnerTriviaProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const combinedValue = useMemo(
     () => ({
       // From TriviaStatusContext
-      slotMachine: triviaStatus.slotMachine,
-      casinoRush: triviaStatus.casinoRush,
       rounds: triviaStatus.rounds,
-      refreshSlotMachineStatus: triviaStatus.refreshSlotMachineStatus,
-      refreshCasinoRushStatus: triviaStatus.refreshCasinoRushStatus,
       refreshRounds: triviaStatus.refreshRounds,
       refreshAllStatuses: triviaStatus.refreshAllStatuses,
 
@@ -84,42 +64,6 @@ export const useTrivia = (): TriviaContextType => {
     throw new Error('useTrivia must be used within a TriviaProvider');
   }
   return context;
-};
-
-// Specialized hook for slot machine status with automatic refresh
-export const useSlotMachineStatus = (userId?: string) => {
-  const { slotMachine, refreshSlotMachineStatus } = useTrivia();
-
-  // Create a memoized refresh function that only changes when userId changes
-  const refresh = useCallback(() => {
-    if (userId) {
-      return refreshSlotMachineStatus(userId);
-    }
-    return Promise.resolve();
-  }, [userId, refreshSlotMachineStatus]);
-
-  return {
-    ...slotMachine,
-    refresh,
-  };
-};
-
-// Specialized hook for casino rush status with automatic refresh
-export const useCasinoRushStatus = (userId?: string) => {
-  const { casinoRush, refreshCasinoRushStatus } = useTrivia();
-
-  // Create a memoized refresh function that only changes when userId changes
-  const refresh = useCallback(() => {
-    if (userId) {
-      return refreshCasinoRushStatus(userId);
-    }
-    return Promise.resolve();
-  }, [userId, refreshCasinoRushStatus]);
-
-  return {
-    ...casinoRush,
-    refresh,
-  };
 };
 
 // Re-export the individual context providers and hooks for cases where

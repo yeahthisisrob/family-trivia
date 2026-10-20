@@ -135,7 +135,7 @@ export const GameModeHeavy: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Shows the amber outline treatment on game-mode cells (Casino Rush / Slot Machine).',
+        story: 'Shows the amber outline treatment on game-mode cells.',
       },
     },
   },

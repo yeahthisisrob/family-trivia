@@ -1,61 +1,11 @@
 // File: lambda/routes/leaderboard.ts
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
+import { olderAnswersOf } from '../services/gameRegistry';
 import { logger } from '../services/logger';
 import { getJson } from '../services/s3';
 import { computePoints, type HistoryEntry, type LeaderboardEntry } from '../services/scoring';
 import { getAllGroups, getAllUsers, getUsersInGroup } from '../services/users';
-import { getAllCasinoRushSessions } from './game-modes/casinoRushUtils';
-
-/**
- * Get casino rush history for a user
- */
-async function getCasinoRushHistory(userId: string): Promise<HistoryEntry[]> {
-  const historyEntries: HistoryEntry[] = [];
-
-  try {
-    // Get all sessions using utility (checks both old and new paths)
-    const sessions = await getAllCasinoRushSessions(userId);
-
-    // Process each session
-    for (const session of sessions) {
-      if (!session?.questions) continue;
-
-      // Casino Rush only awards points if ALL questions are correct (status = 'completed')
-      const isCompleted = session.status === 'completed';
-      const allCorrect = session.questions.every((q: any) => q.correct === true);
-      const totalSessionPoints =
-        isCompleted && allCorrect && session.potentialPoints ? session.potentialPoints : 0;
-      // Divide points evenly among questions to avoid triple counting
-      const pointsPerQuestion =
-        totalSessionPoints > 0 ? totalSessionPoints / session.questions.length : 0;
-
-      // Process each question in the session (same logic as userProfile)
-      session.questions.forEach((q: any, index: number) => {
-        if (q.userAnswer !== undefined) {
-          historyEntries.push({
-            question: {
-              ...q,
-              mode: 'casino-rush',
-              pointMultiplier: 3,
-            },
-            selectedAnswer: q.userAnswer,
-            correct: q.correct || false,
-            timestamp: new Date(q.answeredAt || session.lastPlayedAt || Date.now()).toISOString(),
-            pointsEarned: q.correct && isCompleted && allCorrect ? pointsPerQuestion : 0,
-            isCasinoRush: true,
-            questionNumber: index + 1,
-            totalQuestions: session.questions.length,
-          });
-        }
-      });
-    }
-  } catch {
-    logger.debug(`No Casino Rush history for user ${userId} or error reading it`);
-  }
-
-  return historyEntries;
-}
 
 /**
  * Compute leaderboard entries for a list of userIds
@@ -65,8 +15,8 @@ async function computeLeaderboard(ids: string[]): Promise<LeaderboardEntry[]> {
     ids.map(async (userId) => {
       const historyKey = `answers/history/${userId}.json`;
       const regularHistory = (await getJson<HistoryEntry[]>(historyKey)) || [];
-      const casinoHistory = await getCasinoRushHistory(userId);
-      const history = [...regularHistory, ...casinoHistory];
+      // Plus answers the games keep in their own files (older plays).
+      const history = [...regularHistory, ...(await olderAnswersOf(userId))];
 
       let weightedScore = 0;
       let correctCount = 0;
@@ -100,7 +50,6 @@ async function computeLeaderboard(ids: string[]): Promise<LeaderboardEntry[]> {
         else break;
       }
       const lastAnswer = history.length ? history[history.length - 1] : undefined;
-      // No special handling needed for casino rush in leaderboard
 
       return {
         userId,

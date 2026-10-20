@@ -1,17 +1,15 @@
-// File: src/components/TimelineBoard/GameModeCard.tsx
-// Unified card for Casino Rush and Slot Machine entries on the timeline.
-// Clean, compact design that shows the question, answer, and result.
+// One play of a session game (`session` in its folder, docs/decisions/0032)
+// on the timeline: its answers, the result, and the points.
 
 import CancelIcon from '@mui/icons-material/Cancel';
-import CasinoIcon from '@mui/icons-material/Casino';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
 import { Avatar, Box, Card, Chip, IconButton, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useState } from 'react';
+import type { Game } from '../../games/kit';
 import { colors } from '../../shared/design-system';
 
 interface GameEntry {
@@ -26,7 +24,8 @@ interface GameEntry {
 }
 
 interface GameModeCardProps {
-  mode: 'casino-rush' | 'slot-machine';
+  /** The game the play was in (from the registry). */
+  game: Game;
   entries: GameEntry[];
   userId: string;
   color: string;
@@ -34,20 +33,19 @@ interface GameModeCardProps {
   group: string;
   timestamp: string;
   totalPoints: number;
-  allCorrect?: boolean; // Casino Rush: all 3 correct = jackpot
-  multiplier?: number; // Slot Machine: spin multiplier
+  /** The best multiplier among the answers, when the game gives one. */
+  multiplier?: number;
   onUserClick?: (userId: string) => void;
 }
 
 const GameModeCard: React.FC<GameModeCardProps> = ({
-  mode,
+  game,
   entries,
   userId,
   color,
   initials,
   timestamp,
   totalPoints,
-  allCorrect,
   multiplier,
   onUserClick,
 }) => {
@@ -55,18 +53,15 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
   const [page, setPage] = useState(0);
   const entry = entries[page] || entries[0];
 
-  const isCasinoRush = mode === 'casino-rush';
-  const isSlotMachine = mode === 'slot-machine';
-  const won = isCasinoRush ? !!allCorrect : entry.correct;
+  // A play is won when every answer is right.
+  const won = entries.every((e) => e.correct);
+  const ownResult = game.session?.result;
 
   const accentColor = won ? theme.palette.success.main : theme.palette.error.main;
-  const modeColor = isCasinoRush ? theme.palette.warning.main : theme.palette.secondary.main;
-  const modeLabel = isCasinoRush ? 'Casino Rush' : 'Slot Machine';
-  const modeIcon = isCasinoRush ? (
-    <CasinoIcon sx={{ fontSize: 14 }} />
-  ) : (
-    <SmartToyIcon sx={{ fontSize: 14 }} />
-  );
+  const modeColor = game.look.frame ?? game.look.accent;
+  const modeLabel = game.label;
+  const Icon = game.icon;
+  const modeIcon = <Icon sx={{ fontSize: 14 }} />;
 
   return (
     <Card
@@ -133,7 +128,7 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
               }}
             />
 
-            {isSlotMachine && multiplier && (
+            {multiplier && (
               <Chip
                 size="small"
                 label={`${multiplier}×`}
@@ -160,9 +155,7 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
                   <CancelIcon sx={{ fontSize: '12px !important' }} />
                 )
               }
-              label={
-                isCasinoRush ? (won ? 'JACKPOT' : 'BUSTED') : won ? `+${totalPoints} PTS` : '0 PTS'
-              }
+              label={ownResult ? ownResult(won) : won ? `+${totalPoints} PTS` : '0 PTS'}
               sx={{
                 height: 20,
                 fontSize: '0.6rem',
@@ -174,7 +167,7 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
               }}
             />
 
-            {isCasinoRush && won && totalPoints > 0 && (
+            {ownResult && won && totalPoints > 0 && (
               <Chip
                 size="small"
                 label={`+${totalPoints} PTS`}
@@ -237,8 +230,8 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
           )}
         </Box>
 
-        {/* Pagination for Casino Rush (3 questions) */}
-        {isCasinoRush && entries.length > 1 && (
+        {/* Pagination for a play of several questions */}
+        {entries.length > 1 && (
           <Box
             sx={{
               display: 'flex',

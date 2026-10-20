@@ -37,7 +37,6 @@ import * as adminHandlers from './routes/admin';
 import { getAnswerGrid } from './routes/answerGrid';
 // App init endpoint (consolidated)
 import { appInit, appInitDeferred } from './routes/appInit';
-// Arcade endpoints
 // Auth
 import { canAnswerQuestion } from './routes/canAnswerQuestion';
 // Casino (shared credit pool)
@@ -78,23 +77,6 @@ import {
 } from './routes/familyFeud';
 // Family hierarchy endpoint
 import { getFamilyHierarchy } from './routes/familyHierarchy';
-// Casino Rush endpoints
-import {
-  casinoRushStartGame,
-  casinoRushStatus,
-  casinoRushSubmitAnswer,
-} from './routes/game-modes/casinoRush';
-// Curling endpoints
-// Slot Machine endpoints
-import {
-  slotMachineAnswer,
-  slotMachineArcadeSpin,
-  slotMachineBalance,
-  slotMachineQuestion,
-  slotMachineSpin,
-  slotMachineStatus,
-} from './routes/game-modes/slotMachine';
-// Tetris endpoints
 // Game AI (shared Haiku strategy for arcade games)
 import { gameAIMove } from './routes/gameAI';
 import { generateQuestion } from './routes/generateQuestion';
@@ -183,6 +165,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...threadsRoutes,
   ...yourWorldRoutes,
   ...teamsRoutes,
+  // Generic game endpoints, and each game folder's own (features/games/<id>).
   ...gamesRoutes,
   ...sinceRoutes,
 
@@ -229,15 +212,6 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   'GET /consolidated-leaderboard': requireAuth(getConsolidatedLeaderboard),
   'GET /answer-grid': requireAuth(getAnswerGrid),
   'GET /fact-grid': requireAuth(getFactGrid),
-  'POST /casino-rush/start': requireAuth(casinoRushStartGame),
-  'POST /casino-rush/answer': requireAuth(casinoRushSubmitAnswer),
-  'GET /casino-rush/status': requireAuth(casinoRushStatus),
-  'POST /slot-machine/spin': requireAuth(slotMachineSpin),
-  'POST /slot-machine/question': requireAuth(slotMachineQuestion),
-  'POST /slot-machine/answer': requireAuth(slotMachineAnswer),
-  'GET /slot-machine/status': requireAuth(slotMachineStatus),
-  'POST /slot-machine/arcade-spin': requireAuth(slotMachineArcadeSpin),
-  'GET /slot-machine/balance': requireAuth(slotMachineBalance),
   'POST /crossword/generate': requireAuth(generateCrossword),
   'GET /family-feud/status': requireAuth(familyFeudStatus),
   'POST /family-feud/start-round': requireAuth(familyFeudStartRound),

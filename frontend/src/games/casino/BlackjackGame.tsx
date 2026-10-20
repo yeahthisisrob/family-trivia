@@ -3,7 +3,7 @@
  *
  * Uses your season score as starting credits (same balance as slots).
  * Score = peak profit in a session, submitted to the arcade leaderboard.
- * Visual language matches the slot machine: dark navy, gold accents,
+ * Visual language matches the casino's slots: dark navy, gold accents,
  * metallic framing, animated card deals, result glow/shake effects.
  */
 
@@ -25,7 +25,7 @@ import { createLogger } from '../../shared/lib/logger';
 
 const logger = createLogger('BlackjackGame');
 
-// ── Theme (matches SlotMachine) ─────────────────────────────────
+// ── Theme (matches the slots) ──────────────────────────────────
 
 const art = games.blackjack;
 const gold = art.gold;
@@ -522,7 +522,7 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
         touchAction: 'none',
       }}
     >
-      {/* Casino frame — matches slot machine chrome */}
+      {/* Casino frame — matches the slots' chrome */}
       <Box
         sx={{
           bgcolor: darkBg,

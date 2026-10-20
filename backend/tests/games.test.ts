@@ -1,7 +1,12 @@
 vi.mock('../services/s3', async () => (await import('./helpers/s3Mock')).s3MockModule);
 
+import { existsSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import type { APIGatewayProxyEvent } from 'aws-lambda';
 import { getClues, getSave, getScores, postScore, putSave } from '../features/games/handlers';
+import { defineServerGame, routesOf } from '../features/games/kit';
+import { GAME_FOLDERS } from '../features/games/routes';
+import { serverGames } from '../services/gameRegistry';
 import { resetS3Mock, seedRaw } from './helpers/s3Mock';
 
 const ev = (q: Record<string, string> = {}, body?: unknown) =>
@@ -57,5 +62,27 @@ describe('games: any game by id (0032)', () => {
       about: 'bob',
     });
     for (const c of clues) expect(c.answer.length).toBeGreaterThanOrEqual(4);
+  });
+});
+
+describe('game server folders (0032)', () => {
+  it('registers every folder under features/games, its id the folder name', () => {
+    const dir = join(import.meta.dirname, '../features/games');
+    const folders = readdirSync(dir, { withFileTypes: true })
+      .filter((e) => e.isDirectory() && existsSync(join(dir, e.name, 'index.ts')))
+      .map((e) => e.name)
+      .sort();
+    expect(GAME_FOLDERS.map((g) => g.id).sort()).toEqual(folders);
+    expect(serverGames().map((g) => g.id)).toEqual(GAME_FOLDERS.map((g) => g.id));
+  });
+
+  it('serves each folder route at /<id>/<action>', () => {
+    const fn = async () => ({ statusCode: 200, body: '' });
+    const game = defineServerGame({
+      id: 'word-ladder',
+      label: 'Word Ladder',
+      routes: { 'POST climb': fn },
+    });
+    expect(Object.keys(routesOf(game))).toEqual(['POST /word-ladder/climb']);
   });
 });

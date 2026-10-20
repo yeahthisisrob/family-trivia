@@ -8,7 +8,7 @@ import { errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
 import { visibleHierarchy } from '../services/family/joined';
 import { accountIsPlaying, loadFamily, loadHierarchy } from '../services/family/roster';
-import { canPlayGameModeAny } from '../services/gameModeService';
+import { sessionStatusesOf } from '../services/gameRegistry';
 import { logger } from '../services/logger';
 import { calculateCatchupStatus, checkPlayEligibility } from '../services/playerStateService';
 import { getJson, putJson } from '../services/s3';
@@ -247,31 +247,18 @@ export async function appInitDeferred(event: APIGatewayProxyEvent): Promise<APIG
     }
 
     // All deferred data in parallel
-    const [
-      timelineResult,
-      catchupResult,
-      casinoRushSession,
-      slotMachineSession,
-      casinoRushStatus,
-      slotMachineStatus,
-      feudCurrentRound,
-      feudRotation,
-    ] = await Promise.all([
-      loadTimeline(people, timelineUserIds, { limit: 20, side }),
-      calculateCatchupStatus(userId),
+    const [timelineResult, catchupResult, gameStatuses, feudCurrentRound, feudRotation] =
+      await Promise.all([
+        loadTimeline(people, timelineUserIds, { limit: 20, side }),
+        calculateCatchupStatus(userId),
 
-      // Game sessions
-      getJson<any>(`casino-rush/${userId}/current-session.json`).catch(() => null),
-      getJson<any>(`slot-machine/${userId}/session.json`).catch(() => null),
+        // Each session game's status (its server folder says how)
+        sessionStatusesOf(userId),
 
-      // Game mode eligibility
-      canPlayGameModeAny(userId, 'casino-rush').catch(() => null),
-      canPlayGameModeAny(userId, 'slot-machine').catch(() => null),
-
-      // Family Feud
-      getJson<any>('family-feud/current-round.json').catch(() => null),
-      getJson<any>('family-feud/rotation.json').catch(() => null),
-    ]);
+        // Family Feud
+        getJson<any>('family-feud/current-round.json').catch(() => null),
+        getJson<any>('family-feud/rotation.json').catch(() => null),
+      ]);
 
     logger.info('app-init-deferred done', { durationMs: Date.now() - start, userId });
 
@@ -285,21 +272,8 @@ export async function appInitDeferred(event: APIGatewayProxyEvent): Promise<APIG
       // Catchup
       ...(catchupResult && { catchupStatus: catchupResult }),
 
-      // Game statuses
-      gameStatuses: {
-        casinoRush: {
-          canPlay:
-            (casinoRushStatus?.canPlay ?? true) &&
-            (!casinoRushSession?.status || casinoRushSession.status !== 'active'),
-          hasActiveSession: casinoRushSession?.status === 'active',
-          nextAvailable: casinoRushStatus?.nextAvailable?.toISOString() ?? null,
-        },
-        slotMachine: {
-          canPlay: slotMachineStatus?.canPlay ?? true,
-          hasActiveSession: slotMachineSession?.status === 'active',
-          nextAvailable: slotMachineStatus?.nextAvailable?.toISOString() ?? null,
-        },
-      },
+      // Game statuses, keyed by game id in camelCase
+      gameStatuses,
 
       // Family Feud
       familyFeud: (() => {

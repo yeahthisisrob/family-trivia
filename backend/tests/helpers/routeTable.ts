@@ -21,6 +21,8 @@ const backendRoot = join(import.meta.dirname, '../..');
 
 // 'GET /x': requireAuth(handler, ...)  or  'GET /x': handler  or  ns.handler
 const ROUTE = /'(GET|PUT|POST|DELETE|PATCH) (\/[^']*)':\s*(?:requireAuth\()?([\w$.]+)/g;
+// A game folder's own routes ('POST start'), served at /<folder>/<action>.
+const FOLDER_ROUTE = /'(GET|PUT|POST|DELETE|PATCH) ([\w-]+)':\s*([\w$.]+)/g;
 const NAMED_IMPORT = /import\s*\{([^}]*)\}\s*from\s*'(\.[^']*)'/g;
 const NAMESPACE_IMPORT = /import\s*\*\s*as\s+(\w+)\s+from\s*'(\.[^']*)'/g;
 
@@ -29,7 +31,7 @@ function resolveModule(fromFile: string, specifier: string): string {
   return existsSync(`${base}.ts`) ? `${base}.ts` : join(base, 'index.ts');
 }
 
-function routesIn(file: string): RouteEntry[] {
+function routesIn(file: string, folder?: string): RouteEntry[] {
   const source = readFileSync(file, 'utf8');
   const named = new Map<string, { module: string; exportName: string }>();
   for (const [, names, specifier] of source.matchAll(NAMED_IMPORT)) {
@@ -42,7 +44,14 @@ function routesIn(file: string): RouteEntry[] {
   for (const [, local, specifier] of source.matchAll(NAMESPACE_IMPORT)) {
     namespaces.set(local!, resolveModule(file, specifier!));
   }
-  return [...source.matchAll(ROUTE)].map(([, method, path, ref]) => {
+  const found = folder
+    ? [...source.matchAll(FOLDER_ROUTE)].map(([, m, action, ref]) => [
+        m,
+        `/${folder}/${action}`,
+        ref,
+      ])
+    : [...source.matchAll(ROUTE)].map(([, m, path, ref]) => [m, path, ref]);
+  return found.map(([method, path, ref]) => {
     const key = `${method} ${path}`;
     const [head, member] = ref!.split('.');
     const target = member
@@ -56,9 +65,14 @@ function routesIn(file: string): RouteEntry[] {
 
 let cached: RouteEntry[] | undefined;
 
-/** Every route the router serves: the feature slices' tables and index.ts. */
+const gamesDir = join(backendRoot, 'features', 'games');
+
+/** Every route the router serves: the feature slices' tables, the game folders' and index.ts. */
 export function routeTable(): RouteEntry[] {
   cached ??= [
+    ...readdirSync(gamesDir, { withFileTypes: true })
+      .filter((e) => e.isDirectory() && existsSync(join(gamesDir, e.name, 'index.ts')))
+      .flatMap((e) => routesIn(join(gamesDir, e.name, 'index.ts'), e.name)),
     ...readdirSync(join(backendRoot, 'features')).flatMap((slice) =>
       routesIn(join(backendRoot, 'features', slice, 'routes.ts')),
     ),

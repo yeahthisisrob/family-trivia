@@ -100,7 +100,7 @@ const CategorySelect: React.FC<CategorySelectProps> = (props) => {
     return () => clearInterval(id);
   }, [viewOnly]);
 
-  const { slotMachine, casinoRush, rounds } = useTrivia();
+  const { rounds } = useTrivia();
   const { initCategories, initUserCategories, appInitComplete } = useFamilyData();
   const { globalCategoryStats } = useLeaderboard();
 
@@ -160,9 +160,9 @@ const CategorySelect: React.FC<CategorySelectProps> = (props) => {
   const getIcon = (name: string, isCustom = false) =>
     isCustom ? ICONS._custom : ICONS[name] || ICONS._default;
 
-  // Each challenge's status: the session modes', then each round's.
+  // Each challenge's status: its round's.
   const statusOf = (id: string): { canPlay: boolean; nextAvailable: Date | null } | undefined =>
-    id === 'casino-rush' ? casinoRush : id === 'slot-machine' ? slotMachine : rounds[id];
+    rounds[id];
 
   // Compute "when does today reset" — used as lockedUntil when viewOnly
   // forces all tiles to locked (because the user has no plays left today).

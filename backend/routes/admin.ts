@@ -13,6 +13,7 @@ import {
 } from '../services/factHistoryService';
 import { addMember } from '../services/family/members';
 import { loadHierarchy } from '../services/family/roster';
+import { serverGames } from '../services/gameRegistry';
 import { logger } from '../services/logger';
 import { isImageType, isMediaKey, readUrl, uploadUrl } from '../services/media';
 import { deleteObject, getJson, listObjects, putJson } from '../services/s3';
@@ -771,7 +772,7 @@ export async function getUserTrivia(event: APIGatewayProxyEvent): Promise<APIGat
     return errorResponse('userId is required', 400);
   }
 
-  // All trivia data (regular + casino rush) lives in answer history
+  // All trivia data (regular and every game mode) lives in answer history
   const historyKey = S3_PATHS.ANSWER_HISTORY(userId);
   const history = (await getJson<any[]>(historyKey)) || [];
 
@@ -816,6 +817,8 @@ export async function deleteUserTrivia(
 }
 
 // ── Game Session Management ─────────────────────────────────────
+// Each game with plays of its own says how to read and reset them (its
+// server folder, services/gameRegistry); `type` is its label, `game` its id.
 
 export async function getGameSessions(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const adminId = getAdminUserId(event);
@@ -823,105 +826,35 @@ export async function getGameSessions(event: APIGatewayProxyEvent): Promise<APIG
   if (authErr) return errorResponse(authErr, 403);
 
   const userId = event.queryStringParameters?.userId;
+  const games = serverGames().filter((g) => g.admin);
 
   // If no userId, scan ALL users for stuck sessions (for the admin overview)
   if (!userId) {
-    const stuckSessions: Array<{
-      userId: string;
-      type: string;
-      status: string;
-      questions: number;
-      answered: number;
-      startTime: string;
-    }> = [];
-
-    // Scan all casino-rush current sessions
-    const crKeys = await listObjects('casino-rush/');
-    const sessionKeys = crKeys.filter((k) => k.endsWith('/current-session.json'));
-    for (const key of sessionKeys) {
-      try {
-        const session = await getJson<any>(key);
-        if (!session) continue;
-        const uid = key.split('/')[1];
-        const qCount = session.questions?.length || 0;
-        const answered = session.questions?.filter((q: any) => q.answeredAt)?.length || 0;
-        stuckSessions.push({
-          userId: uid,
-          type: 'Casino Rush',
-          status: session.status || 'unknown',
-          questions: qCount,
-          answered,
-          startTime: session.startTime ? new Date(session.startTime).toISOString() : 'unknown',
-        });
-      } catch {
-        /* skip */
-      }
-    }
-
-    // Scan slot machine sessions
-    const smKeys = await listObjects('slot-machine/');
-    const smSessionKeys = smKeys.filter((k) => k.endsWith('/session.json'));
-    for (const key of smSessionKeys) {
-      try {
-        const session = await getJson<any>(key);
-        if (!session || session.status === 'completed') continue;
-        const uid = key.split('/')[1];
-        stuckSessions.push({
-          userId: uid,
-          type: 'Slot Machine',
-          status: session.status || 'unknown',
-          questions: 0,
-          answered: 0,
-          startTime: session.lastPlayedAt
-            ? new Date(session.lastPlayedAt).toISOString()
-            : 'unknown',
-        });
-      } catch {
-        /* skip */
-      }
-    }
-
-    return successResponse({ sessions: stuckSessions });
+    const open = await Promise.all(
+      games.map(
+        async (g) =>
+          (await g.admin?.open().catch(() => []))?.map((s) => ({
+            ...s,
+            type: g.label,
+            game: g.id,
+          })) ?? [],
+      ),
+    );
+    return successResponse({ sessions: open.flat() });
   }
 
-  // Per-user detail (existing behavior)
-  const sessions: { type: string; status: string; lastPlayed: string | null; details: string }[] =
-    [];
-
-  try {
-    const crSession = await getJson<any>(`casino-rush/${userId}/current-session.json`);
-    const crHistory = await getJson<any>(`casino-rush/${userId}/history.json`);
-    sessions.push({
-      type: 'Casino Rush',
-      status: crSession?.status || 'none',
-      lastPlayed: crHistory?.lastPlayedAt ? new Date(crHistory.lastPlayedAt).toISOString() : null,
-      details: crSession
-        ? `Q${(crSession.currentQuestionIndex || 0) + 1}/${crSession.questions?.length || 0}`
-        : 'No session',
-    });
-  } catch {
-    sessions.push({ type: 'Casino Rush', status: 'none', lastPlayed: null, details: 'No session' });
-  }
-
-  try {
-    const smSession = await getJson<any>(`slot-machine/${userId}/session.json`);
-    sessions.push({
-      type: 'Slot Machine',
-      status: smSession?.status || 'none',
-      lastPlayed: smSession?.lastPlayedAt ? new Date(smSession.lastPlayedAt).toISOString() : null,
-      details: smSession?.result
-        ? `${smSession.result.multiplier}× ${smSession.result.category}`
-        : 'No session',
-    });
-  } catch {
-    sessions.push({
-      type: 'Slot Machine',
-      status: 'none',
-      lastPlayed: null,
-      details: 'No session',
-    });
-  }
-
+  // Per-user detail
+  const sessions = await Promise.all(
+    games.map(async (g) => ({
+      type: g.label,
+      game: g.id,
+      ...((await g.admin?.of(userId)) ?? {
+        status: 'none',
+        lastPlayed: null,
+        details: 'No session',
+      }),
+    })),
+  );
   return successResponse({ sessions });
 }
 
@@ -937,42 +870,9 @@ export async function resetGameSession(
   if (!userId || !gameType) return errorResponse('Missing userId or gameType', 400);
 
   const deleted: string[] = [];
-
-  if (gameType === 'casino-rush' || gameType === 'all') {
-    // Delete current session
-    try {
-      await deleteObject(`casino-rush/${userId}/current-session.json`);
-      deleted.push('casino-rush/current-session');
-    } catch {
-      /* doesn't exist */
-    }
-
-    // Delete history (resets cooldown)
-    try {
-      await deleteObject(`casino-rush/${userId}/history.json`);
-      deleted.push('casino-rush/history');
-    } catch {
-      /* doesn't exist */
-    }
-  }
-
-  if (gameType === 'slot-machine' || gameType === 'all') {
-    // Delete session (also resets cooldown since lastPlayedAt is in session)
-    try {
-      await deleteObject(`slot-machine/${userId}/session.json`);
-      deleted.push('slot-machine/session');
-    } catch {
-      /* doesn't exist */
-    }
-
-    // Delete stats
-    try {
-      await deleteObject(`slot-machine/${userId}/stats.json`);
-      deleted.push('slot-machine/stats');
-    } catch {
-      /* doesn't exist */
-    }
-  }
+  for (const g of serverGames())
+    if (g.admin && (gameType === 'all' || gameType === g.id))
+      deleted.push(...(await g.admin.reset(userId)));
 
   logger.info('Admin: reset game sessions', { userId, gameType, deleted });
   return successResponse({ success: true, deleted });

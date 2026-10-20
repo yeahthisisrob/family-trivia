@@ -38,8 +38,6 @@ export const CORS_HEADERS: Record<string, string> = {
 
 // Feature flags
 export const FEATURE_FLAGS = {
-  CASINO_RUSH_ENABLED: true,
-  SLOT_MACHINE_ENABLED: true,
   CUSTOM_CATEGORIES_ENABLED: true,
 } as const;
 

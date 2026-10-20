@@ -31,10 +31,10 @@ describe('notificationMessage', () => {
     const hs = item({
       type: 'high_score',
       scoreUserId: 'dave',
-      gameId: 'slot-machine',
+      gameId: 'tetris',
       score: 1200,
     });
-    expect(notificationMessage(hs)).toBe('dave set a new Slot Machine high score!');
+    expect(notificationMessage(hs)).toBe('dave set a new Tetris high score!');
     expect(notificationDetail(hs)).toBe('Score: 1,200');
   });
 });

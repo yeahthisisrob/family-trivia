@@ -9,7 +9,7 @@
  * cooldown math, eligibility, and history writes live here.
  */
 
-import { cooldownOf, gameModeOf, type HistoryEntry, type PlayMode } from '@family-trivia/shared';
+import { gameModeOf, type HistoryEntry, type PlayMode, ROUND_RULES } from '@family-trivia/shared';
 import { S3_PATHS } from '../constants';
 import { logger } from './logger';
 import { checkPlayEligibility } from './playerStateService';
@@ -74,7 +74,7 @@ export async function getGameModeCooldown(userId: string, modeId: string): Promi
   }
 
   const lastAt = new Date(last.timestamp);
-  const nextAt = new Date(lastAt.getTime() + cooldownOf(modeId));
+  const nextAt = new Date(lastAt.getTime() + ROUND_RULES.cooldownMs);
   const now = Date.now();
 
   return {
