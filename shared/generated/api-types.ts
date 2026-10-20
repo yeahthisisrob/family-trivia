@@ -2736,13 +2736,20 @@ export interface components {
             members: string[];
             createdAt: string;
         };
+        /** @description "Can I join your team?" (to a team) or "Team up with me?" (to a person on their own) */
         TeamRequest: {
             id: string;
             /** @enum {string} */
-            kind: "join" | "team-up";
+            kind: "join";
             from: string;
-            teamId?: string;
-            to?: string;
+            teamId: string;
+            at: string;
+        } | {
+            id: string;
+            /** @enum {string} */
+            kind: "team-up";
+            from: string;
+            to: string;
             at: string;
         };
         TeamsView: {
@@ -3041,6 +3048,15 @@ export interface components {
             day: number;
             daysUntil: number;
             isToday: boolean;
+            isPast: boolean;
+            /** @enum {string} */
+            type?: "birthday" | "anniversary" | "holiday" | "other";
+            description?: string;
+            year?: number;
+            celebrationId?: string;
+            isFromFacts?: boolean;
+            /** @description The person has died; the day is for remembering */
+            remembered?: boolean;
         };
         Celebration: {
             id: string;
@@ -4784,21 +4800,25 @@ export interface operations {
     };
     getUpcomingBirthdays: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description How many dates after today (default 10, at most 100) */
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Upcoming birthdays */
+            /** @description Today's dates, and the next ones in order */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        birthdays?: components["schemas"]["Birthday"][];
+                        birthdays: components["schemas"]["Birthday"][];
+                        todaysBirthdays: components["schemas"]["Birthday"][];
                     };
                 };
             };
@@ -4820,8 +4840,8 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        celebrations?: components["schemas"]["Celebration"][];
-                        lastUpdated?: string;
+                        celebrations: components["schemas"]["Celebration"][];
+                        lastUpdated: string;
                     };
                 };
             };

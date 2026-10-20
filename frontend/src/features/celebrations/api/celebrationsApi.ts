@@ -1,25 +1,8 @@
-// Birthdays and the dates the family adds: GET /upcoming-birthdays, GET/POST/DELETE /celebrations.
-import type {
-  Celebration,
-  CelebrationsResponse,
-  CelebrationType,
-  UpcomingBirthdaysResponse,
-} from '@family-trivia/shared';
+// The dates the family adds: POST/DELETE /celebrations. Reads are in model/useCelebrations.ts.
+import type { Celebration, CelebrationType } from '@family-trivia/shared';
 import { apiService } from '../../../shared/api/ApiService';
 
 export const celebrationsApi = {
-  upcoming: (limit = 10) =>
-    apiService.request<UpcomingBirthdaysResponse>(
-      `/upcoming-birthdays?limit=${limit}`,
-      { method: 'GET' },
-      `upcoming_birthdays_${limit}`,
-    ),
-  all: () =>
-    apiService.request<CelebrationsResponse>(
-      '/celebrations',
-      { method: 'GET' },
-      'all_celebrations',
-    ),
   /** Added by the signed-in person. */
   add: (data: {
     type: CelebrationType;
@@ -29,17 +12,12 @@ export const celebrationsApi = {
     recurring?: boolean;
     year?: number;
   }) =>
-    apiService.request<{ success: boolean; celebration: Celebration }>(
-      '/celebrations',
-      { method: 'POST', body: JSON.stringify(data) },
-      undefined,
-      true,
-    ),
+    apiService.request<{ success: boolean; celebration: Celebration }>('/celebrations', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
   remove: (id: string) =>
-    apiService.request<{ success: boolean }>(
-      `/celebrations?id=${encodeURIComponent(id)}`,
-      { method: 'DELETE' },
-      undefined,
-      true,
-    ),
+    apiService.request<{ success: boolean }>(`/celebrations?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }),
 };

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import AppProvider from './AppProvider';
+import { ServerDataProvider } from './shared/api/query';
 import { AppearanceProvider } from './shared/design-system';
 import { currentCircleId } from './shared/session/session';
 import { ToastProvider } from './shared/toast';
@@ -19,7 +20,10 @@ root.render(
       {/* Theme and light/dark: the person's choice in this circle, then the circle's own (AppearanceProvider). */}
       <AppearanceProvider circleId={currentCircleId()}>
         <ToastProvider>
-          <AppProvider />
+          {/* Server data, cached per circle and dropped at sign-out (docs/decisions/0035). */}
+          <ServerDataProvider>
+            <AppProvider />
+          </ServerDataProvider>
         </ToastProvider>
       </AppearanceProvider>
     </BrowserRouter>

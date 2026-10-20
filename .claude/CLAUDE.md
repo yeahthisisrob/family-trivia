@@ -48,6 +48,7 @@ just storybook
 - A game becomes a weekly trivia round with `round` in its folder; rules in
   `shared/src/game-modes.ts` (ROUND_RULES).
 - MSW mocks the API in Storybook (`frontend/.storybook/mocks`).
+- Server data: `useCircleQuery`/`useCircleMutation` from `shared/api/query` (0035).
 - Backend tests check every handler response against the OpenAPI contract
   (0034, `CONTRACT_RESPONSES=strict`); a new route needs its contract entry.
 - Lint rules switched off in `biome.jsonc` are counted DEBT; burn them down,

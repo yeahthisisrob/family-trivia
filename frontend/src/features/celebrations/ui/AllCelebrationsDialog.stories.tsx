@@ -42,8 +42,6 @@ const meta: Meta<typeof AllCelebrationsDialog> = {
     open: true,
     onClose: fn(),
     currentUserId: 'alice',
-    onDeleted: fn(),
-    refreshTrigger: 0,
   },
   decorators: [
     (Story) => (

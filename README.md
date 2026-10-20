@@ -118,7 +118,7 @@ CloudFront (CDN)
 
 | Layer | Technology |
 |---|---|
-| Frontend | React + TypeScript + MUI + Vite on a token-based design system (light and dark, themes as data), organised by [Feature-Sliced Design](https://feature-sliced.design/), every component in Storybook |
+| Frontend | React + TypeScript + MUI + Vite on a token-based design system (light and dark, themes as data), organised by [Feature-Sliced Design](https://feature-sliced.design/), server data through TanStack Query (cached per circle), every component in Storybook |
 | Backend | One Node.js Lambda (TypeScript), organised by Vertical Slice Architecture |
 | Contract | OpenAPI first: `shared/schemas/api.openapi.yaml`, types generated into `@family-trivia/shared` |
 | AI | Amazon Bedrock, a Claude model per task (writing, fact checks, spotlights, books), chosen in Settings |

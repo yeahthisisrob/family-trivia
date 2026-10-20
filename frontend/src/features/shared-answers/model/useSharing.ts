@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCircleMutation, useCircleQuery } from '../../../shared/api/query';
 import { loadCircles } from '../../../shared/session/session';
 import { type SharedFrom, sharingApi } from '../api/sharingApi';
 
@@ -8,33 +8,35 @@ export const inJoinedCircle = (): boolean => {
   return !!c?.circles.find((x) => x.id === c.current)?.sources?.length;
 };
 
+const KEY = ['sharing'] as const;
+type Sharing = { from: SharedFrom[] };
+
+const flip =
+  (circleId: string, on: boolean) =>
+  (current: Sharing | undefined): Sharing | undefined =>
+    current && {
+      from: current.from.map((f) => (f.circleId === circleId ? { ...f, shared: on } : f)),
+    };
+
 /**
  * The caller's past-answer choices here. A switch shows at once and is put
  * back if saving fails.
  */
 export function useSharing(enabled = inJoinedCircle()) {
-  const [from, setFrom] = useState<SharedFrom[] | null>(null);
-  const [failed, setFailed] = useState(false);
+  const asked = useCircleQuery({ key: KEY, path: '/me/sharing', enabled });
+  const save = useCircleMutation({
+    mutationFn: ({ circleId, shared }: { circleId: string; shared: boolean }) =>
+      sharingApi.set(circleId, shared),
+    onMutate: ({ circleId, shared }, cache) => {
+      cache.set(KEY, flip(circleId, shared));
+      return () => cache.set(KEY, flip(circleId, !shared));
+    },
+    onSuccess: (saved, _vars, cache) => cache.set<Sharing>(KEY, () => saved),
+  });
 
-  useEffect(() => {
-    if (!enabled) return;
-    sharingApi
-      .get()
-      .then((r) => setFrom(r.from))
-      .catch(() => setFailed(true));
-  }, [enabled]);
-
-  const set = useCallback(async (circleId: string, shared: boolean) => {
-    const flip = (on: boolean) => (list: SharedFrom[] | null) =>
-      list?.map((f) => (f.circleId === circleId ? { ...f, shared: on } : f)) ?? null;
-    setFrom(flip(shared));
-    try {
-      setFrom((await sharingApi.set(circleId, shared)).from);
-    } catch {
-      setFrom(flip(!shared));
-      setFailed(true);
-    }
-  }, []);
-
-  return { from, failed, set };
+  return {
+    from: asked.data?.from ?? null,
+    failed: asked.isError || save.isError,
+    set: (circleId: string, shared: boolean) => save.mutate({ circleId, shared }),
+  };
 }

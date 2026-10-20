@@ -3,11 +3,16 @@ import { setupWorker } from 'msw/browser';
 import { mswLoader } from 'msw-storybook-addon/csf3';
 import { MemoryRouter } from 'react-router-dom';
 import { apiService } from '../src/shared/api/ApiService';
+import { createQueryClient, ServerDataProvider } from '../src/shared/api/query';
 import { AppearanceProvider, THEMES } from '../src/shared/design-system';
 import { forgetTab } from '../src/shared/session/session';
 import { clearStoryStorage } from './isolateStorage';
 import { allHandlers } from './mocks/handlers';
 import { MockAppProviders } from './mocks/providers';
+
+// Each story gets its own server-data cache (retries are off, as in the app),
+// so one story's answers never show in the next.
+let storyClient = createQueryClient();
 
 // MSW starts once with the shared handlers as its baseline. The loader puts a
 // story's `parameters.msw.handlers` on top and resets to the baseline after
@@ -49,8 +54,10 @@ const preview: Preview = {
   //   - apiService cache (cached `daily_fact_alice_today` etc.)
   //   - this page's localStorage and sessionStorage (isolateStorage.ts)
   //   - the tab's pinned circle and person (session.ts)
+  //   - the server-data cache (a fresh QueryClient)
   beforeEach: async () => {
     apiService.clearCache();
+    storyClient = createQueryClient();
     forgetTab();
     try {
       clearStoryStorage();
@@ -83,9 +90,11 @@ const preview: Preview = {
       >
         {/* A story can start on a URL with parameters.route, e.g. '/admin/settings?section=ai'. */}
         <MemoryRouter initialEntries={[context.parameters.route ?? '/']}>
-          <MockAppProviders>
-            <Story />
-          </MockAppProviders>
+          <ServerDataProvider client={storyClient}>
+            <MockAppProviders>
+              <Story />
+            </MockAppProviders>
+          </ServerDataProvider>
         </MemoryRouter>
       </AppearanceProvider>
     ),

@@ -22,11 +22,11 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { LoadingDots } from '../../../components/ui/feedback';
 import { colors } from '../../../shared/design-system';
 import { createLogger } from '../../../shared/lib/logger';
-import { celebrationsApi } from '../api/celebrationsApi';
+import { useAllCelebrations, useRemoveCelebration } from '../model/useCelebrations';
 
 const logger = createLogger('AllCelebrationsDialog');
 
@@ -34,8 +34,6 @@ interface AllCelebrationsDialogProps {
   open: boolean;
   onClose: () => void;
   currentUserId: string;
-  onDeleted: () => void;
-  refreshTrigger?: number;
 }
 
 type FilterType = 'all' | 'added' | 'facts';
@@ -51,51 +49,29 @@ const AllCelebrationsDialog: React.FC<AllCelebrationsDialogProps> = ({
   open,
   onClose,
   currentUserId,
-  onDeleted,
-  refreshTrigger,
 }) => {
   const theme = useTheme();
-  const [celebrations, setCelebrations] = useState<Celebration[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [deleting, setDeleting] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const list = useAllCelebrations(open);
+  const remove = useRemoveCelebration();
+  const celebrations = list.data ?? [];
+  const loading = list.isPending;
+  const [deleteFailed, setDeleteFailed] = useState(false);
+  const error = list.isError
+    ? 'Failed to load celebrations'
+    : deleteFailed
+      ? 'Failed to delete'
+      : null;
+  const deleting = remove.isPending ? remove.variables : null;
   const [filter, setFilter] = useState<FilterType>('all');
-
-  useEffect(() => {
-    if (open) fetchCelebrations();
-  }, [open, refreshTrigger]);
-
-  const fetchCelebrations = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await celebrationsApi.all();
-      setCelebrations(
-        [...response.celebrations].sort((a, b) => {
-          const [am, ad] = a.date.split('/').map(Number);
-          const [bm, bd] = b.date.split('/').map(Number);
-          return am !== bm ? am - bm : ad - bd;
-        }),
-      );
-    } catch (err) {
-      logger.error('Failed to fetch celebrations', err);
-      setError('Failed to load celebrations');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDelete = async (c: Celebration) => {
     if (!window.confirm(`Delete ${c.name}?`)) return;
-    setDeleting(c.id);
+    setDeleteFailed(false);
     try {
-      await celebrationsApi.remove(c.id);
-      await fetchCelebrations();
-      onDeleted();
-    } catch {
-      setError('Failed to delete');
-    } finally {
-      setDeleting(null);
+      await remove.mutateAsync(c.id);
+    } catch (err) {
+      logger.error('Failed to delete celebration', err);
+      setDeleteFailed(true);
     }
   };
 

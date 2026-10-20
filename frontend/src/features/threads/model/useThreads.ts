@@ -1,5 +1,6 @@
 import type { ThreadAnswer, ThreadProgress, ThreadsToday } from '@family-trivia/shared';
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useCircleMutation, useCircleQuery } from '../../../shared/api/query';
 import { threadsApi } from '../api/threadsApi';
 
 export interface Tied {
@@ -8,32 +9,29 @@ export interface Tied {
   progress: ThreadProgress;
 }
 
+const TODAY = ['threads', 'today'] as const;
+
 /** Today's thread, and what happened when it was answered. */
 export function useThreads() {
-  const [today, setToday] = useState<ThreadsToday | null>(null);
+  const today = useCircleQuery({ key: TODAY, path: '/threads/today' });
   const [tied, setTied] = useState<Tied | null>(null);
+  const tie = useCircleMutation({
+    mutationFn: (a: ThreadAnswer) => threadsApi.answer(a),
+    // Answered: nothing more to ask today.
+    onSuccess: (r, _a, cache) =>
+      cache.set<ThreadsToday>(TODAY, () => ({ question: null, progress: r.progress })),
+  });
 
-  useEffect(() => {
-    threadsApi
-      .today()
-      .then(setToday)
-      .catch(() => setToday(null));
-  }, []);
+  const answer = async (a: ThreadAnswer) => {
+    const q = today.data?.question;
+    if (!q) return;
+    const r = await tie.mutateAsync(a);
+    setTied({
+      name: q.about.name,
+      label: q.choices.find((c) => c.id === a.choice)?.label ?? '',
+      progress: r.progress,
+    });
+  };
 
-  const answer = useCallback(
-    async (a: ThreadAnswer) => {
-      const q = today?.question;
-      if (!q) return;
-      const r = await threadsApi.answer(a);
-      setTied({
-        name: q.about.name,
-        label: q.choices.find((c) => c.id === a.choice)?.label ?? '',
-        progress: r.progress,
-      });
-      setToday({ question: null, progress: r.progress });
-    },
-    [today],
-  );
-
-  return { today, tied, answer };
+  return { today: today.data ?? null, tied, answer };
 }

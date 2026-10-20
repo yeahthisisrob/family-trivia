@@ -49,7 +49,7 @@
       "file": "daily-memory.png",
       "story": "home-dailymemory--on-this-day",
       "size": "phone",
-      "source": "7e0e15d77047",
+      "source": "ee84ecef9f3f",
       "storyFile": "frontend/src/features/daily-memory/ui/DailyMemory.stories.tsx"
     },
     {
@@ -214,7 +214,7 @@
       "story": "home-teamscard--on-your-own",
       "size": "phone",
       "storyFile": "frontend/src/features/teams/ui/TeamsCard.stories.tsx",
-      "source": "cb5f06f2564d"
+      "source": "062eda510bbb"
     },
     {
       "file": "tetris.png",

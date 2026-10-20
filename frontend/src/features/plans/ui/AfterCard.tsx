@@ -6,9 +6,9 @@
 import type { AfterPlan } from '@family-trivia/shared';
 import { Box, Button, Card, Stack, TextField, Typography } from '@mui/material';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Face } from '../../../entities/person';
-import { plansApi } from '../api/plansApi';
+import { useAfterPlans } from '../model/usePlans';
 
 const when = (d: string) =>
   new Date(`${d}T12:00:00`).toLocaleDateString(undefined, {
@@ -112,20 +112,8 @@ export const AfterCard: React.FC<{ me: string; nameOf: (id: string) => string }>
   me,
   nameOf,
 }) => {
-  const [plans, setPlans] = useState<AfterPlan[]>([]);
-  useEffect(() => {
-    plansApi
-      .after()
-      .then(setPlans)
-      .catch(() => setPlans([]));
-  }, []);
+  const { plans, remember, skip } = useAfterPlans();
   return (
-    <AfterCardView
-      me={me}
-      nameOf={nameOf}
-      plans={plans}
-      onRemember={async (id, text) => setPlans(await plansApi.remember(id, text))}
-      onSkip={async (id) => setPlans(await plansApi.skip(id))}
-    />
+    <AfterCardView me={me} nameOf={nameOf} plans={plans} onRemember={remember} onSkip={skip} />
   );
 };

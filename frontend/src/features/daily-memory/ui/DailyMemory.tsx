@@ -10,8 +10,8 @@ import type { DailyMemory as Memory } from '@family-trivia/shared';
 import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
 import { Box, Button, ButtonBase, Paper, Stack, Typography } from '@mui/material';
 import type React from 'react';
-import { useEffect, useState } from 'react';
-import { apiService } from '../../../shared/api/ApiService';
+import { useState } from 'react';
+import { useCircleQuery } from '../../../shared/api/query';
 import { identityColor, paper } from '../../../shared/design-system';
 import { ReactionBar } from '../../reactions';
 
@@ -32,16 +32,14 @@ export const DailyMemory: React.FC<{
   /** For stories: skip fetching. */
   memory?: Memory | null;
 }> = ({ me, nameOf, onOpenPerson, memory: given }) => {
-  const [memory, setMemory] = useState<Memory | null | undefined>(given);
   const [all, setAll] = useState(false);
-
-  useEffect(() => {
-    if (given !== undefined) return;
-    apiService
-      .request<{ memory: Memory | null }>('/family/memory', { method: 'GET' }, 'daily_memory')
-      .then((r) => setMemory(r?.memory ?? null))
-      .catch(() => setMemory(null));
-  }, [given]);
+  const asked = useCircleQuery({
+    key: ['daily-memory'],
+    path: '/family/memory',
+    select: (r) => r.memory,
+    enabled: given === undefined,
+  });
+  const memory = given === undefined ? asked.data : given;
 
   if (!memory) return null;
   const years = Number(memory.date.slice(0, 4)) - Number(memory.asked.slice(0, 4));
