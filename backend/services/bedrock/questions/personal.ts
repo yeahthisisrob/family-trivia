@@ -5,10 +5,8 @@ import { modelFor } from '../core/models';
 import { logger } from '../../../services/logger';
 import { getAllFactHistories, getFactHistory } from '../../factHistoryService';
 import { getJson, listObjects } from '../../s3';
-import { invokeBedrockPrompt } from '../core/bedrockClient';
 import { MAX_RETRY_ATTEMPTS } from '../core/constants';
-import { collectResponseBody } from '../core/responseParser';
-import { extractTextContent } from '../core/textExtractor';
+import { askText } from '../core/converse';
 import { buildUniqueQuestionPrompt, buildUniqueSharedQuestionPrompt } from './prompts';
 import { isDuplicateQuestionString } from './utils';
 
@@ -91,20 +89,13 @@ export async function generateUniqueQuestion(
       const temperature = Math.min(0.7 + (attempts - 1) * 0.1, 1.0);
 
       // Call Bedrock API
-      const personalQuestionsModel = modelFor('familyQuestions');
-      const bodyStream = await invokeBedrockPrompt(
+      const questionText = await askText({
+        task: 'familyQuestions',
         prompt,
-        128,
+        maxTokens: 128,
         temperature,
-        { task: 'familyQuestions' },
-        personalQuestionsModel,
-      );
-
-      // Parse the response
-      const responseBuffer = await collectResponseBody(bodyStream);
-
-      // Extract text content using utility
-      const questionText = extractTextContent(responseBuffer, personalQuestionsModel, 'question');
+        model: modelFor('familyQuestions'),
+      });
 
       if (!questionText) {
         throw new Error('No question text in response');

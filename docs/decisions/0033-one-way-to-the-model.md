@@ -25,10 +25,19 @@ a reply in the wrong shape surfaced as a generic error.
   `MODEL_CATALOG`: price, `promptCache`, `forcedTool`), next to its price.
 - **Every call logs one line**: task, model, tokens (and cached tokens),
   stop reason, time; its tokens go to the month's usage as before.
-- The older `invokeBedrockPrompt` runs on Converse and returns the body
-  shape the parsers read, so callers move over one at a time. Trivia
-  questions and fun facts have moved.
+- **Every caller is on askText or askStructured.** The compatibility layer
+  (`invokeBedrockPrompt`, `responseParser.ts`, `textExtractor.ts`,
+  `jsonInText.ts`) is gone. Small guards for answers live in
+  `services/bedrock/core/shape.ts`, and one schema and check for a
+  multiple-choice question in `services/bedrock/questions/choiceQuestion.ts`.
+- **A refused answer is handled where it was before.** A caller that used to
+  carry on with nothing (no drops, no notes, the fallback options) catches
+  `AiOutputInvalid` or wraps the call in `unlessInvalid(answer, fallback)`;
+  other errors still throw.
+- Tests talk to a stand-in Bedrock (`tests/helpers/fakeBedrock.ts`,
+  `setBedrockClient`), not to mocks of the parsers.
 
 ## Consequences
-A new AI feature writes a schema and a type guard, not a parser. Moving
-the remaining callers removes `responseParser.ts` and `jsonInText.ts`.
+A new AI feature writes a schema and a type guard, not a parser. There is
+no JSON to find in prose anywhere: words come from askText, data from a
+forced tool call.

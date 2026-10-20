@@ -1,44 +1,17 @@
 vi.mock('../services/s3', async () => (await import('./helpers/s3Mock')).s3MockModule);
 
-import type { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
-import { invokeBedrockPrompt } from '../services/bedrock/core/bedrockClient';
 import {
   AiOutputInvalid,
   askStructured,
   askText,
   setBedrockClient,
+  unlessInvalid,
 } from '../services/bedrock/core/converse';
 import { flushUsage, usageKey } from '../services/bedrock/core/usage';
+import { calls, fakeBedrock as fake, says } from './helpers/fakeBedrock';
 import { getStored, resetS3Mock } from './helpers/s3Mock';
 
 const HAIKU = 'us.anthropic.claude-haiku-4-5-20251001-v1:0';
-type Input = ConverseCommand['input'];
-
-/** A stand-in Bedrock: answers in turn, and keeps every request. */
-function fake(...replies: object[]) {
-  const sent: Input[] = [];
-  const client = {
-    send: async (cmd: ConverseCommand) => {
-      sent.push(cmd.input);
-      return {
-        usage: { inputTokens: 100, outputTokens: 20 },
-        stopReason: 'end_turn',
-        ...replies[sent.length - 1],
-      };
-    },
-  };
-  setBedrockClient(client as unknown as BedrockRuntimeClient);
-  return sent;
-}
-const says = (text: string) => ({
-  output: { message: { role: 'assistant', content: [{ text }] } },
-});
-const calls = (name: string, input: unknown) => ({
-  stopReason: 'tool_use',
-  output: {
-    message: { role: 'assistant', content: [{ toolUse: { toolUseId: 't1', name, input } }] },
-  },
-});
 
 interface Fact {
   fact: string;
@@ -103,11 +76,9 @@ describe('talking to the model (0033)', () => {
     await expect(askStructured(factAsk)).rejects.toBeInstanceOf(AiOutputInvalid);
   });
 
-  test('the older entry point still hands back a body the parsers read', async () => {
-    fake(says('Old style.'));
-    const body = await invokeBedrockPrompt('p', 100, 0.5, { task: 'x' }, HAIKU);
-    expect(JSON.parse(new TextDecoder().decode(body))).toEqual({
-      content: [{ type: 'text', text: 'Old style.' }],
-    });
+  test('unlessInvalid: a refused answer becomes the fallback; other errors still throw', async () => {
+    fake(calls('give_fact', { nope: 1 }), calls('give_fact', { nope: 2 }));
+    expect(await unlessInvalid(askStructured(factAsk), 'none')).toBe('none');
+    await expect(unlessInvalid(Promise.reject(new Error('down')), 'none')).rejects.toThrow('down');
   });
 });

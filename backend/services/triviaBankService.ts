@@ -3,8 +3,9 @@ import { modelFor } from './bedrock/core/models';
 // Purpose: Trivia bank management — stats, import from external APIs,
 // AI-generated local categories, question browsing, dedup tracking.
 
-import { invokeBedrockPrompt } from './bedrock/core/bedrockClient';
-import { collectResponseBody, extractJsonFromResponse } from './bedrock/core/responseParser';
+import { askStructured, unlessInvalid } from './bedrock/core/converse';
+import { hasListOf, listSchema } from './bedrock/core/shape';
+import { CHOICE_QUESTION_FIELDS, isChoiceQuestion } from './bedrock/questions/choiceQuestion';
 import { logger } from './logger';
 import { getAllQuestionsFlat } from './questionHistoryService';
 import { getJson, putJson } from './s3';
@@ -439,28 +440,28 @@ Return a JSON array of objects:
 Return ONLY the JSON array.`;
 
   try {
-    const modelId = modelFor('trivia');
-    const stream = await invokeBedrockPrompt(prompt, 4096, 0.8, { task: 'trivia' }, modelId);
-    const buf = await collectResponseBody(stream);
-    const parsed = extractJsonFromResponse(buf, modelId);
-
-    let questions: any[] = [];
-    if (Array.isArray(parsed)) {
-      questions = parsed;
-    } else if (parsed.rawText) {
-      const match = parsed.rawText.match(/\[[\s\S]*\]/);
-      if (match) questions = JSON.parse(match[0]);
-    }
+    // Each question is checked below and counted as an error if it's wrong;
+    // an answer that's no list at all counts as no questions, as before.
+    const { questions } = await unlessInvalid(
+      askStructured({
+        task: 'trivia',
+        prompt,
+        maxTokens: 4096,
+        temperature: 0.8,
+        model: modelFor('trivia'),
+        name: 'trivia_questions',
+        description: 'The trivia questions, each with four choices and the correct answer.',
+        schema: BANK_SCHEMA,
+        check: (v): v is { questions: Record<string, unknown>[] } => hasListOf(v, 'questions'),
+      }),
+      { questions: [] },
+    );
 
     result.fetched = questions.length;
     const existingSet = new Set(bank.questions.map((q) => q.question.toLowerCase().trim()));
 
     for (const q of questions) {
-      if (!q.question || !Array.isArray(q.choices) || q.choices.length !== 4 || !q.answer) {
-        result.errors++;
-        continue;
-      }
-      if (!q.choices.includes(q.answer)) {
+      if (!isChoiceQuestion(q)) {
         result.errors++;
         continue;
       }
@@ -494,6 +495,12 @@ Return ONLY the JSON array.`;
   logger.info('AI local trivia generation complete', { result });
   return result;
 }
+
+const BANK_SCHEMA = listSchema('questions', CHOICE_QUESTION_FIELDS, [
+  'question',
+  'choices',
+  'answer',
+]);
 
 // ---------------------------------------------------------------------------
 // Update Metadata

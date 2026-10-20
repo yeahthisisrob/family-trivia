@@ -12,10 +12,8 @@ import {
   likenesses,
   mentionableRelations,
 } from '@family-trivia/shared';
-import { invokeBedrockPrompt } from '../../services/bedrock/core/bedrockClient';
+import { askText } from '../../services/bedrock/core/converse';
 import { modelFor } from '../../services/bedrock/core/models';
-import { collectResponseBody } from '../../services/bedrock/core/responseParser';
-import { extractTextContent } from '../../services/bedrock/core/textExtractor';
 import { getJson, putJson } from '../../services/s3';
 
 const KEY = 'family/story.json';
@@ -149,9 +147,13 @@ ${shared || 'not enough answers yet'}
 
 Write two or three short paragraphs, warm and specific, in plain words, as if a loving relative were describing the family to someone new. Use only what is given here; invent nothing. Mention a few real answers in their own words. If someone is remembered, speak of them gently and with love. Never mention divorce, separation, former partners or anyone not listed. No headings, no lists, no emojis. Markdown italics are fine.`;
 
-  const model = modelFor('familyStory');
-  const stream = await invokeBedrockPrompt(prompt, 900, 0.7, { task: 'familyStory' }, model);
-  const text = extractTextContent(await collectResponseBody(stream), model, 'story').trim();
+  const text = await askText({
+    task: 'familyStory',
+    prompt,
+    maxTokens: 900,
+    temperature: 0.7,
+    model: modelFor('familyStory'),
+  });
   if (!text) throw new Error('The model returned no story');
   const generatedAt = new Date().toISOString();
   await putJson(KEY, { markdown: text, generatedAt });

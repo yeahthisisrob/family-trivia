@@ -2,8 +2,8 @@ import { modelFor } from '../core/models';
 // Fact checking service for trivia questions
 
 import { logger } from '../../logger';
-import { invokeBedrockPrompt } from '../core/bedrockClient';
-import { collectResponseBody, extractJsonFromResponse } from '../core/responseParser';
+import { AiOutputInvalid, askStructured } from '../core/converse';
+import { isRecord } from '../core/shape';
 import type { Question } from '../core/types';
 
 export interface FactCheckResult {
@@ -15,6 +15,39 @@ export interface FactCheckResult {
   difficultyMismatch?: boolean;
   suggestedDifficulty?: 'easy' | 'normal' | 'hard';
 }
+
+type Verdict = Omit<FactCheckResult, 'checkedBy' | 'confidence'> & {
+  confidence?: FactCheckResult['confidence'];
+};
+
+const LEVELS = ['easy', 'normal', 'hard'];
+const CONFIDENCE = ['high', 'medium', 'low'];
+
+const FACT_CHECK_SCHEMA = {
+  type: 'object',
+  properties: {
+    isAccurate: { type: 'boolean' },
+    confidence: { type: 'string', enum: CONFIDENCE },
+    explanation: { type: 'string' },
+    suggestedCorrection: { type: 'string' },
+    difficultyMismatch: { type: 'boolean' },
+    suggestedDifficulty: { type: 'string', enum: LEVELS },
+  },
+  required: ['isAccurate', 'confidence'],
+};
+
+const optional = (v: unknown, ok: (x: unknown) => boolean) => v === undefined || ok(v);
+const isString = (x: unknown) => typeof x === 'string';
+
+/** A fact-check verdict: accuracy as a boolean, and any other field the right type. */
+export const isFactCheck = (v: unknown): v is Verdict =>
+  isRecord(v) &&
+  typeof v.isAccurate === 'boolean' &&
+  optional(v.confidence, (x) => CONFIDENCE.includes(x as string)) &&
+  optional(v.explanation, isString) &&
+  optional(v.suggestedCorrection, isString) &&
+  optional(v.difficultyMismatch, (x) => typeof x === 'boolean') &&
+  optional(v.suggestedDifficulty, (x) => LEVELS.includes(x as string));
 
 /**
  * Fact checks a trivia question using a randomly selected model
@@ -38,38 +71,36 @@ export async function factCheckQuestion(
   const prompt = buildFactCheckPrompt(question, expectedDifficulty);
 
   try {
-    const response = await invokeBedrockPrompt(
+    const result = await askStructured({
+      task: 'factCheck',
       prompt,
-      256, // Max tokens - fact check should be concise
-      0.1, // Low temperature for accuracy
-      { task: 'factCheck', factChecking: true },
-      selectedModel,
-    );
-
-    const responseBuffer = await collectResponseBody(response);
-    const result = extractJsonFromResponse(responseBuffer, selectedModel);
-
-    // Parse the fact check result
-    if (typeof result === 'object' && result !== null) {
-      return {
-        isAccurate: result.isAccurate ?? true,
-        confidence: result.confidence ?? 'medium',
-        explanation: result.explanation,
-        suggestedCorrection: result.suggestedCorrection,
-        checkedBy: modelDisplayName,
-        difficultyMismatch: result.difficultyMismatch ?? false,
-        suggestedDifficulty: result.suggestedDifficulty,
-      };
-    }
-
-    // Fallback if response isn't properly formatted
+      maxTokens: 256, // fact check should be concise
+      temperature: 0.1, // Low temperature for accuracy
+      model: selectedModel,
+      name: 'fact_check',
+      description: 'Whether the question is accurate, how sure, and what to correct.',
+      schema: FACT_CHECK_SCHEMA,
+      check: isFactCheck,
+    });
     return {
-      isAccurate: true,
-      confidence: 'low',
-      explanation: 'Could not parse fact check response',
+      isAccurate: result.isAccurate,
+      confidence: result.confidence ?? 'medium',
+      explanation: result.explanation,
+      suggestedCorrection: result.suggestedCorrection,
       checkedBy: modelDisplayName,
+      difficultyMismatch: result.difficultyMismatch ?? false,
+      suggestedDifficulty: result.suggestedDifficulty,
     };
   } catch (error) {
+    if (error instanceof AiOutputInvalid) {
+      // Fallback if response isn't properly formatted
+      return {
+        isAccurate: true,
+        confidence: 'low',
+        explanation: 'Could not parse fact check response',
+        checkedBy: modelDisplayName,
+      };
+    }
     logger.error('Fact checking failed', {
       error,
       model: selectedModel,

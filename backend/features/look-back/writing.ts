@@ -20,11 +20,9 @@ import {
   pageKey,
   type SeasonReview,
 } from '@family-trivia/shared';
-import { invokeBedrockPrompt } from '../../services/bedrock/core/bedrockClient';
-import { findJsonWithKey } from '../../services/bedrock/core/jsonInText';
+import { askStructured, askText } from '../../services/bedrock/core/converse';
 import { modelFor } from '../../services/bedrock/core/models';
-import { collectResponseBody } from '../../services/bedrock/core/responseParser';
-import { extractTextContent } from '../../services/bedrock/core/textExtractor';
+import { isFilled, isRecord } from '../../services/bedrock/core/shape';
 import { getJson, putJson } from '../../services/s3';
 
 /** A time as it can sit in a file name. */
@@ -107,18 +105,50 @@ export async function advanceWriting(
   return { writing, left: writing.plan?.filter((c) => !c.intro).length ?? 0 };
 }
 
-async function ask(ctx: WritingContext, step: string, prompt: string, maxTokens: number) {
-  const model = modelFor('book');
-  const stream = await invokeBedrockPrompt(prompt, maxTokens, 0.6, { task: 'book' }, model);
-  const text = extractTextContent(await collectResponseBody(stream), model, 'book');
-  // What the AI was asked and what it said, word for word.
+const bookAsk = (prompt: string, maxTokens: number) => ({
+  task: 'book',
+  prompt,
+  maxTokens,
+  temperature: 0.6,
+  model: modelFor('book'),
+});
+
+/** What the AI was asked and what it said, word for word. */
+async function keep(ctx: WritingContext, step: string, prompt: string, response: string) {
   const at = new Date().toISOString();
   await putJson(
     `books/season-${ctx.review.season.number}/history/${ctx.tone}-${stamp(at)}-${step}.ai.json`,
-    { model, step, prompt, response: text, at },
+    { model: modelFor('book'), step, prompt, response, at },
   );
-  return text;
 }
+
+interface Plan {
+  foreword: string;
+  chapters: unknown[];
+}
+
+/** The plan as the AI gives it: a foreword and a list; chaptersFrom checks each chapter. */
+export const isPlan = (v: unknown): v is Plan =>
+  isRecord(v) && isFilled(v.foreword) && Array.isArray(v.chapters);
+
+const PLAN_SCHEMA = {
+  type: 'object',
+  properties: {
+    foreword: { type: 'string', description: 'The foreword, as plain prose' },
+    chapters: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          title: { type: 'string' },
+          days: { type: 'array', items: { type: 'integer' } },
+        },
+        required: ['title', 'days'],
+      },
+    },
+  },
+  required: ['foreword', 'chapters'],
+};
 
 const block = (p: BookPage, nameOf: (id: string) => string, i?: number) =>
   `${i === undefined ? '' : `[${i}] `}${p.date} · ${p.question}\n${p.answers
@@ -158,30 +188,24 @@ The season's days:
 ${within(
   days.map((p, i) => block(p, nameOf, i)),
   PLAN_CHARS,
-)}
-
-Answer in two parts, nothing else:
-<foreword>
-the foreword, as plain prose
-</foreword>
-<chapters>
-[{"title": "...", "days": [0, 3, 7]}, ...]
-</chapters>`;
-  const text = await ask(ctx, 'plan', prompt, 2000);
-  // Prose comes back between tags, so quotes in it can't break anything; only the list is JSON.
-  const foreword = clean(tagged(text, 'foreword'), FOREWORD_CHARS);
+)}`;
+  const answer = await askStructured({
+    ...bookAsk(prompt, 2000),
+    name: 'book_plan',
+    description: 'The foreword and the chapters, each with its title and its days.',
+    schema: PLAN_SCHEMA,
+    check: isPlan,
+    why: (v) =>
+      isRecord(v) && isFilled(v.foreword) ? 'chapters must be a list' : 'the foreword is empty',
+  });
+  await keep(ctx, 'plan', prompt, JSON.stringify(answer));
+  const foreword = clean(answer.foreword, FOREWORD_CHARS);
   if (!foreword) throw new Error('The book’s foreword didn’t come back');
-  let list: unknown = null;
-  try {
-    list = JSON.parse(tagged(text, 'chapters') ?? 'null');
-  } catch {
-    list = findJsonWithKey<{ chapters?: unknown }>(text, 'chapters')?.value.chapters ?? null;
-  }
   return {
     tone: ctx.tone,
     foreword,
     chapters: {},
-    plan: chaptersFrom(list, days),
+    plan: chaptersFrom(answer.chapters, days),
     writtenAt: new Date().toISOString(),
   };
 }
@@ -250,7 +274,8 @@ Answer with the opening between tags, as plain prose, nothing else:
 <intro>
 ...
 </intro>`;
-  const text = await ask(ctx, `chapter-${index + 1}`, prompt, 900);
+  const text = await askText(bookAsk(prompt, 900));
+  await keep(ctx, `chapter-${index + 1}`, prompt, text);
   const intro = clean(tagged(text, 'intro'), INTRO_CHARS);
   if (!intro) throw new Error('The chapter’s opening didn’t come back');
   return intro;

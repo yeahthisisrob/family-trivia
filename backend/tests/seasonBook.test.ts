@@ -2,21 +2,6 @@ vi.mock('../services/s3', async () => (await import('./helpers/s3Mock')).s3MockM
 vi.mock('../services/media', () => ({
   downloadUrl: async (key: string) => `https://example.test/${key}`,
 }));
-const ai = vi.hoisted(() => ({ plan: '', intro: '', calls: 0, prompt: '' }));
-vi.mock('../services/bedrock/core/bedrockClient', () => ({
-  invokeBedrockPrompt: async (prompt: string) => {
-    ai.calls++;
-    ai.prompt = prompt;
-    return {};
-  },
-}));
-vi.mock('../services/bedrock/core/responseParser', () => ({
-  collectResponseBody: async () => Buffer.from(''),
-}));
-vi.mock('../services/bedrock/core/textExtractor', () => ({
-  // The plan asks for chapters; each chapter asks for its opening.
-  extractTextContent: () => (ai.prompt.includes('<chapters>') ? ai.plan : ai.intro),
-}));
 
 import type { FactAnswerEntry, Family, SeasonReview } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent } from 'aws-lambda';
@@ -26,9 +11,14 @@ import {
   makeBookWriting,
   makeSeasonBook,
 } from '../features/look-back/bookHandler';
+import { setBedrockClient } from '../services/bedrock/core/converse';
 import { invalidateFactHistoryCache } from '../services/factHistoryService';
 import { invalidateSeasonsCache } from '../services/seasonService';
+import { answerBedrock, calls, says } from './helpers/fakeBedrock';
 import { getStored, listStored, resetS3Mock, seedRaw, seedSeasons } from './helpers/s3Mock';
+
+const ai = { plan: {} as object, intro: '', sent: [] as ReturnType<typeof answerBedrock> };
+afterEach(() => setBedrockClient(null));
 
 const family: Family = {
   version: 2,
@@ -60,18 +50,17 @@ beforeEach(() => {
   resetS3Mock();
   invalidateFactHistoryCache();
   invalidateSeasonsCache();
-  ai.calls = 0;
-  ai.plan = `<foreword>
-We kept coming back to the beach — and to pie.
-</foreword>
-<chapters>
-${JSON.stringify([
-  { title: 'Around the table', days: [1, 1, 99] },
-  { title: '', days: [0] },
-])}
-</chapters>`;
+  ai.plan = {
+    foreword: 'We kept coming back to the beach — and to pie.',
+    chapters: [
+      { title: 'Around the table', days: [1, 1, 99] },
+      { title: '', days: [0] },
+    ],
+  };
   // Straight quotes in the prose: nothing to escape, nothing breaks.
   ai.intro = '<intro>\nPie came up first, "always pie".\n\nThen the beach.\n</intro>';
+  // The plan is asked for as data; each chapter's opening in words.
+  ai.sent = answerBedrock((req) => (req.toolConfig ? calls('book_plan', ai.plan) : says(ai.intro)));
   seedRaw('family/family.json', family);
   seedSeasons({
     currentSeasonNumber: null,
@@ -158,9 +147,9 @@ test('written in steps: the plan, then each chapter’s opening, all kept and cl
   );
   // Once written, asking again costs nothing; fresh starts over.
   await post(makeBookWriting, { season: 1, tone: 'warm' });
-  expect(ai.calls).toBe(2);
+  expect(ai.sent.length).toBe(2);
   await writeAll(true);
-  expect(ai.calls).toBe(4);
+  expect(ai.sent.length).toBe(4);
 });
 
 test('the book is made once and kept until something changes', async () => {
@@ -184,7 +173,7 @@ test('just our words needs no writing', async () => {
   const { data } = await post(makeSeasonBook, { season: 1, tone: 'plain' });
   expect(data).toMatchObject({ made: true, tone: 'plain' });
   expect(data.coverUrl).toMatch(/\.cover\.pdf$/);
-  expect(ai.calls).toBe(0);
+  expect(ai.sent.length).toBe(0);
 });
 
 test('nothing is replaced: every book and every earlier writing is kept', async () => {

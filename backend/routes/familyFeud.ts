@@ -5,12 +5,9 @@ import { modelFor } from '../services/bedrock/core/models';
 import { playingPeople } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, MODELS, successResponse } from '../config';
-import { invokeBedrockPrompt } from '../services/bedrock/core/bedrockClient';
+import { askStructured, askText } from '../services/bedrock/core/converse';
 import { circleFrame } from '../services/bedrock/core/frame';
-import {
-  collectResponseBody,
-  extractJsonFromResponse,
-} from '../services/bedrock/core/responseParser';
+import { isFilled, isRecord } from '../services/bedrock/core/shape';
 import { loadFamily } from '../services/family/roster';
 import {
   completeRound,
@@ -84,10 +81,14 @@ ${previousList}
 
 Return ONLY the question text, nothing else. No quotes, no prefix.`;
 
-  const stream = await invokeBedrockPrompt(prompt, 128, 0.9, { task: 'feud' }, modelFor('feud'));
-  const buf = await collectResponseBody(stream);
-  const parsed = extractJsonFromResponse(buf);
-  const text = (parsed.rawText || '').trim().replace(/^["']|["']$/g, '');
+  const said = await askText({
+    task: 'feud',
+    prompt,
+    maxTokens: 128,
+    temperature: 0.9,
+    model: modelFor('feud'),
+  });
+  const text = said.replace(/^["']|["']$/g, '');
   return text || "What's the one thing you could eat every day and never get tired of?";
 }
 
@@ -100,43 +101,45 @@ function shuffle<T>(arr: T[]): T[] {
   return arr;
 }
 
-/** Try to extract 3 wrong answers from a model response */
-function extractWrongs(parsed: any, realAnswer: string): string[] | null {
-  let wrongs: string[] = [];
-
-  // Try structured object
-  if (parsed.wrong1 && parsed.wrong2 && parsed.wrong3) {
-    wrongs = [parsed.wrong1, parsed.wrong2, parsed.wrong3];
-  }
-
-  // Try rawText
-  if (wrongs.length === 0 && parsed.rawText) {
-    try {
-      const obj = JSON.parse(parsed.rawText);
-      if (obj.wrong1) wrongs = [obj.wrong1, obj.wrong2, obj.wrong3];
-      else if (Array.isArray(obj))
-        wrongs = obj.filter((s: any) => typeof s === 'string').slice(0, 4);
-    } catch {
-      /* try array extraction */
-    }
-
-    if (wrongs.length === 0) {
-      const match = (parsed.rawText as string).match(/\[([^\]]+)\]/);
-      if (match) {
-        try {
-          wrongs = JSON.parse(`[${match[1]}]`).filter((s: any) => typeof s === 'string');
-        } catch {
-          /* give up */
-        }
-      }
-    }
-  }
-
-  // Remove the real answer if AI included it, keep only wrongs
-  wrongs = wrongs.filter((w) => w && w.toLowerCase().trim() !== realAnswer.toLowerCase().trim());
-
-  return wrongs.length >= 3 ? wrongs.slice(0, 3) : null;
+interface Wrongs {
+  wrong1: string;
+  wrong2: string;
+  wrong3: string;
 }
+
+const WRONGS_SCHEMA = {
+  type: 'object',
+  properties: {
+    wrong1: { type: 'string' },
+    wrong2: { type: 'string' },
+    wrong3: { type: 'string' },
+  },
+  required: ['wrong1', 'wrong2', 'wrong3'],
+};
+
+const same = (a: string, b: string) => a.toLowerCase().trim() === b.toLowerCase().trim();
+
+/** Why these aren't three wrong answers to `realAnswer`, or null when they are. */
+export function wrongsProblem(v: unknown, realAnswer: string): string | null {
+  if (!isRecord(v)) return 'it gave no answers';
+  const wrongs = [v.wrong1, v.wrong2, v.wrong3];
+  if (!wrongs.every(isFilled)) return 'all three wrong answers must be filled in';
+  if (wrongs.some((w) => same(w, realAnswer))) return 'a wrong answer is the real answer';
+  return null;
+}
+
+interface Verdict {
+  valid: boolean;
+  reason?: string;
+}
+
+const VERDICT_SCHEMA = {
+  type: 'object',
+  properties: { valid: { type: 'boolean' }, reason: { type: 'string' } },
+  required: ['valid'],
+};
+
+const isVerdict = (v: unknown): v is Verdict => isRecord(v) && typeof v.valid === 'boolean';
 
 /**
  * Generate 4 multiple choice options from the real answer.
@@ -173,15 +176,20 @@ Return ONLY: {"wrong1": "...", "wrong2": "...", "wrong3": "..."}`;
     try {
       // Step 1: Generate with Sonnet
       const genModel = attempt < 2 ? modelFor('feud') : MODELS.FAST;
-      const stream = await invokeBedrockPrompt(genPrompt, 128, 0.7, { task: 'feud' }, genModel);
-      const buf = await collectResponseBody(stream);
-      const parsed = extractJsonFromResponse(buf, genModel);
-      const wrongs = extractWrongs(parsed, realAnswer);
-
-      if (!wrongs) {
-        logger.warn('Failed to extract wrongs from response', { attempt: attempt + 1 });
-        continue;
-      }
+      // A shape still wrong after the model's one retry throws, and the next attempt runs.
+      const found = await askStructured({
+        task: 'feud',
+        prompt: genPrompt,
+        maxTokens: 128,
+        temperature: 0.7,
+        model: genModel,
+        name: 'wrong_answers',
+        description: 'Three realistic wrong answers of the same type as the real one.',
+        schema: WRONGS_SCHEMA,
+        check: (v): v is Wrongs => !wrongsProblem(v, realAnswer),
+        why: (v) => wrongsProblem(v, realAnswer) ?? '',
+      });
+      const wrongs = [found.wrong1, found.wrong2, found.wrong3];
 
       // Step 2: Validate with a different model
       const valModel = attempt < 2 ? MODELS.FAST : modelFor('feud');
@@ -195,9 +203,18 @@ They must be the SAME TYPE of thing as "${realAnswer}" (not generic filler like 
 Return ONLY: {"valid": true} or {"valid": false, "reason": "why"}`;
 
       try {
-        const valStream = await invokeBedrockPrompt(valPrompt, 64, 0.1, { task: 'feud' }, valModel);
-        const valBuf = await collectResponseBody(valStream);
-        const valParsed = extractJsonFromResponse(valBuf, valModel);
+        const valParsed = await askStructured({
+          task: 'feud',
+          prompt: valPrompt,
+          maxTokens: 64,
+          temperature: 0.1,
+          model: valModel,
+          name: 'check_choices',
+          description:
+            'Whether all three wrong choices are realistic, and why not if they are not.',
+          schema: VERDICT_SCHEMA,
+          check: isVerdict,
+        });
 
         if (valParsed.valid === false) {
           logger.warn('Choices failed validation, regenerating', {

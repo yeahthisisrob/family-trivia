@@ -5,10 +5,9 @@ import { modelFor } from './bedrock/core/models';
 
 import { type AiFrame, getEasternDateString } from '@family-trivia/shared';
 import { S3_PATHS } from '../constants';
-import { invokeBedrockPrompt } from './bedrock/core/bedrockClient';
+import { askStructured, askText } from './bedrock/core/converse';
 import { circleFrame } from './bedrock/core/frame';
-import { collectResponseBody } from './bedrock/core/responseParser';
-import { extractTextContent } from './bedrock/core/textExtractor';
+import { hasListOf, listSchema } from './bedrock/core/shape';
 import { isDuplicateQuestionString } from './bedrock/questions/utils';
 import { logger } from './logger';
 import { getJson, listObjects, putJsonIfNotExists } from './s3';
@@ -143,15 +142,13 @@ Return ONLY the question text. No quotes, no prefix, no explanation.`;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const temp = 0.8 + attempt * 0.1;
-      const stream = await invokeBedrockPrompt(
+      const text = await askText({
+        task: 'familyQuestions',
         prompt,
-        128,
-        temp,
-        { task: 'familyQuestions' },
-        modelId,
-      );
-      const buf = await collectResponseBody(stream);
-      const text = extractTextContent(buf, modelId, 'question');
+        maxTokens: 128,
+        temperature: temp,
+        model: modelId,
+      });
 
       if (!text) continue;
 
@@ -213,9 +210,26 @@ Return ONLY the question text. No quotes, no prefix, no explanation.`;
 // Generate AI question options for FirstPerson flow
 // ---------------------------------------------------------------------------
 
-export async function generateQuestionOptions(
-  userTheme?: string,
-): Promise<Array<{ question: string; category: string }>> {
+interface QuestionOption {
+  question: string;
+  category: string;
+}
+
+const OPTIONS_SCHEMA = listSchema(
+  'options',
+  { question: { type: 'string' }, category: { type: 'string' } },
+  ['question', 'category'],
+);
+
+/** At least two options, each a question and its category. */
+export const isQuestionOptions = (v: unknown): v is { options: QuestionOption[] } =>
+  hasListOf(v, 'options') &&
+  v.options.length >= 2 &&
+  v.options.every(
+    (o) => typeof o.question === 'string' && o.question && typeof o.category === 'string',
+  );
+
+export async function generateQuestionOptions(userTheme?: string): Promise<QuestionOption[]> {
   const [allPrevious, frame] = await Promise.all([getAllPreviousSharedQuestions(), circleFrame()]);
 
   const previousList =
@@ -250,28 +264,20 @@ Categories: ${factCategoriesFor(frame)
     .join(', ')}`;
 
   try {
-    const modelId = modelFor('familyQuestions');
-    const stream = await invokeBedrockPrompt(
+    const { options } = await askStructured({
+      task: 'familyQuestions',
       prompt,
-      512,
-      0.9,
-      { task: 'familyQuestions' },
-      modelId,
-    );
-    const buf = await collectResponseBody(stream);
-    const text = (buf as any).rawText || JSON.stringify(buf);
-
-    // Try to parse JSON from response
-    const match = text.match(/\[[\s\S]*\]/);
-    if (match) {
-      const options = JSON.parse(match[0]);
-      if (Array.isArray(options) && options.length >= 2) {
-        // Filter out duplicates
-        return options
-          .filter((o: any) => o.question && !isDuplicateQuestionString(o.question, allPrevious))
-          .slice(0, 3);
-      }
-    }
+      maxTokens: 512,
+      temperature: 0.9,
+      model: modelFor('familyQuestions'),
+      name: 'question_options',
+      description: 'Three question options, each with its category.',
+      schema: OPTIONS_SCHEMA,
+      check: isQuestionOptions,
+      why: () => 'there must be at least two options, each with a question and a category',
+    });
+    // Filter out duplicates
+    return options.filter((o) => !isDuplicateQuestionString(o.question, allPrevious)).slice(0, 3);
   } catch (err) {
     logger.error('Failed to generate question options', {
       error: err instanceof Error ? err.message : String(err),

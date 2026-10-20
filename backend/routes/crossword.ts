@@ -6,11 +6,8 @@ import { modelFor } from '../services/bedrock/core/models';
 
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
-import { invokeBedrockPrompt } from '../services/bedrock/core/bedrockClient';
-import {
-  collectResponseBody,
-  extractJsonFromResponse,
-} from '../services/bedrock/core/responseParser';
+import { AiOutputInvalid, askStructured } from '../services/bedrock/core/converse';
+import { hasListOf, listSchema } from '../services/bedrock/core/shape';
 import { getAllFactHistories } from '../services/factHistoryService';
 import { loadHierarchy } from '../services/family/roster';
 import { logger } from '../services/logger';
@@ -252,6 +249,38 @@ function trimGrid(grid: string[][]): {
   return { trimmed, size, rowOffset: minR, colOffset: minC };
 }
 
+// ── The model's answer ───────────────────────────────────────────
+
+interface CluePair {
+  clue: string;
+  answer: string;
+  difficulty?: string;
+}
+interface CluePairs {
+  pairs: CluePair[];
+}
+
+const PAIRS_SCHEMA = listSchema(
+  'pairs',
+  {
+    clue: { type: 'string' },
+    answer: { type: 'string', description: 'One word, 3-8 uppercase letters' },
+    difficulty: { type: 'string', enum: ['easy', 'medium', 'hard'] },
+  },
+  ['clue', 'answer', 'difficulty'],
+);
+
+/** At least three pairs, each with a clue and an answer in words. */
+export const isCluePairs = (v: unknown): v is CluePairs =>
+  hasListOf(v, 'pairs') &&
+  v.pairs.length >= 3 &&
+  v.pairs.every(
+    (p) =>
+      typeof p.clue === 'string' &&
+      typeof p.answer === 'string' &&
+      (p.difficulty === undefined || typeof p.difficulty === 'string'),
+  );
+
 // ── Endpoint ──────────────────────────────────────────────────────
 
 /**
@@ -321,13 +350,23 @@ Return ONLY valid JSON:
   ]
 }`;
 
-    const model = modelFor('trivia');
-    const stream = await invokeBedrockPrompt(prompt, 1024, 0.4, { task: 'trivia' }, model);
-    const buf = await collectResponseBody(stream);
-    const parsed = extractJsonFromResponse(buf, model);
-
-    if (!parsed.pairs || !Array.isArray(parsed.pairs) || parsed.pairs.length < 3) {
-      logger.error('Bedrock returned insufficient crossword pairs', { parsed });
+    let parsed: CluePairs;
+    try {
+      parsed = await askStructured({
+        task: 'trivia',
+        prompt,
+        maxTokens: 1024,
+        temperature: 0.4,
+        model: modelFor('trivia'),
+        name: 'crossword_pairs',
+        description: 'The crossword answers, each with its clue and difficulty.',
+        schema: PAIRS_SCHEMA,
+        check: isCluePairs,
+        why: () => 'there must be at least three pairs, each with a clue and an answer',
+      });
+    } catch (err) {
+      if (!(err instanceof AiOutputInvalid)) throw err;
+      logger.error('Bedrock returned insufficient crossword pairs', { problem: err.problem });
       return errorResponse('Could not generate enough crossword clues', 500);
     }
 

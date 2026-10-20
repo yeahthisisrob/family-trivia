@@ -1,14 +1,10 @@
-import { modelFor } from '../services/bedrock/core/models';
 // File: lambda/routes/generateQuestionOptions.ts
 
 import { getWeekStartDateET as getWeekStartDate } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../config';
-import { invokeBedrockPrompt } from '../services/bedrock/core/bedrockClient';
-import {
-  collectResponseBody,
-  extractJsonFromResponse,
-} from '../services/bedrock/core/responseParser';
+import { AiOutputInvalid, askStructured } from '../services/bedrock/core/converse';
+import { hasListOf, isFilled, listSchema } from '../services/bedrock/core/shape';
 import { getRecentSharedQuestions as getRecentSharedFactQuestions } from '../services/factHistoryService';
 import { loadHierarchy } from '../services/family/roster';
 import { logger } from '../services/logger';
@@ -19,6 +15,37 @@ interface QuestionOption {
   question: string;
   theme?: string;
 }
+
+/** The coaching rules: the same for every request, so they sit in the system prompt. */
+const COACH = `You are a family connection coach helping create questions for a family bonding app.
+This is NOT trivia — it's research-backed psychology for building real relationships across generations.
+
+Generate exactly 3 question options that:
+1. Are short and mobile-friendly (under 15 words if possible)
+2. Create genuine moments of connection
+3. Are suitable for all ages (8 to 80)
+4. Are meaningfully different from each other — different angles, not variations on the same theme
+5. NEVER reference any family member by name
+6. **NEVER default to food, meals, or cooking unless the category explicitly calls for it**
+   Families are far more than what they eat. Ask about memories, values, humor, growth, and moments — not ingredients.
+7. Avoid generic preference questions ("what's your favorite...") — dig deeper`;
+
+const OPTIONS_SCHEMA = listSchema(
+  'options',
+  { id: { type: 'string' }, question: { type: 'string' }, theme: { type: 'string' } },
+  ['id', 'question', 'theme'],
+  { minItems: 3, maxItems: 3 },
+);
+
+/** Exactly three options, each with a question. */
+export const isThreeOptions = (v: unknown): v is { options: Partial<QuestionOption>[] } =>
+  hasListOf(v, 'options') &&
+  v.options.length === 3 &&
+  v.options.every(
+    (o) =>
+      isFilled(o.question) &&
+      ['id', 'theme'].every((k) => o[k] === undefined || typeof o[k] === 'string'),
+  );
 
 /**
  * Generates 3 question options using the previous week's summary as context
@@ -176,20 +203,7 @@ Purpose: Variety. Pick 3 questions from different categories above — do NOT pi
           ? `THEME: "${theme}"\nAt least 2 of the 3 questions should relate to this theme. The third can be complementary.`
           : '';
 
-    const systemPrompt = `You are a family connection coach helping create questions for a family bonding app.
-This is NOT trivia — it's research-backed psychology for building real relationships across generations.
-
-Generate exactly 3 question options that:
-1. Are short and mobile-friendly (under 15 words if possible)
-2. Create genuine moments of connection
-3. Are suitable for all ages (8 to 80)
-4. Are meaningfully different from each other — different angles, not variations on the same theme
-5. NEVER reference any family member by name
-6. **NEVER default to food, meals, or cooking unless the category explicitly calls for it**
-   Families are far more than what they eat. Ask about memories, values, humor, growth, and moments — not ingredients.
-7. Avoid generic preference questions ("what's your favorite...") — dig deeper
-
-${contextSections.length > 0 ? contextSections.join('\n\n') : ''}
+    const contextPrompt = `${contextSections.length > 0 ? contextSections.join('\n\n') : ''}
 
 ${themeGuidance}
 
@@ -206,54 +220,30 @@ Return ONLY a JSON array with exactly 3 questions:
       : 'Generate 3 engaging family discussion questions that build on what the family has been sharing recently. Make them feel personal and connected.';
 
     try {
-      // Combine system and user prompts for Claude
-      const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
-
-      // Invoke Bedrock
       // Higher temperature (0.9) for more variety — avoids the food default
-      const responseBody = await invokeBedrockPrompt(fullPrompt, 1024, 0.9, {
-        task: 'familyQuestions',
-        userId,
-        theme,
-        regenerate,
-      });
-
-      // Collect and parse response
-      const responseBuffer = await collectResponseBody(responseBody);
-      const modelId = modelFor('familyQuestions');
-      const parsedResponse = extractJsonFromResponse(responseBuffer, modelId);
-
-      // Parse the response
       let options: QuestionOption[];
-      // Get the actual response text
-      const responseText = parsedResponse.rawText || JSON.stringify(parsedResponse);
-
       try {
-        // Extract JSON from response
-        const jsonMatch = responseText.match(/\[[\s\S]*\]/);
-        if (!jsonMatch) {
-          throw new Error('No JSON array found in response');
-        }
-
-        options = JSON.parse(jsonMatch[0]);
-
-        // Validate we have exactly 3 options
-        if (!Array.isArray(options) || options.length !== 3) {
-          throw new Error('Expected exactly 3 question options');
-        }
-
+        const answer = await askStructured({
+          task: 'familyQuestions',
+          system: COACH,
+          prompt: `${contextPrompt}\n\n${userPrompt}`,
+          maxTokens: 1024,
+          temperature: 0.9,
+          name: 'question_options',
+          description: 'Exactly three question options, each with its theme.',
+          schema: OPTIONS_SCHEMA,
+          check: isThreeOptions,
+          why: () => 'there must be exactly three options, each with a question',
+        });
         // Ensure all options have required fields
-        options = options.map((opt, index) => ({
+        options = answer.options.map((opt, index) => ({
           id: opt.id || String(index + 1),
           question: opt.question || "What's something interesting about your day?",
           theme: opt.theme || (theme ? theme : undefined),
         }));
-      } catch (parseError) {
-        logger.error('Failed to parse AI response', {
-          error: parseError,
-          response: responseText.substring(0, 200),
-        });
-
+      } catch (invalid) {
+        if (!(invalid instanceof AiOutputInvalid)) throw invalid;
+        logger.error('Failed to parse AI response', { problem: invalid.problem });
         // Fallback options
         options = generateFallbackOptions(theme);
       }

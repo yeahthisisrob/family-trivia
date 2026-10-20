@@ -10,7 +10,7 @@ export { generateFunFact } from './questions/funFact';
 export { generateUniqueQuestion } from './questions/personal';
 // Export question generation functionality
 // Export validation utilities
-export { generateQuestion, validateQuestion } from './questions/trivia';
+export { generateQuestion } from './questions/trivia';
 export type { ProgressMessage, QuestionWithProgress } from './questions/triviaWithProgress';
 // Export enhanced question generation with progress
 export {

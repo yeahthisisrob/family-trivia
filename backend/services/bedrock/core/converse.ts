@@ -190,6 +190,17 @@ export async function askStructured<T>(ask: Structured<T>): Promise<T> {
   );
 }
 
+/**
+ * The answer, or `fallback` when it was refused as the wrong shape, for
+ * callers that carry on without one. Any other error still throws.
+ */
+export function unlessInvalid<T, F>(answer: Promise<T>, fallback: F): Promise<T | F> {
+  return answer.catch((err: unknown) => {
+    if (err instanceof AiOutputInvalid) return fallback;
+    throw err;
+  });
+}
+
 /** For tests: talk to a stand-in instead of Bedrock. */
 export const setBedrockClient = (c: BedrockRuntimeClient | null) => {
   client = c;

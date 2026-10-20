@@ -24,12 +24,16 @@ import {
   type Question,
   wordsIn,
 } from '@family-trivia/shared';
-import { invokeBedrockPrompt } from './bedrock/core/bedrockClient';
 import { POINT_MULTIPLIERS } from './bedrock/core/constants';
+import { askStructured, unlessInvalid } from './bedrock/core/converse';
 import { circleFrame } from './bedrock/core/frame';
 import { modelFor } from './bedrock/core/models';
-import { collectResponseBody, extractJsonFromResponse } from './bedrock/core/responseParser';
 import type { DifficultyLevel } from './bedrock/core/types';
+import {
+  CHOICE_QUESTION_FIELDS,
+  type ChoiceQuestion,
+  isChoiceQuestion,
+} from './bedrock/questions/choiceQuestion';
 import { isDuplicateQuestion } from './bedrock/questions/utils';
 import { getAllFactHistories } from './factHistoryService';
 import { loadJoined } from './family/joined';
@@ -183,6 +187,19 @@ export function groundedIn(q: { answer: string }, source: Source): boolean {
   return words.length > 0 && words.filter((w) => said.has(w)).length / words.length >= 0.5;
 }
 
+const SOURCED_SCHEMA = {
+  type: 'object',
+  properties: {
+    ...CHOICE_QUESTION_FIELDS,
+    source: { type: 'integer', description: 'The [number] of the answer it comes from' },
+  },
+  required: ['question', 'choices', 'answer', 'source'],
+};
+
+/** A choice question that says which answer it comes from. */
+export const isSourcedQuestion = (v: unknown): v is ChoiceQuestion & { source: number } =>
+  isChoiceQuestion(v) && Number.isInteger((v as { source?: unknown }).source);
+
 async function answerQuestion(
   model: string,
   family: Family,
@@ -212,18 +229,25 @@ Return only JSON: {"question": "...", "choices": ["...", "...", "...", "..."], "
 - The answer must be one of the choices and must be true according to that answer. Invent nothing.
 - The answer must not appear in the question.
 - Never mention divorce, separation or former partners.`;
-  const stream = await invokeBedrockPrompt(prompt, 400, 0.8, { task: 'trivia' }, model);
-  const parsed = extractJsonFromResponse(await collectResponseBody(stream), model) as Record<
-    string,
-    unknown
-  >;
-  const source = sources.find((s) => s.n === Number(parsed.source));
-  const choices = Array.isArray(parsed.choices)
-    ? parsed.choices.filter((c): c is string => typeof c === 'string')
-    : [];
-  const question = typeof parsed.question === 'string' ? parsed.question.trim() : '';
-  const answer = typeof parsed.answer === 'string' ? parsed.answer : '';
-  if (!source || !question || choices.length !== 4 || !choices.includes(answer)) return null;
+  // An answer that never takes the right shape is no question, as before.
+  const parsed = await unlessInvalid(
+    askStructured({
+      task: 'trivia',
+      prompt,
+      maxTokens: 400,
+      temperature: 0.8,
+      model,
+      name: 'family_question',
+      description: 'The question, four choices, the correct one and the [number] it comes from.',
+      schema: SOURCED_SCHEMA,
+      check: isSourcedQuestion,
+    }),
+    null,
+  );
+  const source = parsed && sources.find((s) => s.n === parsed.source);
+  if (!parsed || !source) return null;
+  const question = parsed.question.trim();
+  const { choices, answer } = parsed;
   if (question.toLowerCase().includes(answer.toLowerCase()) || !groundedIn({ answer }, source)) {
     logger.info('Family question not grounded in its answer; dropped', {
       question: question.slice(0, 60),
