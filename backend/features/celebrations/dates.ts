@@ -39,7 +39,11 @@ export async function personBirthdays(): Promise<PersonBirthday[]> {
       const recorded = parseMonthDay(p.born?.date);
       if (recorded && p.born?.date) return { ...base, ...pick(recorded), raw: p.born.date };
       const answer = (await getFactHistory(p.id)).find(
-        (e) => e.questionType === 'basic' && e.questionIndex === BIRTHDAY_QUESTION && e.answered,
+        (e) =>
+          !e.from &&
+          e.questionType === 'basic' &&
+          e.questionIndex === BIRTHDAY_QUESTION &&
+          e.answered,
       );
       const parsed = parseMonthDay(answer?.answer);
       return parsed && answer

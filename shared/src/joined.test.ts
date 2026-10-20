@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { joinPeople, maybeSame, type SourcePeople, sourceOfKey } from './joined';
+import {
+  joinPeople,
+  maybeSame,
+  ownAnswers,
+  type SourcePeople,
+  sharesInto,
+  sourceOfKey,
+  withSourceAnswers,
+} from './joined';
 import type { Family, FamilyPerson } from './people';
 
 const person = (id: string, extra: Partial<FamilyPerson> = {}): FamilyPerson => ({
@@ -149,5 +157,39 @@ describe('same person', () => {
       notSame: [],
     });
     expect(bobs).toEqual([]);
+  });
+});
+
+describe('past answers seen from a joined circle', () => {
+  const e = (answer: string, from?: { circleId: string; name: string }) => ({
+    answer,
+    ...(from && { from }),
+  });
+
+  it('shares from a family circle by default, never from friends unless chosen', () => {
+    expect(sharesInto({}, 'al', { id: 'home', kind: 'family' })).toBe(true);
+    expect(sharesInto({}, 'al', { id: 'crew', kind: 'friends' })).toBe(false);
+    expect(sharesInto({ al: { crew: true } }, 'al', { id: 'crew', kind: 'friends' })).toBe(true);
+    expect(sharesInto({ al: { home: false } }, 'al', { id: 'home', kind: 'family' })).toBe(false);
+  });
+
+  it("marks each source's answers, keeps the circle's own first, and never re-marks", () => {
+    const merged = withSourceAnswers(
+      [e('Ramen')],
+      [
+        {
+          circleId: 'home',
+          name: 'The Smiths',
+          entries: [e('Pizza'), e('Old', { circleId: 'x', name: 'X' })],
+        },
+      ],
+    );
+    expect(merged).toEqual([e('Ramen'), e('Pizza', { circleId: 'home', name: 'The Smiths' })]);
+    expect(ownAnswers(merged ?? [])).toEqual([e('Ramen')]);
+  });
+
+  it('is null when there is nothing anywhere', () => {
+    expect(withSourceAnswers(null, [{ circleId: 'home', name: 'H', entries: null }])).toBeNull();
+    expect(withSourceAnswers([], [])).toEqual([]);
   });
 });

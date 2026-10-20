@@ -147,7 +147,7 @@
       "file": "profile.png",
       "story": "profile-storyprofile--you",
       "size": "desktop",
-      "source": "1e68ee65cd85",
+      "source": "e2310589067a",
       "storyFile": "frontend/src/features/profile/ui/StoryProfile.stories.tsx"
     },
     {
@@ -177,6 +177,14 @@
       "size": "desktop",
       "source": "c4211e0b60fc",
       "storyFile": "frontend/src/features/settings/ui/SettingsPage.stories.tsx"
+    },
+    {
+      "file": "sharing-card.png",
+      "story": "features-circles-sharingcard--in-two-circles",
+      "size": "phone",
+      "selector": ".MuiCard-root",
+      "storyFile": "frontend/src/features/shared-answers/ui/SharingCard.stories.tsx",
+      "source": "3c6c1e51ad88"
     },
     {
       "file": "slot-machine.png",

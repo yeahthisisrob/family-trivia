@@ -1899,6 +1899,48 @@ paths:
         "403": { description: Not an admin in every circle joined }
         "409": { description: These circles are joined already }
 
+  /me/sharing:
+    get:
+      summary: "In a joined circle: each circle the caller's past answers could come from, and whether they show here (on by default only from a family circle)"
+      operationId: getSharing
+      tags: [Circles]
+      responses:
+        "200":
+          description: The circles, empty outside a joined circle
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [from]
+                properties:
+                  from: { type: array, items: { $ref: "#/components/schemas/SharedFrom" } }
+    put:
+      summary: Show the caller's past answers from one of their circles in this joined circle, or keep them out. Nothing is copied; the answers stay where they were given.
+      operationId: setSharing
+      tags: [Circles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [circleId, shared]
+              properties:
+                circleId: { type: string }
+                shared: { type: boolean }
+      responses:
+        "200":
+          description: The circles, after the change
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [from]
+                properties:
+                  from: { type: array, items: { $ref: "#/components/schemas/SharedFrom" } }
+        "400": { description: "Not a joined circle, or a missing field" }
+        "404": { description: "Not one of the caller's circles here" }
+
   /admin/circles/same:
     get:
       summary: "In a joined circle: people who might be one person (the same name in two circles, not both signed in), for an admin to answer"
@@ -5010,6 +5052,15 @@ components:
       properties:
         circleId: { type: string }
         id: { type: string }
+    SharedFrom:
+      type: object
+      description: "A circle someone's past answers could show from, in a joined circle (docs/decisions/0018)"
+      required: [circleId, name, kind, shared]
+      properties:
+        circleId: { type: string }
+        name: { type: string }
+        kind: { type: string, enum: [family, friends, mixed] }
+        shared: { type: boolean }
     SameSuggestion:
       type: object
       required: [a, b]

@@ -56,25 +56,39 @@ export function logicalKey(physical: string): string | null {
 // ── Linked keys: what a joined circle reads from its sources ─────
 
 /**
- * Keys a joined circle reads through from its sources, by the reader
+ * Keys a joined circle reads through from its sources, by the links
  * services/family/joinedCircles.ts registers. Storage asks here first, so no
  * feature knows a circle is joined.
  * - people: the sources' alone; the joined circle can't write them.
  * - overlay: its own, together with the sources' (who has played).
+ * - personal: one person's file (their answers), their own here together
+ *   with what they share from each source. Written back as their own only.
  */
-const LINKED_KEYS: Record<string, 'people' | 'overlay'> = {
+type Link = 'people' | 'overlay' | 'personal';
+const LINKED_KEYS: Record<string, Link> = {
   'family/family.json': 'people',
   'family/hierarchy.json': 'people',
   'config/users.json': 'people',
   'config/google-auth-map.json': 'people',
   'config/member-activation.json': 'overlay',
 };
+/** Folders of per-person files: `{folder}{personId}.json`. */
+const PERSONAL_FOLDERS = ['facts/answers/'];
 
-type LinkedReader = (key: string, scope: Scope, own: unknown) => Promise<unknown>;
-let linkedReader: LinkedReader | null = null;
+const personalFolder = (key: string) =>
+  PERSONAL_FOLDERS.find((f) => key.startsWith(f) && /^[^/]+\.json$/.test(key.slice(f.length)));
 
-export const setLinkedReader = (reader: LinkedReader) => {
-  linkedReader = reader;
+export interface Links {
+  read: (key: string, scope: Scope, own: unknown) => Promise<unknown>;
+  /** A personal folder's keys: the circle's own and the shared ones from its sources. */
+  list: (folder: string, scope: Scope, own: string[]) => Promise<string[]>;
+  /** What of a personal file is the circle's own, to store. */
+  own: (key: string, value: unknown) => unknown;
+}
+let links: Links | null = null;
+
+export const setLinks = (l: Links) => {
+  links = l;
 };
 
 /** Thrown for a write a joined circle can't take: its people live in its sources. */
@@ -90,9 +104,9 @@ export class PeopleLiveInSources extends Error {
  * circle is chosen, so a global key, or work with no circle yet, is never
  * linked (and never asks for the current circle).
  */
-function linkOf(key: string): { scope: Scope; link: 'people' | 'overlay' } | undefined {
+function linkOf(key: string): { scope: Scope; link: Link } | undefined {
   if (isGlobalKey(key)) return undefined;
-  const link = LINKED_KEYS[key];
+  const link = LINKED_KEYS[key] ?? (personalFolder(key) ? 'personal' : undefined);
   const scope = link ? (store.getStore() ?? fallback) : null;
   return link && scope?.sources?.length ? { scope, link } : undefined;
 }
@@ -106,9 +120,22 @@ export async function linkedRead(
   own: () => Promise<unknown>,
 ): Promise<{ value: unknown } | undefined> {
   const linked = linkOf(key);
-  if (!linked || !linkedReader) return undefined;
-  const mine = linked.link === 'overlay' ? await own() : null;
-  return { value: await linkedReader(key, linked.scope, mine) };
+  if (!linked || !links) return undefined;
+  const mine = linked.link === 'people' ? null : await own();
+  return { value: await links.read(key, linked.scope, mine) };
+}
+
+/** What to store for a write: a personal file keeps only the circle's own part. */
+export function linkedWrite<T>(key: string, value: T): T {
+  return linkOf(key)?.link === 'personal' && links ? (links.own(key, value) as T) : value;
+}
+
+/** A listing's keys, with a joined circle's shared personal files added. */
+export async function linkedList(prefix: string, own: string[]): Promise<string[]> {
+  if (!PERSONAL_FOLDERS.includes(prefix) || !links) return own;
+  const scope = store.getStore() ?? fallback;
+  if (!scope?.sources?.length) return own;
+  return links.list(prefix, scope, own);
 }
 
 /** Throws for a write to a joined circle's people. */

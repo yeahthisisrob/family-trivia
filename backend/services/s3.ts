@@ -11,7 +11,15 @@ import {
 } from '@aws-sdk/client-s3';
 import { BUCKET, REGION } from '../config';
 import { logger } from './logger';
-import { assertWritable, isGlobalKey, linkedRead, logicalKey, physicalKey } from './scope';
+import {
+  assertWritable,
+  isGlobalKey,
+  linkedList,
+  linkedRead,
+  linkedWrite,
+  logicalKey,
+  physicalKey,
+} from './scope';
 
 // Initialize S3 client
 const s3 = new S3Client({
@@ -164,7 +172,7 @@ export async function putJson(logical: string, data: any): Promise<void> {
       new PutObjectCommand({
         Bucket: BUCKET,
         Key: key,
-        Body: JSON.stringify(data),
+        Body: JSON.stringify(linkedWrite(logical, data)),
         ContentType: 'application/json',
       }),
     );
@@ -287,7 +295,7 @@ export async function listObjects(logicalPrefix: string, maxKeys = 1000): Promis
     } while (continuationToken && objectKeys.length < maxKeys);
 
     logger.info('Listed S3 objects', { count: objectKeys.length, prefix });
-    return objectKeys;
+    return linkedList(logicalPrefix, objectKeys);
   } catch (err: any) {
     logger.error('S3 list error', {
       prefix,

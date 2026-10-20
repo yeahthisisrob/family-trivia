@@ -95,8 +95,9 @@ test *args:
     {{x}} pnpm -r run test {{args}}
 
 # Everything GitHub checks on a pull request, in the same order, before
-# pushing: lint, leaks, dead code, types, tests, contract, screenshots, build,
-# then the stories with CI's two workers and the dark-mode audit
+# pushing: lint, leaks, dead code, types, tests, contract (regenerated: commit
+# what changes), screenshots, build, then the stories with CI's two workers
+# and the dark-mode audit
 [group('check')]
 ci:
     {{x}} pnpm exec biome ci .
@@ -105,7 +106,6 @@ ci:
     {{x}} pnpm -r run typecheck
     {{x}} pnpm -r run test
     {{x}} pnpm --filter @family-trivia/shared run contract
-    git diff --exit-code --stat shared/generated
     {{x}} node scripts/check-screenshots.mjs
     {{x}} pnpm -r run build
     {{x}} pnpm --filter @family-trivia/web exec vitest run --project=storybook --maxWorkers=2

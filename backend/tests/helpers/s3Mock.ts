@@ -16,7 +16,9 @@ import type { HistoryEntry } from '@family-trivia/shared';
 import {
   assertWritable,
   isGlobalKey,
+  linkedList,
   linkedRead,
+  linkedWrite,
   logicalKey,
   physicalKey,
 } from '../../services/scope';
@@ -107,7 +109,7 @@ async function getJson<T>(key: string): Promise<T | null> {
 async function putJson(key: string, data: unknown): Promise<void> {
   assertWritable(key);
   // Deep-clone to simulate round-trip serialization
-  store.set(physicalKey(key), JSON.parse(JSON.stringify(data)));
+  store.set(physicalKey(key), JSON.parse(JSON.stringify(linkedWrite(key, data))));
 }
 
 async function listObjects(prefix: string, _maxKeys = 1000): Promise<string[]> {
@@ -117,7 +119,7 @@ async function listObjects(prefix: string, _maxKeys = 1000): Promise<string[]> {
     const key = k.startsWith(real) ? (isGlobalKey(prefix) ? k : logicalKey(k)) : null;
     if (key) keys.push(key);
   }
-  return keys;
+  return linkedList(prefix, keys);
 }
 
 async function deleteObject(key: string): Promise<void> {

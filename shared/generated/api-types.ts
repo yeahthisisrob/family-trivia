@@ -872,6 +872,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/sharing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** In a joined circle: each circle the caller's past answers could come from, and whether they show here (on by default only from a family circle) */
+        get: operations["getSharing"];
+        /** Show the caller's past answers from one of their circles in this joined circle, or keep them out. Nothing is copied; the answers stay where they were given. */
+        put: operations["setSharing"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/circles/same": {
         parameters: {
             query?: never;
@@ -2643,6 +2661,14 @@ export interface components {
         PersonIn: {
             circleId: string;
             id: string;
+        };
+        /** @description A circle someone's past answers could show from, in a joined circle (docs/decisions/0018) */
+        SharedFrom: {
+            circleId: string;
+            name: string;
+            /** @enum {string} */
+            kind: "family" | "friends" | "mixed";
+            shared: boolean;
         };
         SameSuggestion: {
             a: components["schemas"]["PersonIn"] & {
@@ -5262,6 +5288,71 @@ export interface operations {
             };
             /** @description These circles are joined already */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getSharing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The circles, empty outside a joined circle */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        from: components["schemas"]["SharedFrom"][];
+                    };
+                };
+            };
+        };
+    };
+    setSharing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    circleId: string;
+                    shared: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description The circles, after the change */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        from: components["schemas"]["SharedFrom"][];
+                    };
+                };
+            };
+            /** @description Not a joined circle, or a missing field */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not one of the caller's circles here */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

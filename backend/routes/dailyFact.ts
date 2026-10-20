@@ -612,6 +612,7 @@ export async function submitDailyFact(event: APIGatewayProxyEvent): Promise<APIG
       const history = await getFactHistory(userId);
       const priorReal = history.find(
         (e) =>
+          !e.from &&
           e.questionType === 'basic' &&
           e.questionIndex === resolvedQuestionIndex &&
           isRealAnswer(e),

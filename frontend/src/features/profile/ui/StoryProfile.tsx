@@ -47,6 +47,7 @@ import { AvatarPicker } from '../../avatar-picker';
 import { FillIn } from '../../fill-in';
 import { PersonBookButton } from '../../person-book';
 import { RememberingPage } from '../../remembering';
+import { inJoinedCircle, SharingChoices } from '../../shared-answers';
 import { Loves } from './Loves';
 
 const LATELY = 5;
@@ -98,9 +99,9 @@ const Said: React.FC<{ w: StoryWord; color: string; note?: string | null; fact?:
         Did you know? {w.fact}
       </Typography>
     )}
-    {note && (
+    {(note || w.from) && (
       <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-        {note}
+        {[note, w.from && `in ${w.from}`].filter(Boolean).join(' · ')}
       </Typography>
     )}
   </Box>
@@ -468,6 +469,12 @@ export const StoryProfile: React.FC<{
 
       {story && story.words.length === 0 && !isMe && (
         <Typography sx={{ color: 'text.secondary' }}>{name} hasn’t shared anything yet.</Typography>
+      )}
+
+      {isMe && inJoinedCircle() && (
+        <Section title="Your answers from your other circles">
+          <SharingChoices />
+        </Section>
       )}
 
       {isMe && (

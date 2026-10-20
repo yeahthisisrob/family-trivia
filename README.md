@@ -204,6 +204,10 @@ In more than one circle? Open **Your world** from the circle menu: all your circ
 
 Want the family and the old crew together for the holidays? In Admin › Circles, **Join circles** makes one more circle from two or more: everyone in them plays together, with its own seasons, and the people and how they're connected come from the circles they're in, so nothing is copied. Someone in both circles without a sign-in, like a grandparent remembered in each, is suggested once and becomes one person with a tap. Split it when it's done: its season pauses, nothing is deleted, and joining the same circles again picks up where you left off.
 
+Everyone's past answers come along too, so the joined circle's story, look backs and games start with everyone's history. Each person chooses: a card on Home asks once, with a switch for each of their circles. Answers from a family circle show unless they turn them off; from any other circle only if they turn them on. Nothing is copied, and turning one off stops it showing at once.
+
+![Your answers here: a switch for each of your circles](docs/screenshots/sharing-card.png)
+
 ![Joining circles: pick two or more, and it's named after them](docs/screenshots/join-circles.png)
 
 ## Teams
