@@ -10,11 +10,31 @@ import {
   markThreadRead as apiMarkThreadRead,
   getNotifications,
 } from '../api/modules/notifications';
+import { notificationMessage } from '../components/Notifications/notificationText';
+import { useToast } from '../shared/toast';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('NotificationContext');
 
 const POLL_INTERVAL = 60_000; // 60 seconds
+
+/** Opens the bell's panel from anywhere (a toast's View, for one). */
+const OPEN_EVENT = 'ft:open-notifications';
+const openNotifications = () => window.dispatchEvent(new Event(OPEN_EVENT));
+export const onOpenNotifications = (f: () => void) => {
+  window.addEventListener(OPEN_EVENT, f);
+  return () => window.removeEventListener(OPEN_EVENT, f);
+};
+
+/** The unread count on the home-screen icon, where the phone supports it. */
+function setAppBadge(count: number) {
+  const nav = navigator as Navigator & {
+    setAppBadge?: (n?: number) => Promise<void>;
+    clearAppBadge?: () => Promise<void>;
+  };
+  const done = count > 0 ? nav.setAppBadge?.(count) : nav.clearAppBadge?.();
+  done?.catch(() => undefined);
+}
 
 // ── Context Type ──────────────────────────────────────────────────
 
@@ -40,6 +60,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ user
   const [summary, setSummary] = useState<NotificationSummary>({ unreadCount: 0, items: [] });
   const [loading, setLoading] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const toast = useToast();
+  // Ids already seen while the app is open: only what arrives after shows a toast.
+  const seen = useRef<Set<string> | null>(null);
 
   const fetchNotifications = useCallback(async () => {
     if (!userId) return;
@@ -47,30 +70,51 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ user
       setLoading(true);
       const data = await getNotifications(userId);
       // Guard against malformed/empty response
-      setSummary({
-        unreadCount: data?.unreadCount ?? 0,
-        items: Array.isArray(data?.items) ? data.items : [],
-      });
+      const items = Array.isArray(data?.items) ? data.items : [];
+      const fresh = seen.current ? items.filter((i) => !i.read && !seen.current?.has(i.id)) : [];
+      seen.current = new Set(items.map((i) => i.id));
+      if (fresh.length)
+        toast({
+          message:
+            fresh.length === 1 ? notificationMessage(fresh[0]) : `${fresh.length} new for you`,
+          action: { label: 'View', onClick: openNotifications },
+        });
+      setSummary({ unreadCount: data?.unreadCount ?? 0, items });
     } catch (err) {
       logger.error('Failed to fetch notifications', err);
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, toast]);
 
   // Delayed initial fetch — don't compete with app-init for bandwidth.
-  // First fetch after 3s, then poll every 60s.
+  // First fetch after 3s, then poll every 60s while the app is on screen. Coming
+  // back to it (the home-screen app, a tab) checks at once (0031).
   useEffect(() => {
     if (!userId) return;
+    const start = () => {
+      clearInterval(pollRef.current);
+      if (document.hidden) return;
+      pollRef.current = setInterval(fetchNotifications, POLL_INTERVAL);
+    };
     const initialDelay = setTimeout(() => {
       fetchNotifications();
-      pollRef.current = setInterval(fetchNotifications, POLL_INTERVAL);
+      start();
     }, 3000);
+    const onVisible = () => {
+      if (document.hidden) return clearInterval(pollRef.current);
+      fetchNotifications();
+      start();
+    };
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
       clearTimeout(initialDelay);
       clearInterval(pollRef.current);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [userId, fetchNotifications]);
+
+  useEffect(() => setAppBadge(summary.unreadCount), [summary.unreadCount]);
 
   const markRead = useCallback(
     async (contentType: CommentContentType, contentId: string) => {

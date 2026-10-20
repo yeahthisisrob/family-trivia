@@ -5,8 +5,8 @@ import type { NotificationItem } from '@family-trivia/shared';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import { Badge, IconButton } from '@mui/material';
 import type React from 'react';
-import { useCallback, useState } from 'react';
-import { useNotifications } from '../../contexts/NotificationContext';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { onOpenNotifications, useNotifications } from '../../contexts/NotificationContext';
 import { colors, tint } from '../../shared/design-system';
 import NotificationPanel from './NotificationPanel';
 
@@ -21,6 +21,10 @@ const onHeader = `var(--ft-on-header, ${colors.onColor})`;
 const NotificationBell: React.FC<Props> = ({ onNotificationClick }) => {
   const { unreadCount, notifications, markAllRead, markRead } = useNotifications();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const button = useRef<HTMLButtonElement>(null);
+
+  // A toast's View opens the panel here.
+  useEffect(() => onOpenNotifications(() => setAnchorEl(button.current)), []);
 
   const handleOpen = useCallback((e: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(e.currentTarget);
@@ -49,7 +53,9 @@ const NotificationBell: React.FC<Props> = ({ onNotificationClick }) => {
   return (
     <>
       <IconButton
+        ref={button}
         size="small"
+        aria-label={unreadCount ? `Notifications, ${unreadCount} new` : 'Notifications'}
         onClick={handleOpen}
         sx={{
           color: tint(onHeader, 0.85),

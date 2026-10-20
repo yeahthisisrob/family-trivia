@@ -18,6 +18,7 @@ import { appearanceApi } from './entities/appearance';
 import { useFeatures } from './entities/settings';
 import { UpcomingDates } from './features/celebrations';
 import { DailyMemory } from './features/daily-memory';
+import { InstallCard } from './features/install-app';
 import { AfterCard, PlansCard } from './features/plans';
 import { TeamsCard } from './features/teams';
 import { ThreadCard } from './features/threads';
@@ -161,6 +162,9 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
         nameOf={nameOf}
         onPlay={() => navigateTo(ROUTES.PLAY)}
       />
+
+      {/* On a phone that hasn't added the app: once, how to (0031) */}
+      <InstallCard />
 
       {/* ── Your turn: what's yours to do today ── */}
 

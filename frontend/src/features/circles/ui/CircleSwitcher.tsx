@@ -1,5 +1,6 @@
 import type { MyCircle } from '@family-trivia/shared';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import AddToHomeScreenRoundedIcon from '@mui/icons-material/AddToHomeScreen';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
@@ -22,6 +23,7 @@ import {
 import type React from 'react';
 import { useState } from 'react';
 import { KIND_ICON, KIND_LABEL } from '../../../entities/circle';
+import { InstallDialog, useInstall } from '../../install-app';
 import { YourWorld } from '../../your-world';
 import { useMyCircles } from '../model/useMyCircles';
 
@@ -48,6 +50,8 @@ export const CircleSwitcher: React.FC<Props> = ({ fallbackTitle, color, mutedCol
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [joining, setJoining] = useState(false);
   const [world, setWorld] = useState(false);
+  const [install, setInstall] = useState(false);
+  const { installed } = useInstall();
   const several = circles.length > 1;
 
   return (
@@ -114,9 +118,23 @@ export const CircleSwitcher: React.FC<Props> = ({ fallbackTitle, color, mutedCol
           </ListItemIcon>
           <ListItemText primary="Join another circle" />
         </MenuItem>
+        {!installed && (
+          <MenuItem
+            onClick={() => {
+              setAnchor(null);
+              setInstall(true);
+            }}
+          >
+            <ListItemIcon>
+              <AddToHomeScreenRoundedIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Add to Home Screen" secondary="Open it like an app" />
+          </MenuItem>
+        )}
       </Menu>
 
       <JoinDialog open={joining} onClose={() => setJoining(false)} onJoin={join} />
+      <InstallDialog open={install} onClose={() => setInstall(false)} />
       {world && <YourWorld onClose={() => setWorld(false)} />}
     </>
   );

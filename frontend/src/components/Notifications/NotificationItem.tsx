@@ -2,7 +2,6 @@
 // Single notification row — unread dot, avatar, message, time-ago.
 
 import type { NotificationItem as NotificationItemType } from '@family-trivia/shared';
-import { reactionById } from '@family-trivia/shared';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlined';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import PeopleIcon from '@mui/icons-material/People';
@@ -15,6 +14,7 @@ import type React from 'react';
 import { PersonAvatar } from '../../entities/person';
 import { colors } from '../../shared/design-system';
 import { getUserColor, getUserInitials } from '../../utils';
+import { notificationDetail, notificationMessage } from './notificationText';
 
 interface Props {
   item: NotificationItemType;
@@ -37,7 +37,6 @@ const NotificationItem: React.FC<Props> = ({ item, onClick }) => {
   const isFeud = item.type === 'family_feud';
   const isAlbumAdded = item.type === 'album_added';
   const isReaction = item.type === 'reaction';
-  const reaction = isReaction && item.reaction ? reactionById(item.reaction) : null;
   const displayUser = isComment
     ? item.commentUserId
     : isReaction
@@ -50,17 +49,6 @@ const NotificationItem: React.FC<Props> = ({ item, onClick }) => {
             ? item.albumAddedBy
             : item.newLeaderId;
 
-  const GAME_LABELS: Record<string, string> = {
-    tetris: 'Tetris',
-    curling: 'Curling',
-    'slot-machine': 'Slots',
-    snake: 'Snake',
-    crossword: 'Crossword',
-    blackjack: 'Blackjack',
-    casino: 'Casino',
-  };
-  const gameLabel = item.gameId ? (GAME_LABELS[item.gameId] ?? item.gameId) : '';
-
   const contentLabel =
     item.contentType === 'fact'
       ? 'Fact'
@@ -72,39 +60,8 @@ const NotificationItem: React.FC<Props> = ({ item, onClick }) => {
             ? 'Arcade'
             : '';
 
-  const message = reaction
-    ? `${item.reactionUserId} reacted ${reaction.emoji} to your ${item.contentType === 'trivia' ? 'answer' : 'fact'}`
-    : isComment
-      ? `${item.commentUserId} commented${item.threadCommentCount && item.threadCommentCount > 1 ? ` (${item.threadCommentCount} new)` : ''}`
-      : isHighScore
-        ? `${item.scoreUserId} set a new ${gameLabel} high score!`
-        : isFeud
-          ? item.feudEventType === 'new_round'
-            ? `New Family Feud! About ${item.feudTargetName}`
-            : `Family Feud results are in! ${item.feudWinnerCount === 0 ? 'Nobody guessed right!' : `${item.feudWinnerCount} got it right`}`
-          : isAlbumAdded
-            ? `${item.albumAddedBy} shared a new album`
-            : item.leaderType === 'group'
-              ? `${item.newLeaderId} is now the top team!`
-              : item.podiumPosition === 1
-                ? `${item.newLeaderId} took the lead!`
-                : item.podiumPosition === 2
-                  ? `${item.newLeaderId} moved into 2nd place!`
-                  : item.podiumPosition === 3
-                    ? `${item.newLeaderId} cracked the top 3!`
-                    : `${item.newLeaderId} took the lead!`;
-
-  const detail = isComment
-    ? item.commentText
-    : isHighScore
-      ? `Score: ${item.score?.toLocaleString()}${item.rank === 1 ? ' — #1 overall!' : item.rank ? ` — Rank #${item.rank}` : ''}`
-      : isFeud
-        ? item.feudEventType === 'new_round'
-          ? `"${item.feudQuestion}"`
-          : `About ${item.feudTargetName} — ${item.feudTotalGuesses} guesses`
-        : isAlbumAdded
-          ? item.albumName
-          : undefined;
+  const message = notificationMessage(item);
+  const detail = notificationDetail(item);
 
   return (
     <Box

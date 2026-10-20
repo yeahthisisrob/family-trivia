@@ -1,36 +1,12 @@
 {
   "shots": [
     {
-      "file": "family-home.png",
-      "story": "family-familyhome--story-first",
-      "size": "desktop",
-      "source": "64b9605bb41b",
-      "storyFile": "frontend/src/features/family-home/ui/FamilyHome.stories.tsx"
-    },
-    {
-      "file": "family-map.png",
-      "story": "family-familymap--our-map",
-      "size": "desktop",
-      "scheme": "dark",
-      "source": "18c6d1d1c457",
-      "height": 640,
-      "storyFile": "frontend/src/features/family-graph/ui/FamilyMap.stories.tsx"
-    },
-    {
-      "file": "family-graph.png",
-      "story": "family-familygraph--blended-family",
-      "size": "desktop",
-      "scheme": "dark",
-      "height": 520,
-      "source": "74824fcd1331",
-      "storyFile": "frontend/src/features/family-graph/ui/FamilyGraph.stories.tsx"
-    },
-    {
-      "file": "look-back.png",
-      "story": "family-seasonlookback--a-season",
-      "size": "desktop",
-      "source": "e6c361ea22fb",
-      "storyFile": "frontend/src/features/look-back/ui/SeasonLookBack.stories.tsx"
+      "file": "avatar-picker.png",
+      "story": "profile-avatarpicker--already-chosen",
+      "size": "phone",
+      "selector": ".MuiDialog-paper",
+      "storyFile": "frontend/src/features/avatar-picker/ui/AvatarPicker.stories.tsx",
+      "source": "a014d24cc712"
     },
     {
       "file": "book-dialog.png",
@@ -41,32 +17,26 @@
       "storyFile": "frontend/src/features/look-back/ui/BookDialog.stories.tsx"
     },
     {
-      "file": "remembering.png",
-      "story": "family-rememberingpage--remembering",
-      "size": "desktop",
-      "source": "332805cd49bf",
-      "storyFile": "frontend/src/features/remembering/ui/RememberingPage.stories.tsx"
-    },
-    {
-      "file": "profile.png",
-      "story": "profile-storyprofile--you",
-      "size": "desktop",
-      "source": "1e68ee65cd85",
-      "storyFile": "frontend/src/features/profile/ui/StoryProfile.stories.tsx"
-    },
-    {
-      "file": "settings.png",
-      "story": "admin-settingspage--ai-and-cost",
-      "size": "desktop",
-      "source": "c4211e0b60fc",
-      "storyFile": "frontend/src/features/settings/ui/SettingsPage.stories.tsx"
-    },
-    {
-      "file": "trivia.png",
-      "story": "trivia-flow-triviaflow--game-modes-available",
+      "file": "casino-rush.png",
+      "story": "trivia-game-modes-casinorush--start-screen",
       "size": "phone",
-      "source": "82a92497699e",
-      "storyFile": "frontend/src/components/TriviaCard/TriviaFlow.stories.tsx"
+      "source": "81da04722e53",
+      "storyFile": "frontend/src/components/TriviaCard/CasinoRush.stories.tsx"
+    },
+    {
+      "file": "circles.png",
+      "story": "appshell-appheader--in-several-circles",
+      "size": "phone",
+      "height": 300,
+      "source": "83d4eed0e43f",
+      "storyFile": "frontend/src/components/AppShell/AppHeader.stories.tsx"
+    },
+    {
+      "file": "curling.png",
+      "story": "trivia-game-modes-curlinggame--idle",
+      "size": "phone",
+      "source": "f03937e26a7c",
+      "storyFile": "frontend/src/components/TriviaCard/CurlingGame.stories.tsx"
     },
     {
       "file": "daily-fact.png",
@@ -83,77 +53,36 @@
       "storyFile": "frontend/src/features/daily-memory/ui/DailyMemory.stories.tsx"
     },
     {
+      "file": "family-graph.png",
+      "story": "family-familygraph--blended-family",
+      "size": "desktop",
+      "scheme": "dark",
+      "height": 520,
+      "source": "74824fcd1331",
+      "storyFile": "frontend/src/features/family-graph/ui/FamilyGraph.stories.tsx"
+    },
+    {
+      "file": "family-home.png",
+      "story": "family-familyhome--story-first",
+      "size": "desktop",
+      "source": "64b9605bb41b",
+      "storyFile": "frontend/src/features/family-home/ui/FamilyHome.stories.tsx"
+    },
+    {
+      "file": "family-map.png",
+      "story": "family-familymap--our-map",
+      "size": "desktop",
+      "scheme": "dark",
+      "source": "18c6d1d1c457",
+      "height": 640,
+      "storyFile": "frontend/src/features/family-graph/ui/FamilyMap.stories.tsx"
+    },
+    {
       "file": "fill-in.png",
       "story": "profile-fillin--through-the-deck",
       "size": "phone",
       "source": "0d41eef83c58",
       "storyFile": "frontend/src/features/fill-in/ui/FillIn.stories.tsx"
-    },
-    {
-      "file": "spotlight.png",
-      "story": "family-spotlightcard--today",
-      "size": "phone",
-      "source": "a96693de0749",
-      "storyFile": "frontend/src/features/family-home/ui/SpotlightCard.stories.tsx"
-    },
-    {
-      "file": "podium.png",
-      "story": "leaderboard-podium--three-players",
-      "size": "phone",
-      "source": "973b9ecd4d28",
-      "storyFile": "frontend/src/components/Leaderboard/Podium.stories.tsx"
-    },
-    {
-      "file": "casino-rush.png",
-      "story": "trivia-game-modes-casinorush--start-screen",
-      "size": "phone",
-      "source": "81da04722e53",
-      "storyFile": "frontend/src/components/TriviaCard/CasinoRush.stories.tsx"
-    },
-    {
-      "file": "slot-machine.png",
-      "story": "trivia-game-modes-slotmachine--trivia-mode",
-      "size": "phone",
-      "source": "2de15cb6384c",
-      "storyFile": "frontend/src/components/TriviaCard/SlotMachine.stories.tsx"
-    },
-    {
-      "file": "curling.png",
-      "story": "trivia-game-modes-curlinggame--idle",
-      "size": "phone",
-      "source": "f03937e26a7c",
-      "storyFile": "frontend/src/components/TriviaCard/CurlingGame.stories.tsx"
-    },
-    {
-      "file": "tetris.png",
-      "story": "trivia-game-modes-tetrisgame--idle",
-      "size": "phone",
-      "source": "0846e47b55b3",
-      "storyFile": "frontend/src/components/TriviaCard/TetrisGame.stories.tsx"
-    },
-    {
-      "file": "circles.png",
-      "story": "appshell-appheader--in-several-circles",
-      "size": "phone",
-      "height": 300,
-      "source": "83d4eed0e43f",
-      "storyFile": "frontend/src/components/AppShell/AppHeader.stories.tsx"
-    },
-    {
-      "file": "join.png",
-      "story": "features-invites-joinscreen--friends-invite",
-      "size": "phone",
-      "height": 760,
-      "source": "c91bc7607cf9",
-      "storyFile": "frontend/src/features/invites/ui/JoinScreen.stories.tsx"
-    },
-    {
-      "file": "invites.png",
-      "story": "features-invites-invitesadmin--with-someone-waiting",
-      "size": "desktop",
-      "height": 640,
-      "source": "8157592db409",
-      "storyFile": "frontend/src/features/invites/ui/InvitesAdmin.stories.tsx"
     },
     {
       "file": "friend-ties.png",
@@ -164,19 +93,34 @@
       "source": "e1f9b33af4f9"
     },
     {
-      "file": "threads.png",
-      "story": "home-threadcard--how-do-you-know",
+      "file": "install-card.png",
+      "story": "home-installcard--i-phone",
       "size": "phone",
-      "storyFile": "frontend/src/features/threads/ui/ThreadCard.stories.tsx",
-      "source": "f3dc76d05533"
+      "storyFile": "frontend/src/features/install-app/ui/InstallCard.stories.tsx",
+      "source": "8873831f22c1"
     },
     {
-      "file": "avatar-picker.png",
-      "story": "profile-avatarpicker--already-chosen",
+      "file": "invites.png",
+      "story": "features-invites-invitesadmin--with-someone-waiting",
+      "size": "desktop",
+      "height": 640,
+      "source": "8157592db409",
+      "storyFile": "frontend/src/features/invites/ui/InvitesAdmin.stories.tsx"
+    },
+    {
+      "file": "join.png",
+      "story": "features-invites-joinscreen--friends-invite",
       "size": "phone",
-      "selector": ".MuiDialog-paper",
-      "storyFile": "frontend/src/features/avatar-picker/ui/AvatarPicker.stories.tsx",
-      "source": "6c9128d90adb"
+      "height": 760,
+      "source": "c91bc7607cf9",
+      "storyFile": "frontend/src/features/invites/ui/JoinScreen.stories.tsx"
+    },
+    {
+      "file": "look-back.png",
+      "story": "family-seasonlookback--a-season",
+      "size": "desktop",
+      "source": "e6c361ea22fb",
+      "storyFile": "frontend/src/features/look-back/ui/SeasonLookBack.stories.tsx"
     },
     {
       "file": "plans.png",
@@ -186,6 +130,20 @@
       "source": "7be8f1dcdf18"
     },
     {
+      "file": "podium.png",
+      "story": "leaderboard-podium--three-players",
+      "size": "phone",
+      "source": "973b9ecd4d28",
+      "storyFile": "frontend/src/components/Leaderboard/Podium.stories.tsx"
+    },
+    {
+      "file": "profile.png",
+      "story": "profile-storyprofile--you",
+      "size": "desktop",
+      "source": "1e68ee65cd85",
+      "storyFile": "frontend/src/features/profile/ui/StoryProfile.stories.tsx"
+    },
+    {
       "file": "remember-link.png",
       "story": "remembering-rememberscreen--the-link-page",
       "size": "phone",
@@ -193,11 +151,60 @@
       "source": "0d89bf562d6d"
     },
     {
+      "file": "remembering.png",
+      "story": "family-rememberingpage--remembering",
+      "size": "desktop",
+      "source": "332805cd49bf",
+      "storyFile": "frontend/src/features/remembering/ui/RememberingPage.stories.tsx"
+    },
+    {
+      "file": "settings.png",
+      "story": "admin-settingspage--ai-and-cost",
+      "size": "desktop",
+      "source": "c4211e0b60fc",
+      "storyFile": "frontend/src/features/settings/ui/SettingsPage.stories.tsx"
+    },
+    {
+      "file": "slot-machine.png",
+      "story": "trivia-game-modes-slotmachine--trivia-mode",
+      "size": "phone",
+      "source": "2de15cb6384c",
+      "storyFile": "frontend/src/components/TriviaCard/SlotMachine.stories.tsx"
+    },
+    {
+      "file": "spotlight.png",
+      "story": "family-spotlightcard--today",
+      "size": "phone",
+      "source": "a96693de0749",
+      "storyFile": "frontend/src/features/family-home/ui/SpotlightCard.stories.tsx"
+    },
+    {
       "file": "teams.png",
       "story": "home-teamscard--on-your-own",
       "size": "phone",
       "storyFile": "frontend/src/features/teams/ui/TeamsCard.stories.tsx",
       "source": "cb5f06f2564d"
+    },
+    {
+      "file": "tetris.png",
+      "story": "trivia-game-modes-tetrisgame--idle",
+      "size": "phone",
+      "source": "0846e47b55b3",
+      "storyFile": "frontend/src/components/TriviaCard/TetrisGame.stories.tsx"
+    },
+    {
+      "file": "threads.png",
+      "story": "home-threadcard--how-do-you-know",
+      "size": "phone",
+      "storyFile": "frontend/src/features/threads/ui/ThreadCard.stories.tsx",
+      "source": "f3dc76d05533"
+    },
+    {
+      "file": "trivia.png",
+      "story": "trivia-flow-triviaflow--game-modes-available",
+      "size": "phone",
+      "source": "82a92497699e",
+      "storyFile": "frontend/src/components/TriviaCard/TriviaFlow.stories.tsx"
     },
     {
       "file": "your-world.png",
