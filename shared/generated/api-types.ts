@@ -1062,6 +1062,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/teams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** This season's teams as the caller sees them (requests to them, theirs, standings) */
+        get: operations["getTeams"];
+        put?: never;
+        /** Start a team (you're its first member) */
+        post: operations["startTeam"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/teams/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ask to join a team ({ teamId }), or ask someone on their own to team up ({ to }) */
+        post: operations["askTeam"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/teams/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Say yes or no to a request for your team or for you */
+        post: operations["answerTeamRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/teams/leave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Leave your team (an empty team goes) */
+        post: operations["leaveTeam"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/threads/today": {
         parameters: {
             query?: never;
@@ -2401,6 +2470,37 @@ export interface components {
                 how?: string;
                 text: string;
                 at: string;
+            }[];
+        };
+        Team: {
+            id: string;
+            name: string;
+            members: string[];
+            createdAt: string;
+        };
+        TeamRequest: {
+            id: string;
+            /** @enum {string} */
+            kind: "join" | "team-up";
+            from: string;
+            teamId?: string;
+            to?: string;
+            at: string;
+        };
+        TeamsView: {
+            /** @description Whether this season is played in teams */
+            on: boolean;
+            teams: components["schemas"]["Team"][];
+            myTeam: string | null;
+            toMe: components["schemas"]["TeamRequest"][];
+            fromMe: components["schemas"]["TeamRequest"][];
+            standings: {
+                teamId: string;
+                name: string;
+                members: string[];
+                /** @description Points per member */
+                average: number;
+                total: number;
             }[];
         };
         ThreadChoice: {
@@ -5392,6 +5492,154 @@ export interface operations {
             };
             /** @description No such memory */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getTeams: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The teams */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamsView"];
+                };
+            };
+        };
+    };
+    startTeam: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The teams after it */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamsView"];
+                };
+            };
+            /** @description Not a teams season, or already on a team */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    askTeam: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    teamId?: string;
+                    to?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The teams after it */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamsView"];
+                };
+            };
+            /** @description Not now: not a teams season, already on a team, or the team is full */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    answerTeamRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    requestId: string;
+                    accept: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description The teams after it */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamsView"];
+                };
+            };
+            /** @description Not now: not a teams season, already on a team, or the team is full */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    leaveTeam: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The teams after it */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamsView"];
+                };
+            };
+            /** @description Not now: not a teams season, already on a team, or the team is full */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -63,7 +63,12 @@ export interface Season {
   notes?: { start?: SeasonNote; end?: SeasonNote };
   /** What the trivia is about this season; general when unset. */
   trivia?: SeasonTrivia;
+  /** Each for themselves, or teams (docs/decisions/0030); solo when unset. */
+  play?: SeasonPlay;
 }
+
+export type SeasonPlay = 'solo' | 'teams';
+export const isSeasonPlay = (v: unknown): v is SeasonPlay => v === 'solo' || v === 'teams';
 
 export interface SeasonsConfig {
   /** null between seasons */

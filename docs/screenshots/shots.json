@@ -191,6 +191,13 @@
       "size": "phone",
       "storyFile": "frontend/src/features/memory-links/ui/RememberScreen.stories.tsx",
       "source": "0d89bf562d6d"
+    },
+    {
+      "file": "teams.png",
+      "story": "home-teamscard--on-your-own",
+      "size": "phone",
+      "storyFile": "frontend/src/features/teams/ui/TeamsCard.stories.tsx",
+      "source": "cde7093cc00c"
     }
   ]
 }

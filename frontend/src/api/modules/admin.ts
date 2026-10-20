@@ -40,6 +40,7 @@ export interface SeasonConfig {
   message?: string | null;
   notes?: Season['notes'];
   trivia?: Season['trivia'];
+  play?: Season['play'];
 }
 
 // ── Player APIs ──────────────────────────────────────────────────
@@ -176,6 +177,7 @@ export async function addSeason(
     status?: string;
     message?: string;
     trivia?: Season['trivia'];
+    play?: Season['play'];
   },
 ): Promise<void> {
   await apiService.request('/admin/seasons', {
@@ -197,6 +199,7 @@ export async function updateSeason(
     currentSeasonNumber?: number | null;
     notes?: Season['notes'];
     trivia?: Season['trivia'];
+    play?: Season['play'];
   },
 ): Promise<void> {
   await apiService.request('/admin/seasons', {

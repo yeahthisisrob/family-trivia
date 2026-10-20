@@ -1,4 +1,9 @@
-import { SEASON_TRIVIA, type SeasonTrivia, seasonTriviaOf } from '@family-trivia/shared';
+import {
+  SEASON_TRIVIA,
+  type SeasonPlay,
+  type SeasonTrivia,
+  seasonTriviaOf,
+} from '@family-trivia/shared';
 import MailOutlineIcon from '@mui/icons-material/MailOutlined';
 // File: frontend/src/components/Admin/SeasonsTab.tsx
 // Season management — hero card for active season, card list for others.
@@ -40,6 +45,7 @@ interface SeasonForm {
   status: string;
   message: string;
   trivia: SeasonTrivia;
+  play: SeasonPlay;
 }
 
 const EMPTY_FORM: SeasonForm = {
@@ -50,6 +56,7 @@ const EMPTY_FORM: SeasonForm = {
   status: 'upcoming',
   message: '',
   trivia: 'general',
+  play: 'solo',
 };
 
 const statusColors: Record<string, 'success' | 'warning' | 'default'> = {
@@ -84,6 +91,7 @@ const SeasonsTab: React.FC = () => {
       status: s.status,
       message: s.message || '',
       trivia: seasonTriviaOf(s),
+      play: s.play ?? 'solo',
     });
     setEditMode(true);
     setDialogOpen(true);
@@ -99,6 +107,7 @@ const SeasonsTab: React.FC = () => {
         status: form.status,
         message: form.message || undefined,
         trivia: form.trivia,
+        play: form.play,
       };
       if (editMode) await admin.updateSeason(data);
       else await admin.addSeason(data);
@@ -364,6 +373,17 @@ const SeasonsTab: React.FC = () => {
                   </Box>
                 </MenuItem>
               ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth size="small">
+            <InputLabel>How it's played</InputLabel>
+            <Select
+              value={form.play}
+              label="How it's played"
+              onChange={(e) => setForm({ ...form, play: e.target.value as SeasonPlay })}
+            >
+              <MenuItem value="solo">Each for themselves</MenuItem>
+              <MenuItem value="teams">In teams (people make their own, any time)</MenuItem>
             </Select>
           </FormControl>
           <TextField

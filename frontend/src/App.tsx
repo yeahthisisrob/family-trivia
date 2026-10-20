@@ -19,6 +19,7 @@ import { useFeatures } from './entities/settings';
 import { UpcomingDates } from './features/celebrations';
 import { DailyMemory } from './features/daily-memory';
 import { PlansCard } from './features/plans';
+import { TeamsCard } from './features/teams';
 import { ThreadCard } from './features/threads';
 import { WaitingCard } from './features/waiting';
 import { ROUTES, useApp } from './hooks/useApp';
@@ -166,6 +167,14 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
           userId={user}
           onFactSubmitted={handleFactSubmit}
           onDismiss={dismissInlineFact}
+        />
+      )}
+
+      {/* A season played in teams: requests, standings, and making one (0030) */}
+      {isSeasonActive && (
+        <TeamsCard
+          me={user}
+          people={familyData.members.map((m) => ({ id: m.userId, name: m.name }))}
         />
       )}
 

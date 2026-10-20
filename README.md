@@ -190,6 +190,12 @@ The people with the most to say about someone you've lost often aren't in the ap
 
 Nothing in an open season expires. Come back after two weeks and Home says what's waiting for you, oldest first, to play a few at a time or all at once. Answers count the same whenever they're given, the leaderboard shows what each person still has to play so a late start never looks like losing, and there are no streaks to break.
 
+## Teams
+
+A season can be played as teams (one setting in Admin › Seasons). Nobody assigns them: start a team, ask someone to team up, or ask to join one, and a yes from them puts you together, any time in the season. Teams rank by points per member, so two can beat five.
+
+![Teams: ask to join, team up, or start one, and the standings](docs/screenshots/teams.png)
+
 ## What's on
 
 Getting everyone in one place starts with knowing who's around. On Home, drop in what you're doing the way you'd text it: "beach weekend the 14th to the 16th", "busy Tuesday nights", "free Saturday, anyone up for a hike?". It lands on the right days, and the next two weeks show for the whole circle at a glance, with the best days to get together picked out. Tap a day to see who's free and what's planned, and say you're in. Busy times only ever show as busy. No calendar to connect.
