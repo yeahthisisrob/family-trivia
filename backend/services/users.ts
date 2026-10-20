@@ -106,6 +106,29 @@ export async function getUsersInGroup(groupId: string): Promise<string[]> {
 }
 
 /**
+ * Everyone in a group, playing or not: for results, where what remembered and
+ * paused people did stays theirs. "Who's playing now" lists use getUsersInGroup.
+ */
+export async function getEveryoneInGroup(groupId: string): Promise<string[]> {
+  const config = await getUserConfig();
+  return Object.entries(config?.users ?? {})
+    .filter(([, userData]) => userData.group === groupId)
+    .map(([userId]) => userId);
+}
+
+/** Every account, playing or not: for results (see getEveryoneInGroup). */
+export async function getEveryAccount(): Promise<string[]> {
+  const config = await getUserConfig();
+  return Object.keys(config?.users ?? {});
+}
+
+/** Every group with an account in it, playing or not: for results. */
+export async function getEveryGroup(): Promise<string[]> {
+  const config = await getUserConfig();
+  return Array.from(new Set(Object.values(config?.users ?? {}).map((u) => u.group)));
+}
+
+/**
  * Get all unique group IDs
  */
 export async function getAllGroups(): Promise<string[]> {

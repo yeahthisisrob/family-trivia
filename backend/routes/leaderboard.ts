@@ -5,13 +5,18 @@ import { olderAnswersOf } from '../services/gameRegistry';
 import { logger } from '../services/logger';
 import { getJson } from '../services/s3';
 import { computePoints, type HistoryEntry, type LeaderboardEntry } from '../services/scoring';
-import { getAllGroups, getAllUsers, getUsersInGroup } from '../services/users';
+import { getAllUsers, getEveryAccount, getEveryGroup, getEveryoneInGroup } from '../services/users';
 
 /**
- * Compute leaderboard entries for a list of userIds
+ * Compute leaderboard entries for a list of userIds. Everyone with answers
+ * keeps a row, remembered and paused people included; someone not playing
+ * now with nothing to show is left off.
  */
-async function computeLeaderboard(ids: string[]): Promise<LeaderboardEntry[]> {
-  const entries = await Promise.all(
+async function computeLeaderboard(
+  ids: string[],
+  playing: Set<string>,
+): Promise<LeaderboardEntry[]> {
+  const rows = await Promise.all(
     ids.map(async (userId) => {
       const historyKey = `answers/history/${userId}.json`;
       const regularHistory = (await getJson<HistoryEntry[]>(historyKey)) || [];
@@ -51,6 +56,7 @@ async function computeLeaderboard(ids: string[]): Promise<LeaderboardEntry[]> {
       }
       const lastAnswer = history.length ? history[history.length - 1] : undefined;
 
+      if (!history.length && !playing.has(userId)) return null;
       return {
         userId,
         score: weightedScore,
@@ -63,6 +69,7 @@ async function computeLeaderboard(ids: string[]): Promise<LeaderboardEntry[]> {
     }),
   );
 
+  const entries = rows.filter((e) => e !== null);
   entries.sort((a, b) => b.score - a.score);
   return entries;
 }
@@ -72,22 +79,24 @@ export async function leaderboard(event: APIGatewayProxyEvent): Promise<APIGatew
     const groupId = event.queryStringParameters?.groupId || 'all';
     logger.info(`Computing leaderboard for group: ${groupId}`);
 
+    const playing = new Set(await getAllUsers());
+
     if (groupId === 'all') {
-      const allUsers = await getAllUsers();
+      const allUsers = await getEveryAccount();
       logger.debug(`Got ${allUsers.length} total users across all groups`);
 
-      const groups = await getAllGroups();
+      const groups = await getEveryGroup();
       logger.debug(`Got ${groups.length} groups: ${groups.join(', ')}`);
 
       const result: Record<string, LeaderboardEntry[]> = {};
 
-      result.all = await computeLeaderboard(allUsers);
+      result.all = await computeLeaderboard(allUsers, playing);
       logger.debug(`Computed global leaderboard with ${result.all.length} entries`);
 
       await Promise.all(
         groups.map(async (grp) => {
-          const members = await getUsersInGroup(grp);
-          result[grp] = await computeLeaderboard(members);
+          const members = await getEveryoneInGroup(grp);
+          result[grp] = await computeLeaderboard(members, playing);
           logger.debug(`Computed group '${grp}' leaderboard with ${result[grp].length} entries`);
         }),
       );
@@ -95,10 +104,10 @@ export async function leaderboard(event: APIGatewayProxyEvent): Promise<APIGatew
       return successResponse(result);
     }
 
-    const members = await getUsersInGroup(groupId);
+    const members = await getEveryoneInGroup(groupId);
     logger.debug(`Computing leaderboard for ${members.length} members in group ${groupId}`);
 
-    const board = await computeLeaderboard(members);
+    const board = await computeLeaderboard(members, playing);
     logger.debug(`Leaderboard complete with ${board.length} entries`);
 
     return successResponse(board);

@@ -4358,13 +4358,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Leaderboard data */
+            /** @description One group's board (groupId given), or every board by group plus `all`. Everyone with answers keeps a row, remembered and paused people included. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["LeaderboardEntry"][] | {
+                        [key: string]: components["schemas"]["LeaderboardEntry"][];
+                    };
                 };
             };
         };
@@ -4387,13 +4389,22 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        /** @description Everyone with results in the range, remembered and paused people included */
                         users?: {
-                            [key: string]: components["schemas"]["LeaderboardEntry"];
+                            [key: string]: {
+                                leaderboardEntry: components["schemas"]["LeaderboardEntry"];
+                                history?: Record<string, never>[];
+                                facts?: Record<string, never>[];
+                                group?: string;
+                            };
                         };
                         groups?: Record<string, never>;
-                        userGroups?: Record<string, never>;
+                        userGroups?: {
+                            [key: string]: string;
+                        };
                         seasons?: components["schemas"]["Season"][];
-                        selectedSeason?: string;
+                        selectedSeason?: number;
+                        maxQuestionsAsked?: number;
                         /** @description All-time category accuracy stats across all users */
                         globalCategoryStats?: {
                             [key: string]: {

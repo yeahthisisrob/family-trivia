@@ -803,11 +803,21 @@ paths:
             type: string
       responses:
         "200":
-          description: Leaderboard data
+          description: >
+            One group's board (groupId given), or every board by group plus `all`.
+            Everyone with answers keeps a row, remembered and paused people included.
           content:
             application/json:
               schema:
-                type: object
+                oneOf:
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/LeaderboardEntry"
+                  - type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/LeaderboardEntry"
 
   /consolidated-leaderboard:
     get:
@@ -830,18 +840,37 @@ paths:
                 properties:
                   users:
                     type: object
+                    description: "Everyone with results in the range, remembered and paused people included"
                     additionalProperties:
-                      $ref: "#/components/schemas/LeaderboardEntry"
+                      type: object
+                      required: [leaderboardEntry]
+                      properties:
+                        leaderboardEntry:
+                          $ref: "#/components/schemas/LeaderboardEntry"
+                        history:
+                          type: array
+                          items:
+                            type: object
+                        facts:
+                          type: array
+                          items:
+                            type: object
+                        group:
+                          type: string
                   groups:
                     type: object
                   userGroups:
                     type: object
+                    additionalProperties:
+                      type: string
                   seasons:
                     type: array
                     items:
                       $ref: "#/components/schemas/Season"
                   selectedSeason:
-                    type: string
+                    type: integer
+                  maxQuestionsAsked:
+                    type: integer
                   globalCategoryStats:
                     type: object
                     description: "All-time category accuracy stats across all users"
