@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { delay, HttpResponse, http } from 'msw';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { PlayersTab } from './PlayersTab';
 import { peopleHandlers } from './peopleMocks';
 
@@ -25,7 +25,8 @@ export const WithPlayers: Story = {
     const canvas = within(canvasElement);
     await expect(await canvas.findByText('alice')).toBeInTheDocument();
     await expect(canvas.getByText('Admin')).toBeInTheDocument();
-    await expect(canvas.getAllByText('Parents')).toHaveLength(2);
+    // Group names come with the groups, a read of their own that may answer later.
+    await waitFor(() => expect(canvas.getAllByText('Parents')).toHaveLength(2));
   },
 };
 
