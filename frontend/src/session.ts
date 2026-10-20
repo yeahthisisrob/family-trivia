@@ -11,9 +11,22 @@ interface SessionData {
 
 const SESSION_KEY = 'familyTriviaSession';
 
+/**
+ * Who this tab is, and in which circle, fixed when it opens. The browser's
+ * storage is shared by every tab (and the home-screen app), so a switch in
+ * one must never change what another tab asks for under its old screen.
+ */
+let tab: { circle: string | null; userId: string | null } | null = null;
+
+/** Start this tab over, as a page load does (Storybook runs every story in one page). */
+export const forgetTab = () => {
+  tab = null;
+};
+
 /** Save a full session after Google auth. */
 export function saveSession(userId: string, token: string, email?: string) {
   localStorage.setItem(SESSION_KEY, JSON.stringify({ userId, token, email }));
+  tab = { circle: tab?.circle ?? null, userId };
 }
 
 /** Load session. Returns userId only if BOTH userId and token are present. */
@@ -27,7 +40,9 @@ export function loadSession(): string | null {
       localStorage.removeItem(SESSION_KEY);
       return null;
     }
-    return data.userId;
+    tab ??= { circle: storedCircles()?.current ?? null, userId: data.userId };
+    tab.userId ??= data.userId;
+    return tab.userId;
   } catch {
     localStorage.removeItem(SESSION_KEY);
     return null;
@@ -62,6 +77,7 @@ export function updateToken(token: string) {
 export function clearSession() {
   localStorage.removeItem(SESSION_KEY);
   localStorage.removeItem(CIRCLES_KEY);
+  tab = null;
 }
 
 // ── Circles (docs/decisions/0015) ────────────────────────────────
@@ -77,9 +93,12 @@ export interface SessionCircles {
 
 export function saveCircles(current: string, circles: MyCircle[]) {
   localStorage.setItem(CIRCLES_KEY, JSON.stringify({ current, circles }));
+  // Signing in (or a first circle) is where this tab's circle starts.
+  if (tab) tab.circle ??= current;
+  else tab = { circle: current, userId: null };
 }
 
-export function loadCircles(): SessionCircles | null {
+function storedCircles(): SessionCircles | null {
   try {
     const raw = localStorage.getItem(CIRCLES_KEY);
     const data = raw ? (JSON.parse(raw) as SessionCircles) : null;
@@ -89,12 +108,22 @@ export function loadCircles(): SessionCircles | null {
   }
 }
 
-export const currentCircleId = (): string | null => loadCircles()?.current ?? null;
+/** The circles this sign-in can open, with this tab's circle as the current one. */
+export function loadCircles(): SessionCircles | null {
+  const stored = storedCircles();
+  return stored && { ...stored, current: currentCircleId() ?? stored.current };
+}
+
+/** This tab's circle: the one it opened in (the browser's last one for a new tab). */
+export function currentCircleId(): string | null {
+  if (!tab?.circle) tab = { circle: storedCircles()?.current ?? null, userId: tab?.userId ?? null };
+  return tab.circle;
+}
 
 /** The kind of circle this browser is in. Family until it's known (the first circle always is). */
 export const currentCircleKind = (): CircleKind => {
-  const c = loadCircles();
-  return c?.circles.find((x) => x.id === c.current)?.kind ?? 'family';
+  const here = currentCircleId();
+  return loadCircles()?.circles.find((x) => x.id === here)?.kind ?? 'family';
 };
 
 /** Forget the remembered circle and start over; the server opens their first. */
@@ -140,3 +169,6 @@ export function onSessionExpired(handler: () => void): () => void {
   window.addEventListener(EXPIRED_EVENT, handler);
   return () => window.removeEventListener(EXPIRED_EVENT, handler);
 }
+
+/** A browser-storage key for this circle only, so one circle's "dismissed" never hides another's. */
+export const inThisCircle = (key: string): string => `${key}:${currentCircleId() ?? ''}`;

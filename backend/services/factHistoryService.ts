@@ -11,13 +11,16 @@ import type { FactAnswerEntry } from '@family-trivia/shared';
 import { S3_PATHS } from '../constants';
 import { logger } from './logger';
 import { getJson, listObjects, putJson } from './s3';
+import { currentScope } from './scope';
 
 // ── In-memory cache per Lambda invocation ─────────────────────────
 
+// Keyed by circle too: one request can read two circles (Your world, a joined circle).
 const cache = new Map<string, FactAnswerEntry[]>();
+const cacheKey = (userId: string) => `${currentScope().circleId}\u0000${userId}`;
 
 export function invalidateFactHistoryCache(userId?: string): void {
-  if (userId) cache.delete(userId);
+  if (userId) cache.delete(cacheKey(userId));
   else cache.clear();
 }
 
@@ -25,16 +28,16 @@ export function invalidateFactHistoryCache(userId?: string): void {
 
 /** Get a single user's fact answer history */
 export async function getFactHistory(userId: string): Promise<FactAnswerEntry[]> {
-  const cached = cache.get(userId);
+  const cached = cache.get(cacheKey(userId));
   if (cached) return cached;
 
   try {
     const entries = await getJson<FactAnswerEntry[]>(S3_PATHS.FACT_ANSWER_HISTORY(userId));
     const result = entries || [];
-    cache.set(userId, result);
+    cache.set(cacheKey(userId), result);
     return result;
   } catch {
-    cache.set(userId, []);
+    cache.set(cacheKey(userId), []);
     return [];
   }
 }
@@ -137,7 +140,7 @@ export async function appendFactAnswer(userId: string, entry: FactAnswerEntry): 
   }
 
   await putJson(S3_PATHS.FACT_ANSWER_HISTORY(userId), entries);
-  cache.set(userId, entries);
+  cache.set(cacheKey(userId), entries);
   logger.info('Saved fact answer', { userId, date: entry.date, type: entry.questionType });
 }
 

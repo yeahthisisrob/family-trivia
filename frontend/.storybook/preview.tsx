@@ -3,6 +3,7 @@ import { setupWorker } from 'msw/browser';
 import { mswLoader } from 'msw-storybook-addon/csf3';
 import { MemoryRouter } from 'react-router-dom';
 import { apiService } from '../src/services/ApiService';
+import { forgetTab } from '../src/session';
 import { AppearanceProvider, THEMES } from '../src/shared/design-system';
 import { allHandlers } from './mocks/handlers';
 import { MockAppProviders } from './mocks/providers';
@@ -46,8 +47,10 @@ const preview: Preview = {
   // into the next:
   //   - apiService cache (cached `daily_fact_alice_today` etc.)
   //   - sessionStorage (dismissed tips like the dictation hint)
+  //   - the tab's pinned circle and person (session.ts)
   beforeEach: async () => {
     apiService.clearCache();
+    forgetTab();
     try {
       window.sessionStorage.clear();
     } catch {

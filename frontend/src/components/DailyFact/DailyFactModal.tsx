@@ -11,6 +11,7 @@ import { Box, Dialog, IconButton } from '@mui/material';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { shouldShowDailyFact } from '../../api/modules/facts';
+import { inThisCircle } from '../../session';
 import { createLogger } from '../../utils/logger';
 import DailyFactCard from './DailyFactCard';
 
@@ -20,7 +21,7 @@ const DISMISS_KEY = 'dailyFactModalDismissed';
 
 function isDismissed(): boolean {
   try {
-    return window.sessionStorage.getItem(DISMISS_KEY) === '1';
+    return window.sessionStorage.getItem(inThisCircle(DISMISS_KEY)) === '1';
   } catch {
     return false;
   }
@@ -28,7 +29,7 @@ function isDismissed(): boolean {
 
 function markDismissed(): void {
   try {
-    window.sessionStorage.setItem(DISMISS_KEY, '1');
+    window.sessionStorage.setItem(inThisCircle(DISMISS_KEY), '1');
   } catch {
     /* ok */
   }

@@ -49,6 +49,7 @@ import { getFactHistory } from './factHistoryService';
 import { logger } from './logger';
 import { type QuestionSlot, toQuestionSlots } from './questionSlotService';
 import { getJson, listObjects } from './s3';
+import { currentScope } from './scope';
 import { computePoints } from './scoring';
 import { currentPlayDay, getSeasonsConfig, type Season } from './seasonService';
 
@@ -97,11 +98,14 @@ export interface SeasonSummary {
 
 let cachedState: Map<string, PlayerState> | null = null;
 let cachedSummary: SeasonSummary | null = null;
+/** The circle the cached state is for: one request can read two circles. */
+let cachedCircle: string | null = null;
 
 /** Clear cache — call at start of each request if needed */
 export function invalidatePlayerStateCache(): void {
   cachedState = null;
   cachedSummary = null;
+  cachedCircle = null;
 }
 
 // ── Core loader ───────────────────────────────────────────────────
@@ -110,7 +114,7 @@ async function loadAllState(): Promise<{
   states: Map<string, PlayerState>;
   summary: SeasonSummary;
 }> {
-  if (cachedState && cachedSummary) {
+  if (cachedState && cachedSummary && cachedCircle === currentScope().circleId) {
     return { states: cachedState, summary: cachedSummary };
   }
 
@@ -264,6 +268,7 @@ async function loadAllState(): Promise<{
   // Cache for this invocation
   cachedState = states;
   cachedSummary = summary;
+  cachedCircle = currentScope().circleId;
 
   logger.info('Player state loaded', {
     players: states.size,

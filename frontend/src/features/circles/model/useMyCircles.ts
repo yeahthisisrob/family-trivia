@@ -1,6 +1,12 @@
 import type { MyCircle } from '@family-trivia/shared';
 import { useCallback, useEffect, useState } from 'react';
-import { enterCircle, loadCircles, loadSession, saveCircles } from '../../../session';
+import {
+  currentCircleId,
+  enterCircle,
+  loadCircles,
+  loadSession,
+  saveCircles,
+} from '../../../session';
 import { circlesApi } from '../api/circlesApi';
 
 export interface MyCircles {
@@ -27,11 +33,17 @@ export function useMyCircles(): MyCircles {
       .mine()
       .then(({ circles, current }) => {
         if (!live) return;
-        saveCircles(current, circles);
-        setState({ current, circles });
         const here = circles.find((c) => c.id === current);
         const me = loadSession();
-        if (here && me && me !== here.userId) enterCircle(here, circles);
+        // Another circle, or another person in it, than this tab opened as:
+        // start over there rather than mix two circles on one screen.
+        const tabs = currentCircleId();
+        if (here && ((me && me !== here.userId) || (tabs && current !== tabs))) {
+          enterCircle(here, circles);
+          return;
+        }
+        saveCircles(current, circles);
+        setState({ current, circles });
       })
       .catch(() => {
         /* offline or signed out: keep what we had */

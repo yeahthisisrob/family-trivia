@@ -28,7 +28,7 @@ import { useEffect, useRef, useState } from 'react';
 import ConfettiExplosion from 'react-confetti-explosion';
 import { LoadingDots } from '../../../components/ui/feedback';
 import { useCircleWords } from '../../../entities/circle';
-import { loadSession } from '../../../session';
+import { inThisCircle, loadSession } from '../../../session';
 import { colors } from '../../../shared/design-system';
 import { createLogger } from '../../../utils/logger';
 import { celebrationsApi } from '../api/celebrationsApi';
@@ -187,7 +187,7 @@ const UpcomingDates: React.FC = () => {
 
   // Show CTA if user hasn't dismissed it recently
   const [showCta, setShowCta] = useState(() => {
-    const dismissed = localStorage.getItem(DISMISS_KEY);
+    const dismissed = localStorage.getItem(inThisCircle(DISMISS_KEY));
     if (!dismissed) return true;
     return Date.now() - parseInt(dismissed, 10) > 7 * 24 * 60 * 60 * 1000; // 1 week
   });
@@ -230,7 +230,7 @@ const UpcomingDates: React.FC = () => {
 
   const dismissCta = () => {
     setShowCta(false);
-    localStorage.setItem(DISMISS_KEY, String(Date.now()));
+    localStorage.setItem(inThisCircle(DISMISS_KEY), String(Date.now()));
   };
 
   const loadMoreRef = useRef(false);

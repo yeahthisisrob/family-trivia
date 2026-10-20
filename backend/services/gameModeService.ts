@@ -14,20 +14,23 @@ import { S3_PATHS } from '../constants';
 import { logger } from './logger';
 import { checkPlayEligibility } from './playerStateService';
 import { getJson } from './s3';
+import { currentScope } from './scope';
 
 // Per-invocation cache — cleared by invalidateGameModeCache() at the start
 // of each Lambda request (same pattern as playerStateService).
 const historyCache = new Map<string, HistoryEntry[]>();
+// Keyed by circle too: one request can read two circles.
+const historyKey = (userId: string) => `${currentScope().circleId}\u0000${userId}`;
 
 export function invalidateGameModeCache() {
   historyCache.clear();
 }
 
 async function getCachedHistory(userId: string): Promise<HistoryEntry[]> {
-  const cached = historyCache.get(userId);
+  const cached = historyCache.get(historyKey(userId));
   if (cached) return cached;
   const history = (await getJson<HistoryEntry[]>(S3_PATHS.ANSWER_HISTORY(userId))) || [];
-  historyCache.set(userId, history);
+  historyCache.set(historyKey(userId), history);
   return history;
 }
 

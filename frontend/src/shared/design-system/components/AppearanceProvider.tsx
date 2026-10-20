@@ -17,8 +17,11 @@ import { schemeVars } from '../themes/vars';
 export type ColorMode = Mode | 'system';
 
 interface Saved {
+  /** Before circles: one pick for every circle. Read once as this circle's. */
   themeId?: string;
   mode?: ColorMode;
+  /** Each circle's look on this device: the person's own pick, and the circle's theme (so a switch doesn't flash another). */
+  circles?: Record<string, { themeId?: string; circleThemeId?: string }>;
 }
 
 interface AppearanceValue {
@@ -56,13 +59,21 @@ const write = (s: Saved) => {
 const prefersDark = () =>
   typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-color-scheme: dark)').matches;
 
-/** `initial` starts from given choices without reading the device (Storybook, tests). */
-export const AppearanceProvider: React.FC<{ children: React.ReactNode; initial?: Saved }> = ({
-  children,
-  initial,
-}) => {
+/**
+ * `initial` starts from given choices without reading the device (Storybook, tests).
+ * `circleId` is the circle showing: a theme someone picks is theirs in that circle only.
+ */
+export const AppearanceProvider: React.FC<{
+  children: React.ReactNode;
+  initial?: Saved;
+  circleId?: string | null;
+}> = ({ children, initial, circleId }) => {
+  const here = circleId ?? '';
   const [saved, setSaved] = useState<Saved>(() => initial ?? read());
-  const [familyThemeId, setFamilyThemeId] = useState<string | null>(null);
+  const mine = saved.circles?.[here];
+  const [familyThemeId, setFamilyThemeId] = useState<string | null>(
+    () => mine?.circleThemeId ?? null,
+  );
   const [systemDark, setSystemDark] = useState(prefersDark);
 
   useEffect(() => {
@@ -82,25 +93,49 @@ export const AppearanceProvider: React.FC<{ children: React.ReactNode; initial?:
       }),
     [initial],
   );
+  const updateHere = useCallback(
+    (patch: { themeId?: string; circleThemeId?: string }) =>
+      setSaved((s) => {
+        const before = s.circles?.[here] ?? (s.themeId ? { themeId: s.themeId } : {});
+        const next: Saved = {
+          ...s,
+          themeId: undefined,
+          circles: { ...s.circles, [here]: { ...before, ...patch } },
+        };
+        if (!initial) write(next);
+        return next;
+      }),
+    [initial, here],
+  );
+  const setFamilyTheme = useCallback(
+    (id: string | null) => {
+      setFamilyThemeId(id);
+      if (id !== (saved.circles?.[here]?.circleThemeId ?? null))
+        updateHere({ circleThemeId: id ?? undefined });
+    },
+    [saved.circles, here, updateHere],
+  );
 
   const mode = saved.mode ?? 'system';
   const resolved: Mode = mode === 'system' ? (systemDark ? 'dark' : 'light') : mode;
-  const theme = themeById(saved.themeId ?? familyThemeId ?? DEFAULT_THEME_ID);
+  // A pick from before circles counts for whichever circle opens first, then lives there.
+  const chosen = mine ? mine.themeId : saved.themeId;
+  const theme = themeById(chosen ?? familyThemeId ?? DEFAULT_THEME_ID);
   const muiTheme = useMemo(() => makeTheme(theme.id, resolved), [theme.id, resolved]);
 
   const value = useMemo<AppearanceValue>(
     () => ({
       theme,
-      chosenThemeId: saved.themeId ?? null,
+      chosenThemeId: chosen ?? null,
       familyThemeId,
       mode,
       resolved,
       themes: THEMES,
-      setTheme: (id) => update({ themeId: id ?? undefined }),
+      setTheme: (id) => updateHere({ themeId: id ?? undefined }),
       setMode: (m) => update({ mode: m }),
-      setFamilyTheme: setFamilyThemeId,
+      setFamilyTheme,
     }),
-    [theme, saved.themeId, familyThemeId, mode, resolved, update],
+    [theme, chosen, familyThemeId, mode, resolved, update, updateHere, setFamilyTheme],
   );
 
   return (
