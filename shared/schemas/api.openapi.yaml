@@ -2192,6 +2192,102 @@ paths:
         "200": { description: Decided }
         "404": { description: No such memory }
 
+  /teams:
+    get:
+      summary: This season's teams as the caller sees them (requests to them, theirs, standings)
+      operationId: getTeams
+      tags: [Teams]
+      responses:
+        "200":
+          description: The teams
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamsView"
+    post:
+      summary: Start a team (you're its first member)
+      operationId: startTeam
+      tags: [Teams]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, maxLength: 40 }
+      responses:
+        "200":
+          description: The teams after it
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamsView"
+        "409": { description: "Not a teams season, or already on a team" }
+
+  /teams/ask:
+    post:
+      summary: Ask to join a team ({ teamId }), or ask someone on their own to team up ({ to })
+      operationId: askTeam
+      tags: [Teams]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+
+              properties:
+                teamId: { type: string }
+                to: { type: string }
+      responses:
+        "200":
+          description: The teams after it
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamsView"
+        "409": { description: "Not now: not a teams season, already on a team, or the team is full" }
+
+  /teams/answer:
+    post:
+      summary: Say yes or no to a request for your team or for you
+      operationId: answerTeamRequest
+      tags: [Teams]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [requestId, accept]
+              properties:
+                requestId: { type: string }
+                accept: { type: boolean }
+      responses:
+        "200":
+          description: The teams after it
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamsView"
+        "409": { description: "Not now: not a teams season, already on a team, or the team is full" }
+
+  /teams/leave:
+    post:
+      summary: Leave your team (an empty team goes)
+      operationId: leaveTeam
+      tags: [Teams]
+      responses:
+        "200":
+          description: The teams after it
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamsView"
+        "409": { description: "Not now: not a teams season, already on a team, or the team is full" }
+
   /threads/today:
     get:
       summary: Today's one "How do you know ...?" question (or none), and how many threads are tied
@@ -4601,6 +4697,47 @@ components:
               how: { type: string }
               text: { type: string }
               at: { type: string }
+
+    Team:
+      type: object
+      required: [id, name, members, createdAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        members: { type: array, items: { type: string } }
+        createdAt: { type: string }
+
+    TeamRequest:
+      type: object
+      required: [id, kind, from, at]
+      properties:
+        id: { type: string }
+        kind: { type: string, enum: [join, team-up] }
+        from: { type: string }
+        teamId: { type: string }
+        to: { type: string }
+        at: { type: string }
+
+    TeamsView:
+      type: object
+      required: [on, teams, myTeam, toMe, fromMe, standings]
+      properties:
+        on: { type: boolean, description: Whether this season is played in teams }
+        teams: { type: array, items: { $ref: "#/components/schemas/Team" } }
+        myTeam: { type: string, nullable: true }
+        toMe: { type: array, items: { $ref: "#/components/schemas/TeamRequest" } }
+        fromMe: { type: array, items: { $ref: "#/components/schemas/TeamRequest" } }
+        standings:
+          type: array
+          items:
+            type: object
+            required: [teamId, name, members, average, total]
+            properties:
+              teamId: { type: string }
+              name: { type: string }
+              members: { type: array, items: { type: string } }
+              average: { type: number, description: Points per member }
+              total: { type: number }
 
     ThreadChoice:
       type: object

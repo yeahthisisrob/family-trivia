@@ -25,6 +25,7 @@ import { personStoryRoutes } from './features/person-story/routes';
 import { plansRoutes } from './features/plans/routes';
 import { reactionsRoutes } from './features/reactions/routes';
 import { settingsRoutes } from './features/settings/routes';
+import { teamsRoutes } from './features/teams/routes';
 import { threadsRoutes } from './features/threads/routes';
 import * as adminHandlers from './routes/admin';
 // Answer grid for trivia status matrix
@@ -179,6 +180,7 @@ const routes: Record<string, (event: any) => Promise<APIGatewayProxyResult>> = {
   ...plansRoutes,
   ...avatarRoutes,
   ...threadsRoutes,
+  ...teamsRoutes,
 
   // ── Protected: identity comes from the token (middleware/requireAuth.ts) ──
   'GET /members': requireAuth(listMembers),

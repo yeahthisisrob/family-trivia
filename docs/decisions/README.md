@@ -40,3 +40,4 @@ when the decision is made, so the reason survives the people who made it.
 | [0027](0027-memory-links.md) | Memory links: anyone can add a memory | Accepted |
 | [0028](0028-question-sets-per-circle.md) | Question sets per kind of circle | Accepted |
 | [0029](0029-the-first-circle.md) | The first circle: sign in and start it | Accepted |
+| [0030](0030-teams.md) | Teams: made while playing | Accepted |
