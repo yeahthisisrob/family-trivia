@@ -60,12 +60,19 @@ export async function getAllFactHistories(): Promise<Map<string, FactAnswerEntry
   return result;
 }
 
+/**
+ * This circle's questions (the day's and the starters) are this circle's own: an answer read through from
+ * another circle (a joined circle's source, docs/decisions/0018) never
+ * counts as answering one here.
+ */
+const here = (e: FactAnswerEntry) => !e.from;
+
 /** Get a user's answered dates (shared questions only) as a Set */
 export async function getAnsweredDates(userId: string): Promise<Set<string>> {
   const entries = await getFactHistory(userId);
   return new Set(
     entries
-      .filter((e) => e.questionType === 'shared' && (e.answered || e.skipped))
+      .filter((e) => here(e) && e.questionType === 'shared' && (e.answered || e.skipped))
       .map((e) => e.date),
   );
 }
@@ -77,7 +84,7 @@ export async function getSharedAnswersByDate(
   const entries = await getFactHistory(userId);
   const map = new Map<string, FactAnswerEntry>();
   for (const e of entries) {
-    if (e.questionType === 'shared') map.set(e.date, e);
+    if (here(e) && e.questionType === 'shared') map.set(e.date, e);
   }
   return map;
 }
@@ -85,7 +92,7 @@ export async function getSharedAnswersByDate(
 /** Get a user's basic question answers */
 export async function getBasicAnswers(userId: string): Promise<FactAnswerEntry[]> {
   const entries = await getFactHistory(userId);
-  return entries.filter((e) => e.questionType === 'basic');
+  return entries.filter((e) => here(e) && e.questionType === 'basic');
 }
 
 /** Check if a user has answered a specific basic question index */
@@ -95,7 +102,7 @@ export async function hasAnsweredBasicQuestion(
 ): Promise<boolean> {
   const entries = await getFactHistory(userId);
   return entries.some(
-    (e) => e.questionType === 'basic' && e.questionIndex === questionIndex && e.answered,
+    (e) => here(e) && e.questionType === 'basic' && e.questionIndex === questionIndex && e.answered,
   );
 }
 
@@ -104,7 +111,7 @@ export async function countCompletedBasicQuestions(userId: string): Promise<numb
   const entries = await getFactHistory(userId);
   const completedIndices = new Set<number>();
   for (const e of entries) {
-    if (e.questionType === 'basic' && e.answered && e.questionIndex !== undefined) {
+    if (here(e) && e.questionType === 'basic' && e.answered && e.questionIndex !== undefined) {
       completedIndices.add(e.questionIndex);
     }
   }
@@ -123,6 +130,7 @@ export async function appendFactAnswer(userId: string, entry: FactAnswerEntry): 
   // (skipped: false) are never replaced.
   const matchIdx = entries.findIndex(
     (e) =>
+      here(e) &&
       e.date === entry.date &&
       e.questionType === entry.questionType &&
       e.questionIndex === entry.questionIndex &&

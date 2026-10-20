@@ -72,6 +72,8 @@ export function fillInView(
   const byKey = new Map<string, Map<string, FactAnswerEntry>>();
   for (const [person, list] of answers)
     for (const e of list) {
+      // Another circle's questions (read through into a joined circle) aren't this one's.
+      if (e.from) continue;
       const k = keyOf(e);
       const forKey = byKey.get(k) ?? new Map<string, FactAnswerEntry>();
       byKey.set(k, forKey);

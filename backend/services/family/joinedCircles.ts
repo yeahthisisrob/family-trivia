@@ -5,19 +5,26 @@
  * (services/scope.ts), so every feature that reads people sees everyone
  * without knowing why.
  */
+
+import type { Circle } from '@family-trivia/shared';
 import {
+  type FactAnswerEntry,
   type FamilyPerson,
   type JoinedPeople,
   joinPeople,
   maybeSame,
+  ownAnswers,
   type PersonIn,
   type SamePeople,
+  type Sharing,
   type SourcePeople,
+  sharesInto,
+  withSourceAnswers,
 } from '@family-trivia/shared';
 import { S3_PATHS } from '../../constants';
 import { findCircle, scopeOf } from '../circles';
-import { getJson, putJson } from '../s3';
-import { currentScope, inCircle, type Scope, setLinkedReader } from '../scope';
+import { getJson, listObjects, putJson } from '../s3';
+import { currentScope, inCircle, type Scope, setLinks } from '../scope';
 import { loadFamily, storeFamily } from './roster';
 
 const SIGN_IN_MAP_KEY = 'config/google-auth-map.json';
@@ -125,15 +132,110 @@ async function activation(scope: Scope, own: unknown): Promise<Record<string, bo
   return out;
 }
 
-setLinkedReader(async (key, scope, own) => {
-  if (key === S3_PATHS.MEMBER_ACTIVATION) return activation(scope, own);
+// ── Past answers (docs/decisions/0018) ──────────────────────────
+
+/** Who shares their past answers here, kept in the joined circle itself. */
+const SHARING_KEY = 'config/sharing.json';
+
+async function sharingOf(scope: Scope): Promise<Sharing> {
+  const me = await findCircle(scope.circleId);
+  if (!me) return {};
+  return inCircle(scopeOf(me), async () => (await getJson<Sharing>(SHARING_KEY)) ?? {});
+}
+
+/** Where a personal file's person lives, for the sources they share from. */
+async function sharedHomes(scope: Scope, personId: string) {
+  const [p, sharing] = await Promise.all([joinedPeople(scope), sharingOf(scope)]);
+  const out: { circle: Circle; id: string }[] = [];
+  for (const home of p.homes[personId] ?? []) {
+    const circle = await findCircle(home.circleId);
+    if (circle && sharesInto(sharing, personId, circle)) out.push({ circle, id: home.id });
+  }
+  return out;
+}
+
+const fileOf = (folder: string, key: string) => key.slice(folder.length, -'.json'.length);
+
+async function personalRead(key: string, scope: Scope, own: unknown) {
+  const folder = 'facts/answers/';
+  const homes = await sharedHomes(scope, fileOf(folder, key));
+  const sources = await Promise.all(
+    homes.map(async ({ circle, id }) => ({
+      circleId: circle.id,
+      name: circle.name,
+      entries: await inCircle(scopeOf(circle), () =>
+        getJson<FactAnswerEntry[]>(`${folder}${id}.json`),
+      ),
+    })),
+  );
+  return withSourceAnswers(own as FactAnswerEntry[] | null, sources);
+}
+
+async function personalList(folder: string, scope: Scope, own: string[]): Promise<string[]> {
   const p = await joinedPeople(scope);
-  if (key === S3_PATHS.FAMILY) return p.family;
-  if (key === S3_PATHS.USERS_CONFIG) return { users: p.users };
-  if (key === SIGN_IN_MAP_KEY) return p.signIn;
-  // The old hierarchy file: none, so it's derived from the joined family.
-  return null;
+  const keys = new Set(own);
+  // Each source's folder, listed once.
+  const listed = new Map<string, Promise<Set<string>>>();
+  const inSource = (circle: Circle) => {
+    let l = listed.get(circle.id);
+    if (!l) {
+      l = inCircle(scopeOf(circle), () => listObjects(folder)).then((k) => new Set(k));
+      listed.set(circle.id, l);
+    }
+    return l;
+  };
+  for (const personId of Object.keys(p.homes))
+    for (const { circle, id } of await sharedHomes(scope, personId))
+      if ((await inSource(circle)).has(`${folder}${id}.json`))
+        keys.add(`${folder}${personId}.json`);
+  return [...keys];
+}
+
+setLinks({
+  read: async (key, scope, own) => {
+    if (key.startsWith('facts/answers/')) return personalRead(key, scope, own);
+    if (key === S3_PATHS.MEMBER_ACTIVATION) return activation(scope, own);
+    const p = await joinedPeople(scope);
+    if (key === S3_PATHS.FAMILY) return p.family;
+    if (key === S3_PATHS.USERS_CONFIG) return { users: p.users };
+    if (key === SIGN_IN_MAP_KEY) return p.signIn;
+    // The old hierarchy file: none, so it's derived from the joined family.
+    return null;
+  },
+  list: personalList,
+  own: (_key, value) => (Array.isArray(value) ? ownAnswers(value) : value),
 });
+
+export interface SharedFrom {
+  circleId: string;
+  name: string;
+  kind: Circle['kind'];
+  shared: boolean;
+}
+
+/** In a joined circle: each circle someone's past answers could come from, and whether they do. */
+export async function sharingFor(scope: Scope, personId: string): Promise<SharedFrom[]> {
+  const [p, sharing] = await Promise.all([joinedPeople(scope), sharingOf(scope)]);
+  const out: SharedFrom[] = [];
+  for (const home of p.homes[personId] ?? []) {
+    const circle = await findCircle(home.circleId);
+    if (!circle) continue;
+    const { id, name, kind } = circle;
+    out.push({ circleId: id, name, kind, shared: sharesInto(sharing, personId, circle) });
+  }
+  return out;
+}
+
+/** Share someone's past answers from one source here, or keep them out. */
+export async function setSharing(scope: Scope, personId: string, from: string, shared: boolean) {
+  const me = await findCircle(scope.circleId);
+  if (!me) return;
+  await inCircle(scopeOf(me), async () => {
+    const sharing = (await getJson<Sharing>(SHARING_KEY)) ?? {};
+    sharing[personId] = { ...sharing[personId], [from]: shared };
+    await putJson(SHARING_KEY, sharing);
+  });
+}
 
 /**
  * Change one person's own record (their picture, say). In a joined circle

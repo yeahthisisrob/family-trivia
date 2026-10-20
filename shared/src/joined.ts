@@ -202,3 +202,46 @@ export function maybeSame(
   });
   return out;
 }
+
+// ── Past answers in a joined circle ─────────────────────────────
+
+/**
+ * Whose past answers a joined circle shows, by joined person and source
+ * circle (config/sharing.json in the joined circle). Missing means the
+ * default: shared from a family circle, kept out from any other.
+ */
+export type Sharing = Record<string, Record<string, boolean>>;
+
+export const sharesInto = (
+  sharing: Sharing,
+  personId: string,
+  source: { id: string; kind: string },
+): boolean => sharing[personId]?.[source.id] ?? source.kind === 'family';
+
+interface FromAnswers<E> {
+  circleId: string;
+  name: string;
+  entries: E[] | null;
+}
+
+/**
+ * Someone's answers seen from a joined circle: their own there, then what
+ * they share from each source, each marked with the circle it came from.
+ * Null when there are none at all.
+ */
+export function withSourceAnswers<E extends { from?: { circleId: string; name: string } }>(
+  own: E[] | null,
+  sources: FromAnswers<E>[],
+): E[] | null {
+  const mine = ownAnswers(own ?? []);
+  const theirs = sources.flatMap((s) =>
+    (s.entries ?? [])
+      .filter((e) => !e.from)
+      .map((e) => ({ ...e, from: { circleId: s.circleId, name: s.name } })),
+  );
+  return own === null && theirs.length === 0 ? null : [...mine, ...theirs];
+}
+
+/** The answers given in this circle, without any read through from another. */
+export const ownAnswers = <E extends { from?: unknown }>(entries: E[]): E[] =>
+  entries.filter((e) => !e.from);

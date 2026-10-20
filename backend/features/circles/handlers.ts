@@ -23,7 +23,12 @@ import {
   splitCircle,
   startFirstCircle,
 } from '../../services/circles';
-import { answerSame, sameSuggestions } from '../../services/family/joinedCircles';
+import {
+  answerSame,
+  sameSuggestions,
+  setSharing,
+  sharingFor,
+} from '../../services/family/joinedCircles';
 import { logger } from '../../services/logger';
 import { sessionFor } from '../../services/session';
 
@@ -267,4 +272,33 @@ export async function postSame(
   if (!asked) return errorResponse('Not a pair to answer', 409);
   await answerSame(scope, a, b, body.same);
   return successResponse({ suggestions: await sameSuggestions(scope) });
+}
+
+/** GET /me/sharing: in a joined circle, the circles your past answers could come from. */
+export async function getSharing(
+  _event: APIGatewayProxyEvent,
+  userId: string,
+  caller: Caller,
+): Promise<APIGatewayProxyResult> {
+  if (!caller.circle.sources?.length) return successResponse({ from: [] });
+  return successResponse({ from: await sharingFor(scopeOf(caller.circle), userId) });
+}
+
+/** PUT /me/sharing {circleId, shared}: show your past answers from that circle here, or keep them out. */
+export async function putSharing(
+  event: APIGatewayProxyEvent,
+  userId: string,
+  caller: Caller,
+): Promise<APIGatewayProxyResult> {
+  const body = parse(event);
+  const from = text(body?.circleId);
+  if (!from || typeof body?.shared !== 'boolean')
+    return errorResponse('circleId and shared are required', 400);
+  if (!caller.circle.sources?.length) return errorResponse('Not a joined circle', 400);
+  const scope = scopeOf(caller.circle);
+  if (!(await sharingFor(scope, userId)).some((f) => f.circleId === from))
+    return errorResponse('You are not in that circle', 404);
+  await setSharing(scope, userId, from, body.shared);
+  logger.info('Past answers sharing set', { from, shared: body.shared });
+  return successResponse({ from: await sharingFor(scope, userId) });
 }

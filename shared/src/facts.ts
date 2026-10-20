@@ -114,4 +114,9 @@ export interface FactAnswerEntry {
   editedAt?: string;
   /** What it said before each time they added to it, oldest first. Nothing is lost. */
   earlier?: { answer: string; fact: string; at: string }[];
+  /**
+   * Seen in a joined circle: the circle this was answered in (docs/decisions/0018).
+   * Never stored; added when a source's answers are read through.
+   */
+  from?: { circleId: string; name: string };
 }

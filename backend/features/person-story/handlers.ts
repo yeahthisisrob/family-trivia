@@ -58,6 +58,7 @@ export async function buildPersonStory(
       // When they said it: an old question answered late belongs to the day it was answered.
       date: f.timestamp.slice(0, 10),
       ...(f.fact && !GENERIC_FACTS.has(f.fact) ? { fact: f.fact } : {}),
+      ...(f.from && { from: f.from.name }),
     }));
 
   const ids = words.map((w) => w.id);

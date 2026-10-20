@@ -1,7 +1,13 @@
 vi.mock('../services/s3', async () => (await import('./helpers/s3Mock')).s3MockModule);
 
-import type { Circle, Family, FamilyPerson, SeasonsConfig } from '@family-trivia/shared';
-import { getSame, postSame } from '../features/circles/handlers';
+import type {
+  Circle,
+  FactAnswerEntry,
+  Family,
+  FamilyPerson,
+  SeasonsConfig,
+} from '@family-trivia/shared';
+import { getSame, getSharing, postSame, putSharing } from '../features/circles/handlers';
 import {
   findCircle,
   joinCircles,
@@ -11,6 +17,12 @@ import {
   scopeOf,
   splitCircle,
 } from '../services/circles';
+import {
+  appendFactAnswer,
+  getAllFactHistories,
+  getAnsweredDates,
+  invalidateFactHistoryCache,
+} from '../services/factHistoryService';
 import { forgetJoined, updatePerson } from '../services/family/joinedCircles';
 import { loadFamily, loadHierarchy } from '../services/family/roster';
 import { getJson, putJson } from '../services/s3';
@@ -246,5 +258,89 @@ describe('same person (0018)', () => {
     expect((await postSame(ev({}, forced), 'alice', alice)).statusCode).toBe(409);
     const dave = { email: 'dave@example.com', circle: c };
     expect((await getSame(ev({ circleId: c.id }), 'dave', dave)).statusCode).toBe(403);
+  });
+});
+
+describe('past answers in a joined circle (0018)', () => {
+  const answer = (text: string, date = '2026-09-01'): FactAnswerEntry => ({
+    date,
+    question: 'Favorite food?',
+    answer: text,
+    fact: '',
+    answered: true,
+    skipped: false,
+    timestamp: `${date}T12:00:00Z`,
+    questionType: 'shared',
+  });
+  const ev = (body?: unknown) => ({ body: body ? JSON.stringify(body) : null }) as never;
+  const data = (r: { body: string }) => JSON.parse(r.body).data;
+
+  beforeEach(() => {
+    seed();
+    invalidateFactHistoryCache();
+    seedRaw('facts/answers/alice.json', [answer('Pizza')]);
+    seedRaw('facts/answers/bob.json', [answer('Soup')]);
+    seedRaw('circles/crew/facts/answers/al.json', [answer('Tacos')]);
+    seedRaw('circles/crew/facts/answers/dave.json', [answer('Wings')]);
+  });
+
+  const answersHere = async (c: Circle) => {
+    invalidateFactHistoryCache();
+    const all = await inside(c, getAllFactHistories);
+    return Object.fromEntries([...all].map(([id, es]) => [id, es.map((e) => e.answer)]));
+  };
+
+  it("shows a family circle's answers, and keeps a friends circle's out until shared", async () => {
+    const c = await joined();
+    expect(await answersHere(c)).toEqual({ alice: ['Pizza'], bob: ['Soup'] });
+    const all = await inside(c, getAllFactHistories);
+    expect(all.get('alice')?.[0]?.from).toEqual({ circleId: 'home', name: 'The Smiths' });
+  });
+
+  it('lets each person share theirs, or keep them out', async () => {
+    const c = await joined();
+    const dave = { email: 'dave@example.com', circle: c };
+    const before = data(await getSharing(ev(), 'dave', dave)).from;
+    expect(before).toEqual([
+      { circleId: 'crew', name: 'The Crew', kind: 'friends', shared: false },
+    ]);
+    await putSharing(ev({ circleId: 'crew', shared: true }), 'dave', dave);
+    const alice = { email: 'alice@example.com', circle: c };
+    await putSharing(ev({ circleId: 'home', shared: false }), 'alice', alice);
+    expect(await answersHere(c)).toEqual({ bob: ['Soup'], dave: ['Wings'] });
+    // Someone in both circles chooses for each.
+    await putSharing(ev({ circleId: 'crew', shared: true }), 'alice', alice);
+    expect((await answersHere(c)).alice).toEqual(['Tacos']);
+  });
+
+  it('only for your own circles, and only in a joined circle', async () => {
+    const c = await joined();
+    const dave = { email: 'dave@example.com', circle: c };
+    expect(
+      (await putSharing(ev({ circleId: 'home', shared: true }), 'dave', dave)).statusCode,
+    ).toBe(404);
+    const home = (await findCircle('home')) as Circle;
+    const inHome = { email: 'alice@example.com', circle: home };
+    expect(data(await getSharing(ev(), 'alice', inHome)).from).toEqual([]);
+  });
+
+  it("answering here stores only the joined circle's own; the sources are untouched", async () => {
+    const c = await joined();
+    // Pizza (from The Smiths) is the same day, but it was another circle's question.
+    expect(await inside(c, () => getAnsweredDates('alice'))).toEqual(new Set());
+    await inside(c, () => appendFactAnswer('alice', answer('Ramen')));
+    expect(getStored<FactAnswerEntry[]>(`circles/${c.id}/facts/answers/alice.json`)).toEqual([
+      answer('Ramen'),
+    ]);
+    expect(getStored<FactAnswerEntry[]>('facts/answers/alice.json')).toEqual([answer('Pizza')]);
+    expect((await answersHere(c)).alice).toEqual(['Ramen', 'Pizza']);
+    expect(await inside(c, () => getAnsweredDates('alice'))).toEqual(new Set(['2026-09-01']));
+  });
+
+  it("a source circle never sees the joined circle's answers", async () => {
+    const c = await joined();
+    await inside(c, () => appendFactAnswer('alice', answer('Ramen')));
+    invalidateFactHistoryCache();
+    expect((await getAllFactHistories()).get('alice')?.map((e) => e.answer)).toEqual(['Pizza']);
   });
 });

@@ -84,10 +84,18 @@ each other (0015), so nobody sees that picture.
     picture is the exception: it is saved in every source you're in.
     Pictures keep living where they were made (`media/from/{circle}/...`);
     new AI pictures are made in your own circles.
-  - **Answers start fresh.** The joined circle keeps its own seasons and
-    answers; the sources' past answers are not read through yet, so nobody's
-    answers reach another circle without a choice (`share into joined
-    circles` comes with that).
+  - **Past answers are read through, by each person's choice.** Someone's
+    answers file (`facts/answers/{id}.json`) in a joined circle is their
+    own answers there, then what they share from each source, each marked
+    with the circle it came from (`from`). Each person chooses per source
+    (`GET/PUT /me/sharing`, kept in the joined circle's
+    `config/sharing.json`): on by default from a family circle, off from
+    any other. A Home card asks once; their profile keeps the switches.
+    Saving keeps only the joined circle's own answers, so nothing is
+    copied and a source never sees the joined circle's answers.
+    The day's question and the starter questions are each circle's own,
+    so an answer from a source never counts as answering one here. Trivia
+    scores start fresh: each season is the joined circle's own.
   - **Split** marks the circle ended and pauses its season; nothing is
     deleted. Joining the same circles again reopens it and its season.
   - An admin of every source circle is needed to join them.

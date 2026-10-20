@@ -88,7 +88,10 @@ export async function putFillIn(
   );
   const now = new Date().toISOString();
   const entries = await getFactHistory(userId);
-  const at = entries.findIndex((x) => keyOf(x) === q.key && x.answered && !x.skipped && x.answer);
+  // Only an answer given here: one from another circle stays as it was there.
+  const at = entries.findIndex(
+    (x) => !x.from && keyOf(x) === q.key && x.answered && !x.skipped && x.answer,
+  );
 
   const was = at >= 0 ? entries[at] : undefined;
   if (was) {

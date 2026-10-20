@@ -15,6 +15,8 @@ export interface StoryWord {
   date: string;
   /** The "did you know" that came back when they answered. */
   fact?: string;
+  /** In a joined circle: the circle they said it in, when it wasn't this one. */
+  from?: string;
 }
 
 export interface PersonStory {

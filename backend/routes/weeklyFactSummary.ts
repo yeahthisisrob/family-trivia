@@ -236,7 +236,7 @@ export async function getWeeklyFactSummary(
         // Load user's fact history and match against shared question dates
         const userEntries = await getFactHistory(userId);
         const answersByDate = new Map(
-          userEntries.filter((e) => e.questionType === 'shared').map((e) => [e.date, e]),
+          userEntries.filter((e) => !e.from && e.questionType === 'shared').map((e) => [e.date, e]),
         );
 
         for (const [sharedDate, sharedQuestion] of sharedQuestions) {

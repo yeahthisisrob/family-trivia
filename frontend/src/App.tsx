@@ -23,6 +23,7 @@ import { UpcomingDates } from './features/celebrations';
 import { DailyMemory } from './features/daily-memory';
 import { InstallCard } from './features/install-app';
 import { AfterCard, PlansCard } from './features/plans';
+import { inJoinedCircle, SharingCard } from './features/shared-answers';
 import { TeamsCard } from './features/teams';
 import { ThreadCard } from './features/threads';
 import { ROUTES, useApp } from './hooks/useApp';
@@ -168,6 +169,13 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
           onPlay={() => navigateTo(ROUTES.PLAY)}
         />
       </Safe>
+
+      {/* In a joined circle: once, whose past answers show here (0018) */}
+      {inJoinedCircle() && (
+        <Safe label="your answers here">
+          <SharingCard />
+        </Safe>
+      )}
 
       {/* On a phone that hasn't added the app: once, how to (0031) */}
       <Safe label="the home screen tip">
