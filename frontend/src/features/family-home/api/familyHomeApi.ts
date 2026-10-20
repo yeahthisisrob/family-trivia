@@ -1,5 +1,5 @@
 import { knowledgeApi } from '../../../entities/family';
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 export interface FamilyStory {
   markdown: string | null;

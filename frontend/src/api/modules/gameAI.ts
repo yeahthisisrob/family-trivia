@@ -1,8 +1,8 @@
 // Module: gameAI — shared Haiku-powered game strategy.
 // Single endpoint, typed per-game wrappers, with timeout + fallback.
 
-import { apiService } from '../../services/ApiService';
-import { createLogger } from '../../utils/logger';
+import { apiService } from '../../shared/api/ApiService';
+import { createLogger } from '../../shared/lib/logger';
 
 const logger = createLogger('GameAI');
 

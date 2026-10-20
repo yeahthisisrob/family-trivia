@@ -24,8 +24,8 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { getMediaUrl, uploadImage } from '../../api/modules/admin';
 import { useAdmin } from '../../contexts/AdminContext';
-import { currentCircleKind } from '../../session';
 import { paper } from '../../shared/design-system';
+import { currentCircleKind } from '../../shared/session/session';
 import { LetterPaper } from '../SeasonLetter/SeasonLetter';
 
 type Kind = 'start' | 'end';

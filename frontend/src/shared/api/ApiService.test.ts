@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-vi.mock('../config', () => ({
+vi.mock('../config/config', () => ({
   loadConfig: async () => ({ REACT_APP_API_URL: 'https://api.test' }),
 }));
 

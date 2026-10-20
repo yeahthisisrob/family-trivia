@@ -6,7 +6,7 @@ import {
   loadCircles,
   loadSession,
   saveCircles,
-} from '../../../session';
+} from '../../../shared/session/session';
 import { circlesApi } from '../api/circlesApi';
 
 export interface MyCircles {

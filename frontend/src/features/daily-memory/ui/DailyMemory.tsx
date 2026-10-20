@@ -11,7 +11,7 @@ import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
 import { Box, Button, ButtonBase, Paper, Stack, Typography } from '@mui/material';
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 import { identityColor, paper } from '../../../shared/design-system';
 import { ReactionBar } from '../../reactions';
 

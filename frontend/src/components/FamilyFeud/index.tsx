@@ -35,7 +35,7 @@ import {
 } from '../../api/modules/familyFeud';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
 import { colors } from '../../shared/design-system';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../shared/lib/logger';
 import { LoadingDots } from '../ui/feedback';
 
 const logger = createLogger('FamilyFeud');

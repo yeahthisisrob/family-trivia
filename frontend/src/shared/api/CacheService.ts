@@ -5,7 +5,7 @@
 // This is by design to prevent stale data from persisting between sessions.
 // The backend is the source of truth for all game state.
 
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../lib/logger';
 
 interface CacheEntry<T> {
   data: T;

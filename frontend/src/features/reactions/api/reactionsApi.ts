@@ -1,5 +1,5 @@
 import type { ReactableType, ReactionId, ReactionSummary } from '@family-trivia/shared';
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 export const reactionsApi = {
   get: (type: ReactableType, ids: string[]) =>

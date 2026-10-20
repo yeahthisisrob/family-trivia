@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { useState } from 'react';
-import { ApiError } from '../../../services/ApiService';
+import { ApiError } from '../../../shared/api/ApiService';
 import { BookReader } from '../../../shared/book-reader';
 import { type PersonBook, personBookApi } from '../api/personBookApi';
 

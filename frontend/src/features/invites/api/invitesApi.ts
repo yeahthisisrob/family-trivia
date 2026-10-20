@@ -7,7 +7,7 @@ import type {
   PendingJoin,
 } from '@family-trivia/shared';
 import { publicRequest } from '../../../api/modules/auth';
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 export interface InviteSession {
   token: string;

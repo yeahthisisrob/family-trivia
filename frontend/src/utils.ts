@@ -1,6 +1,6 @@
 // File: frontend/src/utils.ts
 import type { UserConfigResponse } from './api/modules/user';
-import { cacheService } from './services/CacheService';
+import { cacheService } from './shared/api/CacheService';
 import { identityColor } from './shared/design-system';
 
 // A color set in user config wins; otherwise the person's identity color.

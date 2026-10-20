@@ -1,5 +1,5 @@
 import type { AvatarChoice } from '@family-trivia/shared';
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 const send = <T>(path: string, method: string, body: unknown) =>
   apiService.request<T>(path, {

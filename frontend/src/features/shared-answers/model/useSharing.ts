@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { loadCircles } from '../../../session';
+import { loadCircles } from '../../../shared/session/session';
 import { type SharedFrom, sharingApi } from '../api/sharingApi';
 
 /** Whether this tab is in a joined circle: only there do past answers come from elsewhere. */

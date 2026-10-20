@@ -19,9 +19,9 @@ import type {
 } from '../api/modules/init';
 import { type AppInitResponse, getAppInit, getAppInitDeferred } from '../api/modules/init';
 import type { UserConfigResponse } from '../api/modules/user';
-import { cacheService } from '../services/CacheService';
+import { cacheService } from '../shared/api/CacheService';
 import { colors } from '../shared/design-system/tokens/colors';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../shared/lib/logger';
 
 // Types
 interface FamilyMember {

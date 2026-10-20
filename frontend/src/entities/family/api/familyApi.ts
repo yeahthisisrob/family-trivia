@@ -1,6 +1,6 @@
 /** The family: people, ties and households (docs/decisions/0009). */
 import type { Family } from '@family-trivia/shared';
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 export interface FamilyResponse {
   family: Family;

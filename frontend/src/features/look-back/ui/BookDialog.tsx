@@ -31,7 +31,7 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { ApiError } from '../../../services/ApiService';
+import { ApiError } from '../../../shared/api/ApiService';
 import { BookReader } from '../../../shared/book-reader';
 import { lookBackApi } from '../api/lookBackApi';
 

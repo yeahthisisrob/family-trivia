@@ -5,8 +5,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTimeline } from '../../contexts/TimelineContext';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { useUserTimeline } from '../../hooks/useUserTimeline';
+import { createLogger } from '../../shared/lib/logger';
 import { getUserColor, getUserInitials } from '../../utils';
-import { createLogger } from '../../utils/logger';
 import CommentsTimeline from '../TimelineBoard/CommentsTimeline';
 import FactTimeline from '../TimelineBoard/FactTimeline';
 import ContentTypeSelector, {

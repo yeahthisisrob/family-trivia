@@ -1,7 +1,7 @@
 // Module: seasons: where the season stands, and the letters people have read.
 
 import type { EndOfSeasonStatus } from '@family-trivia/shared';
-import { apiService } from '../../services/ApiService';
+import { apiService } from '../../shared/api/ApiService';
 
 export type { EndOfSeasonStatus, Season } from '@family-trivia/shared';
 

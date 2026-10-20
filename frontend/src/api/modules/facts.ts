@@ -8,9 +8,9 @@ import type {
   RecentQuestion,
   UserFactHistory,
 } from '@family-trivia/shared';
-import { apiService } from '../../services/ApiService';
-import { cacheService } from '../../services/CacheService';
-import { createLogger } from '../../utils/logger';
+import { apiService } from '../../shared/api/ApiService';
+import { cacheService } from '../../shared/api/CacheService';
+import { createLogger } from '../../shared/lib/logger';
 
 export type {
   DailyFactQuestion,

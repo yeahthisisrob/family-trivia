@@ -43,9 +43,9 @@ import { useFamilyData } from '../../contexts/FamilyDataContext';
 import { CommentsThread } from '../../features/comments';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { radii } from '../../shared/design-system/tokens/radii';
+import { createLogger } from '../../shared/lib/logger';
 import { getUserColor, getUserInitials } from '../../utils';
 import { shouldIncludeInFamilySide } from '../../utils/familyUtils';
-import { createLogger } from '../../utils/logger';
 import ConfirmDialog from '../Admin/shared/ConfirmDialog';
 import FamilySideSelector from '../TimelineBoard/selectors/FamilySideSelector';
 

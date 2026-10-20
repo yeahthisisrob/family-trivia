@@ -1,5 +1,5 @@
 /** The family's default theme (backend/features/appearance). */
-import { apiService } from '../../services/ApiService';
+import { apiService } from '../../shared/api/ApiService';
 
 export const appearanceApi = {
   get: () =>

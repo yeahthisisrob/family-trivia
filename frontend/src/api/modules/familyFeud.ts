@@ -1,7 +1,7 @@
 // Module: familyFeud
 // Family Feud round-robin game mode API
 
-import { apiService } from '../../services/ApiService';
+import { apiService } from '../../shared/api/ApiService';
 
 export interface FamilyFeudGuesser {
   userName: string;

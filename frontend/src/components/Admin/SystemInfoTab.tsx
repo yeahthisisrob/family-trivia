@@ -9,8 +9,8 @@ import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 
-import { apiService } from '../../services/ApiService';
-import { createLogger } from '../../utils/logger';
+import { apiService } from '../../shared/api/ApiService';
+import { createLogger } from '../../shared/lib/logger';
 import { LoadingDots } from '../ui/feedback';
 
 const logger = createLogger('SystemInfoTab');

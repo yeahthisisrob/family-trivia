@@ -15,8 +15,8 @@ import { GAMES, gameById } from '../../games/registry';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
 import { shadows } from '../../shared/design-system/tokens/shadows';
+import { createLogger } from '../../shared/lib/logger';
 import { getUserColor, getUserInitials } from '../../utils';
-import { createLogger } from '../../utils/logger';
 import { LoadingDots } from '../ui/feedback';
 import ArcadeLeaderboard from './ArcadeLeaderboard';
 

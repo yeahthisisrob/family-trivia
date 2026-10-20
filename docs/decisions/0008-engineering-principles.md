@@ -30,14 +30,19 @@ code that changes for different reasons may stay separate.
 **FSD (Feature-Sliced Design)** in `frontend/src`: layers `app → pages →
 widgets → features → entities → shared`, each importing only from layers
 below it. A slice exposes a public `index.ts`; other slices never reach into
-its internals. Features compose at the widget or page level, never by
-importing each other. Biome `noRestrictedImports` overrides enforce it as the
-code moves into the layers.
+its internals. Features compose at the widget or page level where they can;
+one feature may use another only through its `index.ts`. The API client,
+session, config and logger live in `shared/` (`shared/api`, `shared/session`,
+`shared/config`, `shared/lib/logger`), so entities and shared never depend on
+the app. `scripts/check-architecture.mjs` enforces all of this (`just layout`,
+pre-commit and CI), and proves itself on a made-up violation before it checks.
+Stories, tests and their `*Mocks.ts` fixtures may reach inside slices.
 
 **VSA (Vertical Slice Architecture)** in `backend/`: each feature owns its
 routes, handlers, services and tests in `features/<slice>/`. Slices don't
-import each other; shared code lives in `shared/` below them, and the AWS SDK
-is touched only by adapters. A change to one feature touches one folder.
+import each other, and `services/` (what slices share) never imports a slice;
+slices meet through registries there (life events, the storage links). The
+same script enforces it. A change to one feature touches one folder.
 
 **OpenAPI-first**: `shared/schemas/api.openapi.yaml` is the contract. Change
 the schema, run `just contract`, and the generated types drive both the

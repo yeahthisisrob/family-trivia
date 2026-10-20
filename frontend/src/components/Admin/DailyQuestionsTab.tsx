@@ -13,7 +13,7 @@ import {
   getDailyQuestions,
 } from '../../api/modules/admin';
 import { useAdmin } from '../../contexts/AdminContext';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../shared/lib/logger';
 import { LoadingDots } from '../ui/feedback';
 import AdminCard from './shared/AdminCard';
 import ConfirmDialog from './shared/ConfirmDialog';

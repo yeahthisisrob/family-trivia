@@ -19,7 +19,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { getFactStarters } from '../../api/modules/facts';
 import { useFamilyData } from '../../contexts/FamilyDataContext';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../shared/lib/logger';
 
 const logger = createLogger('FactAnswerInput');
 

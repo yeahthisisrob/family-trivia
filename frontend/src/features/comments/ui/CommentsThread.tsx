@@ -23,7 +23,7 @@ import { useFamilyData } from '../../../contexts/FamilyDataContext';
 import { useNotifications } from '../../../contexts/NotificationContext';
 import { useTimeline } from '../../../contexts/TimelineContext';
 import { PersonAvatar } from '../../../entities/person';
-import { createLogger } from '../../../utils/logger';
+import { createLogger } from '../../../shared/lib/logger';
 import { ReactionBar } from '../../reactions';
 
 const logger = createLogger('CommentsThread');

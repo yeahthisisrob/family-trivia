@@ -7,7 +7,7 @@
 import { Button, Card, Typography } from '@mui/material';
 import type React from 'react';
 import { useState } from 'react';
-import { inThisCircle } from '../../../session';
+import { inThisCircle } from '../../../shared/session/session';
 import type { SharedFrom } from '../api/sharingApi';
 import { useSharing } from '../model/useSharing';
 import { SharingSwitches } from './SharingSwitches';

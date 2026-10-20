@@ -5,7 +5,7 @@ import { Box, Button } from '@mui/material';
 import type React from 'react';
 
 import appStrings from '../../constants/strings';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../shared/lib/logger';
 
 // Initialize logger
 const logger = createLogger('CustomCategoryButton');

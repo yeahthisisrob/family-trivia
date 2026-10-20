@@ -2,7 +2,7 @@
 // Admin-managed list of external shared album links (Google Photos, etc.)
 // that the family can browse from inside the app.
 
-import { apiService } from '../../services/ApiService';
+import { apiService } from '../../shared/api/ApiService';
 
 export interface PhotoAlbum {
   id: string;

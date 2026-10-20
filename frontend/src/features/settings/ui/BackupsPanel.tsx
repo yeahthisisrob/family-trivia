@@ -7,7 +7,7 @@ import { Alert, Box, Button, Chip, Paper, Stack, Typography } from '@mui/materia
 import { formatDistanceToNow } from 'date-fns';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { ApiError } from '../../../services/ApiService';
+import { ApiError } from '../../../shared/api/ApiService';
 import { type BackupsView, backupsApi } from '../api/backupsApi';
 
 const size = (b = 0) =>

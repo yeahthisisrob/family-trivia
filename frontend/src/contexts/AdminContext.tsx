@@ -3,7 +3,7 @@ import type React from 'react';
 import { createContext, useCallback, useContext, useState } from 'react';
 
 import * as adminApi from '../api/modules/admin';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../shared/lib/logger';
 
 const logger = createLogger('AdminContext');
 

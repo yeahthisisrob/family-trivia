@@ -4,7 +4,7 @@
  */
 import type { AvatarChoice } from '@family-trivia/shared';
 import { useSyncExternalStore } from 'react';
-import { familyApi } from '../../family/api/familyApi';
+import { familyApi } from '../../family';
 import { type Look, lookOf } from './look';
 
 let choices: Record<string, AvatarChoice> = {};

@@ -14,7 +14,7 @@ import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../shared/lib/logger';
 import { getClues, submitScore } from '../kit';
 
 const logger = createLogger('SnakeGame');

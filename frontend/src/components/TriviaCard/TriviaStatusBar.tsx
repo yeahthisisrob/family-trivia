@@ -3,7 +3,7 @@
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useTrivia } from '../../contexts/TriviaContext';
-import { apiService } from '../../services/ApiService';
+import { apiService } from '../../shared/api/ApiService';
 import AnswerGridView, { type AnswerGridData } from './AnswerGridView';
 
 interface TriviaStatusBarProps {

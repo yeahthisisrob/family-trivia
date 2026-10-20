@@ -17,7 +17,8 @@ as they age and change.
 ## How the code is written (0008)
 Clean Code (Robert C. Martin), DRY (one source of truth per fact), FSD in
 `frontend/src` (app → pages → widgets → features → entities → shared),
-VSA in `backend/` (`features/<slice>/`, no cross-slice imports),
+VSA in `backend/` (`features/<slice>/`, no cross-slice imports; `just layout`
+checks both),
 OpenAPI-first (`shared/schemas/api.openapi.yaml`, then `just contract`).
 Every component gets a story; a bug fix starts with a failing test.
 

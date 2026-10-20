@@ -16,8 +16,8 @@ import type React from 'react';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import * as api from '../api';
-import { cacheService } from '../services/CacheService';
-import { createLogger } from '../utils/logger';
+import { cacheService } from '../shared/api/CacheService';
+import { createLogger } from '../shared/lib/logger';
 import { useFamilyData } from './FamilyDataContext';
 
 const logger = createLogger('UserStatusContext');

@@ -3,8 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import AppProvider from './AppProvider';
-import { currentCircleId } from './session';
 import { AppearanceProvider } from './shared/design-system';
+import { currentCircleId } from './shared/session/session';
 import { ToastProvider } from './shared/toast';
 
 const container = document.getElementById('root');

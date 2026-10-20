@@ -28,7 +28,7 @@ each other's family.
   (`X-Circle` header), and `requireAuth` checks the membership and passes the
   handler the person's `userId` in that circle. Not a member: 403, always.
   Each browser tab (and the home-screen app) keeps the circle and person it
-  opened as (`session.ts`): the browser's storage is shared by every tab, so
+  opened as (`shared/session/session.ts`): the browser's storage is shared by every tab, so
   a switch in one never changes what another asks for. Switching reloads
   the app. Anything kept on the device per choice (a theme, a dismissed
   note) is kept per circle.

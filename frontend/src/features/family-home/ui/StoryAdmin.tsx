@@ -10,7 +10,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useCircleWords } from '../../../entities/circle';
-import { ApiError } from '../../../services/ApiService';
+import { ApiError } from '../../../shared/api/ApiService';
 import { type FamilyStory, familyHomeApi } from '../api/familyHomeApi';
 
 export const StoryAdmin: React.FC = () => {

@@ -13,10 +13,10 @@ import {
   type GroupScore as GroupLeaderboardUtilEntry,
   type LeaderboardEntry as LeaderboardUtilEntry,
 } from '../../components/Leaderboard/utils';
-import { apiService } from '../../services/ApiService';
-import { cacheService } from '../../services/CacheService';
+import { apiService } from '../../shared/api/ApiService';
+import { cacheService } from '../../shared/api/CacheService';
+import { createLogger } from '../../shared/lib/logger';
 import { getUserGroup } from '../../utils';
-import { createLogger } from '../../utils/logger';
 import { getUserProfile, type QuestionHistory } from './user';
 
 export type { GroupLeaderboardEntry, LeaderboardEntry, SeasonInfo } from '@family-trivia/shared';

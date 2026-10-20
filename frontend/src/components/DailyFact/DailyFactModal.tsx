@@ -11,8 +11,8 @@ import { Box, Dialog, IconButton } from '@mui/material';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { shouldShowDailyFact } from '../../api/modules/facts';
-import { inThisCircle } from '../../session';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../shared/lib/logger';
+import { inThisCircle } from '../../shared/session/session';
 import DailyFactCard from './DailyFactCard';
 
 const logger = createLogger('DailyFactModal');

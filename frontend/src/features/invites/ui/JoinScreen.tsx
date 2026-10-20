@@ -8,8 +8,8 @@ import { useEffect, useState } from 'react';
 import { rememberCircles } from '../../../api/modules/auth';
 import { LoadingDots } from '../../../components/ui/feedback';
 import { KIND_ICON, KIND_LINE } from '../../../entities/circle';
-import { saveSession } from '../../../session';
 import { colors } from '../../../shared/design-system/tokens/colors';
+import { saveSession } from '../../../shared/session/session';
 import { type InviteSession, invitesApi } from '../api/invitesApi';
 
 const GONE: Record<Exclude<InvitePreview['state'], 'open'>, string> = {

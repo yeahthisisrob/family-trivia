@@ -6,15 +6,15 @@
 // The backend is always treated as the source of truth for game state.
 
 import { CIRCLE_HEADER } from '@family-trivia/shared';
-import { loadConfig } from '../config';
+import { loadConfig } from '../config/config';
+import { createLogger } from '../lib/logger';
 import {
   currentCircleId,
   expireSession,
   getToken,
   leaveRememberedCircle,
   updateToken,
-} from '../session';
-import { createLogger } from '../utils/logger';
+} from '../session/session';
 import { cacheService } from './CacheService';
 
 /** Structured API error thrown when the server returns an error envelope */

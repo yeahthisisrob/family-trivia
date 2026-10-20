@@ -2,8 +2,8 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import { getCasinoRushStatus, getSlotMachineStatus } from '../api/modules/games';
 import { getRoundStatus } from '../games/kit';
 import { GAMES } from '../games/registry';
-import { cacheService } from '../services/CacheService';
-import { createLogger } from '../utils/logger';
+import { cacheService } from '../shared/api/CacheService';
+import { createLogger } from '../shared/lib/logger';
 import { useCategoryRefresh } from './CategoryRefreshContext';
 import { useFamilyData } from './FamilyDataContext';
 

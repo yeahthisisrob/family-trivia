@@ -1,5 +1,5 @@
 import type { CircleKind } from '@family-trivia/shared';
-import { apiService } from '../../../services/ApiService';
+import { apiService } from '../../../shared/api/ApiService';
 
 /** A circle your past answers could show from, in a joined circle (docs/decisions/0018). */
 export interface SharedFrom {

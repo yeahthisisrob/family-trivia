@@ -8,7 +8,7 @@ import type {
 } from '@family-trivia/shared';
 import type React from 'react';
 import { createContext, createElement, useContext, useEffect, useState } from 'react';
-import { apiService } from '../../services/ApiService';
+import { apiService } from '../../shared/api/ApiService';
 
 export interface AdminSettings {
   settings: ResolvedSetting[];

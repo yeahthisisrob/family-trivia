@@ -3,7 +3,7 @@ import { type CircleKind, type Words, wordsFor } from '@family-trivia/shared';
 import Diversity1RoundedIcon from '@mui/icons-material/Diversity1Rounded';
 import FamilyRestroomRoundedIcon from '@mui/icons-material/FamilyRestroomRounded';
 import Groups2RoundedIcon from '@mui/icons-material/Groups2Rounded';
-import { currentCircleKind } from '../../session';
+import { currentCircleKind } from '../../shared/session/session';
 
 export const KIND_ICON: Record<CircleKind, typeof Groups2RoundedIcon> = {
   family: FamilyRestroomRoundedIcon,

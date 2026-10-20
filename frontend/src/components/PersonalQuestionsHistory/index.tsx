@@ -38,7 +38,7 @@ import {
   submitHistoricalFact,
   type UserFactHistory,
 } from '../../api/modules/facts';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../shared/lib/logger';
 import { LoadingDots } from '../ui/feedback';
 
 interface PersonalQuestionsHistoryProps {

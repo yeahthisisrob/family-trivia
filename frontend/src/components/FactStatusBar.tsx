@@ -5,7 +5,7 @@
 import { alpha, Box, Divider, keyframes, Typography, useTheme } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { apiService } from '../services/ApiService';
+import { apiService } from '../shared/api/ApiService';
 import { colors } from '../shared/design-system';
 
 const ANSWERED = colors.accent.blue;

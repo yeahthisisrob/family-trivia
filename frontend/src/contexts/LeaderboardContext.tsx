@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 
 import { getOptimizedLeaderboardData, type SeasonInfo } from '../api/modules/leaderboard';
 import type { GroupScore, LeaderboardEntry } from '../components/Leaderboard/utils';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../shared/lib/logger';
 
 // Initialize logger
 const logger = createLogger('LeaderboardContext');

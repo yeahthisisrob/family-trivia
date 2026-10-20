@@ -25,12 +25,12 @@ import {
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LoadingDots } from '../../components/ui/feedback';
-import { apiService } from '../../services/ApiService';
+import { apiService } from '../../shared/api/ApiService';
 import { colors } from '../../shared/design-system/tokens/colors';
 import { games } from '../../shared/design-system/tokens/games';
 import { motion } from '../../shared/design-system/tokens/motion';
 import { radii } from '../../shared/design-system/tokens/radii';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../shared/lib/logger';
 import { submitScore } from '../kit';
 
 const logger = createLogger('CrosswordGame');
