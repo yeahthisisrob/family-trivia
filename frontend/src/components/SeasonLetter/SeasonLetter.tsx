@@ -19,7 +19,7 @@ import {
 import type React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { usePaper } from '../../shared/design-system';
+import { useLetterPaper } from '../../shared/design-system';
 
 interface SeasonLetterProps {
   letter: Letter;
@@ -33,7 +33,7 @@ export const LetterPaper: React.FC<{ heading: string; markdown: string; imageUrl
   markdown,
   imageUrl,
 }) => {
-  const paper = usePaper();
+  const paper = useLetterPaper();
   return (
     <>
       <Typography
@@ -119,7 +119,7 @@ export const LetterPaper: React.FC<{ heading: string; markdown: string; imageUrl
 };
 
 export const SeasonLetter: React.FC<SeasonLetterProps> = ({ letter, seasonName, onClose }) => {
-  const paper = usePaper();
+  const paper = useLetterPaper();
   const fullScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
   const heading =
     letter.title ||

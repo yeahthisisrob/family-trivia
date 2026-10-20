@@ -16,4 +16,4 @@ export {
   spacing,
   typography,
 } from './tokens';
-export { type Paper, usePaper } from './usePaper';
+export { type Paper, useLetterPaper, usePaper } from './usePaper';
