@@ -6,6 +6,14 @@ updates:
     directory: "/"
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 8
+    ignore:
+      # The types follow the Lambda runtime (Node 22, mise.toml), not the newest Node.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # openapi-typescript needs the TypeScript 5 JS API, which 7 doesn't have yet;
+      # the root's typescript is already 7.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     groups:
       aws-sdk:
         patterns: ["@aws-sdk/*", "@smithy/*", "aws-cdk", "aws-cdk-lib"]
