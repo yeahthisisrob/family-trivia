@@ -6,11 +6,11 @@ import { Box, Card, Chip, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { LoadingDots } from '../../../components/ui/feedback';
-import { useCircleQuery } from '../../../shared/api/query';
+import { useSystemInfo } from '../model/systemInfo';
 
 export const SystemInfoTab: React.FC = () => {
   const theme = useTheme();
-  const read = useCircleQuery({ key: ['admin', 'system-info'], path: '/admin/system-info' });
+  const read = useSystemInfo();
   const info = read.data;
 
   if (read.isPending) return <LoadingDots mt={2} />;

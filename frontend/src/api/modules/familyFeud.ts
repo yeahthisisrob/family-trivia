@@ -3,17 +3,6 @@
 
 import { apiService } from '../../shared/api/ApiService';
 
-export interface FamilyFeudGuesser {
-  userName: string;
-  submittedAt: string;
-}
-
-export interface FamilyFeudGuess {
-  userName: string;
-  guess: string;
-  correct: boolean;
-}
-
 export interface FamilyFeudWinner {
   userId: string;
   userName: string;
@@ -24,25 +13,6 @@ export interface FamilyFeudResults {
   winners: FamilyFeudWinner[];
   totalGuesses: number;
   revealedAt: string;
-}
-
-export interface FamilyFeudRoundInfo {
-  roundId: string;
-  targetUserId: string;
-  targetUserName: string;
-  question: string;
-  status: 'waiting_for_target' | 'active' | 'completed';
-  startedAt: string;
-  expiresAt: string;
-  guessCount: number;
-  /** Users who have guessed so far (for the "X people voted" display) */
-  guessers: FamilyFeudGuesser[];
-  myGuess: string | null;
-  choices: string[] | null;
-  realAnswer: string | null;
-  /** All guesses with correctness — only present after completion */
-  allGuesses: FamilyFeudGuess[] | null;
-  results: FamilyFeudResults | null;
 }
 
 // The status Home reads is in features/family-feud (server data, 0035).
@@ -87,30 +57,5 @@ export async function passFamilyFeudTurn(
   return apiService.request<{ passed: boolean; nextTargetUserName: string }>('/family-feud/pass', {
     method: 'POST',
     body: JSON.stringify({ userId }),
-  });
-}
-
-// Admin functions — returns the full feud state for debugging
-export interface AdminFamilyFeudState {
-  currentRound: FamilyFeudRoundInfo | null;
-  rotation: { allUserIds: string[]; currentIndex: number; roundHistory: unknown[] };
-  allRounds: Array<{ roundId: string; targetUserName: string; status: string }>;
-}
-
-export async function adminGetFamilyFeud(adminUserId: string): Promise<AdminFamilyFeudState> {
-  return apiService.request<AdminFamilyFeudState>(
-    `/admin/family-feud?adminUserId=${encodeURIComponent(adminUserId)}`,
-    { method: 'GET' },
-  );
-}
-
-export async function adminResetFamilyFeud(
-  adminUserId: string,
-  action: 'reset-current' | 'delete-round' | 'reset-rotation',
-  roundId?: string,
-): Promise<void> {
-  await apiService.request('/admin/family-feud', {
-    method: 'DELETE',
-    body: JSON.stringify({ adminUserId, action, roundId }),
   });
 }

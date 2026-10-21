@@ -1859,12 +1859,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Admin — fetch a user's fact history */
+        /** Admin — one person's fact history, as stored */
         get: operations["adminGetUserFacts"];
-        /** Admin — update a fact entry */
+        /** Admin — change one fact entry, found by its timestamp */
         put: operations["adminUpdateUserFact"];
         post?: never;
-        /** Admin — delete a fact entry */
+        /** Admin — delete exactly one fact entry, found by its timestamp */
         delete: operations["adminDeleteUserFact"];
         options?: never;
         head?: never;
@@ -1878,11 +1878,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Admin — fetch a user's trivia answer history */
+        /** Admin — one person's trivia answers, newest first */
         get: operations["adminGetUserTrivia"];
         put?: never;
         post?: never;
-        /** Admin — delete trivia entries */
+        /** Admin — delete trivia answers, found by their timestamps */
         delete: operations["adminDeleteUserTrivia"];
         options?: never;
         head?: never;
@@ -1952,7 +1952,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Admin — browse trivia bank with filters */
+        /** Admin — one page of a category's questions at one difficulty */
         get: operations["adminTriviaBankBrowse"];
         put?: never;
         post?: never;
@@ -1972,7 +1972,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Admin — delete a trivia bank question */
+        /** Admin — delete a question from the bank, found by its text */
         delete: operations["adminDeleteTriviaBankQuestion"];
         options?: never;
         head?: never;
@@ -1988,7 +1988,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Admin — bulk import trivia questions */
+        /** Admin — add questions to the bank from a source, or written by the AI */
         post: operations["adminTriviaBankImport"];
         delete?: never;
         options?: never;
@@ -2003,11 +2003,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Admin — inspect family feud state */
+        /** Admin — the current Family Feud round and the recent ones, as stored */
         get: operations["adminGetFamilyFeud"];
         put?: never;
         post?: never;
-        /** Admin — reset or delete family feud round */
+        /** Admin — reset the current round, delete a round, or reset the rotation */
         delete: operations["adminResetFamilyFeud"];
         options?: never;
         head?: never;
@@ -2673,6 +2673,78 @@ export interface components {
          * @example snake
          */
         GameId: string;
+        /** @description One entry of a person's fact history, as an admin edits it */
+        AdminFactEntry: {
+            /** @description The entry's identity */
+            timestamp: string;
+            /** @description Type, index and date, for older callers */
+            key: string;
+            date: string;
+            question: string | null;
+            answer: string | null;
+            answered: boolean;
+            skipped: boolean;
+            /** @enum {string} */
+            questionType?: "shared" | "basic";
+            questionIndex?: number;
+        };
+        BankStats: {
+            totalQuestions: number;
+            categories: {
+                category: string;
+                count: number;
+                difficulties: {
+                    easy: number;
+                    normal: number;
+                    hard: number;
+                };
+            }[];
+            /** @description [source, how many] pairs */
+            sources: (string | number)[][];
+            questionsAsked: number;
+        };
+        BankQuestion: {
+            question: string;
+            choices: string[];
+            answer: string;
+            category: string;
+            difficulty: string;
+            source: string;
+            sourceUrl?: string;
+            externalId?: string;
+        };
+        BankImportResult: {
+            source: string;
+            category: string;
+            difficulty: string;
+            fetched: number;
+            added: number;
+            duplicates: number;
+            errors: number;
+        };
+        /** @description A Family Feud round as stored, every guess with who made it */
+        AdminFeudRound: {
+            roundId: string;
+            targetUserId: string;
+            targetUserName: string;
+            question: string;
+            realAnswer: string | null;
+            choices?: string[] | null;
+            answeredAt?: string | null;
+            startedAt: string;
+            expiresAt: string;
+            /** @enum {string} */
+            status: "waiting_for_target" | "active" | "completed";
+            guesses: {
+                [key: string]: {
+                    userId: string;
+                    userName: string;
+                    guess: string;
+                    submittedAt: string;
+                };
+            };
+            results?: components["schemas"]["FamilyFeudResults"];
+        };
         AdminGameSession: {
             /** @description The game's label */
             type: string;
@@ -3086,6 +3158,8 @@ export interface components {
             totalQuestions?: number;
             reason?: string;
             isCustomCategory?: boolean;
+            /** @description The game mode or round it came from (0032); older entries carry a flag per mode */
+            gameMode?: string;
         };
         FactItem: {
             id: string;
@@ -8313,8 +8387,18 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        facts: components["schemas"]["AdminFactEntry"][];
+                        success: boolean;
+                    };
                 };
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -8330,20 +8414,36 @@ export interface operations {
                 "application/json": {
                     adminUserId: string;
                     userId: string;
-                    date: string;
-                    updates: Record<string, never>;
+                    /** @description The entry's identity */
+                    timestamp?: string;
+                    /** @description Older callers: the entry's type and date */
+                    factKey?: string;
+                    answer?: string;
+                    question?: string;
+                    /** @enum {string} */
+                    newQuestionType?: "shared" | "basic";
+                    newQuestionIndex?: number;
+                    /** @description YYYY-MM-DD */
+                    newDate?: string;
                 };
             };
         };
         responses: {
-            /** @description Updated entry */
+            /** @description Updated */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["AdminSaved"];
                 };
+            };
+            /** @description No such entry */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -8359,7 +8459,10 @@ export interface operations {
                 "application/json": {
                     adminUserId: string;
                     userId: string;
-                    date: string;
+                    /** @description The entry's identity */
+                    timestamp?: string;
+                    /** @description Older callers: every entry of that type and date */
+                    factKey?: string;
                 };
             };
         };
@@ -8371,9 +8474,17 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        success?: boolean;
+                        success: boolean;
+                        removed: number;
                     };
                 };
+            };
+            /** @description No such entry */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -8395,8 +8506,18 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        history: components["schemas"]["HistoryEntry"][];
+                        success: boolean;
+                    };
                 };
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -8412,7 +8533,7 @@ export interface operations {
                 "application/json": {
                     adminUserId: string;
                     userId: string;
-                    timestamps?: string[];
+                    timestamps: string[];
                 };
             };
         };
@@ -8424,9 +8545,17 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        success?: boolean;
+                        success: boolean;
+                        removedCount: number;
                     };
                 };
+            };
+            /** @description No trivia history for this person */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -8551,14 +8680,21 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Count by category/difficulty */
+            /** @description Count by category and difficulty, by source, and how many were asked */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["BankStats"];
                 };
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -8566,8 +8702,9 @@ export interface operations {
         parameters: {
             query: {
                 adminUserId: string;
-                category?: string;
-                difficulty?: string;
+                category: string;
+                difficulty: string;
+                offset?: number;
                 limit?: number;
             };
             header?: never;
@@ -8576,17 +8713,24 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Questions matching filters */
+            /** @description The page, and how many there are in all */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        questions?: Record<string, never>[];
-                        total?: number;
+                        questions: components["schemas"]["BankQuestion"][];
+                        total: number;
                     };
                 };
+            };
+            /** @description No category or difficulty */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -8601,19 +8745,21 @@ export interface operations {
             content: {
                 "application/json": {
                     adminUserId: string;
-                    questionId: string;
+                    category: string;
+                    difficulty: string;
+                    questionText: string;
                 };
             };
         };
         responses: {
-            /** @description Deleted */
+            /** @description Whether a question was taken out */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        success?: boolean;
+                        deleted: boolean;
                     };
                 };
             };
@@ -8630,7 +8776,11 @@ export interface operations {
             content: {
                 "application/json": {
                     adminUserId: string;
-                    questions: Record<string, never>[];
+                    /** @enum {string} */
+                    source: "opentdb" | "jservice" | "ai-hometown" | "ai-nearby" | "ai-custom";
+                    category: string;
+                    difficulty: string;
+                    count?: number;
                 };
             };
         };
@@ -8641,11 +8791,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        imported?: number;
-                        skipped?: number;
-                    };
+                    "application/json": components["schemas"]["BankImportResult"];
                 };
+            };
+            /** @description Missing fields or an unknown source */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -8660,14 +8814,24 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Feud state for debugging */
+            /** @description Feud state */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        currentRound: components["schemas"]["AdminFeudRound"] | null;
+                        recentRounds: components["schemas"]["AdminFeudRound"][];
+                    };
                 };
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -8695,8 +8859,20 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        success: boolean;
+                        /** @enum {string} */
+                        action: "reset-current" | "delete-round" | "reset-rotation";
+                        roundId?: string;
+                    };
                 };
+            };
+            /** @description An unknown action, or delete-round without a roundId */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

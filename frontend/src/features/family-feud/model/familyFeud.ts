@@ -12,14 +12,15 @@ import {
 } from '../../../api/modules/familyFeud';
 import { useCircleMutation, useCircleQuery } from '../../../shared/api/query';
 
-const FEUD = ['family-feud'] as const;
+/** Home's Family Feud card; an admin's reset or delete changes it too. */
+export const FAMILY_FEUD = ['family-feud'] as const;
 
 /** Asked once the app has started, so it doesn't hold up the first load. */
 export const useFeudStatus = (userId: string, enabled: boolean) =>
-  useCircleQuery({ key: FEUD, path: '/family-feud/status', query: { userId }, enabled });
+  useCircleQuery({ key: FAMILY_FEUD, path: '/family-feud/status', query: { userId }, enabled });
 
 const useMove = <T, V>(mutationFn: (vars: V) => Promise<T>) =>
-  useCircleMutation({ mutationFn, invalidates: [FEUD] });
+  useCircleMutation({ mutationFn, invalidates: [FAMILY_FEUD] });
 
 export const useStartRound = () => useMove((userId: string) => startFamilyFeudRound(userId));
 export const usePassTurn = () => useMove((userId: string) => passFamilyFeudTurn(userId));
