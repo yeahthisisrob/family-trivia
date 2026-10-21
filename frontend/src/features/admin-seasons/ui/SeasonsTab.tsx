@@ -1,0 +1,449 @@
+/** Admin › Seasons: a hero card for the active season, a card list for the others. */
+import {
+  paceOf,
+  SEASON_TRIVIA,
+  type SeasonPace,
+  type SeasonPlay,
+  type SeasonStatus,
+  type SeasonTrivia,
+  seasonTriviaOf,
+} from '@family-trivia/shared';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import MailOutlineIcon from '@mui/icons-material/MailOutlined';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+  useTheme,
+} from '@mui/material';
+import type React from 'react';
+import { useState } from 'react';
+import { LoadingDots } from '../../../components/ui/feedback';
+import { AdminCard, ConfirmDialog, EmptyState, problemOf } from '../../../shared/admin-ui';
+import {
+  type AdminSeason,
+  useAddSeason,
+  useAdminSeasons,
+  useDeleteSeason,
+  useUpdateSeason,
+} from '../model/seasons';
+import { SeasonLetterEditor } from './SeasonLetterEditor';
+
+interface SeasonForm {
+  seasonNumber: number;
+  name: string;
+  startDate: string;
+  endDate: string;
+  status: SeasonStatus;
+  message: string;
+  trivia: SeasonTrivia;
+  play: SeasonPlay;
+  pace: SeasonPace;
+}
+
+const EMPTY_FORM: SeasonForm = {
+  seasonNumber: 0,
+  name: '',
+  startDate: '',
+  endDate: '',
+  status: 'upcoming',
+  message: '',
+  trivia: 'general',
+  play: 'solo',
+  pace: 'daily',
+};
+
+const statusColors: Record<string, 'success' | 'warning' | 'default'> = {
+  active: 'success',
+  concluded: 'default',
+  upcoming: 'warning',
+};
+
+const NO_SEASONS: AdminSeason[] = [];
+
+export const SeasonsTab: React.FC = () => {
+  const theme = useTheme();
+  const read = useAdminSeasons();
+  const adding = useAddSeason();
+  const updating = useUpdateSeason();
+  const deleting = useDeleteSeason();
+  const activating = useUpdateSeason();
+  const seasons = read.data?.seasons ?? NO_SEASONS;
+  const currentSeasonNumber = read.data?.currentSeasonNumber ?? null;
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [form, setForm] = useState<SeasonForm>(EMPTY_FORM);
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [letters, setLetters] = useState<AdminSeason | null>(null);
+  const saving = editMode ? updating : adding;
+
+  const openAdd = () => {
+    const next = seasons.length > 0 ? Math.max(...seasons.map((s) => s.seasonNumber)) + 1 : 1;
+    setForm({ ...EMPTY_FORM, seasonNumber: next });
+    setEditMode(false);
+    adding.reset();
+    setDialogOpen(true);
+  };
+
+  const openEdit = (s: AdminSeason) => {
+    setForm({
+      seasonNumber: s.seasonNumber,
+      name: s.name,
+      startDate: s.startDate,
+      endDate: s.endDate || '',
+      status: s.status,
+      message: s.message || '',
+      trivia: seasonTriviaOf(s),
+      play: s.play ?? 'solo',
+      pace: paceOf(s),
+    });
+    setEditMode(true);
+    updating.reset();
+    setDialogOpen(true);
+  };
+
+  const handleSave = () => {
+    const data = {
+      seasonNumber: form.seasonNumber,
+      name: form.name,
+      startDate: form.startDate,
+      endDate: form.endDate || undefined,
+      status: form.status,
+      message: form.message || undefined,
+      trivia: form.trivia,
+      play: form.play,
+      pace: form.pace,
+    };
+    const done = { onSuccess: () => setDialogOpen(false) };
+    if (editMode) updating.mutate(data, done);
+    else adding.mutate(data, done);
+  };
+
+  const handleDelete = () => {
+    if (confirmDelete === null) return;
+    // Closed either way: a failure shows above the list.
+    deleting.mutate(confirmDelete, { onSettled: () => setConfirmDelete(null) });
+  };
+
+  const handleSetActive = (n: number) => activating.mutate({ currentSeasonNumber: n });
+
+  const formatDate = (d: string) => {
+    try {
+      return new Date(`${d}T12:00:00`).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      return d;
+    }
+  };
+
+  if (read.isPending) return <LoadingDots mt={3} />;
+  if (read.isError && !read.data)
+    return <Alert severity="error">Seasons didn't load. Try again in a moment.</Alert>;
+
+  const active = seasons.find((s) => s.seasonNumber === currentSeasonNumber);
+  const others = seasons
+    .filter((s) => s.seasonNumber !== currentSeasonNumber)
+    .sort((a, b) => b.seasonNumber - a.seasonNumber);
+  const listProblem = problemOf(deleting.error ?? activating.error);
+
+  return (
+    <Box>
+      {listProblem && (
+        <Alert severity="error" sx={{ mb: 1.5 }}>
+          {listProblem}
+        </Alert>
+      )}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1.5 }}>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd} size="small">
+          Add Season
+        </Button>
+      </Box>
+
+      {/* Active season — hero card */}
+      {active ? (
+        <AdminCard
+          highlighted
+          title={active.name}
+          badge={
+            <Chip
+              label="Active"
+              size="small"
+              color="success"
+              sx={{ height: 20, fontSize: '0.65rem' }}
+            />
+          }
+          actions={
+            <>
+              <Button
+                size="small"
+                startIcon={<MailOutlineIcon sx={{ fontSize: 14 }} />}
+                onClick={() => setLetters(active)}
+                sx={{ fontSize: '0.7rem', textTransform: 'none', minHeight: 0, py: 0.25 }}
+              >
+                Letters
+              </Button>
+              <IconButton size="small" onClick={() => openEdit(active)}>
+                <EditIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </>
+          }
+        >
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>
+              Started {formatDate(active.startDate)}
+            </Typography>
+            {active.endDate && (
+              <Typography sx={{ fontSize: '0.75rem', color: theme.palette.text.secondary }}>
+                Ends {formatDate(active.endDate)}
+              </Typography>
+            )}
+          </Box>
+          {active.message && (
+            <Typography
+              sx={{
+                fontSize: '0.72rem',
+                mt: 1,
+                fontStyle: 'italic',
+                color: theme.palette.text.secondary,
+              }}
+            >
+              {active.message}
+            </Typography>
+          )}
+        </AdminCard>
+      ) : (
+        <AdminCard highlighted title="No Active Season">
+          <Typography sx={{ fontSize: '0.8rem', color: theme.palette.text.secondary }}>
+            Between seasons. Add or activate a season.
+          </Typography>
+        </AdminCard>
+      )}
+
+      {/* Other seasons */}
+      {others.length > 0 && (
+        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          {others.map((s) => (
+            <AdminCard
+              key={s.seasonNumber}
+              title={s.name}
+              subtitle={`${formatDate(s.startDate)}${s.endDate ? ` — ${formatDate(s.endDate)}` : ''}`}
+              badge={
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  <Chip
+                    label={s.status}
+                    size="small"
+                    color={statusColors[s.status] || 'default'}
+                    sx={{ height: 20, fontSize: '0.6rem' }}
+                  />
+                  {seasonTriviaOf(s) !== 'general' && (
+                    <Chip
+                      label={SEASON_TRIVIA.find((t) => t.id === seasonTriviaOf(s))?.label}
+                      size="small"
+                      variant="outlined"
+                      sx={{ height: 20, fontSize: '0.6rem' }}
+                    />
+                  )}
+                </Box>
+              }
+              actions={
+                <>
+                  <Button
+                    size="small"
+                    startIcon={<PlayArrowIcon sx={{ fontSize: 14 }} />}
+                    onClick={() => handleSetActive(s.seasonNumber)}
+                    sx={{ fontSize: '0.7rem', textTransform: 'none', minHeight: 0, py: 0.25 }}
+                  >
+                    Activate
+                  </Button>
+                  <Button
+                    size="small"
+                    startIcon={<MailOutlineIcon sx={{ fontSize: 14 }} />}
+                    onClick={() => setLetters(s)}
+                    sx={{ fontSize: '0.7rem', textTransform: 'none', minHeight: 0, py: 0.25 }}
+                  >
+                    Letters
+                  </Button>
+                  <IconButton size="small" onClick={() => openEdit(s)}>
+                    <EditIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => setConfirmDelete(s.seasonNumber)}
+                  >
+                    <DeleteIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </>
+              }
+            >
+              {s.message && (
+                <Typography
+                  sx={{
+                    fontSize: '0.72rem',
+                    fontStyle: 'italic',
+                    color: theme.palette.text.secondary,
+                  }}
+                >
+                  {s.message}
+                </Typography>
+              )}
+            </AdminCard>
+          ))}
+        </Box>
+      )}
+
+      {seasons.length === 0 && <EmptyState message="No seasons configured yet" />}
+
+      {letters && <SeasonLetterEditor season={letters} onClose={() => setLetters(null)} />}
+
+      {/* Add/Edit Dialog */}
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontSize: '0.95rem', fontWeight: 600 }}>
+          {editMode ? 'Edit Season' : 'Add Season'}
+        </DialogTitle>
+        <DialogContent
+          sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: '8px !important' }}
+        >
+          {saving.error && <Alert severity="error">{problemOf(saving.error)}</Alert>}
+          <TextField
+            label="Season Number"
+            type="number"
+            value={form.seasonNumber}
+            onChange={(e) => setForm({ ...form, seasonNumber: parseInt(e.target.value, 10) || 0 })}
+            fullWidth
+            size="small"
+            disabled={editMode}
+          />
+          <TextField
+            label="Name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            fullWidth
+            size="small"
+          />
+          <TextField
+            label="Start Date"
+            type="date"
+            value={form.startDate}
+            onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+            fullWidth
+            size="small"
+            slotProps={{
+              inputLabel: { shrink: true },
+            }}
+          />
+          <TextField
+            label="End Date"
+            type="date"
+            value={form.endDate}
+            onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+            fullWidth
+            size="small"
+            slotProps={{
+              inputLabel: { shrink: true },
+            }}
+          />
+          <FormControl fullWidth size="small">
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={form.status}
+              label="Status"
+              onChange={(e) => setForm({ ...form, status: e.target.value as SeasonStatus })}
+            >
+              <MenuItem value="upcoming">Upcoming</MenuItem>
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="concluded">Concluded</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl fullWidth size="small">
+            <InputLabel>Trivia this season</InputLabel>
+            <Select
+              value={form.trivia}
+              label="Trivia this season"
+              onChange={(e) => setForm({ ...form, trivia: e.target.value as SeasonTrivia })}
+              renderValue={(v) => SEASON_TRIVIA.find((t) => t.id === v)?.label}
+            >
+              {SEASON_TRIVIA.map((t) => (
+                <MenuItem key={t.id} value={t.id}>
+                  <Box>
+                    <Typography sx={{ fontSize: '0.9rem', fontWeight: 600 }}>{t.label}</Typography>
+                    <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+                      {t.help}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth size="small">
+            <InputLabel>How it's played</InputLabel>
+            <Select
+              value={form.play}
+              label="How it's played"
+              onChange={(e) => setForm({ ...form, play: e.target.value as SeasonPlay })}
+            >
+              <MenuItem value="solo">Each for themselves</MenuItem>
+              <MenuItem value="teams">In teams (people make their own, any time)</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl fullWidth size="small">
+            <InputLabel>New questions</InputLabel>
+            <Select
+              value={form.pace}
+              label="New questions"
+              onChange={(e) => setForm({ ...form, pace: e.target.value as SeasonPace })}
+            >
+              <MenuItem value="daily">Every day</MenuItem>
+              <MenuItem value="weekly">
+                Once a week: a handful, play any day (good for friends)
+              </MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            label="Message"
+            value={form.message}
+            onChange={(e) => setForm({ ...form, message: e.target.value })}
+            fullWidth
+            size="small"
+            multiline
+            rows={2}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 2, pb: 2 }}>
+          <Button onClick={() => setDialogOpen(false)} size="small">
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={handleSave} size="small" disabled={saving.isPending}>
+            {editMode ? 'Save' : 'Add'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <ConfirmDialog
+        open={confirmDelete !== null}
+        title="Delete Season"
+        message={`Are you sure you want to delete season #${confirmDelete}?`}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(null)}
+      />
+    </Box>
+  );
+};

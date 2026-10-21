@@ -11,7 +11,6 @@ import { FamilyDataProvider } from './contexts/FamilyDataContext';
 import { TimelineProvider } from './contexts/TimelineContext';
 import { TriviaProvider } from './contexts/TriviaContext';
 import { UserStatusProvider } from './contexts/UserStatusContext';
-import { FeaturesProvider } from './entities/settings';
 import { JoinScreen } from './features/invites';
 import { RememberScreen } from './features/memory-links';
 import { apiService } from './shared/api/ApiService';
@@ -118,9 +117,7 @@ const AppProvider: React.FC = () => {
       <TriviaProvider>
         <TimelineProvider>
           <UserStatusProvider userId={userId} authValid={authValid}>
-            <FeaturesProvider>
-              <App onUserChange={handleUserChange} onAuthChange={handleAuthChange} />
-            </FeaturesProvider>
+            <App onUserChange={handleUserChange} onAuthChange={handleAuthChange} />
           </UserStatusProvider>
         </TimelineProvider>
       </TriviaProvider>

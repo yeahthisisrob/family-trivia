@@ -34,12 +34,13 @@ import {
   Typography,
 } from '@mui/material';
 import type React from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useRefreshAppInit } from '../../../contexts/FamilyDataContext';
 import { useCircleWords } from '../../../entities/circle';
 import { useFamily, useSaveFamily } from '../../../entities/family';
 import { ApiError } from '../../../shared/api/ApiService';
 import { loadCircles } from '../../../shared/session/session';
-import { archiveApi } from '../../family-archive';
+import { useArchivePermissions, useSaveArchivePermissions } from '../../family-archive';
 import { PersonDialog, participationLabel } from './PersonDialog';
 
 const slug = (name: string, taken: Set<string>) => {
@@ -70,28 +71,17 @@ export const FamilyEditor: React.FC<{ adminUserId: string }> = ({ adminUserId })
   const [editing, setEditing] = useState<{ person: FamilyPerson; isNew: boolean } | null>(null);
   const [household, setHousehold] = useState<Household | null>(null);
   const [problems, setProblems] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const saving = saveFamily.isPending;
   const [savedNote, setSavedNote] = useState(false);
-  const [exportPerms, setExportPerms] = useState<{
-    everyone: boolean;
-    users: Record<string, boolean>;
-  } | null>(null);
+  const exportPerms = useArchivePermissions().data ?? null;
+  const savePermissions = useSaveArchivePermissions();
+  // Home's members and groups come with /app-init (until step 5 of 0035).
+  const refreshAppInit = useRefreshAppInit();
 
-  useEffect(() => {
-    archiveApi
-      .permissions()
-      .then(setExportPerms)
-      .catch(() => undefined);
-  }, []);
-
-  const setExport = async (next: { everyone: boolean; users: Record<string, boolean> }) => {
-    setExportPerms(next);
-    try {
-      await archiveApi.savePermissions(next);
-    } catch {
-      setProblems("The archive setting didn't save. Try again.");
-    }
-  };
+  const setExport = (next: { everyone: boolean; users: Record<string, boolean> }) =>
+    savePermissions.mutate(next, {
+      onError: () => setProblems("The archive setting didn't save. Try again."),
+    });
 
   const family = draft ?? saved;
   const dirty = draft !== null;
@@ -136,11 +126,11 @@ export const FamilyEditor: React.FC<{ adminUserId: string }> = ({ adminUserId })
   };
 
   const save = async () => {
-    setSaving(true);
     setProblems(null);
     try {
       // The saved family shows everywhere once this resolves.
       await saveFamily.mutateAsync(family);
+      void refreshAppInit();
       setDraft(null);
       setSavedNote(true);
     } catch (e) {
@@ -149,8 +139,6 @@ export const FamilyEditor: React.FC<{ adminUserId: string }> = ({ adminUserId })
           ? [e.message, e.details].filter(Boolean).join('\n')
           : 'The family did not save. Try again.',
       );
-    } finally {
-      setSaving(false);
     }
   };
 

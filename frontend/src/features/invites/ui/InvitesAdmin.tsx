@@ -31,7 +31,7 @@ import { shareLink } from '../../../shared/share';
 import { inviteLink } from '../api/invitesApi';
 import { useInvites } from '../model/useInvites';
 
-export interface InvitePerson {
+interface InvitePerson {
   id: string;
   name: string;
   /** Has played at least once, so they're probably signed in already. */
@@ -55,11 +55,12 @@ interface Props {
  * added), share it, see who used it, and let waiting people in.
  */
 export const InvitesAdmin: React.FC<Props> = ({ circleName, people }) => {
-  const { invites, joins, loaded, create, revoke, decide } = useInvites();
+  const { invites, joins, loaded, create, revoke, decide, problem } = useInvites();
   const [made, setMade] = useState<Invite | null>(null);
 
   return (
     <Stack spacing={2}>
+      {problem && <Alert severity="error">{problem}</Alert>}
       {joins.length > 0 && <Waiting joins={joins} onDecide={decide} />}
       <MakeLink
         circleName={circleName}

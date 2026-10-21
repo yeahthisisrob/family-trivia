@@ -1,1 +1,1 @@
-export { TeamsCard } from './ui/TeamsCard';
+export { TEAMS, TeamsCard } from './ui/TeamsCard';

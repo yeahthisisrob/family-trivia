@@ -32,6 +32,7 @@ export interface NewInvite {
 
 const json = (body: unknown) => ({
   method: 'POST',
+  once: true,
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(body),
 });

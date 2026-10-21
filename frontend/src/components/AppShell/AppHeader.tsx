@@ -8,7 +8,7 @@ import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import { AppBar, Box, IconButton, Toolbar, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
-import { appearanceApi } from '../../entities/appearance';
+import { useSaveFamilyTheme } from '../../entities/appearance';
 import { PersonAvatar } from '../../entities/person';
 import { useFeatures } from '../../entities/settings';
 import { CircleSwitcher } from '../../features/circles';
@@ -48,6 +48,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onNotificationClick,
 }) => {
   const features = useFeatures();
+  const saveFamilyTheme = useSaveFamilyTheme();
   const userColor = getUserColor(selectedUser);
 
   // The app bar takes its colors from the active theme (themes/registry.ts):
@@ -91,7 +92,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             onSetFamilyDefault={
               isAdmin
                 ? async (themeId) => {
-                    await appearanceApi.setFamilyTheme(themeId);
+                    await saveFamilyTheme.mutateAsync(themeId);
                   }
                 : undefined
             }

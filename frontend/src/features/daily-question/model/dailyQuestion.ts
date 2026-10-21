@@ -23,10 +23,10 @@ import { FACT_GRID } from '../../who-has-played';
 export type TodaysQuestion = ResponseOf<'/daily-fact'>;
 export type FactHistory = ResponseOf<'/user-fact-history'>;
 
-const DAILY_QUESTION = ['daily-question'] as const;
+export const DAILY_QUESTION = ['daily-question'] as const;
 
 /** What an answer to today's question (or one waiting, or a past one) changes. */
-const ANSWERED = [DAILY_QUESTION, FACT_GRID, FACT_SUMMARY, TIMELINE, PROFILE, PERSON_STORY];
+export const ANSWERED = [DAILY_QUESTION, FACT_GRID, FACT_SUMMARY, TIMELINE, PROFILE, PERSON_STORY];
 
 export const useTodaysQuestion = (userId: string) =>
   useCircleQuery({ key: [...DAILY_QUESTION, 'today'], path: '/daily-fact', query: { userId } });

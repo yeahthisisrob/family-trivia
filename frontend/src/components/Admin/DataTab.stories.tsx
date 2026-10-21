@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { HttpResponse, http } from 'msw';
-import { AdminStoryProviders } from '../../test/storyContexts';
+import { peopleHandlers } from '../../features/admin-people/ui/peopleMocks';
 import DataTab from './DataTab';
 
 const API = '/api';
@@ -15,24 +15,12 @@ const meta: Meta<typeof DataTab> = {
         http.get(`${API}/admin/user-facts`, () => HttpResponse.json({ history: [] })),
         http.get(`${API}/admin/user-trivia`, () => HttpResponse.json({ history: [] })),
         http.get(`${API}/admin/game-sessions`, () => HttpResponse.json({ sessions: [] })),
+        ...peopleHandlers(),
       ],
     },
   },
-  decorators: [
-    (Story, ctx) => (
-      <AdminStoryProviders admin={ctx.parameters.admin}>
-        <Story />
-      </AdminStoryProviders>
-    ),
-  ],
 };
 export default meta;
 type Story = StoryObj<typeof DataTab>;
 
-export const Default: Story = {
-  parameters: {
-    admin: {
-      players: [{ userId: 'alice', name: 'Alice', groupId: 'parents', isAdmin: false }],
-    },
-  },
-};
+export const Default: Story = {};

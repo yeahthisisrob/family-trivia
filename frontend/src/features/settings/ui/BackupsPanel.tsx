@@ -6,9 +6,9 @@ import BackupIcon from '@mui/icons-material/Backup';
 import { Alert, Box, Button, Chip, Paper, Stack, Typography } from '@mui/material';
 import { formatDistanceToNow } from 'date-fns';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ApiError } from '../../../shared/api/ApiService';
-import { type BackupsView, backupsApi } from '../api/backupsApi';
+import { useBackups, useMakeBackup } from '../model/backups';
 
 const size = (b = 0) =>
   b > 1e9
@@ -18,41 +18,34 @@ const size = (b = 0) =>
       : `${Math.max(1, Math.round(b / 1e3))} KB`;
 
 export const BackupsPanel: React.FC = () => {
-  const [view, setView] = useState<BackupsView | null>(null);
-  const [busy, setBusy] = useState(false);
+  const read = useBackups();
+  const making = useMakeBackup();
+  const view = read.data ?? null;
+  const busy = making.isPending;
   const [message, setMessage] = useState<{ tone: 'success' | 'warning'; text: string } | null>(
     null,
   );
+  const [loadNoticeClosed, setLoadNoticeClosed] = useState(false);
+  const notice =
+    message ??
+    (read.isError && !view && !loadNoticeClosed
+      ? { tone: 'warning' as const, text: 'Backups didn’t load. Try again in a moment.' }
+      : null);
 
-  const load = useCallback(() => {
-    backupsApi
-      .get()
-      .then(setView)
-      .catch(() =>
-        setMessage({ tone: 'warning', text: 'Backups didn’t load. Try again in a moment.' }),
-      );
-  }, []);
-  useEffect(load, [load]);
-
-  const make = async () => {
-    setBusy(true);
+  const make = () => {
     setMessage(null);
-    try {
-      const run = await backupsApi.make();
-      setMessage({
-        tone: 'success',
-        text: `Backed up ${run.objects} files (${size(run.bytes)}), and checked.`,
-      });
-      load();
-    } catch (e) {
-      setMessage({
-        tone: 'warning',
-        text: e instanceof ApiError ? e.message : 'The backup didn’t finish.',
-      });
-      load();
-    } finally {
-      setBusy(false);
-    }
+    making.mutate(undefined, {
+      onSuccess: (run) =>
+        setMessage({
+          tone: 'success',
+          text: `Backed up ${run.objects} files (${size(run.bytes)}), and checked.`,
+        }),
+      onError: (e) =>
+        setMessage({
+          tone: 'warning',
+          text: e instanceof ApiError ? e.message : 'The backup didn’t finish.',
+        }),
+    });
   };
 
   const ok = view?.lastOk;
@@ -102,9 +95,13 @@ export const BackupsPanel: React.FC = () => {
           It’s been a while. Back up now, or turn on nightly backups above.
         </Typography>
       )}
-      {message && (
-        <Alert severity={message.tone} sx={{ mt: 1.5 }} onClose={() => setMessage(null)}>
-          {message.text}
+      {notice && (
+        <Alert
+          severity={notice.tone}
+          sx={{ mt: 1.5 }}
+          onClose={() => (message ? setMessage(null) : setLoadNoticeClosed(true))}
+        >
+          {notice.text}
         </Alert>
       )}
 

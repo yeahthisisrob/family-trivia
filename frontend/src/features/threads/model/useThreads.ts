@@ -9,7 +9,9 @@ export interface Tied {
   progress: ThreadProgress;
 }
 
-const TODAY = ['threads', 'today'] as const;
+/** Every thread read: a season's change changes what is asked. */
+export const THREADS = ['threads'] as const;
+const TODAY = [...THREADS, 'today'] as const;
 
 /** Today's thread, and what happened when it was answered. */
 export function useThreads() {

@@ -1,4 +1,4 @@
-import type { Circle, MyCircle } from '@family-trivia/shared';
+import type { Circle } from '@family-trivia/shared';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import MergeRoundedIcon from '@mui/icons-material/MergeRounded';
 import {
@@ -18,10 +18,19 @@ import {
   Typography,
 } from '@mui/material';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { KIND_ICON, KIND_LABEL } from '../../../entities/circle';
+import { problemOf } from '../../../shared/admin-ui';
 import { enterCircle } from '../../../shared/session/session';
-import { circlesApi, type SameSuggestion } from '../api/circlesApi';
+import type { SameSuggestion } from '../api/circlesApi';
+import {
+  useAllCircles,
+  useAnswerSame,
+  useJoinCircles,
+  useSameSuggestions,
+  useSplitCircle,
+  useStartCircle,
+} from '../model/circles';
 import { CircleFields, isReady, type NewCircle, newCircle } from './CircleFields';
 import { InviteButton } from './InviteButton';
 
@@ -38,47 +47,21 @@ interface Props {
  * into one and splitting them again (docs/decisions/0018). Others see nothing.
  */
 export const CirclesAdmin: React.FC<Props> = ({ currentId, yourName }) => {
-  const [circles, setCircles] = useState<Circle[] | null>(null);
+  const circles = useAllCircles().data ?? null;
+  const joiningAgain = useJoinCircles();
+  const split = useSplitCircle();
   const [starting, setStarting] = useState(false);
   const [joining, setJoining] = useState(false);
   const [splitting, setSplitting] = useState<Circle | null>(null);
-  const [problem, setProblem] = useState<string | null>(null);
-  // Joined circle → who might be the same person there.
-  const [same, setSame] = useState<Record<string, SameSuggestion[]>>({});
   const [answering, setAnswering] = useState<Circle | null>(null);
-  useEffect(() => {
-    for (const c of circles ?? [])
-      if (c.sources && !c.endedAt)
-        circlesApi
-          .same(c.id)
-          .then((r) => setSame((m) => ({ ...m, [c.id]: r.suggestions })))
-          .catch(() => undefined);
-  }, [circles]);
-  const reload = useCallback(
-    () =>
-      circlesApi
-        .all()
-        .then((r) => setCircles(r.owner ? r.circles : null))
-        .catch(() => setCircles(null)),
-    [],
-  );
-
-  useEffect(() => {
-    void reload();
-  }, [reload]);
 
   if (!circles) return null;
   const nameOf = (id: string) => circles.find((c) => c.id === id)?.name ?? id;
   const joinable = circles.filter((c) => !c.sources);
-  const joinAgain = async (c: Circle) => {
-    setProblem(null);
-    try {
-      await circlesApi.joinCircles({ name: c.name, sources: c.sources ?? [] });
-      await reload();
-    } catch (e) {
-      setProblem(e instanceof Error ? e.message : "Couldn't join them again.");
-    }
-  };
+  const joinAgain = (c: Circle) => joiningAgain.mutate({ name: c.name, sources: c.sources ?? [] });
+  const problem = joiningAgain.error
+    ? joiningAgain.error.message || "Couldn't join them again."
+    : problemOf(split.error);
   return (
     <Card sx={{ p: 2.5, borderRadius: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.5, mb: 1.5 }}>
@@ -115,21 +98,13 @@ export const CirclesAdmin: React.FC<Props> = ({ currentId, yourName }) => {
               {c.endedAt ? (
                 <>
                   <Chip size="small" label="Split" />
-                  <Button size="small" onClick={() => void joinAgain(c)}>
+                  <Button size="small" onClick={() => joinAgain(c)}>
                     Join again
                   </Button>
                 </>
               ) : c.sources ? (
                 <>
-                  {(same[c.id]?.length ?? 0) > 0 && (
-                    <Chip
-                      size="small"
-                      color="primary"
-                      variant="outlined"
-                      label={`${same[c.id]?.length} might be the same person`}
-                      onClick={() => setAnswering(c)}
-                    />
-                  )}
+                  <MightBeSame circle={c} onOpen={() => setAnswering(c)} />
                   <Button size="small" color="inherit" onClick={() => setSplitting(c)}>
                     Split
                   </Button>
@@ -142,37 +117,54 @@ export const CirclesAdmin: React.FC<Props> = ({ currentId, yourName }) => {
         })}
       </Stack>
       <StartCircle open={starting} yourName={yourName} onClose={() => setStarting(false)} />
-      {joining && (
-        <JoinCirclesDialog
-          circles={joinable}
-          onClose={() => setJoining(false)}
-          onJoined={() => void reload()}
-        />
-      )}
-      {answering && (
-        <SamePersonDialog
-          suggestions={same[answering.id] ?? []}
-          onAnswer={async (s, isSame) => {
-            const r = await circlesApi.answerSame(answering.id, s, isSame);
-            setSame((m) => ({ ...m, [answering.id]: r.suggestions }));
-            if (!r.suggestions.length) setAnswering(null);
-          }}
-          onClose={() => setAnswering(null)}
-        />
-      )}
+      {joining && <JoinCirclesDialog circles={joinable} onClose={() => setJoining(false)} />}
+      {answering && <AnswerSame circle={answering} onClose={() => setAnswering(null)} />}
       {splitting && (
         <SplitDialog
           circle={splitting}
           sourceNames={(splitting.sources ?? []).map(nameOf)}
           onClose={() => setSplitting(null)}
-          onSplit={async () => {
-            await circlesApi.split(splitting.id);
-            setSplitting(null);
-            await reload();
-          }}
+          onSplit={() =>
+            // Closed either way: a failure shows above the list.
+            split.mutateAsync(splitting.id).then(
+              () => setSplitting(null),
+              () => setSplitting(null),
+            )
+          }
         />
       )}
     </Card>
+  );
+};
+
+/** In a joined circle that hasn't ended: how many might be one person, to answer. */
+const MightBeSame: React.FC<{ circle: Circle; onOpen: () => void }> = ({ circle, onOpen }) => {
+  const count = useSameSuggestions(circle.id, true).data?.length ?? 0;
+  if (count === 0) return null;
+  return (
+    <Chip
+      size="small"
+      color="primary"
+      variant="outlined"
+      label={`${count} might be the same person`}
+      onClick={onOpen}
+    />
+  );
+};
+
+/** The suggestions for one joined circle; closes when none are left. */
+const AnswerSame: React.FC<{ circle: Circle; onClose: () => void }> = ({ circle, onClose }) => {
+  const suggestions = useSameSuggestions(circle.id, true).data ?? [];
+  const answer = useAnswerSame(circle.id);
+  return (
+    <SamePersonDialog
+      suggestions={suggestions}
+      onAnswer={async (s, same) => {
+        const left = await answer.mutateAsync({ s, same });
+        if (!left.suggestions.length) onClose();
+      }}
+      onClose={onClose}
+    />
   );
 };
 
@@ -180,28 +172,18 @@ export const CirclesAdmin: React.FC<Props> = ({ currentId, yourName }) => {
 export const JoinCirclesDialog: React.FC<{
   circles: Circle[];
   onClose: () => void;
-  onJoined: () => void;
-}> = ({ circles, onClose, onJoined }) => {
+}> = ({ circles, onClose }) => {
+  const joining = useJoinCircles();
   const [picked, setPicked] = useState<string[]>([]);
   const [name, setName] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [made, setMade] = useState<{ circle: Circle; circles: MyCircle[] } | null>(null);
+  const busy = joining.isPending;
+  const made = joining.data ?? null;
+  const error = joining.error
+    ? joining.error.message || "Couldn't join them. Please try again."
+    : null;
   const names = circles.filter((c) => picked.includes(c.id)).map((c) => c.name);
 
-  const join = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      const r = await circlesApi.joinCircles({ name: name.trim(), sources: picked });
-      setMade(r);
-      onJoined();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't join them. Please try again.");
-    } finally {
-      setBusy(false);
-    }
-  };
+  const join = () => joining.mutate({ name: name.trim(), sources: picked });
 
   if (made) {
     const mine = made.circles.find((c) => c.id === made.circle.id);
@@ -272,11 +254,7 @@ export const JoinCirclesDialog: React.FC<{
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose}>Cancel</Button>
-        <Button
-          variant="contained"
-          disabled={busy || picked.length < 2}
-          onClick={() => void join()}
-        >
+        <Button variant="contained" disabled={busy || picked.length < 2} onClick={join}>
           Join them
         </Button>
       </DialogActions>
@@ -345,6 +323,10 @@ const SplitDialog: React.FC<{
   onSplit: () => Promise<void>;
 }> = ({ circle, sourceNames, onClose, onSplit }) => {
   const [busy, setBusy] = useState(false);
+  const split = () => {
+    setBusy(true);
+    void onSplit().finally(() => setBusy(false));
+  };
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="xs">
       <DialogTitle sx={{ fontWeight: 700 }}>Split {circle.name}?</DialogTitle>
@@ -357,15 +339,7 @@ const SplitDialog: React.FC<{
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose}>Cancel</Button>
-        <Button
-          variant="contained"
-          color="warning"
-          disabled={busy}
-          onClick={() => {
-            setBusy(true);
-            void onSplit().finally(() => setBusy(false));
-          }}
-        >
+        <Button variant="contained" color="warning" disabled={busy} onClick={split}>
           Split
         </Button>
       </DialogActions>
@@ -379,21 +353,12 @@ const StartCircle: React.FC<{ open: boolean; yourName: string; onClose: () => vo
   onClose,
 }) => {
   const [form, setForm] = useState<NewCircle>(newCircle(yourName));
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [made, setMade] = useState<{ circle: Circle; circles: MyCircle[] } | null>(null);
+  const starting = useStartCircle();
+  const busy = starting.isPending;
+  const error = starting.isError ? "Couldn't start the circle. Please try again." : null;
+  const made = starting.data ?? null;
 
-  const start = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      setMade(await circlesApi.create(form));
-    } catch {
-      setError("Couldn't start the circle. Please try again.");
-    } finally {
-      setBusy(false);
-    }
-  };
+  const start = () => starting.mutate(form);
 
   // Open the new circle; if this browser's list hasn't caught up, a fresh start finds it.
   const openIt = () => {
@@ -439,7 +404,7 @@ const StartCircle: React.FC<{ open: boolean; yourName: string; onClose: () => vo
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" disabled={busy || !isReady(form)} onClick={() => void start()}>
+        <Button variant="contained" disabled={busy || !isReady(form)} onClick={start}>
           Start and open it
         </Button>
       </DialogActions>

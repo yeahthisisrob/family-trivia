@@ -11,23 +11,14 @@ import {
   Typography,
 } from '@mui/material';
 import type React from 'react';
-import { useEffect, useState } from 'react';
-import { appearanceApi } from '../../../entities/appearance';
+import { useSaveFamilyTheme } from '../../../entities/appearance';
 import { DEFAULT_THEME_ID, THEMES, useAppearance } from '../../../shared/design-system';
-import { archiveApi } from '../../family-archive';
+import { useArchivePermissions, useSaveArchivePermissions } from '../../family-archive';
 
 export const AppearanceSection: React.FC = () => {
   const a = useAppearance();
-  const [saving, setSaving] = useState<string | null>(null);
-  const choose = async (id: string) => {
-    setSaving(id);
-    try {
-      await appearanceApi.setFamilyTheme(id);
-      a.setFamilyTheme(id);
-    } finally {
-      setSaving(null);
-    }
-  };
+  const saving = useSaveFamilyTheme();
+  const choose = (id: string) => saving.mutate(id, { onSuccess: () => a.setFamilyTheme(id) });
   return (
     <Box>
       <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
@@ -47,7 +38,7 @@ export const AppearanceSection: React.FC = () => {
             <ButtonBase
               key={t.id}
               onClick={() => choose(t.id)}
-              disabled={saving !== null}
+              disabled={saving.isPending}
               sx={{
                 display: 'block',
                 textAlign: 'left',
@@ -89,17 +80,11 @@ export const AppearanceSection: React.FC = () => {
 };
 
 export const ArchiveSection: React.FC = () => {
-  const [perms, setPerms] = useState<{ everyone: boolean; users: Record<string, boolean> } | null>(
-    null,
-  );
-  const [error, setError] = useState(false);
-  useEffect(() => {
-    archiveApi
-      .permissions()
-      .then(setPerms)
-      .catch(() => setError(true));
-  }, []);
-  if (error) return <Alert severity="warning">The archive setting didn't load.</Alert>;
+  const read = useArchivePermissions();
+  const saving = useSaveArchivePermissions();
+  const perms = read.data;
+  if (read.isError && !perms)
+    return <Alert severity="warning">The archive setting didn't load.</Alert>;
   if (!perms) return null;
   return (
     <Paper variant="outlined" sx={{ p: 2 }}>
@@ -107,11 +92,7 @@ export const ArchiveSection: React.FC = () => {
         control={
           <Switch
             checked={perms.everyone}
-            onChange={async (e) => {
-              const next = { ...perms, everyone: e.target.checked };
-              setPerms(next);
-              await archiveApi.savePermissions(next);
-            }}
+            onChange={(e) => saving.mutate({ ...perms, everyone: e.target.checked })}
           />
         }
         label={
@@ -122,6 +103,11 @@ export const ArchiveSection: React.FC = () => {
         A zip of everyone's answers, facts, games and comments, one folder per person. Admins can
         always download it; allow or block one person in Admin › Family.
       </Typography>
+      {saving.isError && (
+        <Alert severity="warning" sx={{ mt: 1.5 }}>
+          The archive setting didn't save. Try again.
+        </Alert>
+      )}
     </Paper>
   );
 };

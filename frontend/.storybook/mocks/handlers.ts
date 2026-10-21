@@ -135,6 +135,11 @@ export const commonHandlers = [
   // through, and components would render their empty/error fallback state.
   http.get('*/config.json', () => HttpResponse.json({ REACT_APP_API_URL: '/api' })),
 
+  // Every optional part of the app is on (useFeatures, read by the header and Us).
+  http.get('*/settings/features', () =>
+    HttpResponse.json({ ok: true, data: { photos: true, familyFeud: true, arcade: true } }),
+  ),
+
   // Circles (docs/decisions/0015): most stories are one family.
   http.get('*/me/circles', () =>
     HttpResponse.json({

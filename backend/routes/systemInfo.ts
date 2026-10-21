@@ -4,10 +4,17 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { BUCKET, errorResponse, successResponse } from '../config';
 import { S3_PATHS } from '../constants';
+import { requireAdmin } from '../services/adminAuth';
 import { logger } from '../services/logger';
 import { fileExists, getJson, listObjects } from '../services/s3';
 
-export async function getSystemInfo(_event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+export async function getSystemInfo(
+  _event: APIGatewayProxyEvent,
+  userId: string,
+): Promise<APIGatewayProxyResult> {
+  // Where the data lives and which model runs are for admins (the tab is theirs).
+  const denied = await requireAdmin(userId);
+  if (denied) return errorResponse(denied, 403);
   try {
     // Deployment info from environment
     const deployment = {

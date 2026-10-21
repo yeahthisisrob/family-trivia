@@ -8,7 +8,7 @@ import { useCircleMutation, useCircleQuery } from '../../../shared/api/query';
 import { type FamilyResponse, familyApi } from '../api/familyApi';
 
 export const FAMILY = ['family'] as const;
-const GRAPH = ['graph'] as const;
+export const GRAPH = ['graph'] as const;
 export const KNOWLEDGE = ['knowledge'] as const;
 /** Someone's story in their own words: an answer adds to it. */
 export const PERSON_STORY = ['person-story'] as const;

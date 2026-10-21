@@ -11,7 +11,7 @@ import TimelineBoard from './components/TimelineBoard';
 import { ErrorBoundary as Safe } from './components/ui/feedback';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { useUserStatus } from './contexts/UserStatusContext';
-import { appearanceApi } from './entities/appearance';
+import { useFamilyThemeId } from './entities/appearance';
 import { useFeatures } from './entities/settings';
 import { UpcomingDates } from './features/celebrations';
 import { DailyMemory } from './features/daily-memory';
@@ -32,7 +32,7 @@ import { inThisCircle } from './shared/session/session';
 import { WelcomeCard } from './widgets/welcome';
 
 // Lazy-loaded: these chunks are deferred until the route is first visited
-const AdminPage = React.lazy(() => import('./components/Admin'));
+const AdminPage = React.lazy(() => import('./pages/admin').then((m) => ({ default: m.AdminPage })));
 const ArcadePage = React.lazy(() =>
   import('./features/arcade').then((m) => ({ default: m.ArcadePage })),
 );
@@ -101,13 +101,10 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
   const { setFamilyTheme } = useAppearance();
   const features = useFeatures();
   const { catchupStatus } = useUserStatus();
+  const familyThemeId = useFamilyThemeId(authValid).data;
   React.useEffect(() => {
-    if (!authValid) return;
-    appearanceApi
-      .get()
-      .then((a) => setFamilyTheme(a.themeId))
-      .catch(() => undefined);
-  }, [authValid, setFamilyTheme]);
+    if (familyThemeId !== undefined) setFamilyTheme(familyThemeId);
+  }, [familyThemeId, setFamilyTheme]);
 
   // Lazy-mount heavy tabs: only mount on first visit, keep mounted after
   React.useEffect(() => {
