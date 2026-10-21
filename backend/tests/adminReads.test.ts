@@ -108,7 +108,8 @@ beforeEach(() => {
   });
   seedRaw('config/seasons.json', seasons);
   seedRaw('config/model-availability.json', {
-    checkedAt: '2026-10-20T00:00:00.000Z',
+    // Checked just now: the view uses it instead of asking Bedrock (a day later it asks again).
+    checkedAt: new Date().toISOString(),
     models: { [MODEL_CATALOG[0]?.id ?? '']: { ok: false, reason: 'Not enabled in this account' } },
   });
   seedRaw('facts/daily/shared/2026-10-19.json', { question: 'Best pie?', createdBy: 'system' });
