@@ -1,6 +1,8 @@
-// File: frontend/src/components/Admin/TriviaBankTab.tsx
-// Admin trivia bank management — stats dashboard, import, browse, delete.
-
+/**
+ * Admin › Trivia Bank: its numbers by category and difficulty, an import
+ * from a source or the AI, and a page at a time to browse and delete from.
+ * Server data (docs/decisions/0035).
+ */
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -33,21 +35,20 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
-
+import { useState } from 'react';
+import { LoadingDots } from '../../../components/ui/feedback';
+import { problemOf } from '../../../shared/admin-ui';
 import {
-  type BankQuestion,
-  type BankStats,
-  browseQuestions,
-  deleteQuestion,
-  getBankStats,
-  type ImportResult,
-  importQuestions,
-} from '../../api/modules/triviaBank';
-import { loadSession } from '../../shared/session/session';
-import { LoadingDots } from '../ui/feedback';
+  type BankPage,
+  type ImportSource,
+  PAGE_SIZE,
+  useBankPage,
+  useBankStats,
+  useDeleteBankQuestion,
+  useImportQuestions,
+} from '../model/bank';
 
-const SOURCES = [
+const SOURCES: { id: ImportSource; label: string; desc: string }[] = [
   { id: 'opentdb', label: 'OpenTDB', desc: 'Open Trivia Database (free, 4000+ Qs)' },
   { id: 'jservice', label: 'jService', desc: 'Jeopardy questions (221K+)' },
   { id: 'ai-hometown', label: 'AI: Springfield', desc: 'AI-generated hometown trivia' },
@@ -57,112 +58,73 @@ const SOURCES = [
 
 const DIFFICULTIES = ['easy', 'normal', 'hard'] as const;
 
-const TriviaBankTab: React.FC = () => {
+export const TriviaBankTab: React.FC = () => {
   const theme = useTheme();
-  const adminUserId = loadSession() ?? '';
-
-  const [stats, setStats] = useState<BankStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const read = useBankStats();
+  const stats = read.data;
+  const importing = useImportQuestions();
+  const deleting = useDeleteBankQuestion();
+  // The last change that didn't go through, in the server's words.
+  const [problem, setProblem] = useState<string | null>(null);
 
   // Import state
-  const [importSource, setImportSource] = useState('opentdb');
+  const [importSource, setImportSource] = useState<ImportSource>('opentdb');
   const [importCategory, setImportCategory] = useState('');
   const [importDifficulty, setImportDifficulty] = useState<string>('normal');
-  const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const importResult = importing.data;
 
-  // Browse state
+  // Browse state: what's picked, and the page on screen (none until asked for)
   const [browseCategory, setBrowseCategory] = useState('');
   const [browseDifficulty, setBrowseDifficulty] = useState<string>('normal');
-  const [questions, setQuestions] = useState<BankQuestion[]>([]);
-  const [browseTotal, setBrowseTotal] = useState(0);
-  const [browseOffset, setBrowseOffset] = useState(0);
-  const [browsing, setBrowsing] = useState(false);
-  const [showBrowse, setShowBrowse] = useState(false);
+  const [page, setPage] = useState<BankPage | null>(null);
+  const browse = useBankPage(page);
+  const questions = browse.data?.questions ?? [];
+  const browseTotal = browse.data?.total ?? 0;
+  const browseOffset = page?.offset ?? 0;
 
   // Delete confirmation
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
-  const loadStats = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await getBankStats(adminUserId);
-      setStats(data);
-    } catch {
-      setError('Failed to load trivia bank stats');
-    } finally {
-      setLoading(false);
-    }
-  }, [adminUserId]);
-
-  useEffect(() => {
-    loadStats();
-  }, [loadStats]);
-
-  const handleImport = async () => {
+  const handleImport = () => {
     if (!importCategory && !importSource.startsWith('ai-')) return;
-    setImporting(true);
-    setImportResult(null);
-    setError(null);
-    try {
-      const cat =
-        importSource === 'ai-hometown'
-          ? 'Springfield'
-          : importSource === 'ai-nearby'
-            ? 'Shelbyville'
-            : importCategory;
-      const result = await importQuestions(adminUserId, importSource, cat, importDifficulty, 50);
-      setImportResult(result);
-      await loadStats();
-    } catch {
-      setError('Import failed. Try again.');
-    } finally {
-      setImporting(false);
-    }
+    setProblem(null);
+    const category =
+      importSource === 'ai-hometown'
+        ? 'Springfield'
+        : importSource === 'ai-nearby'
+          ? 'Shelbyville'
+          : importCategory;
+    importing.mutate(
+      { source: importSource, category, difficulty: importDifficulty, count: 50 },
+      { onError: (e) => setProblem(problemOf(e)) },
+    );
   };
 
-  const handleBrowse = async (offset = 0) => {
-    if (!browseCategory) return;
-    setBrowsing(true);
-    try {
-      const result = await browseQuestions(
-        adminUserId,
-        browseCategory,
-        browseDifficulty,
-        offset,
-        20,
-      );
-      setQuestions(result.questions);
-      setBrowseTotal(result.total);
-      setBrowseOffset(offset);
-      setShowBrowse(true);
-    } catch {
-      setError('Failed to browse questions');
-    } finally {
-      setBrowsing(false);
-    }
+  const showPage = (category: string, offset = 0) =>
+    setPage({ category, difficulty: browseDifficulty, offset });
+  const turnPage = (by: number) => page && setPage({ ...page, offset: page.offset + by });
+
+  const handleDelete = () => {
+    if (!confirmDelete || !page) return;
+    // Closed either way: a failure shows above the bank.
+    deleting.mutate(
+      { category: page.category, difficulty: page.difficulty, question: confirmDelete },
+      { onError: (e) => setProblem(problemOf(e)), onSettled: () => setConfirmDelete(null) },
+    );
   };
 
-  const handleDelete = async () => {
-    if (!confirmDelete || !browseCategory) return;
-    try {
-      await deleteQuestion(adminUserId, browseCategory, browseDifficulty, confirmDelete);
-      setConfirmDelete(null);
-      await handleBrowse(browseOffset);
-      await loadStats();
-    } catch {
-      setError('Failed to delete question');
-    }
-  };
-
-  if (loading) return <LoadingDots mt={0} />;
+  if (read.isPending) return <LoadingDots mt={0} />;
 
   return (
     <Box>
-      {error && (
-        <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2, fontSize: '0.8rem' }}>
-          {error}
+      {read.isError && !stats && (
+        <Alert severity="error" sx={{ mb: 2, fontSize: '0.8rem' }}>
+          The trivia bank's numbers didn't load. Try again in a moment.
+        </Alert>
+      )}
+      {(problem || browse.isError) && (
+        <Alert severity="error" onClose={() => setProblem(null)} sx={{ mb: 2, fontSize: '0.8rem' }}>
+          {problem ?? "That page didn't load. Try again in a moment."}
         </Alert>
       )}
 
@@ -209,7 +171,7 @@ const TriviaBankTab: React.FC = () => {
                     sx={{ cursor: 'pointer' }}
                     onClick={() => {
                       setBrowseCategory(cat.category);
-                      handleBrowse();
+                      showPage(cat.category);
                     }}
                   >
                     <TableCell sx={{ fontSize: '0.75rem', fontWeight: 600 }}>
@@ -332,15 +294,15 @@ const TriviaBankTab: React.FC = () => {
             <Button
               variant="contained"
               size="small"
-              disabled={importing}
-              startIcon={importing ? <LoadingDots size={4} inline /> : <AddIcon />}
+              disabled={importing.isPending}
+              startIcon={importing.isPending ? <LoadingDots size={4} inline /> : <AddIcon />}
               onClick={handleImport}
               sx={{
                 bgcolor: theme.palette.info.main,
                 '&:hover': { bgcolor: theme.palette.info.dark },
               }}
             >
-              {importing ? 'Importing...' : 'Import'}
+              {importing.isPending ? 'Importing...' : 'Import'}
             </Button>
           </Box>
 
@@ -411,18 +373,18 @@ const TriviaBankTab: React.FC = () => {
             <Button
               variant="outlined"
               size="small"
-              disabled={!browseCategory || browsing}
-              startIcon={browsing ? <LoadingDots size={4} inline /> : <SearchIcon />}
-              onClick={() => handleBrowse(0)}
+              disabled={!browseCategory || browse.isFetching}
+              startIcon={browse.isFetching ? <LoadingDots size={4} inline /> : <SearchIcon />}
+              onClick={() => showPage(browseCategory)}
             >
               Browse
             </Button>
           </Box>
 
-          {showBrowse && (
+          {browse.data && (
             <>
               <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', mb: 1 }}>
-                Showing {browseOffset + 1}-{Math.min(browseOffset + 20, browseTotal)} of{' '}
+                Showing {browseOffset + 1}-{Math.min(browseOffset + PAGE_SIZE, browseTotal)} of{' '}
                 {browseTotal}
               </Typography>
               <TableContainer component={Paper} variant="outlined">
@@ -438,8 +400,8 @@ const TriviaBankTab: React.FC = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {questions.map((q, i) => (
-                      <TableRow key={i}>
+                    {questions.map((q) => (
+                      <TableRow key={q.question}>
                         <TableCell sx={{ fontSize: '0.7rem', maxWidth: 250 }}>
                           {q.question}
                         </TableCell>
@@ -466,14 +428,14 @@ const TriviaBankTab: React.FC = () => {
                 <Button
                   size="small"
                   disabled={browseOffset === 0}
-                  onClick={() => handleBrowse(browseOffset - 20)}
+                  onClick={() => turnPage(-PAGE_SIZE)}
                 >
                   Prev
                 </Button>
                 <Button
                   size="small"
-                  disabled={browseOffset + 20 >= browseTotal}
-                  onClick={() => handleBrowse(browseOffset + 20)}
+                  disabled={browseOffset + PAGE_SIZE >= browseTotal}
+                  onClick={() => turnPage(PAGE_SIZE)}
                 >
                   Next
                 </Button>
@@ -501,7 +463,7 @@ const TriviaBankTab: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmDelete(null)}>Cancel</Button>
-          <Button variant="contained" color="error" onClick={() => void handleDelete()}>
+          <Button variant="contained" color="error" onClick={handleDelete}>
             Delete
           </Button>
         </DialogActions>
@@ -509,5 +471,3 @@ const TriviaBankTab: React.FC = () => {
     </Box>
   );
 };
-
-export default TriviaBankTab;

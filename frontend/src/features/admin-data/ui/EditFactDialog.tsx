@@ -1,7 +1,8 @@
-// Admin: edit a fact history entry. Shows ALL fields in one place —
-// question text, answer, type, index, date — with an explicit Save button.
-// Replaces the old chip-click-to-swap UX that caused accidental mutations.
-
+/**
+ * Admin › Player Data: edit one fact history entry. Every field in one place
+ * (question, answer, type, index, date) with an explicit Save button and a
+ * preview of what changes; a save the server turns down says why here.
+ */
 import CloseIcon from '@mui/icons-material/Close';
 import SaveIcon from '@mui/icons-material/Save';
 import {
@@ -23,36 +24,31 @@ import {
 } from '@mui/material';
 import type React from 'react';
 import { useEffect, useState } from 'react';
+import type { AdminFact, FactEdit } from '../model/playerData';
 
-export interface FactEntryLike {
-  timestamp: string;
-  date: string;
-  question: string;
-  answer: string;
-  questionType?: 'shared' | 'basic';
-  questionIndex?: number;
-  skipped?: boolean;
-}
-
-export interface FactEdit {
-  answer?: string;
-  question?: string;
-  newQuestionType?: 'shared' | 'basic';
-  newQuestionIndex?: number;
-  newDate?: string;
-}
+export type FactEntryLike = Pick<AdminFact, 'timestamp' | 'date' | 'question' | 'answer'> &
+  Partial<Pick<AdminFact, 'questionType' | 'questionIndex' | 'skipped'>>;
 
 export interface EditFactDialogProps {
   open: boolean;
   fact: FactEntryLike | null;
   onClose: () => void;
-  onSave: (changes: FactEdit) => void | Promise<void>;
+  onSave: (changes: FactEdit) => void;
   saving?: boolean;
+  /** Why the last save didn't go through. */
+  error?: string | null;
 }
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-const EditFactDialog: React.FC<EditFactDialogProps> = ({ open, fact, onClose, onSave, saving }) => {
+const EditFactDialog: React.FC<EditFactDialogProps> = ({
+  open,
+  fact,
+  onClose,
+  onSave,
+  saving,
+  error,
+}) => {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [questionType, setQuestionType] = useState<'shared' | 'basic'>('shared');
@@ -74,8 +70,8 @@ const EditFactDialog: React.FC<EditFactDialogProps> = ({ open, fact, onClose, on
   if (!fact) return null;
 
   const changes: FactEdit = {};
-  if (answer !== fact.answer) changes.answer = answer;
-  if (question !== fact.question) changes.question = question;
+  if (answer !== (fact.answer ?? '')) changes.answer = answer;
+  if (question !== (fact.question ?? '')) changes.question = question;
   if (questionType !== fact.questionType) changes.newQuestionType = questionType;
   if (questionType === 'basic' && questionIndex !== String(fact.questionIndex ?? '')) {
     const n = parseInt(questionIndex, 10);
@@ -117,6 +113,11 @@ const EditFactDialog: React.FC<EditFactDialogProps> = ({ open, fact, onClose, on
       </DialogTitle>
       <DialogContent dividers>
         <Stack spacing={2}>
+          {error && (
+            <Alert severity="error" sx={{ fontSize: '0.78rem' }}>
+              {error}
+            </Alert>
+          )}
           <TextField
             label="Question"
             value={question}

@@ -23,14 +23,14 @@ const meta: Meta<typeof EditFactDialog> = {
 export default meta;
 type Story = StoryObj<typeof EditFactDialog>;
 
-const sharedFact: FactEntryLike = {
+const sharedFact = {
   timestamp: '2026-04-05T13:15:00.000Z',
   date: '2026-04-05',
   question:
     "If you could only keep one favorite possession forever, what would it be and what's its story?",
   answer: "That's a hard one. I have favorite things but all things seem wear down.",
   questionType: 'shared',
-};
+} satisfies FactEntryLike;
 
 const basicFact: FactEntryLike = {
   timestamp: '2025-05-16T01:19:16.887Z',
@@ -183,5 +183,14 @@ export const Saving: Story = {
   play: async () => {
     const canvas = screen;
     await expect(canvas.getByText(/Saving/i)).toBeInTheDocument();
+  },
+};
+
+/** The server turned the save down: the dialog stays open and says why. */
+export const SaveTurnedDown: Story = {
+  args: { fact: sharedFact, error: 'Fact not found' },
+  play: async () => {
+    await expect(screen.getByText('Fact not found')).toBeInTheDocument();
+    await expect(screen.getByText('Edit Fact Entry')).toBeInTheDocument();
   },
 };

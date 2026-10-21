@@ -88,12 +88,14 @@ cached read:
    trivia grid's `refreshTimestamp` is gone. The
    Remembering page's memories and visitors wait for the comments in
    step 5.
-4. Admin and settings. Done in part: `AdminContext` is gone, and each tab
+4. Done: Admin and settings. `AdminContext` is gone, and each tab
    reads its own data with its own loading and errors. The Admin page is
    `pages/admin`; Players, Groups and Family Tree are `features/admin-people`,
    Seasons and their letters `features/admin-seasons`, Daily Qs
-   `features/admin-questions`, System `features/admin-system`; the cards and
-   the confirm step they share are `shared/admin-ui`. Settings (the view, its
+   `features/admin-questions`, System `features/admin-system`, Player Data
+   `features/admin-data` and the Trivia Bank `features/admin-trivia-bank`;
+   the cards and the confirm step they share are `shared/admin-ui`, and
+   `components/Admin` is gone. Settings (the view, its
    save, checking the models), the features every screen reads
    (`useFeatures`, no provider), backups, the family theme (`useFamilyThemeId`,
    `useSaveFamilyTheme`), who may download the archive (one read for
@@ -106,10 +108,17 @@ cached read:
    groups) is asked again quietly with `useRefreshAppInit` until step 5.
    Admin changes are sent once (`once` in ApiService and `callApi`): a busy
    answer or a lost connection can't say whether a delete, reset or import
-   was done. Player Data (`DataTab`: a person's facts, trivia, game sessions
-   and Family Feud) and the Trivia Bank are left in `components/Admin`;
-   Player Data's changes name the reads they make stale with
-   `useCircleInvalidate`.
+   was done. Player Data reads a person's facts and trivia, the plays left
+   open and Family Feud as stored: a fact edited or deleted invalidates
+   what an answer shows in (today's question, who has played, the week's
+   answers, the timeline, the profile and story), a trivia answer deleted
+   what playing changes (the profile and story, the trivia grid, the
+   results, the timeline), a Feud round reset or deleted Home's Feud card,
+   the results (its points), the timeline and the week's answers, and a
+   play closed only the open plays (whether a round can be played waits
+   for step 5 with the Trivia tab's status). The Trivia Bank's stats and
+   pages are queries; an import or a delete invalidates them and System's
+   question count.
 5. The contexts that hold server data (`FamilyDataContext`,
    `UserStatusContext`, `TimelineContext`, ...) become queries.
 6. Delete `CacheService.ts` and ApiService's `cacheKey` options; the fatal

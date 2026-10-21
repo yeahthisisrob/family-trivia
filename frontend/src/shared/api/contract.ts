@@ -38,20 +38,28 @@ export interface CallOptions<P extends ApiPath, M extends Method> {
   circle?: string | null;
   /** Send it once: a change that must not happen twice (ApiService). */
   once?: boolean;
+  /** How long to wait, for work that takes minutes (an import), in ms. */
+  timeoutMs?: number;
 }
 
 /** One request through ApiService (its retries, its cap on requests in flight, ApiError). */
 export function callApi<P extends ApiPath, M extends Method = 'get'>(
   path: P,
-  { method, query, body, circle, once }: CallOptions<P, M> = {},
+  { method, query, body, circle, once, timeoutMs }: CallOptions<P, M> = {},
 ): Promise<ResponseOf<P, M>> {
   const search = query
     ? `?${new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)]))}`
     : '';
-  return apiService.request<ResponseOf<P, M>>(`${path}${search}`, {
-    method: (method ?? 'get').toUpperCase(),
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-    ...(circle === undefined ? {} : { circle }),
-    ...(once ? { once } : {}),
-  });
+  return apiService.request<ResponseOf<P, M>>(
+    `${path}${search}`,
+    {
+      method: (method ?? 'get').toUpperCase(),
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      ...(circle === undefined ? {} : { circle }),
+      ...(once ? { once } : {}),
+    },
+    undefined,
+    false,
+    timeoutMs,
+  );
 }
