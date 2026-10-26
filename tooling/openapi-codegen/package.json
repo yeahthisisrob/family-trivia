@@ -8,7 +8,7 @@
     "contract": "redocly lint ../../shared/schemas/api.openapi.yaml --config ../../shared/redocly.yaml && openapi-typescript ../../shared/schemas/api.openapi.yaml -o ../../shared/generated/api-types.ts && biome format --write ../../shared/generated"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.15",
+    "@biomejs/biome": "2.6.2",
     "@redocly/cli": "^2.66.0",
     "openapi-typescript": "^7.13.0",
     "typescript": "5.9.3"

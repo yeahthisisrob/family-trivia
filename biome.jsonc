@@ -33,6 +33,9 @@
     }
   },
   "json": { "parser": { "allowComments": true } },
+  // Biome 2.6 formats Markdown and YAML too; the docs and workflows are written by hand.
+  "markdown": { "formatter": { "enabled": false } },
+  "yaml": { "formatter": { "enabled": false } },
   "overrides": [
     {
       // Components get their colors from the design system. Tokens, themes,
@@ -56,6 +59,12 @@
       // In tests and stories `x!` is an assertion: if it's missing, fail loudly.
       "includes": ["**/*.test.{ts,tsx}", "**/*.stories.tsx", "**/tests/**"],
       "linter": { "rules": { "style": { "noNonNullAssertion": "off" } } }
+    },
+    {
+      // A test or story renders a harness component that closes over the
+      // test's own variables; it never re-renders, so it can't remount anything.
+      "includes": ["**/*.test.{ts,tsx}", "**/*.stories.tsx"],
+      "linter": { "rules": { "correctness": { "noComponentHookFactories": "off" } } }
     }
   ],
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
