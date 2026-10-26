@@ -3849,7 +3849,7 @@ paths:
 
   /admin/user-facts:
     get:
-      summary: Admin — fetch a user's fact history
+      summary: Admin — one person's fact history, as stored
       operationId: adminGetUserFacts
       tags: [Admin]
       parameters:
@@ -3862,8 +3862,18 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [facts, success]
+                properties:
+                  facts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdminFactEntry"
+                  success:
+                    type: boolean
+        "403":
+          description: Not an admin
     put:
-      summary: Admin — update a fact entry
+      summary: Admin — change one fact entry, found by its timestamp
       operationId: adminUpdateUserFact
       tags: [Admin]
       requestBody:
@@ -3872,25 +3882,28 @@ paths:
           application/json:
             schema:
               type: object
-              required: [adminUserId, userId, date, updates]
+              required: [adminUserId, userId]
               properties:
-                adminUserId:
-                  type: string
-                userId:
-                  type: string
-                date:
-                  type: string
-                updates:
-                  type: object
+                adminUserId: { type: string }
+                userId: { type: string }
+                timestamp: { type: string, description: The entry's identity }
+                factKey: { type: string, description: "Older callers: the entry's type and date" }
+                answer: { type: string }
+                question: { type: string }
+                newQuestionType: { type: string, enum: [shared, basic] }
+                newQuestionIndex: { type: integer }
+                newDate: { type: string, description: YYYY-MM-DD }
       responses:
         "200":
-          description: Updated entry
+          description: Updated
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/AdminSaved"
+        "404":
+          description: No such entry
     delete:
-      summary: Admin — delete a fact entry
+      summary: Admin — delete exactly one fact entry, found by its timestamp
       operationId: adminDeleteUserFact
       tags: [Admin]
       requestBody:
@@ -3899,14 +3912,12 @@ paths:
           application/json:
             schema:
               type: object
-              required: [adminUserId, userId, date]
+              required: [adminUserId, userId]
               properties:
-                adminUserId:
-                  type: string
-                userId:
-                  type: string
-                date:
-                  type: string
+                adminUserId: { type: string }
+                userId: { type: string }
+                timestamp: { type: string, description: The entry's identity }
+                factKey: { type: string, description: "Older callers: every entry of that type and date" }
       responses:
         "200":
           description: Deleted
@@ -3914,13 +3925,18 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [success, removed]
                 properties:
                   success:
                     type: boolean
+                  removed:
+                    type: integer
+        "404":
+          description: No such entry
 
   /admin/user-trivia:
     get:
-      summary: Admin — fetch a user's trivia answer history
+      summary: Admin — one person's trivia answers, newest first
       operationId: adminGetUserTrivia
       tags: [Admin]
       parameters:
@@ -3933,8 +3949,18 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [history, success]
+                properties:
+                  history:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/HistoryEntry"
+                  success:
+                    type: boolean
+        "403":
+          description: Not an admin
     delete:
-      summary: Admin — delete trivia entries
+      summary: Admin — delete trivia answers, found by their timestamps
       operationId: adminDeleteUserTrivia
       tags: [Admin]
       requestBody:
@@ -3943,7 +3969,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [adminUserId, userId]
+              required: [adminUserId, userId, timestamps]
               properties:
                 adminUserId:
                   type: string
@@ -3960,9 +3986,14 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [success, removedCount]
                 properties:
                   success:
                     type: boolean
+                  removedCount:
+                    type: integer
+        "404":
+          description: No trivia history for this person
 
   /admin/game-sessions:
     get:
@@ -4082,40 +4113,46 @@ paths:
         - { name: adminUserId, in: query, required: true, schema: { type: string } }
       responses:
         "200":
-          description: Count by category/difficulty
+          description: Count by category and difficulty, by source, and how many were asked
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/BankStats"
+        "403":
+          description: Not an admin
 
   /admin/trivia-bank/browse:
     get:
-      summary: Admin — browse trivia bank with filters
+      summary: Admin — one page of a category's questions at one difficulty
       operationId: adminTriviaBankBrowse
       tags: [Admin]
       parameters:
         - { name: adminUserId, in: query, required: true, schema: { type: string } }
-        - { name: category, in: query, schema: { type: string } }
-        - { name: difficulty, in: query, schema: { type: string } }
+        - { name: category, in: query, required: true, schema: { type: string } }
+        - { name: difficulty, in: query, required: true, schema: { type: string } }
+        - { name: offset, in: query, schema: { type: integer } }
         - { name: limit, in: query, schema: { type: integer } }
       responses:
         "200":
-          description: Questions matching filters
+          description: The page, and how many there are in all
           content:
             application/json:
               schema:
                 type: object
+                required: [questions, total]
                 properties:
                   questions:
                     type: array
                     items:
-                      type: object
+                      $ref: "#/components/schemas/BankQuestion"
                   total:
                     type: integer
+        "400":
+          description: No category or difficulty
 
   /admin/trivia-bank/question:
     delete:
-      summary: Admin — delete a trivia bank question
+      summary: Admin — delete a question from the bank, found by its text
       operationId: adminDeleteTriviaBankQuestion
       tags: [Admin]
       requestBody:
@@ -4124,26 +4161,27 @@ paths:
           application/json:
             schema:
               type: object
-              required: [adminUserId, questionId]
+              required: [adminUserId, category, difficulty, questionText]
               properties:
-                adminUserId:
-                  type: string
-                questionId:
-                  type: string
+                adminUserId: { type: string }
+                category: { type: string }
+                difficulty: { type: string }
+                questionText: { type: string }
       responses:
         "200":
-          description: Deleted
+          description: Whether a question was taken out
           content:
             application/json:
               schema:
                 type: object
+                required: [deleted]
                 properties:
-                  success:
+                  deleted:
                     type: boolean
 
   /admin/trivia-bank/import:
     post:
-      summary: Admin — bulk import trivia questions
+      summary: Admin — add questions to the bank from a source, or written by the AI
       operationId: adminTriviaBankImport
       tags: [Admin]
       requestBody:
@@ -4152,26 +4190,24 @@ paths:
           application/json:
             schema:
               type: object
-              required: [adminUserId, questions]
+              required: [adminUserId, source, category, difficulty]
               properties:
-                adminUserId:
+                adminUserId: { type: string }
+                source:
                   type: string
-                questions:
-                  type: array
-                  items:
-                    type: object
+                  enum: [opentdb, jservice, ai-hometown, ai-nearby, ai-custom]
+                category: { type: string }
+                difficulty: { type: string }
+                count: { type: integer }
       responses:
         "200":
           description: Import result
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  imported:
-                    type: integer
-                  skipped:
-                    type: integer
+                $ref: "#/components/schemas/BankImportResult"
+        "400":
+          description: Missing fields or an unknown source
 
   # ──────────────────────────────────────────────
   # Admin — family feud + system
@@ -4179,20 +4215,33 @@ paths:
 
   /admin/family-feud:
     get:
-      summary: Admin — inspect family feud state
+      summary: Admin — the current Family Feud round and the recent ones, as stored
       operationId: adminGetFamilyFeud
       tags: [Admin]
       parameters:
         - { name: adminUserId, in: query, required: true, schema: { type: string } }
       responses:
         "200":
-          description: Feud state for debugging
+          description: Feud state
           content:
             application/json:
               schema:
                 type: object
+                required: [currentRound, recentRounds]
+                properties:
+                  currentRound:
+                    type: object
+                    nullable: true
+                    allOf:
+                      - $ref: "#/components/schemas/AdminFeudRound"
+                  recentRounds:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdminFeudRound"
+        "403":
+          description: Not an admin
     delete:
-      summary: Admin — reset or delete family feud round
+      summary: Admin — reset the current round, delete a round, or reset the rotation
       operationId: adminResetFamilyFeud
       tags: [Admin]
       requestBody:
@@ -4217,6 +4266,17 @@ paths:
             application/json:
               schema:
                 type: object
+                required: [success, action]
+                properties:
+                  success:
+                    type: boolean
+                  action:
+                    type: string
+                    enum: [reset-current, delete-round, reset-rotation]
+                  roundId:
+                    type: string
+        "400":
+          description: An unknown action, or delete-round without a roundId
 
   /admin/system-info:
     get:
@@ -5326,6 +5386,109 @@ components:
       pattern: "^[a-z][a-z0-9-]{1,31}$"
       description: A game's folder name in frontend/src/games
       example: snake
+    AdminFactEntry:
+      type: object
+      description: One entry of a person's fact history, as an admin edits it
+      required: [timestamp, key, date, question, answer, answered, skipped]
+      properties:
+        timestamp: { type: string, description: The entry's identity }
+        key: { type: string, description: "Type, index and date, for older callers" }
+        date: { type: string }
+        question: { type: string, nullable: true }
+        answer: { type: string, nullable: true }
+        answered: { type: boolean }
+        skipped: { type: boolean }
+        questionType: { type: string, enum: [shared, basic] }
+        questionIndex: { type: integer }
+    BankStats:
+      type: object
+      required: [totalQuestions, categories, sources, questionsAsked]
+      properties:
+        totalQuestions: { type: integer }
+        categories:
+          type: array
+          items:
+            type: object
+            required: [category, count, difficulties]
+            properties:
+              category: { type: string }
+              count: { type: integer }
+              difficulties:
+                type: object
+                required: [easy, normal, hard]
+                properties:
+                  easy: { type: integer }
+                  normal: { type: integer }
+                  hard: { type: integer }
+        sources:
+          type: array
+          description: "[source, how many] pairs"
+          items:
+            type: array
+            minItems: 2
+            maxItems: 2
+            items:
+              oneOf:
+                - { type: string }
+                - { type: integer }
+        questionsAsked: { type: integer }
+    BankQuestion:
+      type: object
+      required: [question, choices, answer, category, difficulty, source]
+      properties:
+        question: { type: string }
+        choices:
+          type: array
+          items: { type: string }
+        answer: { type: string }
+        category: { type: string }
+        difficulty: { type: string }
+        source: { type: string }
+        sourceUrl: { type: string }
+        externalId: { type: string }
+    BankImportResult:
+      type: object
+      required: [source, category, difficulty, fetched, added, duplicates, errors]
+      properties:
+        source: { type: string }
+        category: { type: string }
+        difficulty: { type: string }
+        fetched: { type: integer }
+        added: { type: integer }
+        duplicates: { type: integer }
+        errors: { type: integer }
+    AdminFeudRound:
+      type: object
+      description: A Family Feud round as stored, every guess with who made it
+      required: [roundId, targetUserId, targetUserName, question, realAnswer, status, startedAt, expiresAt, guesses]
+      properties:
+        roundId: { type: string }
+        targetUserId: { type: string }
+        targetUserName: { type: string }
+        question: { type: string }
+        realAnswer: { type: string, nullable: true }
+        choices:
+          type: array
+          items: { type: string }
+          nullable: true
+        answeredAt: { type: string, nullable: true }
+        startedAt: { type: string }
+        expiresAt: { type: string }
+        status:
+          type: string
+          enum: [waiting_for_target, active, completed]
+        guesses:
+          type: object
+          additionalProperties:
+            type: object
+            required: [userId, userName, guess, submittedAt]
+            properties:
+              userId: { type: string }
+              userName: { type: string }
+              guess: { type: string }
+              submittedAt: { type: string }
+        results:
+          $ref: "#/components/schemas/FamilyFeudResults"
     AdminGameSession:
       type: object
       required: [type, game, status]
@@ -5988,6 +6151,9 @@ components:
           type: string
         isCustomCategory:
           type: boolean
+        gameMode:
+          type: string
+          description: The game mode or round it came from (0032); older entries carry a flag per mode
 
     FactItem:
       type: object

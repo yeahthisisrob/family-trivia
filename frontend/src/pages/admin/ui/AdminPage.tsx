@@ -6,12 +6,12 @@
 import { alpha, Box, Paper, Tab, Tabs, Typography, useTheme } from '@mui/material';
 import type React from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import DataTab from '../../../components/Admin/DataTab';
-import TriviaBankTab from '../../../components/Admin/TriviaBankTab';
+import { DataTab } from '../../../features/admin-data';
 import { FamilyTreeTab, GroupsTab, PlayersTab } from '../../../features/admin-people';
 import { DailyQuestionsTab } from '../../../features/admin-questions';
 import { SeasonsTab } from '../../../features/admin-seasons';
 import { SystemInfoTab } from '../../../features/admin-system';
+import { TriviaBankTab } from '../../../features/admin-trivia-bank';
 import { FamilyEditor } from '../../../features/family-editor';
 import { KnowledgeAdmin, StoryAdmin } from '../../../features/family-home';
 import { SettingsPage } from '../../../features/settings';
