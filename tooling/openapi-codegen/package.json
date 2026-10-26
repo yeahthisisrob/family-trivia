@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.2",
-    "@redocly/cli": "^2.66.0",
+    "@redocly/cli": "^2.71.0",
     "openapi-typescript": "^7.13.0",
     "typescript": "5.9.3"
   }
