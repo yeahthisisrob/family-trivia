@@ -14,19 +14,19 @@
   },
   "dependencies": {
     "@aws-lambda-powertools/logger": "^2.36.0",
-    "@aws-sdk/client-bedrock-runtime": "^3.1152.0",
-    "@aws-sdk/client-s3": "^3.1152.0",
-    "@aws-sdk/s3-request-presigner": "^3.1152.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.1156.0",
+    "@aws-sdk/client-s3": "^3.1156.0",
+    "@aws-sdk/s3-request-presigner": "^3.1156.0",
     "@family-trivia/shared": "workspace:*",
     "fflate": "^0.8.3",
     "fuse.js": "^7.3.0",
-    "jose": "^6.2.12",
-    "pdfkit": "0.17.2"
+    "jose": "^6.2.13",
+    "pdfkit": "0.20.2"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.164",
     "@types/node": "^22.20.5",
-    "@types/pdfkit": "0.17.3",
+    "@types/pdfkit": "0.17.7",
     "@vitest/coverage-v8": "^5.0.5",
     "ajv": "^8.20.0",
     "esbuild": "^0.28.2",
