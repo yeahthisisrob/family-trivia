@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Keeps the README's pictures honest. Fails when:
-//   - the README shows a picture that isn't in docs/screenshots/shots.json, or
+// Keeps the README's and the tour's pictures honest. Fails when:
+//   - the README or docs/tour.md shows a picture that isn't in docs/screenshots/shots.json, or
 //     a listed picture is missing, unused, or not in the manifest;
 //   - a pictured story or its component changed since the picture was taken
 //     (its sources no longer hash to the stamp `just screenshots` left);
@@ -9,22 +9,22 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { MANIFEST, OUT_DIR, README, sourceHash } from './screenshots-lib.mjs';
+import { MANIFEST, OUT_DIR, README, sourceHash, TOUR } from './screenshots-lib.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const { shots } = JSON.parse(readFileSync(MANIFEST, 'utf8'));
-const readme = readFileSync(README, 'utf8');
+const pages = [README, TOUR].map((f) => readFileSync(f, 'utf8')).join('\n');
 const problems = [];
 
 const listed = new Set(shots.map((s) => s.file));
-const shown = new Set([...readme.matchAll(/docs\/screenshots\/([\w-]+\.png)/g)].map((m) => m[1]));
+const shown = new Set([...pages.matchAll(/screenshots\/([\w-]+\.png)/g)].map((m) => m[1]));
 const onDisk = new Set(readdirSync(OUT_DIR).filter((f) => f.endsWith('.png')));
 
 for (const f of shown)
-  if (!listed.has(f)) problems.push(`README shows ${f}, which shots.json doesn't list`);
+  if (!listed.has(f)) problems.push(`README or tour shows ${f}, which shots.json doesn't list`);
 for (const f of listed) {
   if (!onDisk.has(f)) problems.push(`${f} is listed but was never taken`);
-  if (!shown.has(f)) problems.push(`${f} is listed but the README doesn't show it`);
+  if (!shown.has(f)) problems.push(`${f} is listed but neither the README nor the tour shows it`);
 }
 for (const f of onDisk)
   if (!listed.has(f)) problems.push(`${f} is in docs/screenshots but not in shots.json`);
