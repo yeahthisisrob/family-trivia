@@ -145,6 +145,127 @@ interface BlackjackGameProps {
   onClose: () => void;
 }
 
+// ── Card component ────────────────────────────────────────────
+const CardEl = ({ card, delay = 0 }: { card: Card; delay?: number }) => {
+  if (card.faceDown) {
+    return (
+      <Box
+        sx={{
+          width: 56,
+          height: 80,
+          borderRadius: `${radii.md}px`,
+          flexShrink: 0,
+          background: `repeating-linear-gradient(135deg, ${frameBg}, ${frameBg} 3px, ${darkBg} 3px, ${darkBg} 6px)`,
+          border: `2px solid ${alpha(gold, 0.3)}`,
+          boxShadow: `0 3px 10px ${alpha(colors.scrim, 0.5)}`,
+          animation: `${dealCard} 0.35s ${delay}ms ease-out both`,
+        }}
+      />
+    );
+  }
+  return (
+    <Box
+      data-light-surface
+      sx={{
+        width: 56,
+        height: 80,
+        borderRadius: `${radii.md}px`,
+        flexShrink: 0,
+        bgcolor: art.cardFace,
+        border: `2px solid ${alpha(colors.scrim, 0.12)}`,
+        boxShadow: `0 3px 10px ${alpha(colors.scrim, 0.3)}`,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 0,
+        animation: `${dealCard} 0.35s ${delay}ms ease-out both`,
+        position: 'relative',
+      }}
+    >
+      <Typography
+        sx={{ fontSize: '1.15rem', fontWeight: 900, lineHeight: 1, color: SUIT_CLR[card.suit] }}
+      >
+        {card.rank}
+      </Typography>
+      <Typography sx={{ fontSize: '1rem', lineHeight: 1, color: SUIT_CLR[card.suit], mt: -0.25 }}>
+        {SUIT_SYM[card.suit]}
+      </Typography>
+      {/* Corner pip */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 3,
+          left: 4,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Typography
+          sx={{ fontSize: '0.45rem', fontWeight: 800, lineHeight: 1, color: SUIT_CLR[card.suit] }}
+        >
+          {card.rank}
+        </Typography>
+        <Typography sx={{ fontSize: '0.45rem', lineHeight: 1, color: SUIT_CLR[card.suit] }}>
+          {SUIT_SYM[card.suit]}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
+const HandRow = ({
+  hand,
+  label,
+  total,
+  showTotal,
+}: {
+  hand: Card[];
+  label: string;
+  total: number;
+  showTotal: boolean;
+}) => (
+  <Box sx={{ mb: 1.5 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
+      <Typography
+        sx={{
+          fontSize: '0.65rem',
+          fontWeight: 800,
+          color: alpha(colors.onColor, 0.55),
+          textTransform: 'uppercase',
+          letterSpacing: 1.5,
+        }}
+      >
+        {label}
+      </Typography>
+      {showTotal && (
+        <Box
+          sx={{
+            px: 0.75,
+            py: 0.1,
+            borderRadius: 1,
+            minWidth: 22,
+            textAlign: 'center',
+            bgcolor: total === 21 ? gold : total > 21 ? art.loss : alpha(colors.onColor, 0.15),
+            color: total === 21 ? darkBg : colors.onColor,
+            fontSize: '0.7rem',
+            fontWeight: 900,
+            ...(total === 21 && { animation: `${glowText} 1.5s ease-in-out infinite` }),
+          }}
+        >
+          {total}
+        </Box>
+      )}
+    </Box>
+    <Box sx={{ display: 'flex', gap: 0.5 }}>
+      {hand.map((c, i) => (
+        <CardEl key={i} card={c} delay={i * 120} />
+      ))}
+    </Box>
+  </Box>
+);
+
 const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
   const [phase, setPhase] = useState<GamePhase>('loading');
   const [balance, setBalance] = useState(0);
@@ -383,127 +504,6 @@ const BlackjackGame: React.FC<BlackjackGameProps> = ({ userId, onClose }) => {
     }
     onClose();
   }, [userId, balance, onClose]);
-
-  // ── Card component ────────────────────────────────────────────
-  const CardEl = ({ card, delay = 0 }: { card: Card; delay?: number }) => {
-    if (card.faceDown) {
-      return (
-        <Box
-          sx={{
-            width: 56,
-            height: 80,
-            borderRadius: `${radii.md}px`,
-            flexShrink: 0,
-            background: `repeating-linear-gradient(135deg, ${frameBg}, ${frameBg} 3px, ${darkBg} 3px, ${darkBg} 6px)`,
-            border: `2px solid ${alpha(gold, 0.3)}`,
-            boxShadow: `0 3px 10px ${alpha(colors.scrim, 0.5)}`,
-            animation: `${dealCard} 0.35s ${delay}ms ease-out both`,
-          }}
-        />
-      );
-    }
-    return (
-      <Box
-        data-light-surface
-        sx={{
-          width: 56,
-          height: 80,
-          borderRadius: `${radii.md}px`,
-          flexShrink: 0,
-          bgcolor: art.cardFace,
-          border: `2px solid ${alpha(colors.scrim, 0.12)}`,
-          boxShadow: `0 3px 10px ${alpha(colors.scrim, 0.3)}`,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 0,
-          animation: `${dealCard} 0.35s ${delay}ms ease-out both`,
-          position: 'relative',
-        }}
-      >
-        <Typography
-          sx={{ fontSize: '1.15rem', fontWeight: 900, lineHeight: 1, color: SUIT_CLR[card.suit] }}
-        >
-          {card.rank}
-        </Typography>
-        <Typography sx={{ fontSize: '1rem', lineHeight: 1, color: SUIT_CLR[card.suit], mt: -0.25 }}>
-          {SUIT_SYM[card.suit]}
-        </Typography>
-        {/* Corner pip */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 3,
-            left: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <Typography
-            sx={{ fontSize: '0.45rem', fontWeight: 800, lineHeight: 1, color: SUIT_CLR[card.suit] }}
-          >
-            {card.rank}
-          </Typography>
-          <Typography sx={{ fontSize: '0.45rem', lineHeight: 1, color: SUIT_CLR[card.suit] }}>
-            {SUIT_SYM[card.suit]}
-          </Typography>
-        </Box>
-      </Box>
-    );
-  };
-
-  const HandRow = ({
-    hand,
-    label,
-    total,
-    showTotal,
-  }: {
-    hand: Card[];
-    label: string;
-    total: number;
-    showTotal: boolean;
-  }) => (
-    <Box sx={{ mb: 1.5 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
-        <Typography
-          sx={{
-            fontSize: '0.65rem',
-            fontWeight: 800,
-            color: alpha(colors.onColor, 0.55),
-            textTransform: 'uppercase',
-            letterSpacing: 1.5,
-          }}
-        >
-          {label}
-        </Typography>
-        {showTotal && (
-          <Box
-            sx={{
-              px: 0.75,
-              py: 0.1,
-              borderRadius: 1,
-              minWidth: 22,
-              textAlign: 'center',
-              bgcolor: total === 21 ? gold : total > 21 ? art.loss : alpha(colors.onColor, 0.15),
-              color: total === 21 ? darkBg : colors.onColor,
-              fontSize: '0.7rem',
-              fontWeight: 900,
-              ...(total === 21 && { animation: `${glowText} 1.5s ease-in-out infinite` }),
-            }}
-          >
-            {total}
-          </Box>
-        )}
-      </Box>
-      <Box sx={{ display: 'flex', gap: 0.5 }}>
-        {hand.map((c, i) => (
-          <CardEl key={i} card={c} delay={i * 120} />
-        ))}
-      </Box>
-    </Box>
-  );
 
   const isBusted = balance <= 0 && phase === 'betting';
   const canDouble = phase === 'playing' && playerHand.length === 2 && balance >= bet;
