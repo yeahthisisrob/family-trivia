@@ -16,7 +16,7 @@ A daily question for the whole family (or your oldest friends), and a place that
 
 <div align="center">
 
-**Elizabeth "Betty" D'Hondt**
+**My mom, Nana**
 
 _1946 — 2026_
 
