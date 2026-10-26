@@ -9,6 +9,7 @@ const ROOT = resolve(import.meta.dirname, '..');
 export const OUT_DIR = join(ROOT, 'docs/screenshots');
 export const MANIFEST = join(OUT_DIR, 'shots.json');
 export const README = join(ROOT, 'README.md');
+export const TOUR = join(ROOT, 'docs/tour.md');
 
 /** A laptop screen at 1.5x, and a phone at 2x. */
 export const SIZES = {

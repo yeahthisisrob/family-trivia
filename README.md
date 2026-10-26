@@ -8,7 +8,7 @@
 
 A daily question for the whole family (or your oldest friends), and a place that keeps what everyone answers. Each morning everyone gets one question about themselves and one trivia question; the answers become the family's timeline, each person's story, a map of what the family talks about, and, at the end of a season, a book you can read in the app or send to a printer. Games earn trivia multipliers, an arcade keeps high scores, and a Remembering page holds the words of the people the family has lost. One CDK command deploys it into your own AWS account; the family's words never leave it.
 
-![The family's home: who we are, today's spotlight, and what we share](docs/screenshots/family-home.png)
+<p align="center"><img src="docs/screenshots/family-home.png" alt="The family's home: who we are, today's spotlight, and what we share" width="720"></p>
 
 ---
 
@@ -16,7 +16,7 @@ A daily question for the whole family (or your oldest friends), and a place that
 
 <div align="center">
 
-**Elizabeth "Betty" D'Hondt**
+**My mom aka Nana**
 
 _1946 — 2026_
 
@@ -25,7 +25,7 @@ _with a heart as big as the elephants she loved._
 
 </div>
 
-This project started as a way to stay connected with my mom. After retirement, as her physical health declined, I watched depression slowly take more of her light. I'd sit with her, listen, try to be there — sometimes love looks like a hard balance between helping, giving space, and simply showing up. Family Trivia gave her something to do every morning, gave us something to talk about, and helped us capture more memories of our family, together.
+This project started as a way to stay connected with my mom. After retirement, as her physical health declined, I watched depression slowly take more of her light. I'd sit with her, listen, try to be there — sometimes love looks like a hard balance between helping, giving space, and simply showing up. Family Trivia gave her something to do every morning, gave us something to talk about, and helped us capture more memories of our family, together. It's too hard for me to play now, because it was for her. But maybe it can help another family stay connected, make more memories, and have more good days together.
 
 May is **#MentalHealthMonth** 💚. Mental health struggles can be quiet — isolation, loss of identity, feeling like a burden when you're deeply loved. Check in, sit awhile, and make space for the conversations that matter. Let's have more good days, together.
 
@@ -37,74 +37,44 @@ Resources: [mhanational.org/may](https://mhanational.org/may)
 
 ## What it does
 
+<table>
+<tr><td align="center" valign="top"><a href="docs/tour.md"><img src="docs/screenshots/daily-fact.png" alt="Today's question" width="190"></a><br><sub>Today's question</sub></td><td align="center" valign="top"><a href="docs/tour.md"><img src="docs/screenshots/casino-rush.png" alt="Casino Rush" width="190"></a><br><sub>Casino Rush</sub></td><td align="center" valign="top"><a href="docs/tour.md"><img src="docs/screenshots/profile.png" alt="A profile" width="190"></a><br><sub>A profile</sub></td><td align="center" valign="top"><a href="docs/tour.md"><img src="docs/screenshots/remembering.png" alt="Remembering" width="190"></a><br><sub>Remembering</sub></td></tr>
+<tr><td align="center" valign="top"><a href="docs/tour.md"><img src="docs/screenshots/family-map.png" alt="Our map" width="190"></a><br><sub>Our map</sub></td><td align="center" valign="top"><a href="docs/tour.md"><img src="docs/screenshots/family-graph.png" alt="The night sky" width="190"></a><br><sub>The night sky</sub></td><td align="center" valign="top"><a href="docs/tour.md"><img src="docs/screenshots/look-back.png" alt="Look back" width="190"></a><br><sub>Look back</sub></td><td align="center" valign="top"><a href="docs/tour.md"><img src="docs/screenshots/circles.png" alt="Circles" width="190"></a><br><sub>Circles</sub></td></tr>
+</table>
+
+**[See every screen in the tour →](docs/tour.md)**
+
 ### A question a day
 
 Everyone gets the same question about themselves each day ("What's a small everyday moment that always makes you smile?") and a trivia question in a category they pick. Missed days can be caught up. A season decides what's asked: general trivia, trivia about the family itself, both, or only the daily questions. Answers land on a shared timeline with comments, reactions and notifications, and the home page brings back a memory a day from the family's own pages.
-
-|  |  |  |
-|---|---|---|
-| ![Today's question, with a microphone hint for people who'd rather talk](docs/screenshots/daily-fact.png) | ![What do you want to play: special challenges and categories](docs/screenshots/trivia.png) | ![On this day, two years ago: everyone's answers to the same question](docs/screenshots/daily-memory.png) |
-| **Today's question.** Type it or say it. | **Trivia.** Pick a category or a special challenge. | **A memory a day.** What everyone said, on this day. |
 
 ### Games that earn a multiplier
 
 Each game mode can be played once a week and multiplies that day's trivia score. The same games, plus Snake, Crossword, Scramble, Blackjack and Roulette, run without limits in the Arcade, with high-score boards. Each game is one folder in `frontend/src/games`, and any of them can also be played as a weekly round: adding a game needs no code outside it. Casino Rush and the Slot Machine are folders like the rest; a game that needs server code, as they do, adds a folder of the same name in `backend/features/games` (see [the games guide](frontend/src/games/README.md)). The leaderboard ranks people and teams by season.
 
-|  |  |  |  |
-|---|---|---|---|
-| ![Casino Rush: triple or nothing](docs/screenshots/casino-rush.png) | ![Slot Machine](docs/screenshots/slot-machine.png) | ![Curling](docs/screenshots/curling.png) | ![Tetris](docs/screenshots/tetris.png) |
-| **Casino Rush.** 3 questions, 60s each, triple or bust. | **Slot Machine.** Spin for a category and a multiplier. | **Curling.** Land on the button. | **Tetris.** 60 seconds to clear lines. |
-
-![Top players: the season's podium](docs/screenshots/podium.png)
-
-![Scramble: unscramble an answer from the circle's own trivia](docs/screenshots/scramble.png)
-
 ### Everyone's story, told by the family
 
 **Us** (the tab, in every circle) opens on who you are together, in your own numbers and words, written by the AI from the answers and edited by an admin. A spotlight introduces one person a day (or roasts them, gently). Everyone has a profile that reads as a story: what they've said lately, what the family has said about them, and the questions still waiting for them, which they can fill in flash-card style.
-
-|  |  |
-|---|---|
-| ![A profile told as a story](docs/screenshots/profile.png) | ![Spotlight: one person a day](docs/screenshots/spotlight.png) |
-| **A profile.** What you've said lately, and how much of your story is filled in. | **Spotlight.** One person a day, from their answers. |
-
-![Fill in your story: one more for the family's story](docs/screenshots/fill-in.png)
 
 ### Our map, and the family as a night sky
 
 Our map lays out what the family talks about as territories (places, food, things we do), with each person pulled toward the topics they share. The night sky draws the family itself: who's tied to whom, households, and who answered alike, with the answers as evidence.
 
-![Our map: what the family talks about, as territories](docs/screenshots/family-map.png)
-
-![The family as a night sky: ties, partners and who answered alike](docs/screenshots/family-graph.png)
-
 ### Look back, and keep it as a book
 
 When a season ends, Look back shows the questions most of the family answered and the answers people loved. Any season, and anyone's own words, can become a book: just the answers, or written warm or playful, with a foreword and chapters by theme. Books are fitted to their pages, open in the app as two-page spreads, download as page images, and come with a wraparound cover ready for a print-on-demand press. Every version is kept.
-
-![Look back on a season](docs/screenshots/look-back.png)
-
-![A season as a book: how it's written, and every version kept](docs/screenshots/book-dialog.png)
 
 ### Remembering
 
 The people the family has lost keep a page: their years, the last things they told the family, and a book of their words. Families change, so people can be active, paused, or remembered, and relationships change over time.
 
-![Remembering: the last things they told us](docs/screenshots/remembering.png)
-
 ### Family, friends, or both
 
 One Google sign-in can belong to any number of circles: a family, an old crew of friends, or both together. Each circle has its own people, seasons, games and memories, and none of it crosses into another circle unless someone shares it on purpose. Anyone in more than one circle moves between them from the title. The owner starts new circles from Admin › Circles, each with its own theme, and brings people in with a link.
 
-![Circles: a family and two circles of friends, one sign-in](docs/screenshots/circles.png)
-
 ### Run by the family, in its own account
 
 Admins set up people, households and relationships, start seasons, and choose features. Settings picks the AI model for each task and shows what it really costs, from the tokens each call used. Backups are made from Settings and checked, and the whole family's archive downloads as one folder per person.
-
-![Settings: an AI model per task, with real costs](docs/screenshots/settings.png)
-
-_Every picture here is taken from a Storybook story with made-up people, listed in [`docs/screenshots/shots.json`](docs/screenshots/shots.json). `just screenshots` retakes them, and `just check` fails when a pictured story has changed since its picture was taken._
 
 ## Architecture
 
@@ -168,25 +138,15 @@ An admin opens **Admin › Circles** and makes a link:
 
 Opening the link shows only the circle it was made for. They sign in with Google and they're in; someone already in other circles keeps them. Passphrases still work, as a personal invite that never expires.
 
-![An invite link: the circle, a name, then Google](docs/screenshots/join.png)
-
-![Admin › Circles: someone waiting to join, a new link, and the links already out](docs/screenshots/invites.png)
-
 ## Friends, connected
 
 Nobody has to draw the map. Once a day, Home asks one **Thread**: "How do you know Bob?" in a friends circle, "How are you and Carol related?" in a family. One tap ties it (a year if you like), for both of you. Everyone answers about everyone, so the circle's web fills in on its own, and the bar under the card shows how far it's come. A family that's already connected in the tree is never asked.
 
-![Threads: how do you know Bob? One tap](docs/screenshots/threads.png)
-
 Friendships sit in the same people model as family: who's friends with whom and how they met, when and where. The groups inside a circle are **crews**, the way a family has households, and every screen uses the circle's own words. The AI writes for whoever the circle is: friends get questions about the nights, trips and inside jokes they share, never about relatives, and trivia like "Who did Alice meet in college?" comes straight from the threads. New people start with five easy questions, one a day (a birthday to celebrate, where they live, what's on repeat), and the trivia about the circle itself is called Our Crew for friends, Our Family for a family. Admins can fix anything in Admin › Family.
-
-![A friend's connections: how and when they met each friend](docs/screenshots/friend-ties.png)
 
 ## Memories from everyone who knew them
 
 The people with the most to say about someone you've lost often aren't in the app. From their Remembering page, an admin can share a link: anyone who opens it can leave a memory, no account needed, and it waits for the admin to let it in. A friend who never played can have a page made entirely of what the people who loved them remember.
-
-![A memory link: no account, just a name and a memory](docs/screenshots/remember-link.png)
 
 ## Play as time allows
 
@@ -196,13 +156,9 @@ Nothing in an open season expires. Come back after two weeks and Home says what'
 
 Every season opens with a letter, and ends with one. An admin can write either; if nobody writes the opening one, it's made from the season's settings: what the trivia is about, the pace, teams, and how last season went.
 
-![A season opens: a welcome, last season in a line, and what this one is](docs/screenshots/season-opens.png)
-
 ## Your world
 
 In more than one circle? Open **Your world** from the circle menu: all your circles in one sky, each its own constellation, with you as the bridge between them. It shows what comes up in more than one circle (the same beach, the same band) and who from different circles should meet. Under it, your story so far: when you met people, weddings, the plans you were in and what someone remembered, year by year, from what each circle knows. It's built just for you when you open it, from what you can already see, and never stored.
-
-![Your world: two circles, you between them, and who should meet](docs/screenshots/your-world.png)
 
 ## Joining circles
 
@@ -210,39 +166,25 @@ Want the family and the old crew together for the holidays? In Admin › Circles
 
 Everyone's past answers come along too, so the joined circle's story, look backs and games start with everyone's history. Each person chooses: a card on Home asks once, with a switch for each of their circles. Answers from a family circle show unless they turn them off; from any other circle only if they turn them on. Nothing is copied, and turning one off stops it showing at once.
 
-![Your answers here: a switch for each of your circles](docs/screenshots/sharing-card.png)
-
-![Joining circles: pick two or more, and it's named after them](docs/screenshots/join-circles.png)
-
 ## Teams
 
 A season can be played as teams (one setting in Admin › Seasons). Nobody assigns them: start a team, ask someone to team up, or ask to join one, and a yes from them puts you together, any time in the season. Teams rank by points per member, so two can beat five.
-
-![Teams: ask to join, team up, or start one, and the standings](docs/screenshots/teams.png)
 
 ## What's on
 
 Getting everyone in one place starts with knowing who's around. On Home, drop in what you're doing the way you'd text it: "beach weekend the 14th to the 16th", "busy Tuesday nights", "free Saturday, anyone up for a hike?". It lands on the right days, and the next two weeks show for the whole circle at a glance, with the best days to get together picked out. Tap a day to see who's free and what's planned, and say you're in. Busy times only ever show as busy. No calendar to connect. A couple of days after, everyone who was in gets asked how it went, and what they remember stays with the plan.
 
-![What's on: the next two weeks, the best days, and a hike people are in for](docs/screenshots/plans.png)
-
 ## What you love
 
 Your profile starts with what you love, gathered from your own answers as you play: the places, food, music and shows you keep coming back to, in your words. Each comes with a short "did you know" and a way to go further, like tour dates for a band you love or the map for a place. The fun fact after every answer knows what you've said before, and it stays with the answer on your profile.
-
-![A profile: what you love, in your own words, with a did-you-know](docs/screenshots/profile.png)
 
 ## Your picture
 
 Everyone starts with their initials. Tap your face on your profile and the AI makes a picture just for you, an animal or a thing that fits what you love; say a few words to steer it ("a fox with headphones") or make another. Or pick one of 58 animals and its color. Your pick shows everywhere in the circle at once.
 
-![Your picture: one made for you, or an animal and its color](docs/screenshots/avatar-picker.png)
-
 ## On your home screen
 
 Add it to your phone's home screen and it opens full screen, like any other app. Home shows how once, on a phone that hasn't added it (on iPhone: Share, then Add to Home Screen), and the circle menu keeps the how-to. While you're in the app, anything new (a comment, a reaction, a new leader) shows as one line at the bottom with a way to view it, and the bell checks again the moment you come back. There are no emails or push notifications: what's new waits for you in the app.
-
-![Adding it to the home screen on an iPhone](docs/screenshots/install-card.png)
 
 ## Configuration
 
@@ -267,7 +209,7 @@ just storybook    # component playground with MSW API mocks
 just check        # what CI runs: lint, privacy, dead code, typecheck, tests, screenshots
 just fix          # apply Biome's safe fixes
 just contract     # after editing the OpenAPI schema
-just screenshots  # retake the README pictures from their stories
+just screenshots  # retake the README and tour pictures from their stories
 ```
 
 `just dev` runs the real Lambda handler on Node against a bucket you choose:
