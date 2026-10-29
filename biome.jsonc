@@ -15,7 +15,9 @@
       "!**/public/mockServiceWorker.js",
       "!**/public/avatars",
       "!**/storybook-static",
-      "!**/cdk.out"
+      "!**/cdk.out",
+      // release-please writes its manifest in its own format on every release (0.2.0 failed Checks on it)
+      "!.release-please-manifest.json"
     ]
   },
   "formatter": {
