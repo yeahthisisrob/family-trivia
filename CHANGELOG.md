@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/yeahthisisrob/family-trivia/compare/v0.2.0...v0.2.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* **ci:** leave the release-please manifest out of Biome ([#135](https://github.com/yeahthisisrob/family-trivia/issues/135)) ([4388a47](https://github.com/yeahthisisrob/family-trivia/commit/4388a470a122738d870b3e2ed6ec3fc9e1d0062e))
+
 ## [0.2.0](https://github.com/yeahthisisrob/family-trivia/compare/v0.1.0...v0.2.0) (2026-10-26)
 
 
