@@ -1,6 +1,6 @@
 {
   "name": "family-trivia",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "AI-powered family trivia, daily facts, and mini-games, built with React, AWS CDK, and Claude on Bedrock.",
   "license": "MIT",
