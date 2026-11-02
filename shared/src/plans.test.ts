@@ -57,4 +57,28 @@ describe('plans', () => {
       cleanDrop({ kind: 'busy', title: 'Choir', start: '2026-11-03', weekly: true }, base),
     ).toMatchObject({ weekly: { until: '2027-02-02' } });
   });
+
+  test('a clock time and a place make a drop an event; the time replaces the part of day', () => {
+    const base = { id: 'x', by: 'alice', createdAt: 'now', said: "Thursday 4:30 at Grandpa's" };
+    const visit = cleanDrop(
+      {
+        kind: 'plan',
+        title: 'Visit',
+        start: '2026-11-05',
+        part: 'afternoon',
+        time: '16:30',
+        place: "Grandpa's",
+      },
+      base,
+    );
+    expect(visit).toMatchObject({
+      time: { start: '16:30' },
+      zone: 'America/New_York',
+      place: "Grandpa's",
+    });
+    expect(visit).not.toHaveProperty('part');
+    expect(
+      cleanDrop({ kind: 'plan', title: 'Visit', start: '2026-11-05', time: '4:30pm' }, base)?.time,
+    ).toBeUndefined();
+  });
 });

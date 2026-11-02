@@ -206,6 +206,20 @@ test('turned off, the server refuses events and the weeks ahead show none', asyn
   expect((await call('bob', 'home', 'GET /plans')).data.drops).toEqual([]);
 });
 
+test('a month in the calendar asks for its own days; a bad range is turned away', async () => {
+  const made = await call('alice', 'home', 'POST /plans/events', {
+    body: { ...gymnastics, start: day(70), weekly: undefined },
+  });
+  const month = await call('bob', 'home', 'GET /plans', { query: { from: day(60), to: day(80) } });
+  expect(month.data.days).toHaveLength(21);
+  expect(month.data.days[10].plans).toEqual([made.data.event.id]);
+  expect((await call('bob', 'home', 'GET /plans')).data.drops).toEqual([]);
+  expect((await call('bob', 'home', 'GET /plans', { query: { from: day(5) } })).status).toBe(400);
+  expect(
+    (await call('bob', 'home', 'GET /plans', { query: { from: day(0), to: day(100) } })).status,
+  ).toBe(400);
+});
+
 test('the calendar file, for the people it is for', async () => {
   const made = await call('alice', 'home', 'POST /plans/events', {
     body: { ...gymnastics, audience: [{ circleId: 'home', people: ['bob'] }] },

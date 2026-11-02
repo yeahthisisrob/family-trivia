@@ -1,4 +1,5 @@
 /** Plans (docs/decisions/0026): the weeks ahead, drop in, take back, I'm in. */
+import { addDays } from '@family-trivia/shared';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { errorResponse, successResponse } from '../../config';
 import type { Caller } from '../../middleware/requireAuth';
@@ -23,11 +24,18 @@ export const body = (e: APIGatewayProxyEvent): Record<string, unknown> | null =>
 };
 
 /** GET /plans */
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+/** GET /plans?from=&to= (both optional: the next eight weeks; a month grid asks for its six weeks). */
 export async function getPlans(
-  _e: APIGatewayProxyEvent,
+  e: APIGatewayProxyEvent,
   userId: string,
 ): Promise<APIGatewayProxyResult> {
-  return successResponse(await viewPlans(userId));
+  const { from, to } = e.queryStringParameters ?? {};
+  if ((from || to) && !(from && to && DAY.test(from) && DAY.test(to) && from <= to))
+    return errorResponse('from and to are both YYYY-MM-DD, from first', 400);
+  if (from && to && addDays(from, 92) < to) return errorResponse('At most 93 days at a time', 400);
+  return successResponse(await viewPlans(userId, from && to ? { from, to } : undefined));
 }
 
 /** POST /plans { text } */

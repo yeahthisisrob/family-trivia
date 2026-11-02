@@ -19,7 +19,7 @@ import { DailyFactCard } from './features/daily-question';
 import { DailyFactSummary } from './features/fact-summary';
 import { FamilyFeud } from './features/family-feud';
 import { InstallCard } from './features/install-app';
-import { AfterCard, EventsPage, PlansCard } from './features/plans';
+import { AfterCard, EventsCalendar, PlansCard } from './features/plans';
 import { inJoinedCircle, SharingCard } from './features/shared-answers';
 import { TeamsCard } from './features/teams';
 import { ThreadCard } from './features/threads';
@@ -443,7 +443,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
                   {/* Events Tab, while the circle has events on (0036) */}
                   {currentPath === ROUTES.EVENTS && features.events && (
                     <Safe label="Events">
-                      <EventsPage me={user} nameOf={nameOf} />
+                      <EventsCalendar me={user} nameOf={nameOf} />
                     </Safe>
                   )}
 

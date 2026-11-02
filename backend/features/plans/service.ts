@@ -37,10 +37,16 @@ const inFor = (d: Drop, answers: Answers) => [
   ...Object.keys(answers).filter((u) => answers[u]?.answer === 'in' && u !== d.by),
 ];
 
-/** The weeks ahead, as `viewer` sees them: only what they're invited to (0036). */
-export async function viewPlans(viewer: string, weeks = 8): Promise<PlansView> {
-  const from = getTodayET();
-  const to = addDays(from, weeks * 7 - 1);
+/**
+ * The weeks ahead, as `viewer` sees them: only what they're invited to (0036).
+ * Eight weeks from today unless a range is asked for (a month in the calendar).
+ */
+export async function viewPlans(
+  viewer: string,
+  range?: { from: string; to: string },
+): Promise<PlansView> {
+  const from = range?.from ?? getTodayET();
+  const to = range?.to ?? addDays(from, 8 * 7 - 1);
   const here = currentScope().circleId;
   const ids = await people();
   // With events off, the weeks ahead are drop-ins only, and nothing is shared in.

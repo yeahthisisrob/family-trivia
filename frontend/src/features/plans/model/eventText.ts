@@ -6,7 +6,7 @@ export const shortDay = (d: string) =>
   at(d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 
 /** "16:30" as the reader's clock writes it ("4:30 PM"). */
-function clockText(t: string): string {
+export function clockText(t: string): string {
   const [h, m] = t.split(':').map(Number) as [number, number];
   return new Date(Date.UTC(2000, 0, 1, h, m)).toLocaleTimeString(undefined, {
     hour: 'numeric',
@@ -32,7 +32,10 @@ const list = (xs: string[]) =>
 /** "Every Tue and Thu, until Mar 30" for a weekly rule starting on `start`. */
 export function repeatText(rule: Weekly, start: string): string {
   const startDay = WEEKDAYS[(at(start).getDay() + 6) % 7] as Weekday;
-  const days = (rule.days?.length ? rule.days : [startDay]).map(dayLabel);
+  const days = (rule.days?.length ? rule.days : [startDay])
+    .slice()
+    .sort((a, b) => WEEKDAYS.indexOf(a) - WEEKDAYS.indexOf(b))
+    .map(dayLabel);
   const every = rule.every && rule.every > 1 ? `Every ${rule.every} weeks on` : 'Every';
   const end = rule.until
     ? `, until ${shortDay(rule.until)}`

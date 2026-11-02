@@ -156,6 +156,12 @@ _Teams: ask to join, team up, or start one, and the standings_
 
 _What's on: the next two weeks, the best days, and a hike people are in for_
 
+## Events
+
+<img src="screenshots/events.png" alt="Events: the month as an agenda, a class every Tuesday and Thursday, and who's coming to each" width="300">
+
+_Events: the month as an agenda, a class every Tuesday and Thursday, and who's coming to each_
+
 ## Your picture
 
 <img src="screenshots/avatar-picker.png" alt="Your picture: one made for you, or an animal and its color" width="300">

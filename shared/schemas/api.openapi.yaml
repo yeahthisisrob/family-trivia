@@ -2522,13 +2522,17 @@ paths:
       summary: The weeks ahead for the caller — who's away, who's free, plans and who's in, the best days
       operationId: getPlans
       tags: [Plans]
+      parameters:
+        - { name: from, in: query, required: false, description: "YYYY-MM-DD; with to, the days asked for (a month in the calendar)", schema: { type: string } }
+        - { name: to, in: query, required: false, description: "YYYY-MM-DD, at most 93 days after from", schema: { type: string } }
       responses:
         "200":
-          description: Eight weeks from today
+          description: Eight weeks from today, or the days asked for
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PlansView"
+        "400": { description: "from and to are both dates, from first, at most 93 days apart" }
     post:
       summary: Drop in what you're doing, in your own words; the AI reads it into days
       operationId: dropInPlan

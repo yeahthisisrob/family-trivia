@@ -14,10 +14,11 @@ export async function readDrops(text: string, today: string): Promise<unknown[]>
 
 What they wrote: """${text.slice(0, 400)}"""
 
-Return only JSON: {"drops": [{"kind": "busy|free|plan", "title": "...", "start": "YYYY-MM-DD", "end": "YYYY-MM-DD or omit", "part": "morning|afternoon|evening|all-day or omit", "weekly": true or omit, "until": "YYYY-MM-DD or omit"}]}
+Return only JSON: {"drops": [{"kind": "busy|free|plan", "title": "...", "start": "YYYY-MM-DD", "end": "YYYY-MM-DD or omit", "part": "morning|afternoon|evening|all-day or omit", "time": "HH:MM (24-hour) or omit", "place": "... or omit", "weekly": true or omit, "until": "YYYY-MM-DD or omit"}]}
 - kind: "busy" when they're away or tied up; "free" when they say they're free or open; "plan" when it's something others could join ("who's in", "anyone want to", a party, a trip they're inviting to).
 - title: a few plain words ("Beach weekend", "Choir", "Hike at the falls"), no dates in it.
 - Dates are on or after today; a weekday means the next one (today counts only if it says "today" or "tonight"). "This weekend" is the coming Saturday and Sunday.
+- time only when they give a clock time ("4:30" in the afternoon is "16:30"); then leave out part. place only when they name where ("at Grandpa's" is "Grandpa's").
 - end only when it spans days. weekly for things that repeat every week ("Tuesday nights", "every Sunday").
 - Nothing they didn't say. If there's no date at all, return {"drops": []}.`;
   // An answer that never takes the right shape adds nothing, as before.
@@ -46,6 +47,8 @@ const DROPS_SCHEMA = listSchema(
     start: { type: 'string', description: 'YYYY-MM-DD' },
     end: { type: 'string', description: 'YYYY-MM-DD, only when it spans days' },
     part: { type: 'string', enum: ['morning', 'afternoon', 'evening', 'all-day'] },
+    time: { type: 'string', description: 'HH:MM, 24-hour, only when a clock time is given' },
+    place: { type: 'string', description: 'Where, only when named' },
     weekly: { type: 'boolean' },
     until: { type: 'string', description: 'YYYY-MM-DD' },
   },

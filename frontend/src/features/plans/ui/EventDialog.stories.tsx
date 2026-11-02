@@ -6,7 +6,7 @@ import { EventDialog, EventDialogView } from './EventDialog';
 import { birthdayView, day, gymnasticsView, nameOf } from './eventMocks';
 
 const meta: Meta<typeof EventDialogView> = {
-  title: 'Home/EventDialog',
+  title: 'Events/EventDialog',
   component: EventDialogView,
   args: {
     open: true,
@@ -81,3 +81,6 @@ export const FromTheServer: StoryObj<typeof EventDialog> = {
     await expect(await page.findByText("Dave's birthday dinner")).toBeInTheDocument();
   },
 };
+
+/** In dark mode. */
+export const SomeonesEventDark: Story = { globals: { scheme: 'dark' } };
