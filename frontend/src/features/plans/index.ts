@@ -1,3 +1,3 @@
 export { AfterCard } from './ui/AfterCard';
-export { EventsPage } from './ui/EventsPage';
+export { EventsCalendar } from './ui/EventsCalendar';
 export { PlansCard } from './ui/PlansCard';

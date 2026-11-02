@@ -12,10 +12,7 @@ const AUDIENCE = [...PLANS, 'audience'] as const;
 export function usePlans() {
   const view = useCircleQuery({ key: VIEW, path: '/plans' });
   // Each change brings the weeks back from the server before it resolves.
-  const dropIn = useCircleMutation({
-    mutationFn: (text: string) => plansApi.dropIn(text),
-    invalidates: [VIEW],
-  });
+  const dropIn = useQuickAdd();
   const remove = useCircleMutation({
     mutationFn: (id: string) => plansApi.remove(id),
     invalidates: [VIEW],
@@ -23,12 +20,30 @@ export function usePlans() {
   const rsvp = useRsvp();
   return {
     view: view.data ?? null,
-    dropIn: async (text: string) => (await dropIn.mutateAsync(text)).added,
+    dropIn,
     remove: async (id: string) => {
       await remove.mutateAsync(id);
     },
     rsvp: (id: string, answer: Rsvp | null) => rsvp({ id, answer }),
   };
+}
+
+/** The days of a calendar month (its whole weeks): plans and events on each, as the caller sees them. */
+export const useCalendar = (from: string, to: string) =>
+  useCircleQuery({
+    key: [...VIEW, 'range'],
+    path: '/plans',
+    query: { from, to },
+    keepPrevious: true,
+  });
+
+/** Say it in a sentence; the AI reads it into days (the same reader as What's on). */
+export function useQuickAdd() {
+  const add = useCircleMutation({
+    mutationFn: (text: string) => plansApi.dropIn(text),
+    invalidates: [VIEW],
+  });
+  return async (text: string) => (await add.mutateAsync(text)).added;
 }
 
 /** Answer a plan or event; the weeks ahead and the event's page both ask again. */

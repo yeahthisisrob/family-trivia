@@ -130,6 +130,13 @@
       "storyFile": "frontend/src/features/look-back/ui/SeasonLookBack.stories.tsx"
     },
     {
+      "file": "events.png",
+      "story": "events-eventscalendar--list",
+      "size": "phone",
+      "storyFile": "frontend/src/features/plans/ui/EventsCalendar.stories.tsx",
+      "source": "7e1f20330909"
+    },
+    {
       "file": "plans.png",
       "story": "home-planscard--the-weeks-ahead",
       "size": "phone",

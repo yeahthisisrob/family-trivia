@@ -1,6 +1,7 @@
 /** A made-up circle's events, for stories (never a real family: docs/decisions/0006). */
-import { addDays, type Drop, getTodayET } from '@family-trivia/shared';
+import { addDays, type Drop, getTodayET, plansView } from '@family-trivia/shared';
 import type { AudienceChoice, EventView } from '../api/plansApi';
+import { monthWindow } from '../model/calendar';
 
 const today = getTodayET();
 export const day = (n: number) => addDays(today, n);
@@ -81,3 +82,34 @@ export const circles: AudienceChoice[] = [
     ],
   },
 ];
+
+/** A month of a made-up circle's calendar: a weekly class, a dinner, a cancelled visit and a hike. */
+export function monthOf(month: string) {
+  const { from, to } = monthWindow(month);
+  const drops: Drop[] = [
+    { ...gymnastics, start: from, weekly: { days: ['TU', 'TH'] } },
+    birthday,
+    {
+      id: 'bob-visit',
+      by: 'bob',
+      kind: 'plan',
+      title: "Grandpa's for the train set",
+      start: day(2),
+      time: { start: '16:30' },
+      zone,
+      place: "Grandpa's house",
+      cancelled: true,
+      createdAt: today,
+    },
+    {
+      id: 'dave-hike',
+      by: 'dave',
+      kind: 'plan',
+      title: 'Hike at the falls',
+      start: day(6),
+      createdAt: today,
+    },
+  ];
+  const rsvps = { [birthday.id]: birthdayView.rsvps, [gymnastics.id]: gymnasticsView.rsvps };
+  return plansView('alice', Object.keys(names), drops, rsvps, from, to);
+}

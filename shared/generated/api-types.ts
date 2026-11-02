@@ -6899,14 +6899,19 @@ export interface operations {
     };
     getPlans: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description YYYY-MM-DD; with to, the days asked for (a month in the calendar) */
+                from?: string;
+                /** @description YYYY-MM-DD, at most 93 days after from */
+                to?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Eight weeks from today */
+            /** @description Eight weeks from today, or the days asked for */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -6914,6 +6919,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PlansView"];
                 };
+            };
+            /** @description from and to are both dates, from first, at most 93 days apart */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

@@ -1,4 +1,6 @@
 export { AppearanceProvider, type ColorMode, useAppearance } from './components/AppearanceProvider';
+export { ChipRow, type ChipTone, ChoiceChip, PersonChip } from './components/Chips';
+export { Field, Sheet } from './components/Sheet';
 export { identityColor } from './identity';
 export { makeTheme, theme } from './theme';
 export { night } from './themes/night';

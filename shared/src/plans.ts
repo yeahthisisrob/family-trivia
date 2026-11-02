@@ -223,6 +223,10 @@ export const isWeekend = (d: string) => {
 };
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const CLOCK = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** The circle's day runs on Eastern Time (timezoneUtils.ts), so events do too unless told. */
+export const DEFAULT_ZONE = 'America/New_York';
 const KINDS: DropKind[] = ['busy', 'free', 'plan'];
 const PARTS: DayPart[] = ['morning', 'afternoon', 'evening', 'all-day'];
 
@@ -244,13 +248,18 @@ export function cleanDrop(
   const part = PARTS.includes(r.part as DayPart) ? (r.part as DayPart) : undefined;
   const until =
     typeof r.until === 'string' && DATE.test(r.until) && r.until > start ? r.until : undefined;
+  // "Thursday 4:30 at Grandpa's": a clock time and a place make it an event (0036).
+  const time = typeof r.time === 'string' && CLOCK.test(r.time) ? r.time : undefined;
+  const place = typeof r.place === 'string' ? r.place.trim().slice(0, 200) : '';
   return {
     ...base,
     kind,
     title,
     start,
     ...(end ? { end } : {}),
-    ...(part ? { part } : {}),
+    ...(part && !time ? { part } : {}),
+    ...(time ? { time: { start: time }, zone: DEFAULT_ZONE } : {}),
+    ...(place ? { place } : {}),
     // "Busy Tuesday nights" means the next three months; a rule with no end keeps going.
     ...(r.weekly === true ? { weekly: { until: until ?? addDays(start, 91) } } : {}),
   };

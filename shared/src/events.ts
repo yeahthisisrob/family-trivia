@@ -6,14 +6,12 @@
 import {
   type AudienceCircle,
   addDays,
+  DEFAULT_ZONE,
   type Drop,
   WEEKDAYS,
   type Weekday,
   type Weekly,
 } from './plans';
-
-/** The circle's day runs on Eastern Time (timezoneUtils.ts), so events do too unless told. */
-export const DEFAULT_ZONE = 'America/New_York';
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const CLOCK = /^([01]\d|2[0-3]):[0-5]\d$/;

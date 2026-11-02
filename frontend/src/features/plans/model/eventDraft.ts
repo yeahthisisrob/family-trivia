@@ -16,6 +16,8 @@ export interface Draft {
   details: string;
   repeats: boolean;
   days: Weekday[];
+  /** Every 1 to 4 weeks. */
+  every: number;
   until: string;
   /** Circle id → everyone there (null) or the people chosen; a circle left out isn't asked. */
   audience: Record<string, string[] | null>;
@@ -36,6 +38,7 @@ export function draftOf(here: string, date: string, d?: Drop): Draft {
     details: d?.details ?? '',
     repeats: !!d?.weekly,
     days: d?.weekly?.days ?? [],
+    every: d?.weekly?.every ?? 1,
     until: d?.weekly?.until ?? '',
     audience: d?.audience
       ? Object.fromEntries(d.audience.map((a) => [a.circleId, a.people ?? null]))
@@ -65,6 +68,7 @@ export function inputOf(draft: Draft, here: string): EventInput {
       ? {
           weekly: {
             ...(draft.days.length ? { days: draft.days } : {}),
+            ...(draft.every > 1 ? { every: draft.every } : {}),
             ...(draft.until ? { until: draft.until } : {}),
           },
         }
