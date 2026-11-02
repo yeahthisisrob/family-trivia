@@ -104,6 +104,8 @@ export class FamilyTriviaStack extends Stack {
         minify: true,
         sourceMap: false,
         target: 'node22',
+        // pdfkit finds its colour profile next to its own file at load time, so it ships as a real module, not bundled.
+        nodeModules: ['pdfkit'],
         // The season book embeds its typeface (backend/features/look-back/book.ts).
         commandHooks: {
           beforeBundling: () => [],
