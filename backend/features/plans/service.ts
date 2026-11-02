@@ -1,64 +1,56 @@
 /**
- * Plans (docs/decisions/0026). Each person's drops live at
- * plans/people/{userId}.json; who's in for a plan at plans/rsvp/{dropId}.json.
+ * Plans (docs/decisions/0026, 0036): the weeks ahead, dropping in, answers,
+ * and what people remember after. Where it's all kept: store.ts.
  */
 import {
   type AfterPlan,
   addDays,
+  canSee,
   cleanDrop,
   type Drop,
   getTodayET,
-  isPlaying,
+  isEvent,
   lastDayOf,
   type PlanMemory,
   type PlansView,
   plansView,
   type Rsvp,
 } from '@family-trivia/shared';
-import { loadJoined } from '../../services/family/joined';
 import { getJson, listObjects, putJson } from '../../services/s3';
+import { currentScope } from '../../services/scope';
 import { latestStart, readDrops } from './ai';
+import { asSeen, maySee, sharedInDrops } from './events';
+import {
+  type Answers,
+  allDrops,
+  eventsOn,
+  load,
+  loadAnswers,
+  people,
+  save,
+  saveAnswers,
+} from './store';
 
-const PERSON = (id: string) => `plans/people/${id}.json`;
-const RSVP = (dropId: string) => `plans/rsvp/${dropId}.json`;
-/** Past drops are kept this long, then let go. */
-const KEEP_DAYS = 120;
+/** The people who said they're in, after whoever made it. */
+const inFor = (d: Drop, answers: Answers) => [
+  d.by,
+  ...Object.keys(answers).filter((u) => answers[u]?.answer === 'in' && u !== d.by),
+];
 
-interface Mine {
-  drops: Drop[];
-}
-
-const load = async (id: string): Promise<Mine> =>
-  (await getJson<Mine>(PERSON(id))) ?? { drops: [] };
-
-const lastDay = (d: Drop) =>
-  d.weekly ? (d.weekly.until ?? addDays(d.start, 91)) : (d.end ?? d.start);
-
-async function save(id: string, mine: Mine) {
-  const cutoff = addDays(getTodayET(), -KEEP_DAYS);
-  await putJson(PERSON(id), { drops: mine.drops.filter((d) => lastDay(d) >= cutoff) });
-}
-
-async function people() {
-  const { visible } = await loadJoined();
-  return Object.values(visible.people)
-    .filter(isPlaying)
-    .map((p) => p.id);
-}
-
-/** The weeks ahead, as `viewer` sees them. */
+/** The weeks ahead, as `viewer` sees them: only what they're invited to (0036). */
 export async function viewPlans(viewer: string, weeks = 8): Promise<PlansView> {
   const from = getTodayET();
   const to = addDays(from, weeks * 7 - 1);
+  const here = currentScope().circleId;
   const ids = await people();
-  const drops = (await Promise.all(ids.map(async (id) => (await load(id)).drops))).flat();
+  // With events off, the weeks ahead are drop-ins only, and nothing is shared in.
+  const events = await eventsOn();
+  const drops = [...(await allDrops(ids)), ...(events ? await sharedInDrops() : [])]
+    .filter((d) => (events || !isEvent(d)) && canSee(d, here, viewer))
+    .map((d) => asSeen(d, viewer));
   const joinable = drops.filter((d) => d.kind !== 'busy');
   const rsvps = Object.fromEntries(
-    await Promise.all(
-      joinable.map(
-        async (d) => [d.id, (await getJson<Record<string, Rsvp>>(RSVP(d.id))) ?? {}] as const,
-      ),
-    ),
+    await Promise.all(joinable.map(async (d) => [d.id, await loadAnswers(d.id)] as const)),
   );
   return plansView(viewer, ids, drops, rsvps, from, to);
 }
@@ -85,27 +77,51 @@ export async function dropIn(me: string, text: string): Promise<Drop[]> {
   return added;
 }
 
-/** Take back one of your own drops. */
-export async function removeDrop(me: string, id: string): Promise<boolean> {
+/** Take back one of your own drops; returns it, or null when it isn't yours. */
+export async function removeDrop(me: string, id: string): Promise<Drop | null> {
   const mine = await load(me);
-  const next = mine.drops.filter((d) => d.id !== id);
-  if (next.length === mine.drops.length) return false;
-  await save(me, { drops: next });
-  return true;
+  const drop = mine.drops.find((d) => d.id === id);
+  if (!drop) return null;
+  await save(me, { drops: mine.drops.filter((d) => d.id !== id) });
+  return drop;
 }
 
-/** I'm in, or I can't, for someone's plan or free day. */
-export async function answerPlan(me: string, id: string, answer: Rsvp | null): Promise<boolean> {
-  const ids = await people();
-  // A drop's id starts with its owner's ("alice-2-…" could be alice's or alice-2's): check each.
-  const owners = ids.filter((p) => id.startsWith(`${p}-`));
-  const found = await Promise.all(owners.map(async (o) => (await load(o)).drops));
-  const drop = found.flat().find((d) => d.id === id && d.kind !== 'busy');
-  if (!drop || !ids.includes(me)) return false;
-  const current = (await getJson<Record<string, Rsvp>>(RSVP(id))) ?? {};
-  const { [me]: _old, ...rest } = current;
-  await putJson(RSVP(id), answer ? { ...rest, [me]: answer } : rest);
-  return true;
+/** What someone says to a plan: the answer, a word, and how many they bring. */
+export interface Answer {
+  answer: Rsvp;
+  note?: string;
+  guests?: number;
+}
+
+/**
+ * Going, maybe or can't, for a plan, free day or event the caller can see;
+ * null takes it back. Answers stay in the circle they were given in (0036).
+ */
+export async function answerPlan(
+  me: string,
+  id: string,
+  answer: Answer | null,
+): Promise<'saved' | 'missing' | 'cancelled'> {
+  const found = await maySee(id, me);
+  if (!found || !(await people()).includes(me)) return 'missing';
+  if (found.drop.cancelled && answer) return 'cancelled';
+  const { [me]: _old, ...rest } = await loadAnswers(id);
+  const note = answer?.note?.trim().slice(0, 200);
+  await saveAnswers(
+    id,
+    answer
+      ? {
+          ...rest,
+          [me]: {
+            answer: answer.answer,
+            ...(note ? { note } : {}),
+            ...(answer.guests ? { guests: answer.guests } : {}),
+            at: new Date().toISOString(),
+          },
+        }
+      : rest,
+  );
+  return 'saved';
 }
 
 // ── After the day: memories (docs/decisions/0026) ─────────────────────────
@@ -118,7 +134,7 @@ interface Memories {
   skipped: string[];
   /**
    * The plan itself, kept with what people remember of it: plans are let go
-   * after KEEP_DAYS, memories never are.
+   * after a few months (store.ts), memories never are.
    */
   plan?: { title: string; start: string; end?: string; who: string[] };
 }
@@ -129,13 +145,11 @@ const loadMemories = async (id: string): Promise<Memories> =>
 /** Plans from the last two weeks that `me` was part of and hasn't skipped. */
 export async function afterPlans(me: string): Promise<AfterPlan[]> {
   const today = getTodayET();
-  const ids = await people();
-  const drops = (await Promise.all(ids.map(async (id) => (await load(id)).drops))).flat();
+  const drops = await allDrops();
   const out: AfterPlan[] = [];
   for (const d of drops) {
-    if (d.kind !== 'plan' || !lastDayOf(d, today)) continue;
-    const rsvps = (await getJson<Record<string, Rsvp>>(RSVP(d.id))) ?? {};
-    const who = [d.by, ...Object.keys(rsvps).filter((u) => rsvps[u] === 'in' && u !== d.by)];
+    if (d.kind !== 'plan' || d.cancelled || !lastDayOf(d, today)) continue;
+    const who = inFor(d, await loadAnswers(d.id));
     if (!who.includes(me)) continue;
     const m = await loadMemories(d.id);
     if (m.skipped.includes(me)) continue;
@@ -177,16 +191,14 @@ export async function pastPlans(
   me: string,
 ): Promise<{ title: string; date: string; with: string[]; memory?: PlanMemory }[]> {
   const today = getTodayET();
-  const ids = await people();
-  const drops = (await Promise.all(ids.map(async (id) => (await load(id)).drops))).flat();
+  const drops = await allDrops();
   const out = new Map<
     string,
     { title: string; date: string; with: string[]; memory?: PlanMemory }
   >();
   for (const d of drops) {
-    if (d.kind !== 'plan' || d.weekly || (d.end ?? d.start) >= today) continue;
-    const rsvps = (await getJson<Record<string, Rsvp>>(RSVP(d.id))) ?? {};
-    const who = [d.by, ...Object.keys(rsvps).filter((u) => rsvps[u] === 'in' && u !== d.by)];
+    if (d.kind !== 'plan' || d.cancelled || d.weekly || (d.end ?? d.start) >= today) continue;
+    const who = inFor(d, await loadAnswers(d.id));
     if (who.includes(me))
       out.set(d.id, { title: d.title, date: d.start, with: who.filter((w) => w !== me) });
   }
@@ -195,7 +207,7 @@ export async function pastPlans(
     const m = await loadMemories(id);
     const known = out.get(id);
     const plan = m.plan;
-    if (!known && !(plan && plan.who.includes(me))) continue;
+    if (!known && !plan?.who.includes(me)) continue;
     const memory = m.memories.find((x) => x.by === me) ?? m.memories[0];
     out.set(id, {
       ...(known ?? {

@@ -26,6 +26,16 @@ describe('settings', () => {
     );
   });
 
+  test('events are a feature, on unless turned off (docs/decisions/0036)', async () => {
+    expect((await resolveSettings()).find((s) => s.key === 'features.events')).toMatchObject({
+      section: 'features',
+      type: 'boolean',
+      value: true,
+    });
+    await saveSettings({ 'features.events': false });
+    expect((await resolveSettings()).find((s) => s.key === 'features.events')?.value).toBe(false);
+  });
+
   test('bad values are explained and nothing is saved', async () => {
     const problems = await saveSettings({ 'features.photos': 'yes', 'nope.thing': true });
     expect(problems).toHaveLength(2);

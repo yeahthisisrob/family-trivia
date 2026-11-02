@@ -24,6 +24,8 @@ export const ROUTES = {
   /** Us: the circle's people, story and map (once called Family). */
   FAMILY: '/us',
   ARCADE: '/arcade',
+  /** Events, when the circle has them on (docs/decisions/0036). */
+  EVENTS: '/events',
   PHOTOS: '/photos',
   ADMIN: '/admin',
   PROFILE: '/profile',

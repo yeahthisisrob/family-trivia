@@ -9,6 +9,28 @@ export type DropKind = 'busy' | 'free' | 'plan';
 
 export type DayPart = 'morning' | 'afternoon' | 'evening' | 'all-day';
 
+/** Days of the week as RRULE writes them (BYDAY). */
+export const WEEKDAYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
+export type Weekday = (typeof WEEKDAYS)[number];
+
+/**
+ * Every `every` weeks on `days` (the start's weekday when none), until a day
+ * or for `count` times; with neither it keeps going. RRULE's FREQ=WEEKLY
+ * (docs/decisions/0036).
+ */
+export interface Weekly {
+  days?: Weekday[];
+  every?: number;
+  until?: string;
+  count?: number;
+}
+
+/** All of a circle, or the people chosen in it (their ids in that circle). */
+export interface AudienceCircle {
+  circleId: string;
+  people?: string[];
+}
+
 /** One thing someone dropped in. Dates are YYYY-MM-DD in the circle's day (ET). */
 export interface Drop {
   id: string;
@@ -19,14 +41,36 @@ export interface Drop {
   /** Last day, for something that spans days. */
   end?: string;
   part?: DayPart;
-  /** Every week on the start's weekday, until `until` (or for the next three months). */
-  weekly?: { until?: string };
+  weekly?: Weekly;
   /** The words they typed, kept so it can be read back. */
   said?: string;
   createdAt: string;
+  // An event is a plan with details (docs/decisions/0036).
+  /** Clock times (HH:MM) in `zone`; none means all day. */
+  time?: { start: string; end?: string };
+  zone?: string;
+  place?: string;
+  details?: string;
+  /** Who it's for; none means everyone in the circle it was made in. */
+  audience?: AudienceCircle[];
+  /** Dates of a repeating event that aren't happening. */
+  skip?: string[];
+  cancelled?: boolean;
+  updatedAt?: string;
+  /** Set in a view of an event shared in from another circle: where it lives. */
+  from?: { circleId: string; name: string };
 }
 
-export type Rsvp = 'in' | 'out';
+/** I'm in, maybe, or I can't. */
+export type Rsvp = 'in' | 'maybe' | 'out';
+
+/** One person's answer to a plan, with a word and how many they bring. */
+export interface RsvpEntry {
+  answer: Rsvp;
+  note?: string;
+  guests?: number;
+  at: string;
+}
 
 /** One day in the weeks ahead. */
 export interface PlanDay {
@@ -42,8 +86,8 @@ export interface PlansView {
   days: PlanDay[];
   /** Everything the days point at. Others' busy drops come back as just "Busy". */
   drops: Drop[];
-  /** Drop id → who's in or out. */
-  rsvps: Record<string, Record<string, Rsvp>>;
+  /** Drop id → each person's answer. */
+  rsvps: Record<string, Record<string, RsvpEntry>>;
   /** Days most people are free, best first (at most 3). */
   best: string[];
 }
@@ -61,20 +105,69 @@ export function daysBetween(from: string, to: string): string[] {
 
 export const addDays = (d: string, n: number) => toDay(fromDay(d) + n * DAY_MS);
 
+const weekdayOf = (d: string): Weekday =>
+  WEEKDAYS[(new Date(fromDay(d)).getUTCDay() + 6) % 7] as Weekday;
+
+/**
+ * The days a repeating drop starts on, in order, through `to`: its weekly
+ * rule from its start, with `count` counting skipped days too (as RRULE's
+ * COUNT does with EXDATE).
+ */
+function startsOf(d: Drop, to: string): string[] {
+  const rule = d.weekly;
+  if (!rule) return [d.start];
+  const days = new Set(rule.days?.length ? rule.days : [weekdayOf(d.start)]);
+  const every = Math.max(1, rule.every ?? 1);
+  const last = rule.until && rule.until < to ? rule.until : to;
+  // Weeks run Monday to Sunday (RRULE's default WKST).
+  const monday = addDays(d.start, -WEEKDAYS.indexOf(weekdayOf(d.start)));
+  const out: string[] = [];
+  for (let week = monday; week <= last; week = addDays(week, 7 * every))
+    for (let i = 0; i < 7; i++) {
+      const day = addDays(week, i);
+      if (day < d.start || day > last || !days.has(WEEKDAYS[i] as Weekday)) continue;
+      if (rule.count && out.length >= rule.count) return out;
+      out.push(day);
+    }
+  return out;
+}
+
 /** The days a drop falls on within [from, to]. */
 export function daysOf(d: Drop, from: string, to: string): string[] {
   const last = d.end && d.end >= d.start ? d.end : d.start;
   const span = Math.round((fromDay(last) - fromDay(d.start)) / DAY_MS);
-  const starts = d.weekly
-    ? daysBetween(d.start, d.weekly.until ?? addDays(d.start, 91)).filter((_, i) => i % 7 === 0)
-    : [d.start];
+  const skipped = new Set(d.skip ?? []);
   const out = new Set<string>();
-  for (const s of starts)
+  for (const s of startsOf(d, to)) {
+    if (skipped.has(s)) continue;
     for (let i = 0; i <= span; i++) {
       const day = addDays(s, i);
       if (day >= from && day <= to) out.add(day);
     }
+  }
   return [...out];
+}
+
+/** The last day a drop happens on, or null when its rule keeps going. */
+export function finalDayOf(d: Drop): string | null {
+  const span =
+    d.end && d.end > d.start ? Math.round((fromDay(d.end) - fromDay(d.start)) / DAY_MS) : 0;
+  if (!d.weekly) return addDays(d.start, span);
+  if (d.weekly.until) return addDays(d.weekly.until, span);
+  if (!d.weekly.count) return null;
+  const starts = startsOf(d, addDays(d.start, 7 * (d.weekly.every ?? 1) * d.weekly.count + 7));
+  return addDays(starts.at(-1) ?? d.start, span);
+}
+
+/**
+ * Whether `viewer`, in circle `here`, may see a plan (docs/decisions/0036).
+ * `by` is the creator's id in this circle. No audience: everyone in the
+ * circle it was made in, where it is read.
+ */
+export function canSee(d: Drop, here: string, viewer: string): boolean {
+  if (d.by === viewer || !d.audience) return true;
+  const entry = d.audience.find((a) => a.circleId === here);
+  return !!entry && (!entry.people || entry.people.includes(viewer));
 }
 
 /**
@@ -158,7 +251,8 @@ export function cleanDrop(
     start,
     ...(end ? { end } : {}),
     ...(part ? { part } : {}),
-    ...(r.weekly === true ? { weekly: until ? { until } : {} } : {}),
+    // "Busy Tuesday nights" means the next three months; a rule with no end keeps going.
+    ...(r.weekly === true ? { weekly: { until: until ?? addDays(start, 91) } } : {}),
   };
 }
 

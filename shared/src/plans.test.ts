@@ -55,6 +55,6 @@ describe('plans', () => {
     ).not.toHaveProperty('end');
     expect(
       cleanDrop({ kind: 'busy', title: 'Choir', start: '2026-11-03', weekly: true }, base),
-    ).toMatchObject({ weekly: {} });
+    ).toMatchObject({ weekly: { until: '2027-02-02' } });
   });
 });

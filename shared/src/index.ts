@@ -10,6 +10,7 @@ export * from './celebrations';
 export * from './circle';
 export * from './comments';
 export * from './eligibility';
+export * from './events';
 export * from './facts';
 export * from './family';
 export * from './fill-in';

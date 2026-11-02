@@ -15,6 +15,22 @@ import { getJson, listObjects, putJson } from './s3';
 
 const threadKey = (type: CommentContentType, id: string) => `comments/${type}/${id}.json`;
 
+/** Whether someone may read and add to one item's thread. */
+type Access = (contentId: string, userId: string) => Promise<boolean>;
+const guards = new Map<CommentContentType, Access>();
+
+/**
+ * A slice whose items aren't for everyone in the circle says who may see
+ * their threads (plans: an event's audience, docs/decisions/0036). Types
+ * with no guard are open to the whole circle.
+ */
+export function guardComments(type: CommentContentType, access: Access): void {
+  guards.set(type, access);
+}
+
+export const mayComment = (type: CommentContentType, contentId: string, userId: string) =>
+  guards.get(type)?.(contentId, userId) ?? Promise.resolve(true);
+
 function asThread(
   contentType: CommentContentType,
   contentId: string,

@@ -1,5 +1,6 @@
 import type { NotificationItem } from '@family-trivia/shared';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
+import EventRoundedIcon from '@mui/icons-material/EventRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import LogoutIcon from '@mui/icons-material/Logout';
 import QuizIcon from '@mui/icons-material/Quiz';
@@ -10,7 +11,7 @@ import { alpha } from '@mui/material/styles';
 import type React from 'react';
 import { useSaveFamilyTheme } from '../../entities/appearance';
 import { PersonAvatar } from '../../entities/person';
-import { useFeatures } from '../../entities/settings';
+import { type Features, useFeatures } from '../../entities/settings';
 import { CircleSwitcher } from '../../features/circles';
 import { ROUTES } from '../../hooks/useApp';
 import { colors, tint } from '../../shared/design-system';
@@ -30,11 +31,18 @@ interface AppHeaderProps {
   onNotificationClick?: (item: NotificationItem) => void;
 }
 
-const NAV_ITEMS = [
+/** The top bar's tabs; one with a `feature` shows only while the circle has it on (Settings). */
+const NAV_ITEMS: {
+  label: string;
+  icon: typeof HomeRoundedIcon;
+  path: string;
+  feature?: keyof Features;
+}[] = [
   { label: 'Home', icon: HomeRoundedIcon, path: ROUTES.HOME },
   { label: 'Trivia', icon: QuizIcon, path: ROUTES.PLAY },
+  { label: 'Events', icon: EventRoundedIcon, path: ROUTES.EVENTS, feature: 'events' },
   { label: 'Us', icon: Diversity3Icon, path: ROUTES.FAMILY },
-  { label: 'Arcade', icon: SportsEsportsIcon, path: ROUTES.ARCADE },
+  { label: 'Arcade', icon: SportsEsportsIcon, path: ROUTES.ARCADE, feature: 'arcade' },
 ];
 
 const AppHeader: React.FC<AppHeaderProps> = ({
@@ -126,7 +134,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           bgcolor: alpha(colors.scrim, 0.08),
         }}
       >
-        {NAV_ITEMS.filter((n) => n.path !== ROUTES.ARCADE || features.arcade).map(
+        {NAV_ITEMS.filter((n) => !n.feature || features[n.feature]).map(
           ({ label, icon: Icon, path }) => {
             // The leaderboard lives inside the Trivia tab.
             const isActive =

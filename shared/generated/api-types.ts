@@ -1157,8 +1157,61 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** I'm in, or I can't, for someone's plan or free day (null takes it back) */
+        /** Going, maybe or can't, for a plan or event you can see, with a word and how many you bring (null takes it back) */
         post: operations["rsvpPlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plans/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One event as the caller sees it — who's invited here, everyone's answers here, counts from its other circles */
+        get: operations["getEvent"];
+        /** Change an event (its creator, or an admin of the circle it was made in) — the fields sent replace the event's; cancelled true cancels it */
+        put: operations["updateEvent"];
+        /** Make an event (docs/decisions/0036) — anyone in the circle; no audience means the whole circle */
+        post: operations["createEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plans/events/audience": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The circles the caller can share an event with, and the people in each (as that circle names them) */
+        get: operations["getEventAudience"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plans/events/ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One event as a calendar file (RFC 5545), its weekly rule and skipped days included */
+        get: operations["getEventIcs"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2874,8 +2927,10 @@ export interface components {
                 at: string;
             }[];
         };
+        /** @description Something dropped into Plans; an event is a plan with details (docs/decisions/0036) */
         Drop: {
             id: string;
+            /** @description Who made it, as this circle names them */
             by: string;
             /** @enum {string} */
             kind: "busy" | "free" | "plan";
@@ -2885,11 +2940,81 @@ export interface components {
             end?: string;
             /** @enum {string} */
             part?: "morning" | "afternoon" | "evening" | "all-day";
-            weekly?: {
-                until?: string;
-            };
+            weekly?: components["schemas"]["Weekly"];
             said?: string;
             createdAt: string;
+            time?: components["schemas"]["EventTime"];
+            /** @description IANA time zone of time */
+            zone?: string;
+            place?: string;
+            details?: string;
+            audience?: components["schemas"]["AudienceCircle"][];
+            skip?: string[];
+            cancelled?: boolean;
+            updatedAt?: string;
+            /** @description Set on an event shared in from another circle */
+            from?: {
+                circleId: string;
+                name: string;
+            };
+        };
+        /** @description RRULE FREQ=WEEKLY — BYDAY, INTERVAL, UNTIL, COUNT; with neither until nor count it keeps going */
+        Weekly: {
+            days?: ("MO" | "TU" | "WE" | "TH" | "FR" | "SA" | "SU")[];
+            every?: number;
+            /** @description YYYY-MM-DD */
+            until?: string;
+            count?: number;
+        };
+        EventTime: {
+            start: string;
+            end?: string;
+        };
+        /** @description All of a circle, or the chosen people in it (their ids in that circle) */
+        AudienceCircle: {
+            circleId: string;
+            people?: string[];
+        };
+        EventInput: {
+            title: string;
+            /** @description YYYY-MM-DD; moves to the first day the weekly days allow */
+            start: string;
+            /** @description Last day, for an event over several days */
+            end?: string;
+            time?: components["schemas"]["EventTime"];
+            /** @description IANA time zone; America/New_York when left out */
+            zone?: string;
+            place?: string;
+            details?: string;
+            weekly?: components["schemas"]["Weekly"];
+            skip?: string[];
+            /** @description Left out, the whole circle it's made in */
+            audience?: components["schemas"]["AudienceCircle"][];
+            cancelled?: boolean;
+        };
+        RsvpEntry: {
+            /** @enum {string} */
+            answer: "in" | "maybe" | "out";
+            note?: string;
+            guests?: number;
+            at: string;
+        };
+        EventView: {
+            event: components["schemas"]["Drop"];
+            /** @description Who in this circle it's for */
+            invited: string[];
+            rsvps: {
+                [key: string]: components["schemas"]["RsvpEntry"];
+            };
+            /** @description Its other circles' answers, as counts */
+            elsewhere: {
+                name: string;
+                in: number;
+                maybe: number;
+                out: number;
+                guests: number;
+            }[];
+            canEdit: boolean;
         };
         PlansView: {
             days: {
@@ -2901,7 +3026,7 @@ export interface components {
             drops: components["schemas"]["Drop"][];
             rsvps: {
                 [key: string]: {
-                    [key: string]: "in" | "out";
+                    [key: string]: components["schemas"]["RsvpEntry"];
                 };
             };
             best: string[];
@@ -3641,7 +3766,7 @@ export interface components {
             }[];
         };
         /** @enum {string} */
-        CommentContentType: "fact" | "trivia" | "album" | "arcade" | "memorial";
+        CommentContentType: "fact" | "trivia" | "album" | "arcade" | "memorial" | "event";
         CommentThread: {
             contentType: components["schemas"]["CommentContentType"];
             contentId: string;
@@ -6922,7 +7047,9 @@ export interface operations {
                 "application/json": {
                     id: string;
                     /** @enum {string|null} */
-                    answer: "in" | "out" | null;
+                    answer: "in" | "maybe" | "out" | null;
+                    note?: string;
+                    guests?: number;
                 };
             };
         };
@@ -6934,7 +7061,215 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description No such plan */
+            /** @description No such plan, or not one you're invited to */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The event is cancelled */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getEvent: {
+        parameters: {
+            query: {
+                id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The event */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: components["schemas"]["EventView"];
+                    };
+                };
+            };
+            /** @description Events are turned off here (Settings › Features › Events) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such event, or not one you're invited to */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventInput"] & {
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The event as saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: components["schemas"]["Drop"];
+                    };
+                };
+            };
+            /** @description What's wrong with it */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Events are turned off, not yours to change, or an audience circle the caller isn't in */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such event */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    createEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventInput"];
+            };
+        };
+        responses: {
+            /** @description The event as saved */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: components["schemas"]["Drop"];
+                    };
+                };
+            };
+            /** @description What's wrong with it */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Events are turned off here, or an audience circle the caller isn't in */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getEventAudience: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The caller's circles, this one first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        circles: {
+                            circleId: string;
+                            name: string;
+                            /** @description The caller's id in that circle */
+                            me: string;
+                            people: {
+                                id: string;
+                                name: string;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            /** @description Events are turned off here */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getEventIcs: {
+        parameters: {
+            query: {
+                id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The calendar file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/calendar": string;
+                };
+            };
+            /** @description Events are turned off here (Settings › Features › Events) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such event, or not one you're invited to */
             404: {
                 headers: {
                     [name: string]: unknown;

@@ -1,9 +1,11 @@
 /**
- * What's on (docs/decisions/0026): drop in what you're doing in a few words,
- * and see the next two weeks for everyone at a glance. Tap a day for who's
- * free, who's away and what's planned, and say you're in.
+ * What's on (docs/decisions/0026, 0036): drop in what you're doing in a few
+ * words, or make an event, and see the next two weeks for everyone at a
+ * glance. Tap a day for who's free, who's away and what's planned, say
+ * you're in, or open an event for its details, answers and talk.
  */
 import type { Drop, PlanDay, PlansView, Rsvp } from '@family-trivia/shared';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import {
@@ -22,7 +24,9 @@ import { alpha, useTheme } from '@mui/material/styles';
 import type React from 'react';
 import { useState } from 'react';
 import { Face } from '../../../entities/person';
+import { timeText } from '../model/eventText';
 import { usePlans } from '../model/usePlans';
+import { useEventPages } from './EventPages';
 
 const EXAMPLES = [
   'Beach weekend, the 14th to the 16th',
@@ -45,6 +49,10 @@ interface ViewProps {
   onDropIn: (text: string) => Promise<Drop[]>;
   onRemove: (id: string) => Promise<void>;
   onRsvp: (id: string, answer: Rsvp | null) => Promise<void>;
+  /** Open a plan or event's page, from the day it was tapped on. */
+  onOpen?: (id: string, day: string) => void;
+  /** Make an event, starting on the day picked. */
+  onNew?: (day: string) => void;
 }
 
 const DayCell: React.FC<{ day: PlanDay; on: boolean; best: boolean; onClick: () => void }> = ({
@@ -111,6 +119,8 @@ export const PlansCardView: React.FC<ViewProps> = ({
   onDropIn,
   onRemove,
   onRsvp,
+  onOpen,
+  onNew,
 }) => {
   const theme = useTheme();
   const [text, setText] = useState('');
@@ -139,9 +149,18 @@ export const PlansCardView: React.FC<ViewProps> = ({
     <Card sx={{ p: 2.5, mb: 2, borderRadius: 3 }}>
       <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', mb: 1.5 }}>
         <CalendarMonthRoundedIcon sx={{ fontSize: 20, color: 'primary.main' }} />
-        <Typography variant="h6" sx={{ fontWeight: 800 }}>
+        <Typography variant="h6" sx={{ fontWeight: 800, flex: 1 }}>
           What's on
         </Typography>
+        {onNew && (
+          <Button
+            size="small"
+            startIcon={<AddRoundedIcon />}
+            onClick={() => onNew(day?.date ?? strip[0]?.date ?? '')}
+          >
+            New event
+          </Button>
+        )}
       </Stack>
 
       <TextField
@@ -227,9 +246,10 @@ export const PlansCardView: React.FC<ViewProps> = ({
             const d = dropOf(id);
             if (!d) return null;
             const answers = view.rsvps[id] ?? {};
-            const ins = Object.keys(answers).filter((u) => answers[u] === 'in');
-            const mineIs = answers[me];
+            const ins = Object.keys(answers).filter((u) => answers[u]?.answer === 'in');
+            const mineIs = answers[me]?.answer;
             const mine = d.by === me;
+            const when = d.time ? timeText(d) : d.part && d.part !== 'all-day' ? d.part : '';
             return (
               <Box
                 key={id}
@@ -242,21 +262,44 @@ export const PlansCardView: React.FC<ViewProps> = ({
                   ),
                 }}
               >
-                <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
-                  <Face id={d.by} name={nameOf(d.by)} size={32} />
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 700 }}>
-                      {d.kind === 'free' ? `${nameOf(d.by)} is free` : d.title}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {d.kind === 'free' ? d.title : `${mine ? 'Your plan' : nameOf(d.by)}`}
-                      {d.part && d.part !== 'all-day' ? ` · ${d.part}` : ''}
-                      {ins.length ? ` · ${ins.length} in` : ''}
-                    </Typography>
-                  </Box>
-                  {ins.length > 0 && <People ids={ins} nameOf={nameOf} />}
-                </Stack>
-                {!mine && (
+                <ButtonBase
+                  onClick={() => onOpen?.(id, day.date)}
+                  disabled={!onOpen || d.kind !== 'plan'}
+                  aria-label={`${d.title}, details`}
+                  sx={{
+                    width: '100%',
+                    justifyContent: 'flex-start',
+                    textAlign: 'left',
+                    borderRadius: 1,
+                  }}
+                >
+                  <Stack
+                    direction="row"
+                    spacing={1.25}
+                    sx={{ alignItems: 'center', width: '100%' }}
+                  >
+                    <Face id={d.by} name={nameOf(d.by)} size={32} />
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography
+                        sx={{
+                          fontWeight: 700,
+                          textDecoration: d.cancelled ? 'line-through' : 'none',
+                        }}
+                      >
+                        {d.kind === 'free' ? `${nameOf(d.by)} is free` : d.title}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        {d.kind === 'free' ? d.title : `${mine ? 'Yours' : nameOf(d.by)}`}
+                        {d.cancelled ? ' · cancelled' : ''}
+                        {when ? ` · ${when}` : ''}
+                        {d.place ? ` · ${d.place}` : ''}
+                        {ins.length ? ` · ${ins.length} in` : ''}
+                      </Typography>
+                    </Box>
+                    {ins.length > 0 && <People ids={ins} nameOf={nameOf} />}
+                  </Stack>
+                </ButtonBase>
+                {!mine && !d.cancelled && (
                   <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                     <Button
                       size="small"
@@ -297,20 +340,29 @@ export const PlansCardView: React.FC<ViewProps> = ({
   );
 };
 
-/** Home's card: the circle's next weeks from the server. */
-export const PlansCard: React.FC<{ me: string; nameOf: (id: string) => string }> = ({
-  me,
-  nameOf,
-}) => {
+/**
+ * Home's card: the circle's next weeks from the server. With `events` on
+ * (Settings), events open their page and "New event" makes one.
+ */
+export const PlansCard: React.FC<{
+  me: string;
+  nameOf: (id: string) => string;
+  events?: boolean;
+}> = ({ me, nameOf, events = true }) => {
   const { view, dropIn, remove, rsvp } = usePlans();
+  const pages = useEventPages(me, nameOf);
   return (
-    <PlansCardView
-      me={me}
-      nameOf={nameOf}
-      view={view}
-      onDropIn={dropIn}
-      onRemove={remove}
-      onRsvp={rsvp}
-    />
+    <>
+      <PlansCardView
+        me={me}
+        nameOf={nameOf}
+        view={view}
+        onDropIn={dropIn}
+        onRemove={remove}
+        onRsvp={rsvp}
+        {...(events && { onOpen: pages.open, onNew: pages.create })}
+      />
+      {events && pages.pages}
+    </>
   );
 };

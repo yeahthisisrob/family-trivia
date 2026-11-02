@@ -46,3 +46,4 @@ when the decision is made, so the reason survives the people who made it.
 | [0033](0033-one-way-to-the-model.md) | One way to the model: Converse, structured answers, checked | Accepted |
 | [0034](0034-tests-hold-responses-to-the-contract.md) | Tests hold every response to the contract | Accepted |
 | [0035](0035-server-data-through-tanstack-query.md) | Server data through TanStack Query, keyed by circle | Accepted |
+| [0036](0036-events.md) | Events: a plan with details, shared with the people it's for | Accepted |

@@ -2620,7 +2620,7 @@ paths:
 
   /plans/rsvp:
     post:
-      summary: I'm in, or I can't, for someone's plan or free day (null takes it back)
+      summary: Going, maybe or can't, for a plan or event you can see, with a word and how many you bring (null takes it back)
       operationId: rsvpPlan
       tags: [Plans]
       requestBody:
@@ -2635,10 +2635,131 @@ paths:
                 answer:
                   type: string
                   nullable: true
-                  enum: [in, out, null]
+                  enum: [in, maybe, out, null]
+                note: { type: string, maxLength: 200 }
+                guests: { type: integer, minimum: 0, maximum: 20 }
       responses:
         "200": { description: Saved }
-        "404": { description: No such plan }
+        "404": { description: "No such plan, or not one you're invited to" }
+        "409": { description: The event is cancelled }
+
+  /plans/events:
+    get:
+      summary: One event as the caller sees it — who's invited here, everyone's answers here, counts from its other circles
+      operationId: getEvent
+      tags: [Events]
+      parameters:
+        - { name: id, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: The event
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [event]
+                properties:
+                  event: { $ref: "#/components/schemas/EventView" }
+        "403": { description: Events are turned off here (Settings › Features › Events) }
+        "404": { description: "No such event, or not one you're invited to" }
+    post:
+      summary: Make an event (docs/decisions/0036) — anyone in the circle; no audience means the whole circle
+      operationId: createEvent
+      tags: [Events]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EventInput" }
+      responses:
+        "201":
+          description: The event as saved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [event]
+                properties:
+                  event: { $ref: "#/components/schemas/Drop" }
+        "400": { description: What's wrong with it }
+        "403": { description: "Events are turned off here, or an audience circle the caller isn't in" }
+    put:
+      summary: Change an event (its creator, or an admin of the circle it was made in) — the fields sent replace the event's; cancelled true cancels it
+      operationId: updateEvent
+      tags: [Events]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - { $ref: "#/components/schemas/EventInput" }
+                - type: object
+                  required: [id]
+                  properties:
+                    id: { type: string }
+      responses:
+        "200":
+          description: The event as saved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [event]
+                properties:
+                  event: { $ref: "#/components/schemas/Drop" }
+        "400": { description: What's wrong with it }
+        "403": { description: "Events are turned off, not yours to change, or an audience circle the caller isn't in" }
+        "404": { description: No such event }
+
+  /plans/events/audience:
+    get:
+      summary: The circles the caller can share an event with, and the people in each (as that circle names them)
+      operationId: getEventAudience
+      tags: [Events]
+      responses:
+        "200":
+          description: The caller's circles, this one first
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [circles]
+                properties:
+                  circles:
+                    type: array
+                    items:
+                      type: object
+                      required: [circleId, name, me, people]
+                      properties:
+                        circleId: { type: string }
+                        name: { type: string }
+                        me: { type: string, description: The caller's id in that circle }
+                        people:
+                          type: array
+                          items:
+                            type: object
+                            required: [id, name]
+                            properties:
+                              id: { type: string }
+                              name: { type: string }
+        "403": { description: Events are turned off here }
+
+  /plans/events/ics:
+    get:
+      summary: One event as a calendar file (RFC 5545), its weekly rule and skipped days included
+      operationId: getEventIcs
+      tags: [Events]
+      parameters:
+        - { name: id, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: The calendar file
+          content:
+            text/calendar:
+              schema: { type: string }
+        "403": { description: Events are turned off here (Settings › Features › Events) }
+        "404": { description: "No such event, or not one you're invited to" }
 
   /remember:
     get:
@@ -5691,21 +5812,111 @@ components:
 
     Drop:
       type: object
+      description: Something dropped into Plans; an event is a plan with details (docs/decisions/0036)
       required: [id, by, kind, title, start, createdAt]
       properties:
         id: { type: string }
-        by: { type: string }
+        by: { type: string, description: "Who made it, as this circle names them" }
         kind: { type: string, enum: [busy, free, plan] }
         title: { type: string }
         start: { type: string, description: YYYY-MM-DD }
         end: { type: string }
         part: { type: string, enum: [morning, afternoon, evening, all-day] }
-        weekly:
-          type: object
-          properties:
-            until: { type: string }
+        weekly: { $ref: "#/components/schemas/Weekly" }
         said: { type: string }
         createdAt: { type: string }
+        time: { $ref: "#/components/schemas/EventTime" }
+        zone: { type: string, description: IANA time zone of time }
+        place: { type: string }
+        details: { type: string }
+        audience: { type: array, items: { $ref: "#/components/schemas/AudienceCircle" } }
+        skip: { type: array, items: { type: string } }
+        cancelled: { type: boolean }
+        updatedAt: { type: string }
+        from:
+          type: object
+          description: Set on an event shared in from another circle
+          required: [circleId, name]
+          properties:
+            circleId: { type: string }
+            name: { type: string }
+
+    Weekly:
+      type: object
+      description: RRULE FREQ=WEEKLY — BYDAY, INTERVAL, UNTIL, COUNT; with neither until nor count it keeps going
+      properties:
+        days: { type: array, items: { type: string, enum: [MO, TU, WE, TH, FR, SA, SU] } }
+        every: { type: integer, minimum: 1, maximum: 4 }
+        until: { type: string, description: YYYY-MM-DD }
+        count: { type: integer, minimum: 1, maximum: 520 }
+
+    EventTime:
+      type: object
+      required: [start]
+      properties:
+        start: { type: string, pattern: "^([01][0-9]|2[0-3]):[0-5][0-9]$" }
+        end: { type: string, pattern: "^([01][0-9]|2[0-3]):[0-5][0-9]$" }
+
+    AudienceCircle:
+      type: object
+      description: All of a circle, or the chosen people in it (their ids in that circle)
+      required: [circleId]
+      properties:
+        circleId: { type: string }
+        people: { type: array, minItems: 1, items: { type: string } }
+
+    EventInput:
+      type: object
+      required: [title, start]
+      properties:
+        title: { type: string, maxLength: 80 }
+        start: { type: string, description: "YYYY-MM-DD; moves to the first day the weekly days allow" }
+        end: { type: string, description: "Last day, for an event over several days" }
+        time: { $ref: "#/components/schemas/EventTime" }
+        zone: { type: string, description: "IANA time zone; America/New_York when left out" }
+        place: { type: string, maxLength: 200 }
+        details: { type: string, maxLength: 2000 }
+        weekly: { $ref: "#/components/schemas/Weekly" }
+        skip: { type: array, maxItems: 200, items: { type: string } }
+        audience:
+          type: array
+          minItems: 1
+          maxItems: 10
+          description: Left out, the whole circle it's made in
+          items: { $ref: "#/components/schemas/AudienceCircle" }
+        cancelled: { type: boolean }
+
+    RsvpEntry:
+      type: object
+      required: [answer, at]
+      properties:
+        answer: { type: string, enum: [in, maybe, out] }
+        note: { type: string }
+        guests: { type: integer }
+        at: { type: string }
+
+    EventView:
+      type: object
+      required: [event, invited, rsvps, elsewhere, canEdit]
+      properties:
+        event: { $ref: "#/components/schemas/Drop" }
+        invited: { type: array, items: { type: string }, description: Who in this circle it's for }
+        rsvps:
+          type: object
+          additionalProperties: { $ref: "#/components/schemas/RsvpEntry" }
+        elsewhere:
+          type: array
+          description: Its other circles' answers, as counts
+          items:
+            type: object
+            required: [name, in, maybe, out, guests]
+            properties:
+              name: { type: string }
+              in: { type: integer }
+              maybe: { type: integer }
+              out: { type: integer }
+              guests: { type: integer }
+        canEdit: { type: boolean }
 
     PlansView:
       type: object
@@ -5729,9 +5940,7 @@ components:
           type: object
           additionalProperties:
             type: object
-            additionalProperties:
-              type: string
-              enum: [in, out]
+            additionalProperties: { $ref: "#/components/schemas/RsvpEntry" }
         best:
           type: array
           items: { type: string }
@@ -7117,7 +7326,7 @@ components:
 
     CommentContentType:
       type: string
-      enum: [fact, trivia, album, arcade, memorial]
+      enum: [fact, trivia, album, arcade, memorial, event]
 
     CommentThread:
       type: object

@@ -13,13 +13,17 @@ export type ApiPath = keyof paths;
 
 type Operation<P extends ApiPath, M extends Method> = paths[P][M];
 
-/** What the route answers with a 200. */
+/** What the route answers when it works: its 200, or its 201 for a route that makes something. */
 export type ResponseOf<P extends ApiPath, M extends Method = 'get'> =
   Operation<P, M> extends {
     responses: { 200: { content: { 'application/json': infer T } } };
   }
     ? T
-    : never;
+    : Operation<P, M> extends {
+          responses: { 201: { content: { 'application/json': infer T } } };
+        }
+      ? T
+      : never;
 
 /** What the route takes as its JSON body. */
 export type BodyOf<P extends ApiPath, M extends Method> =

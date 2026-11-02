@@ -19,7 +19,7 @@ import { DailyFactCard } from './features/daily-question';
 import { DailyFactSummary } from './features/fact-summary';
 import { FamilyFeud } from './features/family-feud';
 import { InstallCard } from './features/install-app';
-import { AfterCard, PlansCard } from './features/plans';
+import { AfterCard, EventsPage, PlansCard } from './features/plans';
 import { inJoinedCircle, SharingCard } from './features/shared-answers';
 import { TeamsCard } from './features/teams';
 import { ThreadCard } from './features/threads';
@@ -112,6 +112,11 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
     if (currentPath === ROUTES.FAMILY && !familyMounted) setFamilyMounted(true);
     if (currentPath === ROUTES.ARCADE && !arcadeMounted) setArcadeMounted(true);
   }, [currentPath, leaderboardMounted, familyMounted, arcadeMounted]);
+
+  // Events turned off in Settings: the tab is gone, so a link to it lands on Home.
+  React.useEffect(() => {
+    if (currentPath === ROUTES.EVENTS && !features.events) navigateTo(ROUTES.HOME);
+  }, [currentPath, features.events, navigateTo]);
 
   // A season without trivia has nothing to play: a link or a refresh on Play
   // lands on the results instead.
@@ -220,7 +225,7 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
 
       {/* What's on: plans keep running between seasons (0026) */}
       <Safe label="what's on">
-        <PlansCard me={user} nameOf={nameOf} />
+        <PlansCard me={user} nameOf={nameOf} events={features.events} />
       </Safe>
 
       {/* A page from our past, every day */}
@@ -433,6 +438,13 @@ const App: React.FC<AppProps> = ({ onUserChange, onAuthChange }) => {
                         <React.Suspense fallback={null}>{FamilyPage}</React.Suspense>
                       </Safe>
                     </Box>
+                  )}
+
+                  {/* Events Tab, while the circle has events on (0036) */}
+                  {currentPath === ROUTES.EVENTS && features.events && (
+                    <Safe label="Events">
+                      <EventsPage me={user} nameOf={nameOf} />
+                    </Safe>
                   )}
 
                   {/* Arcade Tab — lazy-mounted on first visit, kept mounted after */}

@@ -20,6 +20,17 @@ const drops: Drop[] = [
   drop({ id: 'dave-1', by: 'dave', kind: 'free', title: 'Free all day', start: day(5) }),
   drop({ id: 'alice-1', by: 'alice', kind: 'busy', title: 'Choir', start: day(2), weekly: {} }),
   drop({
+    id: 'carol-2',
+    by: 'carol',
+    kind: 'plan',
+    title: 'Gymnastics',
+    start: day(1),
+    time: { start: '17:30', end: '18:30' },
+    zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    place: 'Springfield Gym',
+    weekly: {},
+  }),
+  drop({
     id: 'dave-2',
     by: 'dave',
     kind: 'plan',
@@ -32,7 +43,10 @@ const view = plansView(
   'alice',
   Object.keys(names),
   drops,
-  { 'carol-1': { bob: 'in', dave: 'in' } },
+  {
+    'carol-1': { bob: { answer: 'in', at: today }, dave: { answer: 'in', at: today } },
+    'carol-2': { bob: { answer: 'maybe', at: today } },
+  },
   today,
   addDays(today, 55),
 );
@@ -47,6 +61,8 @@ const meta: Meta<typeof PlansCardView> = {
     onDropIn: fn(async () => []),
     onRemove: fn(async () => undefined),
     onRsvp: fn(async () => undefined),
+    onOpen: fn(),
+    onNew: fn(),
   },
   parameters: { layout: 'padded' },
 };
@@ -55,6 +71,21 @@ type Story = StoryObj<typeof PlansCardView>;
 
 /** The next two weeks; the best day is picked to start. */
 export const TheWeeksAhead: Story = {};
+
+/** An event on the day: its time and place on the row; tap it for its page. */
+export const AnEvent: Story = {
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const tomorrow = new Date(`${day(1)}T12:00:00`).toLocaleDateString(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+    await userEvent.click(canvas.getByRole('button', { name: tomorrow }));
+    await userEvent.click(await canvas.findByRole('button', { name: 'Gymnastics, details' }));
+    await expect(args.onOpen).toHaveBeenCalledWith('carol-2', day(1));
+  },
+};
 
 /** Nothing on yet: the box is the whole ask. */
 export const NothingYet: Story = {

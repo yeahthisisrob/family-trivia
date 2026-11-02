@@ -26,7 +26,9 @@ test('a comment is the caller’s, whatever the body says', async () => {
   expect(r.status).toBe(201);
   expect(r.data.comment).toMatchObject({ userId: 'bob', text: 'so true' });
 
-  const { thread } = data(await getComments(query({ contentType: 'fact', contentId: fact })));
+  const { thread } = data(
+    await getComments(query({ contentType: 'fact', contentId: fact }), 'bob'),
+  );
   expect(thread.comments.map((c: { userId: string }) => c.userId)).toEqual(['bob']);
 });
 
@@ -49,7 +51,7 @@ test('turns away empty, oversized, unknown and path-like input', async () => {
 test('counts and the last three commenters, newest first', async () => {
   for (const who of ['bob', 'carol', 'bob', 'dee', 'eve'])
     await post({ contentType: 'fact', contentId: fact, text: 'hi' }, who);
-  const r = data(await getCounts(query({ contentType: 'fact', ids: `${fact},nobody_1` })));
+  const r = data(await getCounts(query({ contentType: 'fact', ids: `${fact},nobody_1` }), 'bob'));
   expect(r.counts).toEqual({ [fact]: 5, nobody_1: 0 });
   expect(r.commenters[fact]).toEqual(['eve', 'dee', 'bob']);
 });

@@ -10,8 +10,8 @@ import { callApi, type ResponseOf } from '../../../shared/api/contract';
 import { useCircleMutation, useCircleQuery } from '../../../shared/api/query';
 
 export type AdminSettings = ResponseOf<'/admin/settings'>;
-export type Features = { photos: boolean; familyFeud: boolean; arcade: boolean };
-const ALL_ON: Features = { photos: true, familyFeud: true, arcade: true };
+export type Features = { photos: boolean; familyFeud: boolean; arcade: boolean; events: boolean };
+const ALL_ON: Features = { photos: true, familyFeud: true, arcade: true, events: true };
 
 const SETTINGS = ['settings'] as const;
 const FEATURES = [...SETTINGS, 'features'] as const;

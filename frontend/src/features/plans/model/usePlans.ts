@@ -1,9 +1,12 @@
 import type { AfterPlan, Rsvp } from '@family-trivia/shared';
 import { useCircleMutation, useCircleQuery } from '../../../shared/api/query';
-import { plansApi } from '../api/plansApi';
+import { type EventInput, plansApi, type RsvpBody } from '../api/plansApi';
 
-const VIEW = ['plans', 'view'] as const;
-const AFTER = ['plans', 'after'] as const;
+const PLANS = ['plans'] as const;
+const VIEW = [...PLANS, 'view'] as const;
+const AFTER = [...PLANS, 'after'] as const;
+const EVENT = [...PLANS, 'event'] as const;
+const AUDIENCE = [...PLANS, 'audience'] as const;
 
 /** The weeks ahead, and the three things people do with them. */
 export function usePlans() {
@@ -17,20 +20,55 @@ export function usePlans() {
     mutationFn: (id: string) => plansApi.remove(id),
     invalidates: [VIEW],
   });
-  const rsvp = useCircleMutation({
-    mutationFn: ({ id, answer }: { id: string; answer: Rsvp | null }) => plansApi.rsvp(id, answer),
-    invalidates: [VIEW],
-  });
+  const rsvp = useRsvp();
   return {
     view: view.data ?? null,
     dropIn: async (text: string) => (await dropIn.mutateAsync(text)).added,
     remove: async (id: string) => {
       await remove.mutateAsync(id);
     },
-    rsvp: async (id: string, answer: Rsvp | null) => {
-      await rsvp.mutateAsync({ id, answer });
-    },
+    rsvp: (id: string, answer: Rsvp | null) => rsvp({ id, answer }),
   };
+}
+
+/** Answer a plan or event; the weeks ahead and the event's page both ask again. */
+export function useRsvp() {
+  const rsvp = useCircleMutation({
+    mutationFn: (body: RsvpBody) => plansApi.rsvp(body),
+    invalidates: [VIEW, EVENT],
+  });
+  return async (body: RsvpBody) => {
+    await rsvp.mutateAsync(body);
+  };
+}
+
+/** One event as the caller sees it: who's invited, the answers, whether they can change it. */
+export const useEvent = (id: string | null) =>
+  useCircleQuery({
+    key: [...EVENT, id],
+    path: '/plans/events',
+    query: { id: id ?? '' },
+    enabled: !!id,
+    select: (r) => r.event,
+  });
+
+/** The circles the caller can share with, and who's in each (for the form). */
+export const useAudience = (enabled: boolean) =>
+  useCircleQuery({
+    key: AUDIENCE,
+    path: '/plans/events/audience',
+    enabled,
+    select: (r) => r.circles,
+  });
+
+/** Make an event, or change one (with its id); resolves with it once the weeks ahead have it. */
+export function useSaveEvent() {
+  const save = useCircleMutation({
+    mutationFn: ({ id, input }: { id?: string; input: EventInput }) =>
+      id ? plansApi.updateEvent(id, input) : plansApi.createEvent(input),
+    invalidates: [VIEW, EVENT],
+  });
+  return (input: EventInput, id?: string) => save.mutateAsync({ id, input });
 }
 
 /** Plans that just happened, asking how they went; the server answers each change with the list. */

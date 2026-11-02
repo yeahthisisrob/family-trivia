@@ -3,6 +3,7 @@
  * download of more than one image is always one zip.
  */
 import { zipSync } from 'fflate';
+import { saveFile as save } from '../lib/saveFile';
 
 /** Whether this browser can hand image files to a share sheet. */
 export const canShareImages = () =>
@@ -34,12 +35,4 @@ export async function saveImages(files: File[], name: string): Promise<void> {
   // PNGs are already compressed; storing them is as small and much faster.
   const zip = zipSync(entries, { level: 0 });
   save(new Blob([zip.slice()], { type: 'application/zip' }), `${name}.zip`);
-}
-
-function save(blob: Blob, name: string) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
 }
