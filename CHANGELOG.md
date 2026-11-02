@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.2](https://github.com/yeahthisisrob/family-trivia/compare/v0.2.1...v0.2.2) (2026-11-02)
+
+
+### Features
+
+* events as a calendar, one-sheet editor, attendance chips, add in a sentence (0037) ([#140](https://github.com/yeahthisisrob/family-trivia/issues/140)) ([4fd0a96](https://github.com/yeahthisisrob/family-trivia/commit/4fd0a96f11dad9b93efeef548049a513703b11fa))
+* events, a plan with details shared with the people it's for (0036) ([#137](https://github.com/yeahthisisrob/family-trivia/issues/137)) ([2fe51ed](https://github.com/yeahthisisrob/family-trivia/commit/2fe51ed687dc602587447c616476c504a596d919))
+
+
+### Bug Fixes
+
+* **infra:** ship pdfkit as a real module so the API starts ([#139](https://github.com/yeahthisisrob/family-trivia/issues/139)) ([059d71e](https://github.com/yeahthisisrob/family-trivia/commit/059d71eec6fb089103e2d217edf908b0cbf1945d))
+
 ## [0.2.1](https://github.com/yeahthisisrob/family-trivia/compare/v0.2.0...v0.2.1) (2026-10-29)
 
 
