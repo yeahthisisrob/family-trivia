@@ -45,8 +45,8 @@ describe('plans', () => {
     expect(bobSees.drops[0]?.title).toBe('Busy');
     expect((await viewPlans('alice')).drops[0]?.title).toBe('Dentist');
 
-    expect(await removeDrop('bob', added?.id as string)).toBe(false);
-    expect(await removeDrop('alice', added?.id as string)).toBe(true);
+    expect(await removeDrop('bob', added?.id as string)).toBeNull();
+    expect(await removeDrop('alice', added?.id as string)).toMatchObject({ title: 'Dentist' });
     expect((await viewPlans('alice')).drops).toEqual([]);
   });
 
@@ -56,9 +56,11 @@ describe('plans', () => {
       { kind: 'busy', title: 'Work trip', start: day(6) },
     ];
     const [hike, trip] = await dropIn('bob', 'hike saturday, who is in? away sunday');
-    expect(await answerPlan('alice', hike?.id as string, 'in')).toBe(true);
-    expect(await answerPlan('alice', trip?.id as string, 'in')).toBe(false);
-    expect((await viewPlans('bob')).rsvps[hike?.id as string]).toEqual({ alice: 'in' });
+    expect(await answerPlan('alice', hike?.id as string, { answer: 'in' })).toBe('saved');
+    expect(await answerPlan('alice', trip?.id as string, { answer: 'in' })).toBe('missing');
+    expect((await viewPlans('bob')).rsvps[hike?.id as string]).toEqual({
+      alice: { answer: 'in', at: expect.any(String) },
+    });
   });
 
   test("nothing in the past, nothing the AI made up that isn't a day", async () => {
@@ -77,7 +79,7 @@ describe('after the day', () => {
         { id: 'bob-hike', by: 'bob', kind: 'plan', title: 'Hike', start: day(-2), createdAt: 'x' },
       ],
     });
-    seedRaw('plans/rsvp/bob-hike.json', { alice: 'in' });
+    seedRaw('plans/rsvp/bob-hike.json', { alice: { answer: 'in', at: 'x' } });
     seedRaw('family/family.json', {
       version: 2,
       name: 'The Crew',
@@ -105,7 +107,7 @@ describe('after the day', () => {
         { id: 'bob-hike', by: 'bob', kind: 'plan', title: 'Hike', start: day(-2), createdAt: 'x' },
       ],
     });
-    seedRaw('plans/rsvp/bob-hike.json', { alice: 'in' });
+    seedRaw('plans/rsvp/bob-hike.json', { alice: { answer: 'in', at: 'x' } });
     seedRaw('family/family.json', {
       version: 2,
       name: 'The Crew',

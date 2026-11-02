@@ -28,7 +28,7 @@
       "story": "appshell-appheader--in-several-circles",
       "size": "phone",
       "height": 300,
-      "source": "564cb2137323",
+      "source": "8feba09664ee",
       "storyFile": "frontend/src/components/AppShell/AppHeader.stories.tsx"
     },
     {
@@ -134,7 +134,7 @@
       "story": "home-planscard--the-weeks-ahead",
       "size": "phone",
       "storyFile": "frontend/src/features/plans/ui/PlansCard.stories.tsx",
-      "source": "7be8f1dcdf18"
+      "source": "30516683b1d1"
     },
     {
       "file": "podium.png",

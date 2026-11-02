@@ -35,6 +35,14 @@ export const SETTINGS: readonly SettingDefinition[] = [
     default: true,
   },
   {
+    key: 'features.events',
+    section: 'features',
+    type: 'boolean',
+    label: 'Events',
+    help: 'Events with a time and place, shared with chosen people or circles, in their own tab.',
+    default: true,
+  },
+  {
     key: 'features.familyFeud',
     section: 'features',
     type: 'boolean',

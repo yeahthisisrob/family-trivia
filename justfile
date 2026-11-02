@@ -151,6 +151,15 @@ screenshots *only:
     {{x}} pnpm --filter @family-trivia/web run build-storybook
     {{x}} node scripts/screenshots.mjs {{only}}
 
+# ── data ───────────────────────────────────────────────────────────────────
+
+# Answers to plans in the shape 0036 gives them, in every circle. Dry run
+# unless --apply (which backs up the whole bucket first). Set BUCKET_NAME and
+# BACKUP_BUCKET_NAME for the stack you mean (backend/.env.local by default).
+[group('data')]
+migrate-rsvps *args:
+    cd backend && {{x}} pnpm exec tsx --env-file-if-exists=.env.local scripts/migrate-rsvps.ts {{args}}
+
 # ── infra ──────────────────────────────────────────────────────────────────
 
 # CloudFormation diff

@@ -5,8 +5,10 @@
  *   - fact/trivia: existing timeline items keyed by `${userId}_${timestamp}`
  *   - album: photo album entries keyed by album id (`alb_...`)
  *   - arcade: arcade games keyed by game id (the game's folder name)
+ *   - memorial: someone remembered, keyed by person id
+ *   - event: an event, keyed by its id; only its audience (docs/decisions/0036)
  */
-export type CommentContentType = 'fact' | 'trivia' | 'album' | 'arcade' | 'memorial';
+export type CommentContentType = 'fact' | 'trivia' | 'album' | 'arcade' | 'memorial' | 'event';
 
 /** A single comment on any content item */
 export interface Comment {

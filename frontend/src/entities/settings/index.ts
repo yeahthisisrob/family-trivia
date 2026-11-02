@@ -2,6 +2,7 @@
 export {
   type AdminSettings,
   BACKUPS,
+  type Features,
   useAdminSettings,
   useCheckModels,
   useFeatures,
