@@ -48,7 +48,7 @@
     "@storybook/addon-docs": "^10.6.7",
     "@storybook/addon-vitest": "^10.6.7",
     "@storybook/react-vite": "^10.6.7",
-    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/jest-dom": "^8.0.0",
     "@types/matter-js": "^0.20.2",
     "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",
