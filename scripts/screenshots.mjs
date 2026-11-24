@@ -10,29 +10,19 @@
 //
 // Needs a built Storybook (the recipe builds it) and Playwright's Chromium.
 
-import { createReadStream, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
-import http from 'node:http';
-import { extname, join, resolve } from 'node:path';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { chromium } from 'playwright';
-import { MANIFEST, OUT_DIR, SIZES, sourceHash } from './screenshots-lib.mjs';
+import {
+  MANIFEST,
+  OUT_DIR,
+  SIZES,
+  STORYBOOK_DIR,
+  sourceHash,
+  storybookServer,
+} from './screenshots-lib.mjs';
 
-const ROOT = resolve(import.meta.dirname, '..');
-const STORYBOOK_DIR = join(ROOT, 'frontend/storybook-static');
 const PORT = 6007;
-const MIME = {
-  '.html': 'text/html',
-  '.js': 'text/javascript',
-  '.mjs': 'text/javascript',
-  '.css': 'text/css',
-  '.json': 'application/json',
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.woff': 'font/woff',
-  '.woff2': 'font/woff2',
-  '.ttf': 'font/ttf',
-  '.ico': 'image/x-icon',
-};
 
 /** A phone picture is cropped to what the story drew, with a little room around it. */
 async function fitted(page) {
@@ -59,18 +49,7 @@ const shots = manifest.shots.filter((s) => !only || s.file.startsWith(only));
 for (const s of shots) if (!index[s.story]) throw new Error(`${s.file}: no story "${s.story}"`);
 
 mkdirSync(OUT_DIR, { recursive: true });
-const server = http.createServer((req, res) => {
-  const url = decodeURIComponent((req.url ?? '/').split('?')[0]);
-  const path = join(STORYBOOK_DIR, url === '/' ? '/index.html' : url);
-  try {
-    statSync(path);
-    res.setHeader('Content-Type', MIME[extname(path)] ?? 'application/octet-stream');
-    createReadStream(path).pipe(res);
-  } catch {
-    res.statusCode = 404;
-    res.end();
-  }
-});
+const server = storybookServer();
 
 server.listen(PORT, async () => {
   const browser = await chromium.launch();
