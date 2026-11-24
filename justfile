@@ -151,6 +151,13 @@ screenshots *only:
     {{x}} pnpm --filter @family-trivia/web run build-storybook
     {{x}} node scripts/screenshots.mjs {{only}}
 
+# Film a promo video's stills from the stories, at a phone's width:
+# `just promo-shots <stills dir> <manifest.json> [scene ids...]`
+[group('build')]
+promo-shots +args:
+    {{x}} pnpm --filter @family-trivia/web run build-storybook
+    {{x}} node scripts/promo-shots.mjs {{args}}
+
 # ── data ───────────────────────────────────────────────────────────────────
 
 # Answers to plans in the shape 0036 gives them, in every circle. Dry run
