@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.3](https://github.com/yeahthisisrob/family-trivia/compare/v0.2.2...v0.2.3) (2026-11-24)
+
+
+### Features
+
+* **scripts:** film a promo video's stills from the stories ([#157](https://github.com/yeahthisisrob/family-trivia/issues/157)) ([dd59361](https://github.com/yeahthisisrob/family-trivia/commit/dd59361801424210551996f578f3a34d488ff48f))
+
+
+### Documentation
+
+* **readme:** the in-memory note ends on what it can do for another family ([#158](https://github.com/yeahthisisrob/family-trivia/issues/158)) ([8f2091d](https://github.com/yeahthisisrob/family-trivia/commit/8f2091d49d06ad8d8dd7f2a4e6266a858c49f216))
+
 ## [0.2.2](https://github.com/yeahthisisrob/family-trivia/compare/v0.2.1...v0.2.2) (2026-11-19)
 
 
