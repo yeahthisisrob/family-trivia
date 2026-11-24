@@ -25,3 +25,10 @@ minimumReleaseAgeExclude:
   - '@vitest/utils@5.0.5'
   - framer-motion@14.3.0
   - motion-dom@14.3.0
+
+# Patched versions of two build-time packages whose parents still ask for the
+# older major (GHSA alerts on glob 13 and minimatch 10). Drop each line when
+# Storybook's docgen plugin asks for the fixed major itself.
+overrides:
+  'glob@>=9.0.0 <=14.0.1': ^14.0.2
+  'minimatch@>=7.0.0 <11.0.1': ^11.0.1
