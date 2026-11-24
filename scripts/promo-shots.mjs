@@ -8,35 +8,20 @@
 //
 // Nothing here reads a deployment: stories only.
 
-import { createReadStream, mkdirSync, statSync, writeFileSync } from 'node:fs';
-import http from 'node:http';
-import { extname, join, resolve } from 'node:path';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { chromium } from 'playwright';
+import { storybookServer } from './screenshots-lib.mjs';
 
 const [outDir, manifestPath, ...only] = process.argv.slice(2);
 if (!outDir || !manifestPath) {
   console.error('usage: node scripts/promo-shots.mjs <stills dir> <manifest.json> [scene ids...]');
   process.exit(1);
 }
-const STORYBOOK_DIR = resolve(import.meta.dirname, '../frontend/storybook-static');
 const PORT = 6008;
 const PHONE = { width: 400, height: 540 };
 const TALLEST = 1500;
 const SETTLE_MS = 1500;
-const MIME = {
-  '.html': 'text/html',
-  '.js': 'text/javascript',
-  '.mjs': 'text/javascript',
-  '.css': 'text/css',
-  '.json': 'application/json',
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.woff': 'font/woff',
-  '.woff2': 'font/woff2',
-  '.ttf': 'font/ttf',
-  '.ico': 'image/x-icon',
-};
 
 const ANSWER = "Sunday dinner at Grandma's, with everyone at one long table.";
 
@@ -125,18 +110,7 @@ async function film(browser, scene) {
   return { id: scene.id, story: scene.story, scheme, shots };
 }
 
-const server = http.createServer((req, res) => {
-  const url = decodeURIComponent((req.url ?? '/').split('?')[0]);
-  const path = join(STORYBOOK_DIR, url === '/' ? '/index.html' : url);
-  try {
-    statSync(path);
-    res.setHeader('Content-Type', MIME[extname(path)] ?? 'application/octet-stream');
-    createReadStream(path).pipe(res);
-  } catch {
-    res.statusCode = 404;
-    res.end();
-  }
-});
+const server = storybookServer();
 
 mkdirSync(outDir, { recursive: true });
 server.listen(PORT, async () => {
