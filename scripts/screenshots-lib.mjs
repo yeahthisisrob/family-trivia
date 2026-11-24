@@ -5,7 +5,7 @@
 import { createHash } from 'node:crypto';
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import http from 'node:http';
-import { extname, join, resolve } from 'node:path';
+import { extname, join, resolve, sep } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
 export const OUT_DIR = join(ROOT, 'docs/screenshots');
@@ -52,8 +52,10 @@ const MIME = {
 export function storybookServer() {
   return http.createServer((req, res) => {
     const url = decodeURIComponent((req.url ?? '/').split('?')[0]);
-    const path = join(STORYBOOK_DIR, url === '/' ? '/index.html' : url);
+    // only files inside the built Storybook are served, whatever the URL asks for
+    const path = resolve(STORYBOOK_DIR, `.${url === '/' ? '/index.html' : url}`);
     try {
+      if (!path.startsWith(STORYBOOK_DIR + sep)) throw new Error('outside the Storybook');
       statSync(path);
       res.setHeader('Content-Type', MIME[extname(path)] ?? 'application/octet-stream');
       createReadStream(path).pipe(res);
